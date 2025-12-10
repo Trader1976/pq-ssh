@@ -9,6 +9,7 @@ class QPlainTextEdit;
 class QPushButton;
 class QLineEdit;
 class QLabel;
+class QCheckBox; 
 
 class MainWindow : public QMainWindow
 {
@@ -49,6 +50,7 @@ private:
     QProcess       *m_sshProcess  = nullptr;
     QLabel         *m_pqStatusLabel = nullptr;
     bool            m_pqActive      = false;
+    QCheckBox      *m_pqDebugCheck  = nullptr;
 
 };
 

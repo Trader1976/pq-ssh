@@ -15,6 +15,7 @@
 #include <QFontDatabase>
 #include <QDateTime>
 #include <QProcess>
+#include <QCheckBox> 
 
 // ------------------------
 // Dark theme stylesheet
@@ -220,8 +221,7 @@ void MainWindow::setupUi()
     // --- Status label at bottom ---
     m_statusLabel = new QLabel("Ready.", rightWidget);
     m_statusLabel->setStyleSheet("color: gray;");
-
-    // --- Bottom bar: status (left) + PQ indicator (right) ---
+    // --- Bottom bar: status (left) + PQ indicator + debug toggle (right) ---
     auto *bottomBar = new QWidget(rightWidget);
     auto *bottomLayout = new QHBoxLayout(bottomBar);
     bottomLayout->setContentsMargins(0, 0, 0, 0);
@@ -233,9 +233,15 @@ void MainWindow::setupUi()
     m_pqStatusLabel = new QLabel("PQ: unknown", bottomBar);
     m_pqStatusLabel->setStyleSheet("color: #888; font-weight: bold;");
 
-    bottomLayout->addWidget(m_statusLabel, 1);       // expands
-    bottomLayout->addWidget(m_pqStatusLabel, 0);     // hugs right
+    m_pqDebugCheck = new QCheckBox("PQ debug", bottomBar);  // ✅ NEW
+    m_pqDebugCheck->setChecked(true);  // default ON while we’re still playing
+    m_pqDebugCheck->setToolTip("Show verbose SSH output (-vv) to confirm PQ KEX");
+
+    bottomLayout->addWidget(m_statusLabel, 1);        // expands
+    bottomLayout->addWidget(m_pqStatusLabel, 0);
+    bottomLayout->addWidget(m_pqDebugCheck, 0);       // ✅ toggle on the far right
     bottomBar->setLayout(bottomLayout);
+
 
     rightLayout->addWidget(topBar);
     rightLayout->addWidget(m_terminal, 1);
@@ -411,18 +417,25 @@ void MainWindow::startSshProcess(const QString &target)
     m_disconnectBtn->setEnabled(false);
 
     m_pqActive = false;
-    updatePqStatusLabel("PQ: trying…", "#ffca28");
+
+    const bool debugEnabled = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
+
+    if (debugEnabled) {
+        updatePqStatusLabel("PQ: trying…", "#ffca28");              // yellow
+    } else {
+        updatePqStatusLabel("PQ: requested (no debug)", "#90caf9"); // blue-ish
+    }
 
     QString program = "ssh";
 
     QStringList args;
-    args << "-vv";   // ✅ show detailed KEX info in output
-    args << "-tt";  // force TTY allocation (better for interactive)
+    args << "-tt";
 
-    // Request hybrid PQ KEX, but *add* it to existing set (with '+'),
-    // so ssh can still negotiate something else if the server doesn't support it.
+    if (debugEnabled) {           // ✅ reuse the same variable here
+        args << "-vv";
+    }
+
     args << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
-
     args << target;
 
     const QString ts = QDateTime::currentDateTime().toString(Qt::ISODate);
@@ -436,9 +449,8 @@ void MainWindow::startSshProcess(const QString &target)
         m_connectBtn->setEnabled(true);
         m_disconnectBtn->setEnabled(false);
         return;
-}
+    }
 
-    // ✅ Session is starting – adjust UI
     m_connectBtn->setEnabled(false);
     m_disconnectBtn->setEnabled(true);
 
