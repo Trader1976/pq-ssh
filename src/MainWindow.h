@@ -34,6 +34,7 @@ private:
     void loadDummyProfiles();
     void startSshProcess(const QString &target);
     void appendTerminalLine(const QString &line);
+    void updatePqStatusLabel(const QString &text, const QString &colorHex);
 
     QListWidget    *m_profileList = nullptr;
     QPlainTextEdit *m_terminal    = nullptr;
@@ -46,6 +47,9 @@ private:
     QPushButton    *m_sendBtn     = nullptr;
 
     QProcess       *m_sshProcess  = nullptr;
+    QLabel         *m_pqStatusLabel = nullptr;
+    bool            m_pqActive      = false;
+
 };
 
 #endif // MAINWINDOW_H

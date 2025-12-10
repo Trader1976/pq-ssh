@@ -221,11 +221,28 @@ void MainWindow::setupUi()
     m_statusLabel = new QLabel("Ready.", rightWidget);
     m_statusLabel->setStyleSheet("color: gray;");
 
+    // --- Bottom bar: status (left) + PQ indicator (right) ---
+    auto *bottomBar = new QWidget(rightWidget);
+    auto *bottomLayout = new QHBoxLayout(bottomBar);
+    bottomLayout->setContentsMargins(0, 0, 0, 0);
+    bottomLayout->setSpacing(6);
+
+    m_statusLabel = new QLabel("Ready.", bottomBar);
+    m_statusLabel->setStyleSheet("color: gray;");
+
+    m_pqStatusLabel = new QLabel("PQ: unknown", bottomBar);
+    m_pqStatusLabel->setStyleSheet("color: #888; font-weight: bold;");
+
+    bottomLayout->addWidget(m_statusLabel, 1);       // expands
+    bottomLayout->addWidget(m_pqStatusLabel, 0);     // hugs right
+    bottomBar->setLayout(bottomLayout);
+
     rightLayout->addWidget(topBar);
     rightLayout->addWidget(m_terminal, 1);
     rightLayout->addWidget(inputBar);
-    rightLayout->addWidget(m_statusLabel);
+    rightLayout->addWidget(bottomBar);               // ✅ instead of m_statusLabel alone
     rightWidget->setLayout(rightLayout);
+
 
     splitter->addWidget(profilesWidget);
     splitter->addWidget(rightWidget);
@@ -286,6 +303,20 @@ void MainWindow::appendTerminalLine(const QString &line)
 {
     m_terminal->appendPlainText(line);
 }
+
+
+void MainWindow::updatePqStatusLabel(const QString &text, const QString &colorHex)
+{
+    if (!m_pqStatusLabel)
+        return;
+
+    m_pqStatusLabel->setText(text);
+    m_pqStatusLabel->setStyleSheet(
+        QString("color: %1; font-weight: bold;").arg(colorHex)
+    );
+}
+
+
 
 void MainWindow::onConnectClicked()
 {
@@ -377,11 +408,15 @@ void MainWindow::startSshProcess(const QString &target)
     // Clear old output
     m_terminal->clear();
     m_connectBtn->setEnabled(false);
-    m_disconnectBtn->setEnabled(false);  // will re-enable once started
+    m_disconnectBtn->setEnabled(false);
+
+    m_pqActive = false;
+    updatePqStatusLabel("PQ: trying…", "#ffca28");
 
     QString program = "ssh";
 
     QStringList args;
+    args << "-vv";   // ✅ show detailed KEX info in output
     args << "-tt";  // force TTY allocation (better for interactive)
 
     // Request hybrid PQ KEX, but *add* it to existing set (with '+'),
@@ -419,7 +454,22 @@ void MainWindow::handleSshReadyRead()
     if (data.isEmpty())
         return;
 
-    appendTerminalLine(QString::fromUtf8(data));
+    const QString text = QString::fromUtf8(data);
+    appendTerminalLine(text);
+
+    // Heuristic: detect when PQ KEX is actually negotiated
+    // (this line appears with -vv / -vvv enabled, but can appear in other cases too)
+    if (text.contains("kex: algorithm: sntrup761x25519-sha512@openssh.com")) {
+        m_pqActive = true;
+        updatePqStatusLabel("PQ: ACTIVE", "#4caf50");  // green
+    }
+
+    // Detect failures / fallback
+    if (text.contains("Unsupported KEX algorithm") ||
+        text.contains("no matching key exchange method")) {
+        m_pqActive = false;
+        updatePqStatusLabel("PQ: OFF", "#ff5252");     // red
+    }
 }
 
 void MainWindow::handleSshFinished(int exitCode, QProcess::ExitStatus status)
@@ -431,6 +481,12 @@ void MainWindow::handleSshFinished(int exitCode, QProcess::ExitStatus status)
     // ✅ Restore UI state
     m_connectBtn->setEnabled(true);
     m_disconnectBtn->setEnabled(false);
+
+    if (!m_pqActive) {
+        // Session ended without seeing PQ KEX line → unknown/fallback
+        updatePqStatusLabel("PQ: unknown", "#888888");
+    }
+
 }
 
 void MainWindow::handleSshError(QProcess::ProcessError error)
@@ -464,4 +520,6 @@ void MainWindow::handleSshError(QProcess::ProcessError error)
     // ✅ Ensure buttons restore
     m_connectBtn->setEnabled(true);
     m_disconnectBtn->setEnabled(false);
+    m_pqActive = false;
+    updatePqStatusLabel("PQ: OFF", "#ff5252");
 }
