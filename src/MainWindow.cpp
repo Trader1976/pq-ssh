@@ -15,7 +15,20 @@
 #include <QFontDatabase>
 #include <QDateTime>
 #include <QProcess>
-#include <QCheckBox> 
+#include <QCheckBox>
+#include <QFile>
+#include <QDir>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QCoreApplication>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QMessageBox>
+#include <QFormLayout>   // ✅ for QFormLayout
+#include <QSpinBox>      // ✅ for QSpinBox
 
 // ------------------------
 // Dark theme stylesheet
@@ -107,8 +120,63 @@ static QString darkStyleSheet()
             background-color: #141821;
             color: #888;
         }
+
     )";
 }
+
+QString MainWindow::profilesConfigPath() const
+{
+    // Profiles live inside the project directory now:
+    // pq-ssh/profiles/profiles.json
+
+    QString baseDir = QCoreApplication::applicationDirPath();
+
+    // If binary is in build/bin/, go up two levels to project root
+    QDir dir(baseDir);
+    dir.cdUp(); // bin -> build
+    dir.cdUp(); // build -> pq-ssh
+
+    QString profilesDir = dir.absolutePath() + "/profiles";
+
+    if (!QDir().exists(profilesDir)) {
+        QDir().mkpath(profilesDir);
+    }
+
+    return profilesDir + "/profiles.json";
+}
+
+
+void MainWindow::saveProfilesToDisk()
+{
+    QJsonArray arr;
+    for (const auto &prof : m_profiles) {
+        QJsonObject obj;
+        obj["name"]     = prof.name;
+        obj["user"]     = prof.user;
+        obj["host"]     = prof.host;
+        obj["port"]     = prof.port;
+        obj["pq_debug"] = prof.pqDebug;
+        arr.append(obj);
+    }
+
+    QJsonObject root;
+    root["profiles"] = arr;
+
+    QJsonDocument doc(root);
+
+    QFile f(profilesConfigPath());
+    if (f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        f.write(doc.toJson(QJsonDocument::Indented));
+        f.close();
+    } else {
+        appendTerminalLine("[ERROR] Could not write profiles.json");
+        if (m_statusLabel) {
+            m_statusLabel->setText("Failed to save profiles.json");
+        }
+    }
+}
+
+
 
 // ------------------------
 // MainWindow
@@ -124,7 +192,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     setupUi();
     setupMenus();
-    loadDummyProfiles();
+    loadProfiles();
 }
 
 MainWindow::~MainWindow()
@@ -157,8 +225,13 @@ void MainWindow::setupUi()
     m_profileList = new QListWidget(profilesWidget);
     m_profileList->setSelectionMode(QAbstractItemView::SingleSelection);
 
+    m_editProfilesBtn = new QPushButton("Edit profiles…", profilesWidget);   // ✅ NEW
+    m_editProfilesBtn->setToolTip("Open profiles.json in your default editor");
+
     profilesLayout->addWidget(profilesLabel);
-    profilesLayout->addWidget(m_profileList);
+    profilesLayout->addWidget(m_profileList, 1);
+    profilesLayout->addWidget(m_editProfilesBtn, 0);                          // ✅ NEW
+
     profilesWidget->setLayout(profilesLayout);
 
     // ============================
@@ -221,6 +294,8 @@ void MainWindow::setupUi()
     // --- Status label at bottom ---
     m_statusLabel = new QLabel("Ready.", rightWidget);
     m_statusLabel->setStyleSheet("color: gray;");
+
+    // --- Bottom bar: status (left) + PQ indicator + debug toggle (right) ---
     // --- Bottom bar: status (left) + PQ indicator + debug toggle (right) ---
     auto *bottomBar = new QWidget(rightWidget);
     auto *bottomLayout = new QHBoxLayout(bottomBar);
@@ -233,20 +308,19 @@ void MainWindow::setupUi()
     m_pqStatusLabel = new QLabel("PQ: unknown", bottomBar);
     m_pqStatusLabel->setStyleSheet("color: #888; font-weight: bold;");
 
-    m_pqDebugCheck = new QCheckBox("PQ debug", bottomBar);  // ✅ NEW
-    m_pqDebugCheck->setChecked(true);  // default ON while we’re still playing
+    m_pqDebugCheck = new QCheckBox("PQ debug", bottomBar);
+    m_pqDebugCheck->setChecked(true);  // default: ON while we’re still testing
     m_pqDebugCheck->setToolTip("Show verbose SSH output (-vv) to confirm PQ KEX");
 
-    bottomLayout->addWidget(m_statusLabel, 1);        // expands
+    bottomLayout->addWidget(m_statusLabel, 1);
     bottomLayout->addWidget(m_pqStatusLabel, 0);
-    bottomLayout->addWidget(m_pqDebugCheck, 0);       // ✅ toggle on the far right
+    bottomLayout->addWidget(m_pqDebugCheck, 0);
     bottomBar->setLayout(bottomLayout);
-
 
     rightLayout->addWidget(topBar);
     rightLayout->addWidget(m_terminal, 1);
     rightLayout->addWidget(inputBar);
-    rightLayout->addWidget(bottomBar);               // ✅ instead of m_statusLabel alone
+    rightLayout->addWidget(bottomBar);
     rightWidget->setLayout(rightLayout);
 
 
@@ -259,8 +333,14 @@ void MainWindow::setupUi()
     connect(m_connectBtn, &QPushButton::clicked,
             this, &MainWindow::onConnectClicked);
 
+    connect(m_disconnectBtn, &QPushButton::clicked,
+            this, &MainWindow::onDisconnectClicked);
+
     connect(m_profileList, &QListWidget::itemDoubleClicked,
             this, &MainWindow::onProfileDoubleClicked);
+
+    connect(m_profileList, &QListWidget::currentRowChanged,
+            this, &MainWindow::onProfileSelectionChanged);   // ✅ NEW
 
     connect(m_sendBtn, &QPushButton::clicked,
             this, &MainWindow::onSendInput);
@@ -268,8 +348,8 @@ void MainWindow::setupUi()
     connect(m_inputField, &QLineEdit::returnPressed,
             this, &MainWindow::onSendInput);
 
-    connect(m_disconnectBtn, &QPushButton::clicked,
-            this, &MainWindow::onDisconnectClicked);
+    connect(m_editProfilesBtn, &QPushButton::clicked,
+            this, &MainWindow::onEditProfilesClicked); 
 }
 
 void MainWindow::setupMenus()
@@ -287,23 +367,6 @@ void MainWindow::setupMenus()
     statusBar()->showMessage("CPUNK PQ-SSH prototype");
 }
 
-void MainWindow::loadDummyProfiles()
-{
-    QStringList demoProfiles = {
-        "timo@localhost",
-        "root@my-dht-node",
-        "cpunk@remote-gateway"
-    };
-
-    for (const auto &name : demoProfiles) {
-        m_profileList->addItem(name);
-    }
-
-    if (m_profileList->count() > 0) {
-        m_profileList->setCurrentRow(0);
-        m_hostField->setText(m_profileList->currentItem()->text());
-    }
-}
 
 void MainWindow::appendTerminalLine(const QString &line)
 {
@@ -340,14 +403,34 @@ void MainWindow::onConnectClicked()
     startSshProcess(target);
 }
 
+
+void MainWindow::onProfileSelectionChanged(int row)
+{
+    if (row < 0 || row >= m_profiles.size())
+        return;
+
+    const SshProfile &p = m_profiles[row];
+    m_hostField->setText(QString("%1@%2").arg(p.user, p.host));
+    if (m_pqDebugCheck)
+        m_pqDebugCheck->setChecked(p.pqDebug);
+}
+
 void MainWindow::onProfileDoubleClicked()
 {
-    auto *item = m_profileList->currentItem();
-    if (!item) return;
+    int row = m_profileList->currentRow();
+    if (row < 0 || row >= m_profiles.size())
+        return;
 
-    m_hostField->setText(item->text());
+    const SshProfile &p = m_profiles[row];
+    m_hostField->setText(QString("%1@%2").arg(p.user, p.host));
+    if (m_pqDebugCheck)
+        m_pqDebugCheck->setChecked(p.pqDebug);
+
     onConnectClicked();
 }
+
+
+
 
 void MainWindow::onSendInput()
 {
@@ -535,3 +618,309 @@ void MainWindow::handleSshError(QProcess::ProcessError error)
     m_pqActive = false;
     updatePqStatusLabel("PQ: OFF", "#ff5252");
 }
+
+
+void MainWindow::createDefaultProfiles()
+{
+    m_profiles.clear();
+
+    const QString user = qEnvironmentVariable("USER", "user");
+
+    SshProfile p;
+    p.name    = "Localhost";
+    p.user    = user;
+    p.host    = "localhost";
+    p.port    = 22;
+    p.pqDebug = true;
+
+    m_profiles.push_back(p);
+
+    // Also persist to disk so profiles/profiles.json exists
+    saveProfilesToDisk();
+}
+
+
+void MainWindow::onEditProfilesClicked()
+{
+    showProfilesEditor();
+}
+
+
+
+void MainWindow::loadProfiles()
+{
+    m_profiles.clear();
+    m_profileList->clear();
+
+    const QString path = profilesConfigPath();
+    QFile f(path);
+    if (f.exists() && f.open(QIODevice::ReadOnly)) {
+        const QByteArray data = f.readAll();
+        f.close();
+
+        QJsonParseError err;
+        QJsonDocument doc = QJsonDocument::fromJson(data, &err);
+        if (err.error == QJsonParseError::NoError && doc.isObject()) {
+            QJsonObject root = doc.object();
+            QJsonArray arr = root["profiles"].toArray();
+
+            for (const QJsonValue &val : arr) {
+                if (!val.isObject())
+                    continue;
+                QJsonObject obj = val.toObject();
+
+                SshProfile p;
+                p.name    = obj["name"].toString();
+                p.user    = obj["user"].toString();
+                p.host    = obj["host"].toString();
+                p.port    = obj["port"].toInt(22);
+                p.pqDebug = obj["pq_debug"].toBool(true);
+
+                if (p.user.isEmpty() || p.host.isEmpty())
+                    continue; // skip invalid entries
+
+                if (p.name.isEmpty())
+                    p.name = QString("%1@%2").arg(p.user, p.host);
+
+                m_profiles.push_back(p);
+            }
+        }
+    }
+
+    // If we ended up with nothing, create a default file
+    if (m_profiles.isEmpty()) {
+        createDefaultProfiles();
+    }
+
+    // Populate the list widget
+    m_profileList->clear();
+    for (const auto &p : m_profiles) {
+        m_profileList->addItem(p.name);
+    }
+
+    if (!m_profiles.isEmpty()) {
+        m_profileList->setCurrentRow(0);
+        const SshProfile &p = m_profiles[0];
+        m_hostField->setText(QString("%1@%2").arg(p.user, p.host));
+        if (m_pqDebugCheck)
+            m_pqDebugCheck->setChecked(p.pqDebug);
+    }
+}
+
+
+void MainWindow::showProfilesEditor()
+{
+    // Work on a local copy; we'll only commit if user presses Save.
+    QVector<SshProfile> profiles = m_profiles;
+    if (profiles.isEmpty()) {
+        createDefaultProfiles();
+        profiles = m_profiles;
+    }
+
+    QDialog dlg(this);
+    dlg.setWindowTitle("Manage SSH Profiles");
+    dlg.resize(750, 500);
+
+    auto *mainLayout = new QHBoxLayout(&dlg);
+
+    // ---------- Left: profile list + Add/Delete ----------
+    auto *leftWidget = new QWidget(&dlg);
+    auto *leftLayout = new QVBoxLayout(leftWidget);
+    leftLayout->setContentsMargins(0, 0, 0, 0);
+    leftLayout->setSpacing(6);
+
+    auto *listLabel = new QLabel("Profiles", leftWidget);
+    listLabel->setStyleSheet("font-weight: bold;");
+
+    auto *list = new QListWidget(leftWidget);
+    list->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    for (const auto &p : profiles) {
+        list->addItem(p.name);
+    }
+
+    auto *buttonsRow = new QWidget(leftWidget);
+    auto *buttonsLayout = new QHBoxLayout(buttonsRow);
+    buttonsLayout->setContentsMargins(0, 0, 0, 0);
+    buttonsLayout->setSpacing(6);
+
+    auto *addBtn = new QPushButton("Add", buttonsRow);
+    auto *delBtn = new QPushButton("Delete", buttonsRow);
+
+    buttonsLayout->addWidget(addBtn);
+    buttonsLayout->addWidget(delBtn);
+    buttonsRow->setLayout(buttonsLayout);
+
+    leftLayout->addWidget(listLabel);
+    leftLayout->addWidget(list, 1);
+    leftLayout->addWidget(buttonsRow, 0);
+    leftWidget->setLayout(leftLayout);
+
+    // ---------- Right: profile details form ----------
+    auto *rightWidget = new QWidget(&dlg);
+    auto *rightLayout = new QVBoxLayout(rightWidget);
+    rightLayout->setContentsMargins(0, 0, 0, 0);
+    rightLayout->setSpacing(6);
+
+    auto *form = new QFormLayout();
+    form->setLabelAlignment(Qt::AlignRight);
+
+    auto *nameEdit   = new QLineEdit(rightWidget);
+    auto *userEdit   = new QLineEdit(rightWidget);
+    auto *hostEdit   = new QLineEdit(rightWidget);
+    auto *portSpin   = new QSpinBox(rightWidget);
+    portSpin->setRange(1, 65535);
+    portSpin->setValue(22);
+
+    auto *pqDebugCheck = new QCheckBox("Enable PQ debug (-vv)", rightWidget);
+
+    form->addRow("Name:", nameEdit);
+    form->addRow("User:", userEdit);
+    form->addRow("Host:", hostEdit);
+    form->addRow("Port:", portSpin);
+    form->addRow("", pqDebugCheck);
+
+    rightLayout->addLayout(form);
+
+    auto *buttonsBox = new QDialogButtonBox(
+        QDialogButtonBox::Save | QDialogButtonBox::Cancel,
+        rightWidget
+    );
+    rightLayout->addWidget(buttonsBox);
+
+    rightWidget->setLayout(rightLayout);
+
+    // Put both sides into the main layout
+    mainLayout->addWidget(leftWidget, 1);
+    mainLayout->addWidget(rightWidget, 2);
+
+    // ---------- Selection and editing logic ----------
+    int currentRow = -1;
+
+    auto loadProfileToForm = [&](int row) {
+        if (row < 0 || row >= profiles.size()) {
+            nameEdit->clear();
+            userEdit->clear();
+            hostEdit->clear();
+            portSpin->setValue(22);
+            pqDebugCheck->setChecked(true);
+            return;
+        }
+        const SshProfile &p = profiles[row];
+        nameEdit->setText(p.name);
+        userEdit->setText(p.user);
+        hostEdit->setText(p.host);
+        portSpin->setValue(p.port);
+        pqDebugCheck->setChecked(p.pqDebug);
+    };
+
+    auto syncFormToCurrent = [&]() {
+        if (currentRow < 0 || currentRow >= profiles.size())
+            return;
+        SshProfile &p = profiles[currentRow];
+        p.name    = nameEdit->text().trimmed();
+        p.user    = userEdit->text().trimmed();
+        p.host    = hostEdit->text().trimmed();
+        p.port    = portSpin->value();
+        p.pqDebug = pqDebugCheck->isChecked();
+        if (p.name.isEmpty()) {
+            p.name = QString("%1@%2").arg(p.user, p.host);
+        }
+        if (QListWidgetItem *item = list->item(currentRow)) {
+            item->setText(p.name);
+        }
+    };
+
+    // Initial selection
+    if (!profiles.isEmpty()) {
+        currentRow = 0;
+        list->setCurrentRow(0);
+        loadProfileToForm(0);
+    }
+
+    QObject::connect(list, &QListWidget::currentRowChanged,
+                     &dlg, [&](int row) {
+        // Save changes from previous selection
+        syncFormToCurrent();
+        currentRow = row;
+        loadProfileToForm(row);
+    });
+
+    QObject::connect(nameEdit, &QLineEdit::textChanged,
+                     &dlg, [&](const QString &text) {
+        if (currentRow < 0 || currentRow >= profiles.size())
+            return;
+        profiles[currentRow].name = text;
+        if (QListWidgetItem *item = list->item(currentRow)) {
+        item->setText(text.isEmpty() ? QString("%1@%2").arg(userEdit->text(), hostEdit->text()) : text);
+        }
+    });
+
+    QObject::connect(addBtn, &QPushButton::clicked,
+                     &dlg, [&]() {
+        SshProfile p;
+        p.user    = qEnvironmentVariable("USER", "user");
+        p.host    = "localhost";
+        p.port    = 22;
+        p.pqDebug = true;
+        p.name    = QString("%1@%2").arg(p.user, p.host);
+
+        profiles.push_back(p);
+        list->addItem(p.name);
+
+        int row = profiles.size() - 1;
+        list->setCurrentRow(row);
+    });
+
+    QObject::connect(delBtn, &QPushButton::clicked,
+                     &dlg, [&]() {
+        int row = list->currentRow();
+        if (row < 0 || row >= profiles.size())
+            return;
+
+        profiles.remove(row);
+        delete list->takeItem(row);
+
+        if (profiles.isEmpty()) {
+            currentRow = -1;
+            loadProfileToForm(-1);
+        } else {
+            int newRow = qMin(row, profiles.size() - 1);
+            currentRow = newRow;
+            list->setCurrentRow(newRow);
+            loadProfileToForm(newRow);
+        }
+    });
+
+    QObject::connect(buttonsBox, &QDialogButtonBox::rejected,
+                     &dlg, &QDialog::reject);
+
+    QObject::connect(buttonsBox, &QDialogButtonBox::accepted,
+                     &dlg, [&]() {
+        syncFormToCurrent();
+
+        // Basic validation: no empty user/host
+        for (const auto &p : profiles) {
+            if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
+                QMessageBox::warning(
+                    &dlg,
+                    "Invalid profile",
+                    "Each profile must have non-empty user and host."
+                );
+                return;
+            }
+        }
+
+        // Commit changes
+        m_profiles = profiles;
+        saveProfilesToDisk();
+        loadProfiles();   // refresh sidebar with new data
+
+        dlg.accept();
+        m_statusLabel->setText("Profiles updated.");
+        appendTerminalLine("[INFO] Profiles updated via profile manager.");
+    });
+
+    dlg.exec();
+}
+

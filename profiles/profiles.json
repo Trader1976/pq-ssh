@@ -1,0 +1,18 @@
+{
+    "profiles": [
+        {
+            "host": "localhost",
+            "name": "Localhost",
+            "port": 22,
+            "pq_debug": true,
+            "user": "timo"
+        },
+        {
+            "host": "192.168.1.221",
+            "name": "DHT Server",
+            "port": 22,
+            "pq_debug": false,
+            "user": "timo"
+        }
+    ]
+}
