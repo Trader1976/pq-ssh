@@ -35,6 +35,9 @@
 #include <libssh/libssh.h>
 #include <qtermwidget5/qtermwidget.h>   // path from libqtermwidget5-dev on Ubuntu
 #include <QComboBox>
+#include <QTabWidget>
+#include <QAction>
+#include <QToolBar>
 //#include <qtermwidget.h>
 
 // ------------------------
@@ -531,20 +534,27 @@ bool MainWindow::establishSshSession(const QString &target)
     qDebug() << "SSH session established to" << target;
     return true;
 }
-
-
-
 void MainWindow::onConnectClicked()
 {
     const QString target = m_hostField->text().trimmed();
+    qDebug() << "onConnectClicked() called, target:" << target;
+
     if (target.isEmpty()) {
         m_statusLabel->setText("No host specified.");
         return;
     }
 
+    // Get current profile (for visuals + PQ debug flag)
+    int row = m_profileList ? m_profileList->currentRow() : -1;
+    if (row < 0 || row >= m_profiles.size()) {
+        m_statusLabel->setText("No profile selected.");
+        return;
+    }
+    const SshProfile &p = m_profiles[row];
+
+    // Optional: PQ probe before shell
     m_statusLabel->setText(
         QStringLiteral("Checking PQ KEX support for %1 ...").arg(target));
-
     const bool pqOk = probePqSupport(target);
 
     if (pqOk) {
@@ -553,9 +563,10 @@ void MainWindow::onConnectClicked()
         updatePqStatusLabel("PQ: OFF", "#ff5252");      // red
     }
 
-    // Now open the real interactive shell in QTermWidget (no -vv needed)
-    startColorShell(target);
+    // Open / reuse tabbed shell window and add a new tab
+    openTabbedShellForProfile(p, target);
 }
+
 
 
 
@@ -1207,16 +1218,20 @@ void MainWindow::startColorShell(const QString &target)
         m_colorShell->resize(900, 500);
     }
 
+
+
     // Pick current profile (if any) and apply visuals
     int row = m_profileList ? m_profileList->currentRow() : -1;
     if (row >= 0 && row < m_profiles.size()) {
-        applyTerminalProfile(m_profiles[row]);
+        applyTerminalProfile(m_colorShell, m_profiles[row]);
     } else {
-        // Fallback default visuals if no profile selected
+        // Fallback default if no profile selected
         SshProfile dummy;
         dummy.termColorScheme = "WhiteOnBlack";
         dummy.termFontSize    = 11;
-        applyTerminalProfile(dummy);
+        dummy.termWidth       = 900;
+        dummy.termHeight      = 500;
+        applyTerminalProfile(m_colorShell, dummy);
     }
 
     // Build ssh arguments
@@ -1335,26 +1350,107 @@ bool MainWindow::probePqSupport(const QString &target)
     return true;
 }
 
-void MainWindow::applyTerminalProfile(const SshProfile &p)
+void MainWindow::applyTerminalProfile(QTermWidget *term, const SshProfile &p)
 {
-    if (!m_colorShell)
+    if (!term)
         return;
 
     // Font
     QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     int size = (p.termFontSize > 0 ? p.termFontSize : 11);
     f.setPointSize(size);
-    m_colorShell->setTerminalFont(f);
+    term->setTerminalFont(f);
 
     // Color scheme
     QString scheme = p.termColorScheme.isEmpty()
                      ? QStringLiteral("WhiteOnBlack")
                      : p.termColorScheme;
-    m_colorShell->setColorScheme(scheme);
+    term->setColorScheme(scheme);
 
-    // Window geometry
-    int w = (p.termWidth  > 0 ? p.termWidth  : 900);
-    int h = (p.termHeight > 0 ? p.termHeight : 500);
-    m_colorShell->resize(w, h);
+    // Geometry (window will be resized via parent window)
+    // We just store width/height for the shell window itself.
 }
 
+void MainWindow::createNewShellTab(const SshProfile &p, const QString &target)
+{
+    if (!m_tabbedShellWindow || !m_tabWidget)
+        return;
+
+    // Create a new terminal widget for this tab
+    auto *term = new QTermWidget(0, m_tabWidget);  // 0 = default scrollback
+
+    // Apply per-profile visuals (font, colors)
+    applyTerminalProfile(term, p);
+
+    // Build ssh arguments
+    QStringList args;
+    args << "-tt";
+    args << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
+    args << target;
+
+    term->setShellProgram(QStringLiteral("ssh"));
+    term->setArgs(args);
+    term->startShellProgram();
+
+    // Tab title: profile name or target
+    QString tabTitle = !p.name.isEmpty()
+                       ? p.name
+                       : target;
+
+    int idx = m_tabWidget->addTab(term, tabTitle);
+    m_tabWidget->setCurrentIndex(idx);
+
+    // Optional: close tab with middle-click or something later
+}
+
+void MainWindow::openTabbedShellForProfile(const SshProfile &p, const QString &target)
+{
+    // Lazily create the tabbed shell window once
+    if (!m_tabbedShellWindow) {
+        m_tabbedShellWindow = new QMainWindow(this);
+        m_tabbedShellWindow->setWindowTitle(QStringLiteral("CPUNK PQ-SSH – Shells"));
+
+        m_tabWidget = new QTabWidget(m_tabbedShellWindow);
+        m_tabWidget->setTabsClosable(true);
+        m_tabWidget->setDocumentMode(true);
+
+        m_tabbedShellWindow->setCentralWidget(m_tabWidget);
+
+        // Handle tab close
+        connect(m_tabWidget, &QTabWidget::tabCloseRequested,
+                this, [this](int index) {
+            QWidget *w = m_tabWidget->widget(index);
+            m_tabWidget->removeTab(index);
+            delete w;
+
+            if (m_tabWidget->count() == 0) {
+                m_tabbedShellWindow->hide();
+            }
+        });
+
+        // Optional: simple toolbar with "New tab" later if you want
+    }
+
+    // Apply geometry from profile to the shell window
+    int w = (p.termWidth  > 0 ? p.termWidth  : 900);
+    int h = (p.termHeight > 0 ? p.termHeight : 500);
+    m_tabbedShellWindow->resize(w, h);
+
+    // Center near the main window on first show
+    if (!m_tabbedShellWindow->isVisible()) {
+        QRect mw = this->geometry();
+        int x = mw.center().x() - w / 2;
+        int y = mw.center().y() - h / 2;
+        m_tabbedShellWindow->move(x, y);
+    }
+
+    // Always create a NEW tab for this profile+target
+    createNewShellTab(p, target);
+
+    m_tabbedShellWindow->show();
+    m_tabbedShellWindow->raise();
+    m_tabbedShellWindow->activateWindow();
+
+    m_statusLabel->setText(
+        QStringLiteral("Tabbed shell running to %1").arg(target));
+}

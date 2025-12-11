@@ -20,6 +20,8 @@ class QCheckBox;
 class QDialog;
 class QPlainTextEdit;
 class QTermWidget;
+class QTabWidget;
+class QTermWidget;
 
 // Simple SSH profile representation
 struct SshProfile {
@@ -92,7 +94,9 @@ private:
     QLabel         *m_pqStatusLabel  = nullptr;
     bool            m_pqActive       = false;
     bool probePqSupport(const QString &target);
-    void applyTerminalProfile(const SshProfile &p);   // NEW
+    void applyTerminalProfile(QTermWidget *term, const SshProfile &p);  // NEW signature
+    void openTabbedShellForProfile(const SshProfile &p, const QString &target);
+    void createNewShellTab(const SshProfile &p, const QString &target);
     QCheckBox      *m_pqDebugCheck   = nullptr;
 
     QVector<SshProfile> m_profiles;
@@ -104,6 +108,8 @@ private:
     QThread *m_shellThread = nullptr;
     SshShellWorker *m_shellWorker = nullptr;
     QTermWidget   *m_colorShell = nullptr;  // full-color terminal window
+    QMainWindow *m_tabbedShellWindow = nullptr;
+    QTabWidget  *m_tabWidget         = nullptr;
 
     bool establishSshSession(const QString &target);
 //    QPlainTextEdit *m_shellView = nullptr;
