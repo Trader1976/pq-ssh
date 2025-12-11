@@ -19,6 +19,7 @@ class QLabel;
 class QCheckBox;
 class QDialog;
 class QPlainTextEdit;
+class QTermWidget;
 
 // Simple SSH profile representation
 struct SshProfile {
@@ -53,6 +54,7 @@ private slots:
     void startInteractiveShell();          // call after login or from a button
     void handleShellOutput(const QByteArray &data);
     void handleShellClosed(const QString &reason);
+    void startColorShell(const QString &target);
 
 private:
     void setupUi();
@@ -83,6 +85,7 @@ private:
 
     QLabel         *m_pqStatusLabel  = nullptr;
     bool            m_pqActive       = false;
+    bool probePqSupport(const QString &target);
     QCheckBox      *m_pqDebugCheck   = nullptr;
 
     QVector<SshProfile> m_profiles;
@@ -93,6 +96,7 @@ private:
     TerminalView *m_shellView = nullptr;
     QThread *m_shellThread = nullptr;
     SshShellWorker *m_shellWorker = nullptr;
+    QTermWidget   *m_colorShell = nullptr;  // full-color terminal window
 
     bool establishSshSession(const QString &target);
 //    QPlainTextEdit *m_shellView = nullptr;

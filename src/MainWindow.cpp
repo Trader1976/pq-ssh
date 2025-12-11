@@ -33,7 +33,8 @@
 #include <QDebug>
 #include <QInputDialog>
 #include <libssh/libssh.h>
-
+#include <qtermwidget5/qtermwidget.h>   // path from libqtermwidget5-dev on Ubuntu
+//#include <qtermwidget.h>
 // ------------------------
 // Dark theme stylesheet
 // ------------------------
@@ -530,32 +531,24 @@ bool MainWindow::establishSshSession(const QString &target)
 void MainWindow::onConnectClicked()
 {
     const QString target = m_hostField->text().trimmed();
-    qDebug() << "onConnectClicked() called, target:" << target;
-
     if (target.isEmpty()) {
         m_statusLabel->setText("No host specified.");
-        qDebug() << "Connect aborted: no host specified.";
         return;
     }
 
-    // You can keep this old guard if you still use m_sshProcess elsewhere.
-    if (m_sshProcess && m_sshProcess->state() != QProcess::NotRunning) {
-        m_statusLabel->setText("SSH session already running. Close it before starting a new one.");
-        qDebug() << "Connect aborted: SSH session already running. State:"
-                 << m_sshProcess->state();
-        return;
+    m_statusLabel->setText(
+        QStringLiteral("Checking PQ KEX support for %1 ...").arg(target));
+
+    const bool pqOk = probePqSupport(target);
+
+    if (pqOk) {
+        updatePqStatusLabel("PQ: ACTIVE", "#4caf50");   // green
+    } else {
+        updatePqStatusLabel("PQ: OFF", "#ff5252");      // red
     }
 
-    // 1) Establish libssh session
-    if (!establishSshSession(target)) {
-        qDebug() << "establishSshSession() failed for" << target;
-        return;
-    }
-
-    // 2) Start PTY + interactive shell
-    qDebug() << "Starting interactive shell to" << target;
-    startInteractiveShell();
-    qDebug() << "startInteractiveShell() called";
+    // Now open the real interactive shell in QTermWidget (no -vv needed)
+    startColorShell(target);
 }
 
 
@@ -1140,6 +1133,61 @@ void MainWindow::startInteractiveShell()
 }
 
 
+void MainWindow::startColorShell(const QString &target)
+{
+    // Lazily create the QTermWidget window
+    if (!m_colorShell) {
+        m_colorShell = new QTermWidget(0);  // 0 = default scrollback
+        m_colorShell->setWindowTitle(QStringLiteral("CPUNK PQ-SSH – Shell"));
+
+        // Font
+        QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+        f.setPointSize(11);
+        m_colorShell->setTerminalFont(f);
+
+        // Color scheme: depends on installed schemes, but "WhiteOnBlack" is common
+        m_colorShell->setColorScheme(QStringLiteral("WhiteOnBlack"));
+
+        m_colorShell->resize(900, 500);
+    }
+
+    // Build ssh arguments
+    QStringList args;
+    args << "-tt";
+
+//    const bool debugEnabled = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
+//    if (debugEnabled) {
+//        args << "-vv";
+//    }
+
+    args << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
+    args << target;
+
+    const QString ts = QDateTime::currentDateTime().toString(Qt::ISODate);
+    appendTerminalLine(QString("[%1] Starting ssh (QTermWidget) -> %2")
+                       .arg(ts, target));
+
+    // Configure QTermWidget to run ssh with our args
+    m_colorShell->setShellProgram(QStringLiteral("ssh"));
+    m_colorShell->setArgs(args);
+    m_colorShell->startShellProgram();
+
+    // Position & show window
+    if (!m_colorShell->isVisible()) {
+        QRect mw = this->geometry();
+        int x = mw.center().x() - m_colorShell->width() / 2;
+        int y = mw.center().y() - m_colorShell->height() / 2;
+        m_colorShell->move(x, y);
+    }
+
+    m_colorShell->show();
+    m_colorShell->raise();
+    m_colorShell->activateWindow();
+
+    m_statusLabel->setText(QStringLiteral("QTermWidget shell running to %1").arg(target));
+}
+
+
 void MainWindow::onUserTyped(const QByteArray &data)
 {
     if (!m_shellWorker)
@@ -1188,3 +1236,41 @@ void MainWindow::handleShellClosed(const QString &reason)
     m_shellWorker = nullptr;
 }
 
+bool MainWindow::probePqSupport(const QString &target)
+{
+    QProcess proc;
+    QString program = "ssh";
+    QStringList args;
+
+    // 1) Force *only* the PQ KEX. If this doesn't work, PQ is not supported.
+    args << "-o" << "KexAlgorithms=sntrup761x25519-sha512@openssh.com";
+
+    // 2) Don't ask for passwords or anything – we just want the handshake.
+    args << "-o" << "PreferredAuthentications=none";
+    args << "-o" << "PasswordAuthentication=no";
+    args << "-o" << "BatchMode=yes";
+    args << "-o" << "NumberOfPasswordPrompts=0";
+    args << "-o" << "ConnectTimeout=5";
+
+    // 3) Target ("user@host") + a trivial command
+    args << target << "true";
+
+    proc.start(program, args);
+    if (!proc.waitForFinished(7000)) {
+        proc.kill();
+        return false; // timeout -> treat as "unknown / not active"
+    }
+
+    // We don't care about exit code (auth will usually fail).
+    // We only care if KEX negotiation failed.
+    const QString err = QString::fromUtf8(proc.readAllStandardError());
+
+    if (err.contains("no matching key exchange method", Qt::CaseInsensitive) ||
+        err.contains("no matching key exchange", Qt::CaseInsensitive)) {
+        // server (or client) doesn't support sntrup -> PQ OFF
+        return false;
+    }
+
+    // If we got here, KEX step with pure PQ algorithm succeeded.
+    return true;
+}
