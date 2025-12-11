@@ -1,5 +1,5 @@
 #include "MainWindow.h"
-
+#include <QRegularExpression>
 #include <QApplication>
 #include <QWidget>
 #include <QSplitter>
@@ -29,6 +29,10 @@
 #include <QMessageBox>
 #include <QFormLayout>   // ✅ for QFormLayout
 #include <QSpinBox>      // ✅ for QSpinBox
+#include <QTextCursor>
+#include <QDebug>
+#include <QInputDialog>
+#include <libssh/libssh.h>
 
 // ------------------------
 // Dark theme stylesheet
@@ -195,15 +199,45 @@ MainWindow::MainWindow(QWidget *parent)
     loadProfiles();
 }
 
+//Main window destructor
 MainWindow::~MainWindow()
 {
+    // Stop shell worker if running
+    if (m_shellWorker) {
+        m_shellWorker->stopShell();
+    }
+    if (m_shellThread) {
+        m_shellThread->quit();
+        m_shellThread->wait();
+        m_shellThread = nullptr;
+    }
+
+    // Clean up libssh session
+    if (m_session) {
+        ssh_disconnect(m_session);
+        ssh_free(m_session);
+        m_session = nullptr;
+    }
+
+    if (m_shellView) {
+        m_shellView->close();
+        delete m_shellView;
+        m_shellView = nullptr;
+    }
+
+    // Old QProcess-based ssh cleanup (still safe to keep)
     if (m_sshProcess) {
-        m_sshProcess->kill();
-        m_sshProcess->waitForFinished(2000);
+        if (m_sshProcess->state() != QProcess::NotRunning) {
+            m_sshProcess->kill();
+            m_sshProcess->waitForFinished(2000);
+        }
         delete m_sshProcess;
         m_sshProcess = nullptr;
     }
 }
+
+
+
 
 void MainWindow::setupUi()
 {
@@ -329,6 +363,12 @@ void MainWindow::setupUi()
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
 
+    m_shellView = new TerminalView();                // ❗ no parent -> real top-level window
+    m_shellView->setWindowTitle(QStringLiteral("PQ-SSH Shell"));
+    m_shellView->setReadOnly(false);
+    m_shellView->resize(900, 500);                  // give it a sane default size
+    m_shellView->hide();                            // show when shell starts
+
     // Signals & slots
     connect(m_connectBtn, &QPushButton::clicked,
             this, &MainWindow::onConnectClicked);
@@ -350,6 +390,11 @@ void MainWindow::setupUi()
 
     connect(m_editProfilesBtn, &QPushButton::clicked,
             this, &MainWindow::onEditProfilesClicked); 
+
+    // Connect keystrokes to our onUserTyped slot
+    connect(m_shellView, &TerminalView::bytesTyped,
+            this, &MainWindow::onUserTyped);
+
 }
 
 void MainWindow::setupMenus()
@@ -386,22 +431,133 @@ void MainWindow::updatePqStatusLabel(const QString &text, const QString &colorHe
 }
 
 
+bool MainWindow::establishSshSession(const QString &target)
+{
+    // Parse user@host
+    QString user;
+    QString host = target;
+    const int atPos = target.indexOf('@');
+    if (atPos != -1) {
+        user = target.left(atPos);
+        host = target.mid(atPos + 1);
+    } else {
+        user = qEnvironmentVariable("USER");
+    }
+
+    if (host.isEmpty()) {
+        m_statusLabel->setText("No host specified.");
+        return false;
+    }
+
+    // Clean up any old session
+    if (m_session) {
+        ssh_disconnect(m_session);
+        ssh_free(m_session);
+        m_session = nullptr;
+    }
+
+    ssh_session session = ssh_new();
+    if (!session) {
+        m_statusLabel->setText("Failed to create SSH session.");
+        return false;
+    }
+
+    ssh_options_set(session, SSH_OPTIONS_HOST, host.toUtf8().constData());
+    if (!user.isEmpty()) {
+        ssh_options_set(session, SSH_OPTIONS_USER, user.toUtf8().constData());
+    }
+
+    m_statusLabel->setText(QStringLiteral("Connecting to %1 ...").arg(target));
+    qDebug() << "Connecting via libssh to" << user << "@" << host;
+
+    int rc = ssh_connect(session);
+    if (rc != SSH_OK) {
+        QString err = QStringLiteral("SSH connect failed: %1")
+                          .arg(QString::fromLocal8Bit(ssh_get_error(session)));
+        m_statusLabel->setText(err);
+        qDebug() << err;
+        ssh_free(session);
+        return false;
+    }
+
+    // Try public key auth first
+    rc = ssh_userauth_publickey_auto(session, nullptr, nullptr);
+    if (rc != SSH_AUTH_SUCCESS) {
+        // Ask for password if keys fail
+        QString prompt = QStringLiteral("Password for %1@%2")
+                             .arg(user.isEmpty() ? QStringLiteral("(default user)") : user,
+                                  host);
+        bool ok = false;
+        QString password = QInputDialog::getText(
+            this,
+            tr("SSH Password"),
+            prompt,
+            QLineEdit::Password,
+            QString(),
+            &ok
+        );
+        if (!ok) {
+            m_statusLabel->setText("Authentication cancelled.");
+            ssh_disconnect(session);
+            ssh_free(session);
+            return false;
+        }
+
+        rc = ssh_userauth_password(
+            session,
+            user.isEmpty() ? nullptr : user.toUtf8().constData(),
+            password.toUtf8().constData()
+        );
+        if (rc != SSH_AUTH_SUCCESS) {
+            QString err = QStringLiteral("SSH auth failed: %1")
+                              .arg(QString::fromLocal8Bit(ssh_get_error(session)));
+            m_statusLabel->setText(err);
+            qDebug() << err;
+            ssh_disconnect(session);
+            ssh_free(session);
+            return false;
+        }
+    }
+
+    m_session = session;
+    m_statusLabel->setText(QStringLiteral("Connected to %1").arg(target));
+    qDebug() << "SSH session established to" << target;
+    return true;
+}
+
+
 
 void MainWindow::onConnectClicked()
 {
     const QString target = m_hostField->text().trimmed();
+    qDebug() << "onConnectClicked() called, target:" << target;
+
     if (target.isEmpty()) {
         m_statusLabel->setText("No host specified.");
+        qDebug() << "Connect aborted: no host specified.";
         return;
     }
 
+    // You can keep this old guard if you still use m_sshProcess elsewhere.
     if (m_sshProcess && m_sshProcess->state() != QProcess::NotRunning) {
         m_statusLabel->setText("SSH session already running. Close it before starting a new one.");
+        qDebug() << "Connect aborted: SSH session already running. State:"
+                 << m_sshProcess->state();
         return;
     }
 
-    startSshProcess(target);
+    // 1) Establish libssh session
+    if (!establishSshSession(target)) {
+        qDebug() << "establishSshSession() failed for" << target;
+        return;
+    }
+
+    // 2) Start PTY + interactive shell
+    qDebug() << "Starting interactive shell to" << target;
+    startInteractiveShell();
+    qDebug() << "startInteractiveShell() called";
 }
+
 
 
 void MainWindow::onProfileSelectionChanged(int row)
@@ -922,5 +1078,113 @@ void MainWindow::showProfilesEditor()
     });
 
     dlg.exec();
+}
+
+
+
+void MainWindow::startInteractiveShell()
+{
+    if (!m_session) {
+        m_statusLabel->setText("No SSH session (m_session is null).");
+        qDebug() << "startInteractiveShell() aborted: m_session is null";
+        return;
+    }
+
+    if (m_shellThread) {
+        qDebug() << "startInteractiveShell(): shell already running";
+        return;
+    }
+
+
+
+
+    if (m_shellView) {
+        m_shellView->clear();
+
+        // Position it near the center of the main window the first time
+        if (!m_shellView->isVisible()) {
+            QRect mw = this->geometry();
+            int x = mw.center().x() - m_shellView->width() / 2;
+            int y = mw.center().y() - m_shellView->height() / 2;
+            m_shellView->move(x, y);
+        }
+
+    m_shellView->show();
+    m_shellView->raise();
+    m_shellView->activateWindow();
+}
+
+    m_shellThread = new QThread(this);
+    m_shellWorker = new SshShellWorker(m_session, 120, 32); // cols/rows
+
+    m_shellWorker->moveToThread(m_shellThread);
+
+    connect(m_shellThread, &QThread::started,
+            m_shellWorker, &SshShellWorker::startShell);
+
+    connect(m_shellWorker, &SshShellWorker::outputReady,
+            this, &MainWindow::handleShellOutput);
+
+    connect(m_shellWorker, &SshShellWorker::shellClosed,
+            this, &MainWindow::handleShellClosed);
+
+    connect(m_shellWorker, &SshShellWorker::shellClosed,
+            m_shellThread, &QThread::quit);
+
+    connect(m_shellThread, &QThread::finished,
+            m_shellWorker, &QObject::deleteLater);
+    connect(m_shellThread, &QThread::finished,
+            m_shellThread, &QObject::deleteLater);
+
+    m_shellThread->start();
+}
+
+
+void MainWindow::onUserTyped(const QByteArray &data)
+{
+    if (!m_shellWorker)
+        return;
+
+    m_shellWorker->sendInput(data);
+}
+
+
+void MainWindow::handleShellOutput(const QByteArray &data)
+{
+    if (!m_shellView)
+        return;
+
+    if (!m_shellView->isVisible())
+        m_shellView->show();
+
+    QString text = QString::fromLocal8Bit(data);
+
+    // Remove most CSI (cursor/colour) sequences: ESC [ ... letter
+    static QRegularExpression csiRe(QStringLiteral("\x1B\\[[0-9;?]*[ -/]*[@-~]"));
+    text.remove(csiRe);
+
+    // Remove OSC sequences (like changing window title): ESC ] ... BEL
+    static QRegularExpression oscRe(QStringLiteral("\x1B\\][^\\a]*\\a"));
+    text.remove(oscRe);
+
+    // Remove stray BEL characters (beeps) if any remain
+    text.remove(QChar('\x07'));
+
+    m_shellView->moveCursor(QTextCursor::End);
+    m_shellView->insertPlainText(text);
+    m_shellView->moveCursor(QTextCursor::End);
+}
+
+
+void MainWindow::handleShellClosed(const QString &reason)
+{
+    if (m_shellView) {
+        m_shellView->appendPlainText(
+            QStringLiteral("\n[Shell closed] ") + reason + QStringLiteral("\n")
+        );
+    }
+
+    m_shellThread = nullptr;
+    m_shellWorker = nullptr;
 }
 

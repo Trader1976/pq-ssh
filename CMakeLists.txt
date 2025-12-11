@@ -10,18 +10,37 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# Find Qt6 Widgets
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+# libssh
+find_package(LIBSSH REQUIRED)
+
+# Qt5 Widgets (NOT Qt6)
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
+
+# QTermWidget via pkg-config (Qt5-based)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(QTERM REQUIRED qtermwidget5)
 
 # Source files
 add_executable(pq-ssh
     src/main.cpp
     src/MainWindow.cpp
     src/MainWindow.h
+    src/SshShellWorker.cpp
+    src/TerminalView.cpp
 )
 
+# QTermWidget include dirs
+target_include_directories(pq-ssh
+    PRIVATE
+        ${QTERM_INCLUDE_DIRS}
+)
+
+# Link Qt5 + libssh + QTermWidget
 target_link_libraries(pq-ssh
-    PRIVATE Qt6::Widgets
+    PRIVATE
+        Qt5::Widgets
+        ssh                 # from find_package(LIBSSH)
+        ${QTERM_LIBRARIES}  # from pkg_check_modules(QTERM ...)
 )
 
 # Put binary into bin/

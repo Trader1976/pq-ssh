@@ -4,6 +4,12 @@
 #include <QMainWindow>
 #include <QProcess>
 #include <QVector>
+#include <QThread>
+#include "SshShellWorker.h"
+#include <QPlainTextEdit>
+#include <QThread>
+#include "TerminalView.h"
+#include <libssh/libssh.h>
 
 class QListWidget;
 class QPlainTextEdit;
@@ -38,10 +44,15 @@ private slots:
     void onSendInput();
     void onDisconnectClicked();
     void onEditProfilesClicked();
+    void onUserTyped(const QByteArray &data); 
 
     void handleSshReadyRead();
     void handleSshFinished(int exitCode, QProcess::ExitStatus status);
     void handleSshError(QProcess::ProcessError error);
+
+    void startInteractiveShell();          // call after login or from a button
+    void handleShellOutput(const QByteArray &data);
+    void handleShellClosed(const QString &reason);
 
 private:
     void setupUi();
@@ -76,7 +87,16 @@ private:
 
     QVector<SshProfile> m_profiles;
 
-    QPushButton    *m_editProfilesBtn = nullptr; 
+    QPushButton    *m_editProfilesBtn = nullptr;
+
+    ssh_session m_session = nullptr;   // libssh session for interactive shell
+    TerminalView *m_shellView = nullptr;
+    QThread *m_shellThread = nullptr;
+    SshShellWorker *m_shellWorker = nullptr;
+
+    bool establishSshSession(const QString &target);
+//    QPlainTextEdit *m_shellView = nullptr;
 };
 
 #endif // MAINWINDOW_H
+
