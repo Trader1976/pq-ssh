@@ -34,7 +34,9 @@
 #include <QInputDialog>
 #include <libssh/libssh.h>
 #include <qtermwidget5/qtermwidget.h>   // path from libqtermwidget5-dev on Ubuntu
+#include <QComboBox>
 //#include <qtermwidget.h>
+
 // ------------------------
 // Dark theme stylesheet
 // ------------------------
@@ -161,6 +163,8 @@ void MainWindow::saveProfilesToDisk()
         obj["host"]     = prof.host;
         obj["port"]     = prof.port;
         obj["pq_debug"] = prof.pqDebug;
+        obj["term_color_scheme"] = prof.termColorScheme;
+        obj["term_font_size"]    = prof.termFontSize;
         arr.append(obj);
     }
 
@@ -781,6 +785,8 @@ void MainWindow::createDefaultProfiles()
     p.host    = "localhost";
     p.port    = 22;
     p.pqDebug = true;
+    p.termColorScheme = "WhiteOnBlack";
+    p.termFontSize    = 11;
 
     m_profiles.push_back(p);
 
@@ -824,6 +830,8 @@ void MainWindow::loadProfiles()
                 p.host    = obj["host"].toString();
                 p.port    = obj["port"].toInt(22);
                 p.pqDebug = obj["pq_debug"].toBool(true);
+                p.termColorScheme = obj["term_color_scheme"].toString();
+                p.termFontSize    = obj["term_font_size"].toInt(11);
 
                 if (p.user.isEmpty() || p.host.isEmpty())
                     continue; // skip invalid entries
@@ -923,11 +931,24 @@ void MainWindow::showProfilesEditor()
 
     auto *pqDebugCheck = new QCheckBox("Enable PQ debug (-vv)", rightWidget);
 
+    // NEW: terminal visuals
+    auto *colorSchemeCombo = new QComboBox(rightWidget);
+    colorSchemeCombo->addItem("WhiteOnBlack");
+    colorSchemeCombo->addItem("BlackOnWhite");
+    colorSchemeCombo->addItem("BlackOnLightYellow");
+    colorSchemeCombo->addItem("GreenOnBlack");
+
+    auto *fontSizeSpin = new QSpinBox(rightWidget);
+    fontSizeSpin->setRange(6, 32);
+    fontSizeSpin->setValue(11);
+
     form->addRow("Name:", nameEdit);
     form->addRow("User:", userEdit);
     form->addRow("Host:", hostEdit);
     form->addRow("Port:", portSpin);
     form->addRow("", pqDebugCheck);
+    form->addRow("Color scheme:", colorSchemeCombo);
+    form->addRow("Font size:", fontSizeSpin);
 
     rightLayout->addLayout(form);
 
@@ -953,6 +974,8 @@ void MainWindow::showProfilesEditor()
             hostEdit->clear();
             portSpin->setValue(22);
             pqDebugCheck->setChecked(true);
+            colorSchemeCombo->setCurrentText("WhiteOnBlack");
+            fontSizeSpin->setValue(11);
             return;
         }
         const SshProfile &p = profiles[row];
@@ -961,6 +984,14 @@ void MainWindow::showProfilesEditor()
         hostEdit->setText(p.host);
         portSpin->setValue(p.port);
         pqDebugCheck->setChecked(p.pqDebug);
+
+        // NEW: visuals
+        if (!p.termColorScheme.isEmpty())
+            colorSchemeCombo->setCurrentText(p.termColorScheme);
+        else
+            colorSchemeCombo->setCurrentText("WhiteOnBlack");
+
+        fontSizeSpin->setValue(p.termFontSize > 0 ? p.termFontSize : 11);
     };
 
     auto syncFormToCurrent = [&]() {
@@ -972,6 +1003,11 @@ void MainWindow::showProfilesEditor()
         p.host    = hostEdit->text().trimmed();
         p.port    = portSpin->value();
         p.pqDebug = pqDebugCheck->isChecked();
+
+        // NEW: visuals
+        p.termColorScheme = colorSchemeCombo->currentText();
+        p.termFontSize    = fontSizeSpin->value();
+
         if (p.name.isEmpty()) {
             p.name = QString("%1@%2").arg(p.user, p.host);
         }
@@ -989,7 +1025,6 @@ void MainWindow::showProfilesEditor()
 
     QObject::connect(list, &QListWidget::currentRowChanged,
                      &dlg, [&](int row) {
-        // Save changes from previous selection
         syncFormToCurrent();
         currentRow = row;
         loadProfileToForm(row);
@@ -1001,7 +1036,9 @@ void MainWindow::showProfilesEditor()
             return;
         profiles[currentRow].name = text;
         if (QListWidgetItem *item = list->item(currentRow)) {
-        item->setText(text.isEmpty() ? QString("%1@%2").arg(userEdit->text(), hostEdit->text()) : text);
+            item->setText(text.isEmpty()
+                          ? QString("%1@%2").arg(userEdit->text(), hostEdit->text())
+                          : text);
         }
     });
 
@@ -1013,6 +1050,8 @@ void MainWindow::showProfilesEditor()
         p.port    = 22;
         p.pqDebug = true;
         p.name    = QString("%1@%2").arg(p.user, p.host);
+        p.termColorScheme = "WhiteOnBlack";
+        p.termFontSize    = 11;
 
         profiles.push_back(p);
         list->addItem(p.name);
@@ -1063,7 +1102,7 @@ void MainWindow::showProfilesEditor()
         // Commit changes
         m_profiles = profiles;
         saveProfilesToDisk();
-        loadProfiles();   // refresh sidebar with new data
+        loadProfiles();
 
         dlg.accept();
         m_statusLabel->setText("Profiles updated.");
@@ -1139,40 +1178,35 @@ void MainWindow::startColorShell(const QString &target)
     if (!m_colorShell) {
         m_colorShell = new QTermWidget(0);  // 0 = default scrollback
         m_colorShell->setWindowTitle(QStringLiteral("CPUNK PQ-SSH – Shell"));
-
-        // Font
-        QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-        f.setPointSize(11);
-        m_colorShell->setTerminalFont(f);
-
-        // Color scheme: depends on installed schemes, but "WhiteOnBlack" is common
-        m_colorShell->setColorScheme(QStringLiteral("WhiteOnBlack"));
-
         m_colorShell->resize(900, 500);
+    }
+
+    // Pick current profile (if any) and apply visuals
+    int row = m_profileList ? m_profileList->currentRow() : -1;
+    if (row >= 0 && row < m_profiles.size()) {
+        applyTerminalProfile(m_profiles[row]);
+    } else {
+        // Fallback default visuals if no profile selected
+        SshProfile dummy;
+        dummy.termColorScheme = "WhiteOnBlack";
+        dummy.termFontSize    = 11;
+        applyTerminalProfile(dummy);
     }
 
     // Build ssh arguments
     QStringList args;
     args << "-tt";
-
-//    const bool debugEnabled = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
-//    if (debugEnabled) {
-//        args << "-vv";
-//    }
-
     args << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
     args << target;
 
     const QString ts = QDateTime::currentDateTime().toString(Qt::ISODate);
-    appendTerminalLine(QString("[%1] Starting ssh (QTermWidget) -> %2")
-                       .arg(ts, target));
+    appendTerminalLine(QString("[%1] Starting ssh (QTermWidget) -> %2").arg(ts, target));
 
-    // Configure QTermWidget to run ssh with our args
     m_colorShell->setShellProgram(QStringLiteral("ssh"));
     m_colorShell->setArgs(args);
     m_colorShell->startShellProgram();
 
-    // Position & show window
+    // Position & show
     if (!m_colorShell->isVisible()) {
         QRect mw = this->geometry();
         int x = mw.center().x() - m_colorShell->width() / 2;
@@ -1273,4 +1307,22 @@ bool MainWindow::probePqSupport(const QString &target)
 
     // If we got here, KEX step with pure PQ algorithm succeeded.
     return true;
+}
+
+void MainWindow::applyTerminalProfile(const SshProfile &p)
+{
+    if (!m_colorShell)
+        return;
+
+    // Font
+    QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    int size = (p.termFontSize > 0 ? p.termFontSize : 11);
+    f.setPointSize(size);
+    m_colorShell->setTerminalFont(f);
+
+    // Color scheme
+    QString scheme = p.termColorScheme.isEmpty()
+                     ? QStringLiteral("WhiteOnBlack")
+                     : p.termColorScheme;
+    m_colorShell->setColorScheme(scheme);
 }

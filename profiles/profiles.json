@@ -5,6 +5,8 @@
             "name": "Localhost",
             "port": 22,
             "pq_debug": true,
+            "term_color_scheme": "WhiteOnBlack",
+            "term_font_size": 8,
             "user": "timo"
         },
         {
@@ -12,6 +14,8 @@
             "name": "DHT Server",
             "port": 22,
             "pq_debug": false,
+            "term_color_scheme": "",
+            "term_font_size": 11,
             "user": "timo"
         }
     ]

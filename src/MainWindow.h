@@ -28,6 +28,10 @@ struct SshProfile {
     QString host;
     int     port    = 22;
     bool    pqDebug = true;
+
+    // NEW: visual settings
+    QString termColorScheme;  // e.g. "WhiteOnBlack"
+    int     termFontSize = 11;
 };
 
 class MainWindow : public QMainWindow
@@ -86,6 +90,7 @@ private:
     QLabel         *m_pqStatusLabel  = nullptr;
     bool            m_pqActive       = false;
     bool probePqSupport(const QString &target);
+    void applyTerminalProfile(const SshProfile &p);   // NEW
     QCheckBox      *m_pqDebugCheck   = nullptr;
 
     QVector<SshProfile> m_profiles;
