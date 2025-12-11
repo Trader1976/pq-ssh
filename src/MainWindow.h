@@ -96,7 +96,9 @@ private:
     bool probePqSupport(const QString &target);
     void applyTerminalProfile(QTermWidget *term, const SshProfile &p);  // NEW signature
     void openTabbedShellForProfile(const SshProfile &p, const QString &target);
-    void createNewShellTab(const SshProfile &p, const QString &target);
+    void openSeparateWindowShell(const SshProfile &p, const QString &target);
+    QTermWidget* createNewShellTab(const SshProfile &p, const QString &target);
+    QCheckBox   *m_openInNewWindowCheck = nullptr;
     QCheckBox      *m_pqDebugCheck   = nullptr;
 
     QVector<SshProfile> m_profiles;
@@ -110,6 +112,7 @@ private:
     QTermWidget   *m_colorShell = nullptr;  // full-color terminal window
     QMainWindow *m_tabbedShellWindow = nullptr;
     QTabWidget  *m_tabWidget         = nullptr;
+
 
     bool establishSshSession(const QString &target);
 //    QPlainTextEdit *m_shellView = nullptr;

@@ -36,6 +36,7 @@
 #include <qtermwidget5/qtermwidget.h>   // path from libqtermwidget5-dev on Ubuntu
 #include <QComboBox>
 #include <QTabWidget>
+#include <QTimer>
 #include <QAction>
 #include <QToolBar>
 //#include <qtermwidget.h>
@@ -251,6 +252,104 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupUi()
 {
+    qApp->setStyleSheet(
+    // Main window + dialogs
+    "QWidget {"
+    "   background-color: #121212;"
+    "   color: #DDDDDD;"
+    "   font-size: 14px;"
+    "}"
+
+    // Buttons
+    "QPushButton {"
+    "   background-color: #1E1E1E;"
+    "   border: 1px solid #00FF99;"
+    "   padding: 6px 10px;"
+    "   border-radius: 4px;"
+    "}"
+    "QPushButton:hover {"
+    "   background-color: #2A2A2A;"
+    "}"
+    "QPushButton:pressed {"
+    "   background-color: #00FF99;"
+    "   color: #000000;"
+    "}"
+
+    // LineEdits
+    "QLineEdit, QSpinBox, QComboBox, QTextEdit, QPlainTextEdit {"
+    "   background-color: #1A1A1A;"
+    "   border: 1px solid #333333;"
+    "   padding: 4px;"
+    "   border-radius: 3px;"
+    "   color: #EEEEEE;"
+    "}"
+
+    // Combo popup
+    "QComboBox QAbstractItemView {"
+    "   background-color: #1E1E1E;"
+    "   selection-background-color: #00FF99;"
+    "   selection-color: black;"
+    "}"
+
+    // Checkboxes
+    "QCheckBox {"
+    "   spacing: 6px;"
+    "   color: #DDDDDD;"
+    "}"
+    "QCheckBox::indicator {"
+    "   width: 18px;"
+    "   height: 18px;"
+    "}"
+    "QCheckBox::indicator:unchecked {"
+    "   border: 1px solid #00FF99;"
+    "   background-color: #121212;"
+    "}"
+    "QCheckBox::indicator:checked {"
+    "   background-color: #00FF99;"
+    "   border: 1px solid #00FF99;"
+    "}"
+
+    // List widgets
+    "QListWidget {"
+    "   background-color: #181818;"
+    "   border: 1px solid #333333;"
+    "}"
+    "QListWidget::item:selected {"
+    "   background-color: #00FF99;"
+    "   color: black;"
+    "}"
+
+    // Tabs
+    "QTabWidget::pane {"
+    "   border: 1px solid #00FF99;"
+    "}"
+    "QTabBar::tab {"
+    "   background: #1E1E1E;"
+    "   padding: 6px; "
+    "   color: #DDDDDD;"
+    "}"
+    "QTabBar::tab:selected {"
+    "   background: #00FF99;"
+    "   color: black;"
+    "}"
+    "QTabBar::tab:hover {"
+    "   background: #2A2A2A;"
+    "}"
+
+    // Scrollbars
+    "QScrollBar:vertical {"
+    "   width: 12px;"
+    "   background: #1A1A1A;"
+    "}"
+    "QScrollBar::handle:vertical {"
+    "   background: #00FF99;"
+    "   min-height: 30px;"
+    "}"
+    "QScrollBar::add-line, QScrollBar::sub-line {"
+    "   height: 0;"
+    "}"
+);
+
     auto *splitter = new QSplitter(Qt::Horizontal, this);
     splitter->setChildrenCollapsible(false);
     setCentralWidget(splitter);
@@ -299,6 +398,8 @@ void MainWindow::setupUi()
     m_connectBtn = new QPushButton("Connect", topBar);
     m_disconnectBtn = new QPushButton("Disconnect", topBar);
     m_disconnectBtn->setEnabled(false);
+
+
 
     topLayout->addWidget(hostLabel);
     topLayout->addWidget(m_hostField, 1);
@@ -355,6 +456,14 @@ void MainWindow::setupUi()
     m_pqDebugCheck = new QCheckBox("PQ debug", bottomBar);
     m_pqDebugCheck->setChecked(true);  // default: ON while we’re still testing
     m_pqDebugCheck->setToolTip("Show verbose SSH output (-vv) to confirm PQ KEX");
+
+    m_openInNewWindowCheck = new QCheckBox("Open new connection in NEW window", bottomBar);
+    m_openInNewWindowCheck->setChecked(false); // default: tabs
+    bottomLayout->addWidget(m_openInNewWindowCheck);
+
+    bool dark = palette().window().color().lightness() < 128;
+
+
 
     bottomLayout->addWidget(m_statusLabel, 1);
     bottomLayout->addWidget(m_pqStatusLabel, 0);
@@ -534,6 +643,7 @@ bool MainWindow::establishSshSession(const QString &target)
     qDebug() << "SSH session established to" << target;
     return true;
 }
+
 void MainWindow::onConnectClicked()
 {
     const QString target = m_hostField->text().trimmed();
@@ -564,7 +674,12 @@ void MainWindow::onConnectClicked()
     }
 
     // Open / reuse tabbed shell window and add a new tab
-    openTabbedShellForProfile(p, target);
+    if (m_openInNewWindowCheck && m_openInNewWindowCheck->isChecked()) {
+        openSeparateWindowShell(p, target);
+    } else {
+        openTabbedShellForProfile(p, target);
+    }
+
 }
 
 
@@ -1371,10 +1486,10 @@ void MainWindow::applyTerminalProfile(QTermWidget *term, const SshProfile &p)
     // We just store width/height for the shell window itself.
 }
 
-void MainWindow::createNewShellTab(const SshProfile &p, const QString &target)
+QTermWidget* MainWindow::createNewShellTab(const SshProfile &p, const QString &target)
 {
     if (!m_tabbedShellWindow || !m_tabWidget)
-        return;
+        return nullptr;
 
     // Create a new terminal widget for this tab
     auto *term = new QTermWidget(0, m_tabWidget);  // 0 = default scrollback
@@ -1400,8 +1515,9 @@ void MainWindow::createNewShellTab(const SshProfile &p, const QString &target)
     int idx = m_tabWidget->addTab(term, tabTitle);
     m_tabWidget->setCurrentIndex(idx);
 
-    // Optional: close tab with middle-click or something later
+    return term;
 }
+
 
 void MainWindow::openTabbedShellForProfile(const SshProfile &p, const QString &target)
 {
@@ -1416,7 +1532,6 @@ void MainWindow::openTabbedShellForProfile(const SshProfile &p, const QString &t
 
         m_tabbedShellWindow->setCentralWidget(m_tabWidget);
 
-        // Handle tab close
         connect(m_tabWidget, &QTabWidget::tabCloseRequested,
                 this, [this](int index) {
             QWidget *w = m_tabWidget->widget(index);
@@ -1427,8 +1542,6 @@ void MainWindow::openTabbedShellForProfile(const SshProfile &p, const QString &t
                 m_tabbedShellWindow->hide();
             }
         });
-
-        // Optional: simple toolbar with "New tab" later if you want
     }
 
     // Apply geometry from profile to the shell window
@@ -1436,7 +1549,6 @@ void MainWindow::openTabbedShellForProfile(const SshProfile &p, const QString &t
     int h = (p.termHeight > 0 ? p.termHeight : 500);
     m_tabbedShellWindow->resize(w, h);
 
-    // Center near the main window on first show
     if (!m_tabbedShellWindow->isVisible()) {
         QRect mw = this->geometry();
         int x = mw.center().x() - w / 2;
@@ -1444,13 +1556,66 @@ void MainWindow::openTabbedShellForProfile(const SshProfile &p, const QString &t
         m_tabbedShellWindow->move(x, y);
     }
 
-    // Always create a NEW tab for this profile+target
-    createNewShellTab(p, target);
+    // Create NEW tab and get its terminal widget
+    QTermWidget *term = createNewShellTab(p, target);
 
     m_tabbedShellWindow->show();
     m_tabbedShellWindow->raise();
     m_tabbedShellWindow->activateWindow();
 
+    // 🔥 Give keyboard focus directly to the terminal
+    if (term) {
+        // Use singleShot(0, ...) to ensure it runs after show/activate
+        QTimer::singleShot(0, term, [term]() {
+            term->setFocus(Qt::OtherFocusReason);
+        });
+    }
+
     m_statusLabel->setText(
         QStringLiteral("Tabbed shell running to %1").arg(target));
+}
+
+
+void MainWindow::openSeparateWindowShell(const SshProfile &p, const QString &target)
+{
+    // Create a BRAND NEW window for this shell
+    auto *win = new QMainWindow(this);
+    win->setAttribute(Qt::WA_DeleteOnClose);  // auto-delete
+
+    auto *term = new QTermWidget(0, win);
+
+    applyTerminalProfile(term, p);
+
+    QStringList args;
+    args << "-tt";
+    args << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
+    args << target;
+
+    term->setShellProgram("ssh");
+    term->setArgs(args);
+    term->startShellProgram();
+
+    // Place QTermWidget inside window
+    win->setCentralWidget(term);
+
+    // Apply profile geometry
+    int w = (p.termWidth  > 0 ? p.termWidth  : 900);
+    int h = (p.termHeight > 0 ? p.termHeight : 500);
+    win->resize(w, h);
+
+    // Position window near main app
+    QRect mw = this->geometry();
+    int x = mw.center().x() - w / 2 + qrand() % 40;
+    int y = mw.center().y() - h / 2 + qrand() % 40;
+    win->move(x, y);
+
+    win->setWindowTitle(QString("CPUNK PQ-SSH – %1").arg(target));
+    win->show();
+    win->raise();
+    win->activateWindow();
+
+    // Auto-focus terminal
+    QTimer::singleShot(0, term, [term](){
+        term->setFocus(Qt::OtherFocusReason);
+    });
 }
