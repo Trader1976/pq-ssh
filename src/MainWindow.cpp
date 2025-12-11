@@ -165,6 +165,8 @@ void MainWindow::saveProfilesToDisk()
         obj["pq_debug"] = prof.pqDebug;
         obj["term_color_scheme"] = prof.termColorScheme;
         obj["term_font_size"]    = prof.termFontSize;
+        obj["term_width"]  = prof.termWidth;
+        obj["term_height"] = prof.termHeight;
         arr.append(obj);
     }
 
@@ -787,6 +789,8 @@ void MainWindow::createDefaultProfiles()
     p.pqDebug = true;
     p.termColorScheme = "WhiteOnBlack";
     p.termFontSize    = 11;
+    p.termWidth       = 900;
+    p.termHeight      = 500;
 
     m_profiles.push_back(p);
 
@@ -832,6 +836,8 @@ void MainWindow::loadProfiles()
                 p.pqDebug = obj["pq_debug"].toBool(true);
                 p.termColorScheme = obj["term_color_scheme"].toString();
                 p.termFontSize    = obj["term_font_size"].toInt(11);
+                p.termWidth      = obj["term_width"].toInt(900);
+                p.termHeight     = obj["term_height"].toInt(500);
 
                 if (p.user.isEmpty() || p.host.isEmpty())
                     continue; // skip invalid entries
@@ -942,6 +948,15 @@ void MainWindow::showProfilesEditor()
     fontSizeSpin->setRange(6, 32);
     fontSizeSpin->setValue(11);
 
+    // NEW: window geometry
+    auto *widthSpin = new QSpinBox(rightWidget);
+    widthSpin->setRange(400, 4000);
+    widthSpin->setValue(900);
+
+    auto *heightSpin = new QSpinBox(rightWidget);
+    heightSpin->setRange(300, 3000);
+    heightSpin->setValue(500);
+
     form->addRow("Name:", nameEdit);
     form->addRow("User:", userEdit);
     form->addRow("Host:", hostEdit);
@@ -949,6 +964,8 @@ void MainWindow::showProfilesEditor()
     form->addRow("", pqDebugCheck);
     form->addRow("Color scheme:", colorSchemeCombo);
     form->addRow("Font size:", fontSizeSpin);
+    form->addRow("Window width:", widthSpin);
+    form->addRow("Window height:", heightSpin);
 
     rightLayout->addLayout(form);
 
@@ -976,6 +993,8 @@ void MainWindow::showProfilesEditor()
             pqDebugCheck->setChecked(true);
             colorSchemeCombo->setCurrentText("WhiteOnBlack");
             fontSizeSpin->setValue(11);
+            widthSpin->setValue(900);
+            heightSpin->setValue(500);
             return;
         }
         const SshProfile &p = profiles[row];
@@ -992,6 +1011,8 @@ void MainWindow::showProfilesEditor()
             colorSchemeCombo->setCurrentText("WhiteOnBlack");
 
         fontSizeSpin->setValue(p.termFontSize > 0 ? p.termFontSize : 11);
+        widthSpin->setValue(p.termWidth  > 0 ? p.termWidth  : 900);
+        heightSpin->setValue(p.termHeight > 0 ? p.termHeight : 500);
     };
 
     auto syncFormToCurrent = [&]() {
@@ -1004,9 +1025,13 @@ void MainWindow::showProfilesEditor()
         p.port    = portSpin->value();
         p.pqDebug = pqDebugCheck->isChecked();
 
-        // NEW: visuals
+        // visuals
         p.termColorScheme = colorSchemeCombo->currentText();
         p.termFontSize    = fontSizeSpin->value();
+
+        // geometry
+        p.termWidth       = widthSpin->value();
+        p.termHeight      = heightSpin->value();
 
         if (p.name.isEmpty()) {
             p.name = QString("%1@%2").arg(p.user, p.host);
@@ -1015,6 +1040,7 @@ void MainWindow::showProfilesEditor()
             item->setText(p.name);
         }
     };
+
 
     // Initial selection
     if (!profiles.isEmpty()) {
@@ -1325,4 +1351,10 @@ void MainWindow::applyTerminalProfile(const SshProfile &p)
                      ? QStringLiteral("WhiteOnBlack")
                      : p.termColorScheme;
     m_colorShell->setColorScheme(scheme);
+
+    // Window geometry
+    int w = (p.termWidth  > 0 ? p.termWidth  : 900);
+    int h = (p.termHeight > 0 ? p.termHeight : 500);
+    m_colorShell->resize(w, h);
 }
+

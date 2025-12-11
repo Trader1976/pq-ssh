@@ -28,10 +28,12 @@ struct SshProfile {
     QString host;
     int     port    = 22;
     bool    pqDebug = true;
-
     // NEW: visual settings
     QString termColorScheme;  // e.g. "WhiteOnBlack"
-    int     termFontSize = 11;
+    int     termFontSize = 11;  //terminal font size
+    // Window geometry
+    int     termWidth  = 900;
+    int     termHeight = 500;
 };
 
 class MainWindow : public QMainWindow
