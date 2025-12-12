@@ -21,8 +21,10 @@
 #include <QFileInfo>
 #include <QKeySequence>
 #include <QAction>
+#include <QPalette>
 #include <QDialog>
 #include <QDebug>
+#include <QTimer>
 
 #include "AppTheme.h"
 #include "ProfileStore.h"
@@ -50,6 +52,27 @@ MainWindow::~MainWindow()
     // Clean disconnect (libssh via SshClient)
     m_ssh.disconnect();
 }
+
+static void focusTerminalWindow(QWidget *window, QWidget *termWidget)
+{
+    if (!window || !termWidget) return;
+
+    window->show();
+    window->raise();
+    window->activateWindow();
+
+    // Focus after the window is actually shown/mapped
+    QTimer::singleShot(0, window, [termWidget]() {
+        termWidget->setFocus(Qt::OtherFocusReason);
+    });
+
+    // Some window managers need a second poke
+    QTimer::singleShot(50, window, [termWidget]() {
+        termWidget->setFocus(Qt::OtherFocusReason);
+    });
+}
+
+
 
 void MainWindow::setupUi()
 {
@@ -447,7 +470,6 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     auto *term = new CpunkTermWidget(2000, parent); // history lines
     applyProfileToTerm(term, p);
 
-    // Start ssh inside the embedded terminal (password prompts will appear here)
     term->setShellProgram("ssh");
 
     QStringList args;
@@ -459,27 +481,63 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     term->setArgs(args);
     term->startShellProgram();
 
-    // Drag-drop from local -> app handler
     connect(term, &CpunkTermWidget::fileDropped,
             this, &MainWindow::onFileDropped);
 
     return term;
 }
 
+static void forceBlackBackground(CpunkTermWidget *term)
+{
+    if (!term) return;
+
+    // Make sure the widget paints its own background right away
+    term->setAutoFillBackground(true);
+
+    QPalette pal = term->palette();
+    pal.setColor(QPalette::Window, Qt::black);
+    pal.setColor(QPalette::Base,   Qt::black);
+    pal.setColor(QPalette::Text,   Qt::white);
+    term->setPalette(pal);
+
+    // Also force the internal TerminalDisplay widgets (important!)
+    const auto kids = term->findChildren<QWidget*>();
+    for (QWidget *w : kids) {
+        w->setAutoFillBackground(true);
+        QPalette p2 = w->palette();
+        p2.setColor(QPalette::Window, Qt::black);
+        p2.setColor(QPalette::Base,   Qt::black);
+        p2.setColor(QPalette::Text,   Qt::white);
+        w->setPalette(p2);
+    }
+
+    // Trigger immediate repaint
+    term->update();
+    term->repaint();
+}
+
 void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
 {
     if (!term) return;
 
-    // Color scheme (must match a scheme installed for qtermwidget)
-    if (!p.termColorScheme.isEmpty())
-        term->setColorScheme(p.termColorScheme);
+    const QString scheme =
+        p.termColorScheme.isEmpty() ? "WhiteOnBlack" : p.termColorScheme;
 
-    // Set a fixed font + size (don’t rely on terminalFont())
+    term->setColorScheme(scheme);
+
     QFont f("Monospace");
     f.setStyleHint(QFont::TypeWriter);
     f.setPointSize(p.termFontSize > 0 ? p.termFontSize : 11);
     term->setTerminalFont(f);
+    //term->setColorScheme("WhiteOnBlack");
+    term->setTerminalOpacity(1.0);
+
+    // ✅ This removes the gray startup background
+    if (scheme == "WhiteOnBlack") {
+        forceBlackBackground(term);
+    }
 }
+
 
 void MainWindow::openShellForProfile(const SshProfile &p, const QString &target, bool newWindow)
 {
@@ -522,8 +580,10 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     auto *term = createTerm(p, m_tabWidget);
     const int idx = m_tabWidget->addTab(term, p.name);
     m_tabWidget->setCurrentIndex(idx);
+    focusTerminalWindow(m_tabbedShellWindow, term);
 
     m_tabbedShellWindow->show();
+    focusTerminalWindow(m_tabbedShellWindow, term);
     m_tabbedShellWindow->raise();
     m_tabbedShellWindow->activateWindow();
 }

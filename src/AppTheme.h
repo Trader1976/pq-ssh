@@ -1,13 +1,8 @@
-#ifndef APPTHEME_H
-#define APPTHEME_H
-
+// AppTheme.h
+#pragma once
 #include <QString>
 
-class AppTheme
-{
+class AppTheme {
 public:
-    // Returns a dark Qt stylesheet
     static QString dark();
 };
-
-#endif // APPTHEME_H

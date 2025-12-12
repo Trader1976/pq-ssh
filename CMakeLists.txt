@@ -43,6 +43,8 @@ add_executable(pq-ssh
 
         src/AppTheme.h
         src/SshProfile.h
+        src/ShellManager.cpp
+        src/ShellManager.h
 )
 
 target_include_directories(pq-ssh
