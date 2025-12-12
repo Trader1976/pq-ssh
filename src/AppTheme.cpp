@@ -1,5 +1,10 @@
 // AppTheme.cpp
 #include "AppTheme.h"
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QStandardPaths>
+#include <QStringList>
 
 QString AppTheme::dark()
 {
@@ -106,4 +111,37 @@ QString AppTheme::dark()
         "   height: 0;"
         "}"
     );
+}
+
+static void installBundledColorSchemes()
+{
+    const QString destDir =
+        QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+        + "/qtermwidget5/color-schemes";
+
+    QDir().mkpath(destDir);
+
+    const QStringList schemeFiles = {
+        "CPUNK-DNA.colorscheme",
+        "CPUNK-Aurora.colorscheme",
+    };
+
+    for (const QString &name : schemeFiles) {
+        const QString src = ":/schemes/" + name;
+        const QString dst = destDir + "/" + name;
+
+        // Don’t overwrite user-customized themes
+        if (QFileInfo::exists(dst))
+            continue;
+
+        QFile in(src);
+        if (!in.open(QIODevice::ReadOnly))
+            continue;
+
+        QFile out(dst);
+        if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate))
+            continue;
+
+        out.write(in.readAll());
+    }
 }

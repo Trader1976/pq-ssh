@@ -45,6 +45,11 @@ add_executable(pq-ssh
         src/SshProfile.h
         src/ShellManager.cpp
         src/ShellManager.h
+
+        resources/pqssh_resources.qrc
+        src/ThemeInstaller.cpp
+        src/ThemeInstaller.h
+        src/ThemeInstaller.cpp
 )
 
 target_include_directories(pq-ssh

@@ -13,6 +13,12 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QAbstractItemView>
+#include "CpunkTermWidget.h"
+#include <QStringList>
+#include <QSet>
+
+
+
 
 ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles, QWidget *parent)
     : QDialog(parent),
@@ -28,6 +34,130 @@ ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles, 
         onListRowChanged(0);
     } else {
         loadProfileToForm(-1);
+    }
+}
+
+static QStringList allTermSchemes()
+{
+    // Create a probe widget just to query available schemes
+    CpunkTermWidget probe(0, nullptr);
+    QStringList schemes = probe.availableColorSchemes();
+
+    schemes.removeDuplicates();
+    schemes.sort(Qt::CaseInsensitive);
+
+    return schemes;
+}
+
+static void fillSchemeCombo(QComboBox *combo)
+{
+    if (!combo) return;
+
+    const QString current = combo->currentText();
+
+    // Your pinned favorites first (only if installed)
+    const QStringList pinned = {
+        "WhiteOnBlack",
+        "Ubuntu",
+        "BreezeModified",
+        "DarkPastels",
+        "Tango",
+        "Linux",
+        "Solarized",
+        "SolarizedLight",
+        "BlackOnLightYellow",
+        "BlackOnWhite",
+        "GreenOnBlack"
+    };
+
+    QStringList schemes = allTermSchemes();
+
+    combo->clear();
+
+    QSet<QString> used;
+
+    // Add pinned (if present)
+    for (const QString &s : pinned) {
+        if (schemes.contains(s) && !used.contains(s)) {
+            combo->addItem(s);
+            used.insert(s);
+        }
+    }
+
+    // Separator if we added any pinned items
+    if (!used.isEmpty() && schemes.size() > used.size())
+        combo->insertSeparator(combo->count());
+
+    // Add the rest
+    for (const QString &s : schemes) {
+        if (!used.contains(s)) {
+            combo->addItem(s);
+            used.insert(s);
+        }
+    }
+
+    // Restore selection if possible
+    if (!current.isEmpty()) {
+        const int idx = combo->findText(current);
+        if (idx >= 0) combo->setCurrentIndex(idx);
+    }
+}
+
+
+static QStringList installedSchemes()
+{
+    CpunkTermWidget probe(0, nullptr);
+    QStringList schemes = probe.availableColorSchemes();
+    schemes.removeDuplicates();
+    schemes.sort(Qt::CaseInsensitive);
+    return schemes;
+}
+
+static void populateSchemeCombo(QComboBox *combo)
+{
+    if (!combo) return;
+
+    // Keep some favorites at the top if they exist
+    const QStringList pinned = {
+        "CPUNK-DNA",
+        "CPUNK-Aurora",
+        "WhiteOnBlack",
+        "Ubuntu",
+        "DarkPastels",
+        "Tango",
+        "Linux",
+        "Solarized",
+        "SolarizedLight",
+        "BlackOnLightYellow",
+        "BlackOnWhite",
+        "GreenOnBlack"
+    };
+
+    const QString current = combo->currentText();
+    QStringList schemes = installedSchemes();
+
+    combo->clear();
+
+    QSet<QString> used;
+
+    for (const QString &s : pinned) {
+        if (schemes.contains(s) && !used.contains(s)) {
+            combo->addItem(s);
+            used.insert(s);
+        }
+    }
+
+    if (!used.isEmpty() && schemes.size() > used.size())
+        combo->insertSeparator(combo->count());
+
+    for (const QString &s : schemes) {
+        if (!used.contains(s))
+            combo->addItem(s);
+    }
+
+    if (!current.isEmpty()) {
+        int idx = combo->findText(current);
+        if (idx >= 0) combo->setCurrentIndex(idx);
     }
 }
 
@@ -85,10 +215,9 @@ void ProfilesEditorDialog::buildUi()
     m_pqDebugCheck = new QCheckBox("Enable PQ debug (-vv)", rightWidget);
 
     m_colorSchemeCombo = new QComboBox(rightWidget);
-    m_colorSchemeCombo->addItem("WhiteOnBlack");
-    m_colorSchemeCombo->addItem("BlackOnWhite");
-    m_colorSchemeCombo->addItem("BlackOnLightYellow");
-    m_colorSchemeCombo->addItem("GreenOnBlack");
+    fillSchemeCombo(m_colorSchemeCombo);
+
+
 
     m_fontSizeSpin = new QSpinBox(rightWidget);
     m_fontSizeSpin->setRange(6, 32);
@@ -171,9 +300,15 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
     m_portSpin->setValue(p.port);
     m_pqDebugCheck->setChecked(p.pqDebug);
 
-    m_colorSchemeCombo->setCurrentText(p.termColorScheme.isEmpty()
-                                           ? QStringLiteral("WhiteOnBlack")
-                                           : p.termColorScheme);
+    const QString wanted = p.termColorScheme.isEmpty()
+                               ? QStringLiteral("WhiteOnBlack")
+                               : p.termColorScheme;
+
+    int idx = m_colorSchemeCombo->findText(wanted);
+    if (idx >= 0)
+        m_colorSchemeCombo->setCurrentIndex(idx);
+    else
+        m_colorSchemeCombo->setCurrentText(wanted);
 
     m_fontSizeSpin->setValue(p.termFontSize > 0 ? p.termFontSize : 11);
     m_widthSpin->setValue(p.termWidth > 0 ? p.termWidth : 900);

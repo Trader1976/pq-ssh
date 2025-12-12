@@ -10,10 +10,21 @@
 #include <QDebug>
 #include <iostream>
 #include "MainWindow.h"
+#include "ThemeInstaller.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    installBundledColorSchemes();
+    // Global dark palette
+    QPalette dark;
+    dark.setColor(QPalette::Window, QColor(0,0,0));
+    dark.setColor(QPalette::Base, QColor(0,0,0));
+    dark.setColor(QPalette::Text, QColor(255,255,255));
+    dark.setColor(QPalette::Button, QColor(20,20,20));
+    dark.setColor(QPalette::ButtonText, QColor(255,255,255));
+
+    app.setPalette(dark);
 
     qDebug() << "PQ-SSH starting (qDebug)";
     std::cout << "PQ-SSH starting (std::cout)" << std::endl;

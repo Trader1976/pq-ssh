@@ -5,7 +5,7 @@
             "name": "Localhost",
             "port": 22,
             "pq_debug": true,
-            "term_color_scheme": "WhiteOnBlack",
+            "term_color_scheme": "CPUNK-Aurora",
             "term_font_size": 11,
             "term_height": 500,
             "term_width": 900,

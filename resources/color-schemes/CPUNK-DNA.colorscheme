@@ -1,0 +1,70 @@
+[General]
+Description=CPUNK-DNA (Neon PQ)
+
+[Background]
+Color=11,15,20
+
+[BackgroundIntense]
+Color=24,32,44
+
+[Foreground]
+Color=230,241,255
+
+[ForegroundIntense]
+Color=255,255,255
+
+; black (base)
+[Color0]
+Color=11,15,20
+
+[Color0Intense]
+Color=84,110,122
+
+; red
+[Color1]
+Color=255,59,59
+
+[Color1Intense]
+Color=255,82,82
+
+; green
+[Color2]
+Color=0,230,118
+
+[Color2Intense]
+Color=105,240,174
+
+; yellow
+[Color3]
+Color=255,214,0
+
+[Color3Intense]
+Color=255,238,88
+
+; blue
+[Color4]
+Color=41,121,255
+
+[Color4Intense]
+Color=130,177,255
+
+; magenta (PQ purple)
+[Color5]
+Color=213,0,249
+
+[Color5Intense]
+Color=234,128,252
+
+; aqua (DNA cyan)
+[Color6]
+Color=0,229,255
+
+[Color6Intense]
+Color=24,255,255
+
+; grey / white
+[Color7]
+Color=230,241,255
+
+[Color7Intense]
+Color=255,255,255

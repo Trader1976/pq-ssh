@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/schemes">
+        <file alias="CPUNK-DNA.colorscheme">color-schemes/CPUNK-DNA.colorscheme</file>
+        <file alias="CPUNK-Aurora.colorscheme">color-schemes/CPUNK-Aurora.colorscheme</file>
+    </qresource>
+</RCC>

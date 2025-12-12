@@ -34,6 +34,13 @@
 #include <QFont>
 #include "CpunkTermWidget.h"
 
+
+
+class CpunkTermWidget;
+static void forceBlackBackground(CpunkTermWidget *term);
+static void protectTermFromAppStyles(CpunkTermWidget *term);
+
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -481,18 +488,33 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     term->setArgs(args);
     term->startShellProgram();
 
+    QTimer::singleShot(0,  term, [term]() { protectTermFromAppStyles(term); });
+    QTimer::singleShot(50, term, [term]() { protectTermFromAppStyles(term); });
+
+    // ✅ Only force black when actually using WhiteOnBlack
+    const QString scheme = p.termColorScheme.isEmpty() ? "WhiteOnBlack" : p.termColorScheme;
+    if (scheme == "WhiteOnBlack") {
+        QTimer::singleShot(0,  term, [term]() { forceBlackBackground(term); });
+        QTimer::singleShot(50, term, [term]() { forceBlackBackground(term); });
+    } else {
+
+    }
+
     connect(term, &CpunkTermWidget::fileDropped,
             this, &MainWindow::onFileDropped);
 
     return term;
 }
 
+
 static void forceBlackBackground(CpunkTermWidget *term)
 {
     if (!term) return;
 
-    // Make sure the widget paints its own background right away
     term->setAutoFillBackground(true);
+
+    // Strong override vs global qApp stylesheet
+    term->setStyleSheet("background: #000; color: #fff;");
 
     QPalette pal = term->palette();
     pal.setColor(QPalette::Window, Qt::black);
@@ -500,10 +522,11 @@ static void forceBlackBackground(CpunkTermWidget *term)
     pal.setColor(QPalette::Text,   Qt::white);
     term->setPalette(pal);
 
-    // Also force the internal TerminalDisplay widgets (important!)
     const auto kids = term->findChildren<QWidget*>();
     for (QWidget *w : kids) {
         w->setAutoFillBackground(true);
+        w->setStyleSheet("background: #000; color: #fff;");
+
         QPalette p2 = w->palette();
         p2.setColor(QPalette::Window, Qt::black);
         p2.setColor(QPalette::Base,   Qt::black);
@@ -511,10 +534,9 @@ static void forceBlackBackground(CpunkTermWidget *term)
         w->setPalette(p2);
     }
 
-    // Trigger immediate repaint
     term->update();
-    term->repaint();
 }
+
 
 void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
 {
@@ -523,20 +545,32 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
     const QString scheme =
         p.termColorScheme.isEmpty() ? "WhiteOnBlack" : p.termColorScheme;
 
+    appendTerminalLine(QString("[TERM] profile=%1 scheme='%2' (raw='%3')")
+                       .arg(p.name, scheme, p.termColorScheme));
+    appendTerminalLine(QString("[TERM] available schemes: %1")
+                       .arg(term->availableColorSchemes().join(", ")));
+
+    // Apply scheme FIRST (it updates palette internally)
     term->setColorScheme(scheme);
+
+    // ✅ Now shield it from AppTheme::dark() overriding colors
+    protectTermFromAppStyles(term);
 
     QFont f("Monospace");
     f.setStyleHint(QFont::TypeWriter);
     f.setPointSize(p.termFontSize > 0 ? p.termFontSize : 11);
     term->setTerminalFont(f);
-    //term->setColorScheme("WhiteOnBlack");
+
     term->setTerminalOpacity(1.0);
 
-    // ✅ This removes the gray startup background
+    // Optional: remove gray flash ONLY for WhiteOnBlack
     if (scheme == "WhiteOnBlack") {
-        forceBlackBackground(term);
+        forceBlackBackground(term);        // forces black palette
+        protectTermFromAppStyles(term);    // re-shield after forcing palette
     }
 }
+
+
 
 
 void MainWindow::openShellForProfile(const SshProfile &p, const QString &target, bool newWindow)
@@ -556,6 +590,7 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         w->show();
         w->raise();
         w->activateWindow();
+        focusTerminalWindow(w, term);
         return;
     }
 
@@ -580,10 +615,25 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     auto *term = createTerm(p, m_tabWidget);
     const int idx = m_tabWidget->addTab(term, p.name);
     m_tabWidget->setCurrentIndex(idx);
-    focusTerminalWindow(m_tabbedShellWindow, term);
-
     m_tabbedShellWindow->show();
-    focusTerminalWindow(m_tabbedShellWindow, term);
     m_tabbedShellWindow->raise();
     m_tabbedShellWindow->activateWindow();
+    focusTerminalWindow(m_tabbedShellWindow, term);
+}
+
+static void protectTermFromAppStyles(CpunkTermWidget *term)
+{
+    if (!term) return;
+
+    const QString shield =
+        "QWidget { background-color: palette(Base); color: palette(Text); }";
+
+    term->setAutoFillBackground(true);
+    term->setStyleSheet(shield);
+
+    const auto kids = term->findChildren<QWidget*>();
+    for (QWidget *w : kids) {
+        w->setAutoFillBackground(true);
+        w->setStyleSheet(shield);
+    }
 }

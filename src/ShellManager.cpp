@@ -9,6 +9,18 @@
 
 #include "CpunkTermWidget.h"
 #include "SshProfile.h"   // ✅ use the shared profile header (NOT MainWindow.h)
+#include <QStringList>
+#include "CpunkTermWidget.h"
+
+
+static QStringList installedTermSchemes()
+{
+    CpunkTermWidget probe(0, nullptr);
+    auto schemes = probe.availableColorSchemes();
+    schemes.removeDuplicates();
+    schemes.sort(Qt::CaseInsensitive);
+    return schemes;
+}
 
 ShellManager::ShellManager(QObject *parent)
     : QObject(parent)

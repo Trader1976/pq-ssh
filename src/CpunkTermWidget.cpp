@@ -92,7 +92,7 @@ CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
     auto applyTerminalLook = [this, f]() {
         // Force scheme + opacity (gray often = opacity blending or scheme not applied)
         setTerminalOpacity(1.0);
-        setColorScheme(QStringLiteral("WhiteOnBlack"));
+        //setColorScheme(QStringLiteral("WhiteOnBlack"));
 
         // Force NORMAL font (avoid setFont(), use terminal font only)
         setTerminalFont(f);

@@ -1,0 +1,70 @@
+[General]
+Description=CPUNK-Aurora (Soft)
+
+[Background]
+Color=14,17,23
+
+[BackgroundIntense]
+Color=30,41,59
+
+[Foreground]
+Color=220,231,245
+
+[ForegroundIntense]
+Color=255,255,255
+
+; black (base)
+[Color0]
+Color=14,17,23
+
+[Color0Intense]
+Color=100,116,139
+
+; red
+[Color1]
+Color=255,107,107
+
+[Color1Intense]
+Color=255,135,135
+
+; green
+[Color2]
+Color=74,222,128
+
+[Color2Intense]
+Color=134,239,172
+
+; yellow
+[Color3]
+Color=253,224,71
+
+[Color3Intense]
+Color=254,240,138
+
+; blue
+[Color4]
+Color=96,165,250
+
+[Color4Intense]
+Color=147,197,253
+
+; magenta
+[Color5]
+Color=192,132,252
+
+[Color5Intense]
+Color=233,213,255
+
+; aqua
+[Color6]
+Color=34,211,238
+
+[Color6Intense]
+Color=103,232,249
+
+; grey / white
+[Color7]
+Color=220,231,245
+
+[Color7Intense]
+Color=255,255,255
