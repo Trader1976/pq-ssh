@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SSH Key Type Specification: ssh-dilithium5@cpunk.io</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      margin: 2rem auto;
+      max-width: 900px;
+      padding: 0 1rem;
+      background: #0b0c10;
+      color: #e5e5e5;
+    }
+    h1, h2, h3, h4 {
+      color: #61dafb;
+    }
+    code {
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      background: #11141a;
+      padding: 0.1em 0.3em;
+      border-radius: 4px;
+    }
+    pre {
+      background: #11141a;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      border: 1px solid #222834;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid #222834;
+      margin: 2rem 0;
+    }
+    a {
+      color: #61dafb;
+    }
+  </style>
+</head>
+<body>
+
+<h1>SSH Key Type Specification: <code>ssh-dilithium5@cpunk.io</code></h1>
+
+<p><strong>Status:</strong> Draft<br>
+  <strong>Author:</strong> CPUNK Protocol<br>
+  <strong>Version:</strong> 0.1<br>
+  <strong>Scope:</strong> Experimental Dilithium5-based SSH public key algorithm for cpunk / pq-ssh ecosystem.</p>
+
+<hr>
+
+<h2>1. Overview</h2>
+
+<p>This document defines a vendor-scoped SSH public key algorithm based on <strong>Dilithium5</strong> post-quantum signatures:</p>
+
+<pre><code>ssh-dilithium5@cpunk.io
+</code></pre>
+
+<p>The goal is to allow <strong>post-quantum user authentication</strong> in SSH-like environments where both client (e.g. <code>pq-ssh</code>) and server are cpunk-aware. This is <strong>not</strong> intended for interoperability with stock OpenSSH servers (which currently do not support this key type).</p>
+
+<p>The key type is used for SSH <strong>public key authentication</strong> only. Key exchange (KEX) and other algorithms are out of scope.</p>
+
+<hr>
+
+<h2>2. Algorithm Identifier</h2>
+
+<p>The SSH algorithm name (also called key type string) is:</p>
+
+<pre><code>"ssh-dilithium5@cpunk.io"
+</code></pre>
+
+<p>This exact UTF-8 string is used:</p>
+
+<ul>
+  <li>in the <code>authorized_keys</code> file</li>
+  <li>in the SSH public key blob</li>
+  <li>inside SSH signature blobs</li>
+</ul>
+
+<hr>
+
+<h2>3. Cryptographic Primitive</h2>
+
+<ul>
+  <li><strong>Signature scheme:</strong> Dilithium5 (or equivalent ML-DSA Level 5)</li>
+  <li><strong>Public key length:</strong> <code>DILITHIUM5_PUBLICKEYBYTES</code></li>
+  <li><strong>Signature length:</strong> <code>DILITHIUM5_BYTES</code></li>
+</ul>
+
+<p>Implementations must use a well-reviewed Dilithium5/ML-DSA-87 library (e.g. a NIST-compliant implementation). The exact constant names may differ by library, but the semantics are:</p>
+
+<ul>
+  <li><code>PUBLICKEYBYTES</code>: number of bytes in a serialized public key</li>
+  <li><code>BYTES</code>: number of bytes in a serialized signature</li>
+</ul>
+
+<p>All keys and signatures are treated as <strong>raw byte strings</strong> in the SSH encoding.</p>
+
+<hr>
+
+<h2>4. SSH Encoding Conventions</h2>
+
+<p>This specification uses the usual SSH types defined in RFC 4251:</p>
+
+<ul>
+  <li><code>string</code>: 4-byte big-endian length <code>n</code>, followed by <code>n</code> octets.</li>
+  <li>Concatenation: fields are written in sequence.</li>
+</ul>
+
+<p>In the descriptions below, <strong>&ldquo;SSH string&rdquo;</strong> always refers to this RFC 4251 <code>string</code> type.</p>
+
+<hr>
+
+<h2>5. Public Key Format</h2>
+
+<h3>5.1 Public Key Blob</h3>
+
+<p>In SSH, a public key is represented by a <strong>public key blob</strong>. For <code>ssh-dilithium5@cpunk.io</code>, the blob is:</p>
+
+<pre><code>string    algorithm_name   # "ssh-dilithium5@cpunk.io"
+string    public_key_data  # raw Dilithium5 public key bytes
+</code></pre>
+
+<p>Where:</p>
+
+<ul>
+  <li><code>algorithm_name</code> is the SSH string containing the UTF-8 bytes of <code>"ssh-dilithium5@cpunk.io"</code>.</li>
+  <li><code>public_key_data</code> is a SSH string whose contents are exactly <code>PUBLICKEYBYTES</code> octets of the Dilithium5 public key.</li>
+</ul>
+
+<p>Pseudo-structure:</p>
+
+<pre><code>public-key-blob = string("ssh-dilithium5@cpunk.io")
+                  string(pk)
+
+pk = DILITHIUM5_PUBLICKEYBYTES octets
+</code></pre>
+
+<h3>5.2 <code>authorized_keys</code> Representation</h3>
+
+<p>In <code>~/.ssh/authorized_keys</code>, keys are listed as:</p>
+
+<pre><code>&lt;keytype&gt; &lt;base64(public-key-blob)&gt; [comment]
+</code></pre>
+
+<p>For <code>ssh-dilithium5@cpunk.io</code> keys, this becomes:</p>
+
+<pre><code>ssh-dilithium5@cpunk.io AAAAB3NzaC1... timo@laptop
+</code></pre>
+
+<p>Where:</p>
+
+<ul>
+  <li><code>&lt;keytype&gt;</code> is the literal string <code>ssh-dilithium5@cpunk.io</code></li>
+  <li>The base64 payload is the base64 encoding of the <strong>public key blob</strong> defined in §5.1</li>
+  <li><code>[comment]</code> is optional (user@host, label, etc.)</li>
+</ul>
+
+<p><strong>Server behavior:</strong></p>
+
+<ul>
+  <li>When parsing <code>authorized_keys</code>, the server should:
+    <ul>
+      <li>Read the key type string (must equal <code>ssh-dilithium5@cpunk.io</code>),</li>
+      <li>Base64-decode the second field to obtain the public key blob,</li>
+      <li>Parse the blob as in §5.1,</li>
+      <li>Store/compare the extracted <code>pk</code> as the Dilithium5 public key.</li>
+    </ul>
+  </li>
+</ul>
+
+<hr>
+
+<h2>6. Signature Format</h2>
+
+<p>SSH signatures are always carried as a <strong>signature object</strong>, itself encoded as a SSH <code>string</code> containing:</p>
+
+<pre><code>string    algorithm_name   # "ssh-dilithium5@cpunk.io"
+string    signature_data   # raw Dilithium5 signature bytes
+</code></pre>
+
+<p>Pseudo-structure:</p>
+
+<pre><code>signature-object = string("ssh-dilithium5@cpunk.io")
+                   string(sig)
+
+sig = DILITHIUM5_BYTES octets
+</code></pre>
+
+<p>This <code>signature-object</code> is then encoded as a SSH <code>string</code> in the surrounding SSH message (e.g. <code>SSH_MSG_USERAUTH_REQUEST</code>).</p>
+
+<hr>
+
+<h2>7. Authentication Procedure</h2>
+
+<p>The <strong>user authentication</strong> flow for <code>ssh-dilithium5@cpunk.io</code> follows the general SSH public key authentication logic, differing only in the key type and the signature algorithm.</p>
+
+<h3>7.1 Requesting Public Key Authentication</h3>
+
+<p>The client may probe support for this key type by sending:</p>
+
+<pre><code>byte      SSH_MSG_USERAUTH_REQUEST
+string    user name
+string    service name        # e.g. "ssh-connection"
+string    "publickey"
+boolean   FALSE               # signature not included yet
+string    "ssh-dilithium5@cpunk.io"
+string    public-key-blob
+</code></pre>
+
+<p>Where <code>public-key-blob</code> follows §5.1.</p>
+
+<p>The server may then respond with <code>SSH_MSG_USERAUTH_PK_OK</code> if it is willing to accept this key for the user and service, or with <code>SSH_MSG_USERAUTH_FAILURE</code> otherwise.</p>
+
+<h3>7.2 Sending the Signature</h3>
+
+<p>When sending the actual authentication request including a signature, the client sends:</p>
+
+<pre><code>byte      SSH_MSG_USERAUTH_REQUEST
+string    user name
+string    service name
+string    "publickey"
+boolean   TRUE                # signature included
+string    "ssh-dilithium5@cpunk.io"
+string    public-key-blob
+string    signature-object
+</code></pre>
+
+<p>Where <code>signature-object</code> is as defined in §6.</p>
+
+<h3>7.3 Data Covered by the Signature</h3>
+
+<p>The signed data is identical in structure to other SSH public key algorithms (per RFC 4252):</p>
+
+<pre><code>signed-data = session-id
+              byte      SSH_MSG_USERAUTH_REQUEST
+              string    user name
+              string    service name
+              string    "publickey"
+              boolean   TRUE
+              string    "ssh-dilithium5@cpunk.io"
+              string    public-key-blob
+</code></pre>
+
+<ul>
+  <li><code>session-id</code> is the SSH session identifier calculated during key exchange (see RFC 4253 §7.2).</li>
+  <li><code>public-key-blob</code> is the same value as sent in the packet.</li>
+</ul>
+
+<p>The client computes:</p>
+
+<pre><code>sig = Dilithium5_Sign(sk, signed-data)
+</code></pre>
+
+<p>and constructs <code>signature-object</code> per §6.</p>
+
+<h3>7.4 Server Verification</h3>
+
+<p>Upon receiving a <code>SSH_MSG_USERAUTH_REQUEST</code> with <code>boolean TRUE</code> and key type <code>ssh-dilithium5@cpunk.io</code>, the server must:</p>
+
+<ol>
+  <li>Parse the <code>public-key-blob</code>:
+    <ul>
+      <li>Extract <code>algorithm_name</code> and <code>pk</code>.</li>
+      <li>Verify <code>algorithm_name == "ssh-dilithium5@cpunk.io"</code>.</li>
+    </ul>
+  </li>
+  <li>Determine whether <code>pk</code> is authorized for the user:
+    <ul>
+      <li>By matching against <code>authorized_keys</code> entries using the same blob format.</li>
+    </ul>
+  </li>
+  <li>Reconstruct <code>signed-data</code> (as in §7.3).</li>
+  <li>Parse <code>signature-object</code>:
+    <ul>
+      <li>Extract <code>algorithm_name2</code> and <code>sig</code>.</li>
+      <li>Verify <code>algorithm_name2 == "ssh-dilithium5@cpunk.io"</code>.</li>
+    </ul>
+  </li>
+  <li>Call the Dilithium5 verify function:
+    <pre><code>Dilithium5_Verify(pk, signed-data, sig) == true
+</code></pre>
+  </li>
+  <li>If verification succeeds and policy allows it, authentication succeeds.</li>
+</ol>
+
+<hr>
+
+<h2>8. Key Fingerprints</h2>
+
+<p>For user-friendly display and comparison, <code>ssh-dilithium5@cpunk.io</code> keys may use the same fingerprint scheme as modern OpenSSH:</p>
+
+<ul>
+  <li>Let <code>K</code> be the <strong>public key blob</strong> (as in §5.1).</li>
+  <li>Let <code>F = SHA256(K)</code> (32-byte hash).</li>
+  <li>Display as:
+    <pre><code>"SHA256:" + base64(F)
+</code></pre>
+  </li>
+</ul>
+
+<p>Example (pseudo):</p>
+
+<pre><code>SHA256:abc123...=
+</code></pre>
+
+<p>This format is independent of key type and works for Dilithium5, Ed25519, RSA, etc.</p>
+
+<hr>
+
+<h2>9. Private Key Storage (Informative)</h2>
+
+<p>Private key file format is <strong>implementation-defined</strong> and not strictly part of the SSH wire protocol. Implementations should:</p>
+
+<ul>
+  <li>Store the Dilithium5 private key <code>sk</code> in a dedicated file (e.g. <code>id_dilithium5</code>).</li>
+  <li>Provide optional passphrase-based encryption for the private key file (e.g. using a KDF + AEAD).</li>
+  <li>Include a clearly identifiable header inside the private key file to distinguish Dilithium5 keys from other key types.</li>
+</ul>
+
+<p>Example (illustrative only):</p>
+
+<pre><code>-----BEGIN DILITHIUM5 PRIVATE KEY-----
+&lt;base64-encoded-blob&gt;
+-----END DILITHIUM5 PRIVATE KEY-----
+</code></pre>
+
+<p>The exact encoding is left to implementers but should be documented within the implementation.</p>
+
+<hr>
+
+<h2>10. Security Considerations</h2>
+
+<ol>
+  <li><strong>Algorithm strength</strong>
+    <ul>
+      <li>Dilithium5 (ML-DSA-87) provides NIST PQC <strong>Category 5</strong> security, intended to resist large quantum adversaries.</li>
+      <li>Implementers must track the current NIST guidance and library updates.</li>
+    </ul>
+  </li>
+  <li><strong>Implementation correctness</strong>
+    <ul>
+      <li>Implementations must use constant-time Dilithium5 code to avoid timing side channels.</li>
+      <li>All parsing of SSH <code>string</code>s must be bounds-checked to avoid buffer overflows.</li>
+    </ul>
+  </li>
+  <li><strong>Coexistence with classical keys</strong>
+    <ul>
+      <li>For compatibility, servers may support both classical (e.g. Ed25519) and <code>ssh-dilithium5@cpunk.io</code> keys.</li>
+      <li>Policy should define when PQ keys are required or preferred.</li>
+    </ul>
+  </li>
+  <li><strong>Experimental status</strong>
+    <ul>
+      <li>This key type is vendor-scoped and not registered with any SSH standards body.</li>
+      <li>It should initially be deployed only in environments where both client and server are controlled (e.g. CPUNK labs, test clusters, internal infrastructure).</li>
+    </ul>
+  </li>
+</ol>
+
+<hr>
+
+<h2>11. Future Extensions</h2>
+
+<p>Possible future extensions include:</p>
+
+<ul>
+  <li>Additional key types:
+    <ul>
+      <li><code>ssh-dilithium2@cpunk.io</code></li>
+      <li><code>ssh-dilithium3@cpunk.io</code></li>
+    </ul>
+  </li>
+  <li>Hybrid authentication schemes where a single SSH authentication uses both a classical and a Dilithium5 signature.</li>
+  <li>Integration with an external PQ identity / agent service (<code>cpunk-agent</code>) and agent forwarding.</li>
+</ul>
+
+<p>Each of these would follow the same encoding pattern described in this document, with only the algorithm name and key size constants changing.</p>
+
+<hr>
+
+<h2>Appendix A: Reference Helper API (C++ / Qt)</h2>
+
+<p>The following helper API implements the encoding rules from this document.</p>
+
+<h3>A.1 <code>SshDilithium5.h</code></h3>
+
+<pre><code>#pragma once
+
+#include &lt;QByteArray&gt;
+#include &lt;QString&gt;
+
+namespace cpunk::ssh {
+
+/// SSH algorithm name for Dilithium5 keys
+inline constexpr const char *kDilithium5AlgName = "ssh-dilithium5@cpunk.io";
+
+/// Encode a raw Dilithium5 public key (pk) into an SSH public-key blob:
+///   string "ssh-dilithium5@cpunk.io"
+///   string pk
+///
+/// This blob is what you then base64-encode for authorized_keys.
+QByteArray encodeDilithium5PublicKeyBlob(const QByteArray &amp;pk);
+
+/// Decode an SSH public-key blob back into the raw Dilithium5 public key.
+/// Returns true on success, false on parse error or wrong algorithm name.
+bool decodeDilithium5PublicKeyBlob(const QByteArray &amp;blob,
+                                   QByteArray &amp;pkOut);
+
+/// Encode a raw Dilithium5 signature into an SSH signature object:
+///   string "ssh-dilithium5@cpunk.io"
+///   string sig
+///
+/// The returned blob should then be wrapped in an outer SSH `string` when
+/// constructing SSH_MSG_USERAUTH_REQUEST, etc.
+QByteArray encodeDilithium5SignatureObject(const QByteArray &amp;sig);
+
+/// Decode an SSH signature object back into the raw Dilithium5 signature.
+/// Returns true on success, false on parse error or wrong algorithm name.
+bool decodeDilithium5SignatureObject(const QByteArray &amp;signatureObject,
+                                     QByteArray &amp;sigOut);
+
+/// Compute an OpenSSH-style SHA256 fingerprint from a *public-key blob*.
+/// Format: "SHA256:&lt;base64(SHA256(blob))&gt;"
+///
+/// Note: Input is the binary public-key blob, *not* the base64 text from
+/// authorized_keys.
+QString fingerprintFromPublicKeyBlob(const QByteArray &amp;publicKeyBlob);
+
+} // namespace cpunk::ssh
+</code></pre>
+
+<h3>A.2 <code>SshDilithium5.cpp</code></h3>
+
+<pre><code>#include "SshDilithium5.h"
+
+#include &lt;QCryptographicHash&gt;
+#include &lt;QByteArray&gt;
+#include &lt;QtEndian&gt;
+
+namespace cpunk::ssh {
+
+// --- Internal helpers -------------------------------------------------------
+
+static QByteArray writeSshString(const QByteArray &amp;data)
+{
+    QByteArray out;
+    out.reserve(4 + data.size());
+
+    quint32 len = static_cast&lt;quint32&gt;(data.size());
+    char lenBuf[4];
+    lenBuf[0] = static_cast&lt;char&gt;((len &gt;&gt; 24) &amp; 0xFF);
+    lenBuf[1] = static_cast&lt;char&gt;((len &gt;&gt; 16) &amp; 0xFF);
+    lenBuf[2] = static_cast&lt;char&gt;((len &gt;&gt; 8) &amp; 0xFF);
+    lenBuf[3] = static_cast&lt;char&gt;(len &amp; 0xFF);
+
+    out.append(lenBuf, 4);
+    out.append(data);
+    return out;
+}
+
+/// Read an SSH `string` from `blob` starting at `offset`.
+/// On success, writes result to `out` and advances `offset`.
+/// Returns false on parse error.
+static bool readSshString(const QByteArray &amp;blob, int &amp;offset, QByteArray &amp;out)
+{
+    const int totalSize = blob.size();
+    if (offset + 4 &gt; totalSize) {
+        return false;
+    }
+
+    const unsigned char *p = reinterpret_cast&lt;const unsigned char *&gt;(blob.constData()) + offset;
+    quint32 len = (static_cast&lt;quint32&gt;(p[0]) &lt;&lt; 24) |
+                  (static_cast&lt;quint32&gt;(p[1]) &lt;&lt; 16) |
+                  (static_cast&lt;quint32&gt;(p[2]) &lt;&lt; 8)  |
+                  (static_cast&lt;quint32&gt;(p[3]));
+
+    offset += 4;
+
+    if (offset + static_cast&lt;int&gt;(len) &gt; totalSize) {
+        return false;
+    }
+
+    out = blob.mid(offset, static_cast&lt;int&gt;(len));
+    offset += static_cast&lt;int&gt;(len);
+    return true;
+}
+
+// --- Public API -------------------------------------------------------------
+
+QByteArray encodeDilithium5PublicKeyBlob(const QByteArray &amp;pk)
+{
+    QByteArray blob;
+    blob.reserve(4 + int(strlen(kDilithium5AlgName)) + 4 + pk.size());
+
+    // string "ssh-dilithium5@cpunk.io"
+    blob.append(writeSshString(QByteArray(kDilithium5AlgName)));
+
+    // string pk
+    blob.append(writeSshString(pk));
+
+    return blob;
+}
+
+bool decodeDilithium5PublicKeyBlob(const QByteArray &amp;blob, QByteArray &amp;pkOut)
+{
+    int offset = 0;
+    QByteArray algName;
+    QByteArray pk;
+
+    if (!readSshString(blob, offset, algName)) {
+        return false;
+    }
+    if (algName != QByteArray(kDilithium5AlgName)) {
+        return false;
+    }
+    if (!readSshString(blob, offset, pk)) {
+        return false;
+    }
+    // It's okay if there are trailing bytes, but usually there shouldn't be.
+    pkOut = pk;
+    return true;
+}
+
+QByteArray encodeDilithium5SignatureObject(const QByteArray &amp;sig)
+{
+    QByteArray obj;
+    obj.reserve(4 + int(strlen(kDilithium5AlgName)) + 4 + sig.size());
+
+    // string "ssh-dilithium5@cpunk.io"
+    obj.append(writeSshString(QByteArray(kDilithium5AlgName)));
+
+    // string sig
+    obj.append(writeSshString(sig));
+
+    return obj;
+}
+
+bool decodeDilithium5SignatureObject(const QByteArray &amp;signatureObject,
+                                     QByteArray &amp;sigOut)
+{
+    int offset = 0;
+    QByteArray algName;
+    QByteArray sig;
+
+    if (!readSshString(signatureObject, offset, algName)) {
+        return false;
+    }
+    if (algName != QByteArray(kDilithium5AlgName)) {
+        return false;
+    }
+    if (!readSshString(signatureObject, offset, sig)) {
+        return false;
+    }
+
+    sigOut = sig;
+    return true;
+}
+
+QString fingerprintFromPublicKeyBlob(const QByteArray &amp;publicKeyBlob)
+{
+    QByteArray hash = QCryptographicHash::hash(publicKeyBlob,
+                                               QCryptographicHash::Sha256);
+    QByteArray b64 = hash.toBase64(QByteArray::Base64Encoding |
+                                   QByteArray::OmitTrailingEquals);
+    return QStringLiteral("SHA256:%1").arg(QString::fromLatin1(b64));
+}
+
+} // namespace cpunk::ssh
+</code></pre>
+
+</body>
+</html>
