@@ -1,49 +1,69 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(PQ_SSH LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Qt automatic things
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-# libssh
-find_package(LIBSSH REQUIRED)
-
-# Qt5 Widgets (NOT Qt6)
+# Qt5 Widgets
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
-# QTermWidget via pkg-config (Qt5-based)
+# pkg-config modules (libssh + qtermwidget5)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(QTERM REQUIRED qtermwidget5)
+pkg_check_modules(LIBSSH REQUIRED libssh)
+pkg_check_modules(QTERM  REQUIRED qtermwidget5)
 
-# Source files
 add_executable(pq-ssh
-    src/main.cpp
-    src/MainWindow.cpp
-    src/MainWindow.h
-    src/SshShellWorker.cpp
-    src/TerminalView.cpp
+        src/main.cpp
+        src/MainWindow.cpp
+        src/MainWindow.h
+
+        src/SshClient.cpp
+        src/SshClient.h
+
+        src/SshShellWorker.cpp
+        src/SshShellWorker.h
+
+        src/TerminalView.cpp
+        src/TerminalView.h
+
+        src/CpunkTermWidget.cpp
+        src/CpunkTermWidget.h
+        src/AppTheme.cpp
+
+
+        # Add these when they exist as real files:
+        src/ProfileStore.cpp
+        src/ProfileStore.h
+        src/ProfilesEditorDialog.cpp
+        src/ProfilesEditorDialog.h
+
+        src/AppTheme.h
+        src/SshProfile.h
 )
 
-# QTermWidget include dirs
 target_include_directories(pq-ssh
-    PRIVATE
+        PRIVATE
+        ${LIBSSH_INCLUDE_DIRS}
         ${QTERM_INCLUDE_DIRS}
 )
 
-# Link Qt5 + libssh + QTermWidget
-target_link_libraries(pq-ssh
-    PRIVATE
-        Qt5::Widgets
-        ssh                 # from find_package(LIBSSH)
-        ${QTERM_LIBRARIES}  # from pkg_check_modules(QTERM ...)
+target_compile_options(pq-ssh
+        PRIVATE
+        ${LIBSSH_CFLAGS_OTHER}
+        ${QTERM_CFLAGS_OTHER}
 )
 
-# Put binary into bin/
+target_link_libraries(pq-ssh
+        PRIVATE
+        Qt5::Widgets
+        ${LIBSSH_LIBRARIES}
+        ${QTERM_LIBRARIES}
+)
+
 set_target_properties(pq-ssh PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )

@@ -2,41 +2,25 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QProcess>
 #include <QVector>
-#include <QThread>
-#include "SshShellWorker.h"
-#include <QPlainTextEdit>
-#include <QThread>
-#include "TerminalView.h"
-#include <libssh/libssh.h>
+#include <QString>
+#include <QByteArray>
 
+#include "SshProfile.h"
+#include "SshClient.h"
+
+
+// Forward declarations (Qt)
 class QListWidget;
+class QListWidgetItem;
 class QPlainTextEdit;
 class QPushButton;
 class QLineEdit;
 class QLabel;
 class QCheckBox;
-class QDialog;
-class QPlainTextEdit;
-class QTermWidget;
-class QTabWidget;
-class QTermWidget;
 
-// Simple SSH profile representation
-struct SshProfile {
-    QString name;
-    QString user;
-    QString host;
-    int     port    = 22;
-    bool    pqDebug = true;
-    // NEW: visual settings
-    QString termColorScheme;  // e.g. "WhiteOnBlack"
-    int     termFontSize = 11;  //terminal font size
-    // Window geometry
-    int     termWidth  = 900;
-    int     termHeight = 500;
-};
+class QTabWidget;
+class CpunkTermWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -48,75 +32,64 @@ public:
 
 private slots:
     void onConnectClicked();
+    void onDisconnectClicked();
+    void onSendInput();
+
     void onProfileDoubleClicked();
     void onProfileSelectionChanged(int row);
-    void onSendInput();
-    void onDisconnectClicked();
     void onEditProfilesClicked();
-    void onUserTyped(const QByteArray &data); 
 
-    void handleSshReadyRead();
-    void handleSshFinished(int exitCode, QProcess::ExitStatus status);
-    void handleSshError(QProcess::ProcessError error);
+    // (Will be wired once ShellManager exists)
+    void onFileDropped(const QString &path, const QByteArray &data);
 
-    void startInteractiveShell();          // call after login or from a button
-    void handleShellOutput(const QByteArray &data);
-    void handleShellClosed(const QString &reason);
-    void startColorShell(const QString &target);
+    void downloadSelectionTriggered();
 
 private:
     void setupUi();
     void setupMenus();
 
-    // Profiles
     void loadProfiles();
     void saveProfilesToDisk();
-    void showProfilesEditor();
-    void createDefaultProfiles();
-    QString profilesConfigPath() const;
 
-    void startSshProcess(const QString &target);
+    bool probePqSupport(const QString &target);
+
     void appendTerminalLine(const QString &line);
     void updatePqStatusLabel(const QString &text, const QString &colorHex);
 
+
+    // UI
     QListWidget    *m_profileList    = nullptr;
-    QPlainTextEdit *m_terminal       = nullptr;
     QPushButton    *m_connectBtn     = nullptr;
     QPushButton    *m_disconnectBtn  = nullptr;
     QLineEdit      *m_hostField      = nullptr;
     QLabel         *m_statusLabel    = nullptr;
 
+    QPlainTextEdit *m_terminal       = nullptr;
     QLineEdit      *m_inputField     = nullptr;
     QPushButton    *m_sendBtn        = nullptr;
 
-    QProcess       *m_sshProcess     = nullptr;
-
     QLabel         *m_pqStatusLabel  = nullptr;
-    bool            m_pqActive       = false;
-    bool probePqSupport(const QString &target);
-    void applyTerminalProfile(QTermWidget *term, const SshProfile &p);  // NEW signature
-    void openTabbedShellForProfile(const SshProfile &p, const QString &target);
-    void openSeparateWindowShell(const SshProfile &p, const QString &target);
-    QTermWidget* createNewShellTab(const SshProfile &p, const QString &target);
-    QCheckBox   *m_openInNewWindowCheck = nullptr;
     QCheckBox      *m_pqDebugCheck   = nullptr;
-
-    QVector<SshProfile> m_profiles;
+    QCheckBox      *m_openInNewWindowCheck = nullptr;
 
     QPushButton    *m_editProfilesBtn = nullptr;
 
-    ssh_session m_session = nullptr;   // libssh session for interactive shell
-    TerminalView *m_shellView = nullptr;
-    QThread *m_shellThread = nullptr;
-    SshShellWorker *m_shellWorker = nullptr;
-    QTermWidget   *m_colorShell = nullptr;  // full-color terminal window
+    // State
+    QVector<SshProfile> m_profiles;
+    bool                m_pqActive = false; // optional; currently not used in cleaned cpp
+
+    // Modules
+    SshClient m_ssh;
+
+
+    // Terminal UI (QTermWidget-based)
+    void openShellForProfile(const SshProfile &p, const QString &target, bool newWindow);
+    CpunkTermWidget* createTerm(const SshProfile &p, QWidget *parent);
+    void applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p);
+
     QMainWindow *m_tabbedShellWindow = nullptr;
-    QTabWidget  *m_tabWidget         = nullptr;
+    QTabWidget  *m_tabWidget = nullptr;
 
-
-    bool establishSshSession(const QString &target);
-//    QPlainTextEdit *m_shellView = nullptr;
 };
 
 #endif // MAINWINDOW_H
-
