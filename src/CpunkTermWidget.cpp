@@ -70,8 +70,10 @@ void CpunkTermWidget::setupDropInterceptor()
 // Constructor
 // -----------------------------
 CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
-    : QTermWidget(historyLines, parent)
+    : QTermWidget(0, parent) // ✅ prevent auto-start local shell
 {
+    setHistorySize(historyLines);      // ✅ apply history lines properly
+
     // IMPORTANT: prevent app QSS from affecting terminal rendering
     setStyleSheet(QString());
     for (QWidget *w : findChildren<QWidget*>())
@@ -90,14 +92,9 @@ CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
     f.setPointSize(11);
 
     auto applyTerminalLook = [this, f]() {
-        // Force scheme + opacity (gray often = opacity blending or scheme not applied)
         setTerminalOpacity(1.0);
-        //setColorScheme(QStringLiteral("WhiteOnBlack"));
-
-        // Force NORMAL font (avoid setFont(), use terminal font only)
         setTerminalFont(f);
 
-        // Also stop child widgets inheriting weird palettes/styles
         setStyleSheet(QString());
         for (QWidget *w : findChildren<QWidget*>()) {
             w->setStyleSheet(QString());
@@ -108,9 +105,7 @@ CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
         }
     };
 
-    // Apply once now…
     applyTerminalLook();
-    // …and AGAIN after QTermWidget finishes its internal init (this is the key)
     QTimer::singleShot(0, this, applyTerminalLook);
 
     // Copy / Paste actions
@@ -145,6 +140,7 @@ CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
 
     setupDropInterceptor();
 }
+
 
 // -----------------------------
 // Event filter (drop)

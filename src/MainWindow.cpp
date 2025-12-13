@@ -33,6 +33,7 @@
 #include <QTabWidget>
 #include <QFont>
 #include "CpunkTermWidget.h"
+#include <qtermwidget5/qtermwidget.h>
 
 
 
@@ -517,71 +518,94 @@ bool MainWindow::probePqSupport(const QString &target)
 
 CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
 {
-    auto *term = new CpunkTermWidget(2000, parent); // history lines
+    // IMPORTANT:
+    // QTermWidget(int startnow, ...) starts the default shell if startnow != 0.
+    // We MUST start with 0 so it doesn't launch a local bash before we configure ssh.
+    auto *term = new CpunkTermWidget(0, parent);
+    term->setHistorySize(2000);
+
     applyProfileToTerm(term, p);
 
-    term->setShellProgram("ssh");
+    // ---------- Build SSH args ----------
+    QStringList sshArgs;
+    sshArgs << "-tt";
+    if (p.pqDebug) sshArgs << "-vv";
 
-    QStringList args;
-    args << "-tt";
-    if (p.pqDebug) args << "-vv";
+    sshArgs << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
+    sshArgs << "-o" << "ConnectTimeout=5";
+    sshArgs << "-o" << "ConnectionAttempts=1";
 
-    // PQ KEX (safe to keep; if server doesn't support, ssh will negotiate/fail accordingly)
-    args << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
+    // Avoid interactive host-key prompt inside embedded terminal
+    sshArgs << "-o" << "StrictHostKeyChecking=accept-new";
+    sshArgs << "-o" << ("UserKnownHostsFile=" + QDir::homePath() + "/.ssh/known_hosts");
 
-    // --- NEW: auth behavior based on profile ---
     const QString kt = p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
     const bool hasKeyFile = !p.keyFile.trimmed().isEmpty();
 
     if (kt == "auto" || kt == "openssh") {
-        // Allow pubkey + agent by default
-        args << "-o" << "PubkeyAuthentication=yes";
-        args << "-o" << "IdentitiesOnly=yes"; // if -i provided, prefer it
-        args << "-o" << "PreferredAuthentications=publickey,password,keyboard-interactive";
-        args << "-o" << "PasswordAuthentication=yes";
-        args << "-o" << "KbdInteractiveAuthentication=yes";
-        args << "-o" << "NumberOfPasswordPrompts=3";
-        args << "-o" << "GSSAPIAuthentication=no";
-        args << "-o" << "HostbasedAuthentication=no";
+        sshArgs << "-o" << "PubkeyAuthentication=yes";
+        sshArgs << "-o" << "IdentitiesOnly=yes";
+        sshArgs << "-o" << "PreferredAuthentications=publickey,password,keyboard-interactive";
+        sshArgs << "-o" << "PasswordAuthentication=yes";
+        sshArgs << "-o" << "KbdInteractiveAuthentication=yes";
+        sshArgs << "-o" << "NumberOfPasswordPrompts=3";
+        sshArgs << "-o" << "GSSAPIAuthentication=no";
+        sshArgs << "-o" << "HostbasedAuthentication=no";
 
-        if (hasKeyFile) {
-            args << "-i" << p.keyFile.trimmed();
-        }
-        // NOTE: we do NOT disable IdentityAgent anymore. Let ssh-agent work.
+        // Disable muxing
+        sshArgs << "-o" << "ControlMaster=no";
+        sshArgs << "-o" << "ControlPath=none";
+        sshArgs << "-o" << "ControlPersist=no";
+
+        if (hasKeyFile)
+            sshArgs << "-i" << p.keyFile.trimmed();
     } else {
-        // PQ key types not implemented in OpenSSH client side here yet.
-        // So we fall back to password prompting (same as your old behavior) and log clearly.
-        appendTerminalLine(QString("[SSH] key_type='%1' not implemented yet → falling back to password auth for terminal session.")
+        appendTerminalLine(QString("[SSH] key_type='%1' not implemented yet → falling back to password auth.")
                            .arg(kt));
 
-        args << "-o" << "PreferredAuthentications=password,keyboard-interactive";
-        args << "-o" << "PubkeyAuthentication=no";
-        args << "-o" << "IdentityAgent=none";  // disables ssh-agent
-        args << "-o" << "KbdInteractiveAuthentication=yes";
-        args << "-o" << "PasswordAuthentication=yes";
-        args << "-o" << "NumberOfPasswordPrompts=3";
-        args << "-o" << "GSSAPIAuthentication=no";
-        args << "-o" << "HostbasedAuthentication=no";
+        sshArgs << "-o" << "PreferredAuthentications=password,keyboard-interactive";
+        sshArgs << "-o" << "PubkeyAuthentication=no";
+        sshArgs << "-o" << "IdentityAgent=none";
+        sshArgs << "-o" << "KbdInteractiveAuthentication=yes";
+        sshArgs << "-o" << "PasswordAuthentication=yes";
+        sshArgs << "-o" << "NumberOfPasswordPrompts=3";
+        sshArgs << "-o" << "GSSAPIAuthentication=no";
+        sshArgs << "-o" << "HostbasedAuthentication=no";
     }
 
-    // Target (use profile values; your hostField may include user@host too)
-    // Also include port if non-default
-    if (p.port > 0 && p.port != 22) {
-        args << "-p" << QString::number(p.port);
-    }
+    if (p.port > 0 && p.port != 22)
+        sshArgs << "-p" << QString::number(p.port);
 
-    args << (p.user + "@" + p.host);
+    const QString target = (p.user + "@" + p.host);
+    sshArgs << target;
 
-    // Debug: show the exact command in your log panel
-    appendTerminalLine(QString("[SSH-CMD] ssh %1").arg(args.join(" ")));
+    appendTerminalLine(QString("[SSH-CMD] ssh %1").arg(sshArgs.join(" ")));
 
-    term->setArgs(args);
+    // ---------- Wrapper: exec ssh (no local shell fallback) ----------
+    auto shQuote = [](const QString &s) -> QString {
+        QString out = s;
+        out.replace("'", "'\"'\"'");
+        return "'" + out + "'";
+    };
+
+    QString cmd = "exec ssh";
+    for (const QString &a : sshArgs)
+        cmd += " " + shQuote(a);
+
+    appendTerminalLine(QString("[SSH-WRAP] %1").arg(cmd));
+    appendTerminalLine("[SECURITY] Local shell fallback disabled (exec ssh)");
+
+    // Configure terminal program BEFORE startShellProgram()
+    term->setShellProgram("/bin/bash");
+    term->setArgs(QStringList() << "-lc" << cmd);
+
+    term->setAutoClose(true);
     term->startShellProgram();
 
+    // ---------- Styling ----------
     QTimer::singleShot(0,  term, [term]() { protectTermFromAppStyles(term); });
     QTimer::singleShot(50, term, [term]() { protectTermFromAppStyles(term); });
 
-    // Only force black when actually using WhiteOnBlack
     const QString scheme = p.termColorScheme.isEmpty() ? "WhiteOnBlack" : p.termColorScheme;
     if (scheme == "WhiteOnBlack") {
         QTimer::singleShot(0,  term, [term]() { forceBlackBackground(term); });
@@ -591,8 +615,36 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     connect(term, &CpunkTermWidget::fileDropped,
             this, &MainWindow::onFileDropped);
 
+    // Close tab/window on finished (your qtermwidget has finished() with no args)
+    connect(term, &QTermWidget::finished, this, [this, term]() {
+        appendTerminalLine("[TERM] ssh ended; closing terminal tab/window and disconnecting.");
+
+        if (m_tabWidget) {
+            const int idx = m_tabWidget->indexOf(term);
+            if (idx >= 0) {
+                m_tabWidget->removeTab(idx);
+                term->deleteLater();
+
+                if (m_tabWidget->count() == 0 && m_tabbedShellWindow) {
+                    m_tabbedShellWindow->close();
+                }
+            }
+        } else {
+            QWidget *w = term->window();
+            if (w && w != this)
+                w->close();
+            else
+                term->deleteLater();
+        }
+
+        onDisconnectClicked();
+    });
+
+    appendTerminalLine("[TERM] ssh started (wrapped); terminal will close when ssh exits.");
     return term;
 }
+
+
 
 
 
@@ -665,17 +717,26 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
 {
     Q_UNUSED(target);
 
+    const int port = (p.port > 0) ? p.port : 22;
+
+    const QString connLabel = (port != 22)
+        ? QString("%1@%2:%3").arg(p.user, p.host).arg(port)
+        : QString("%1@%2").arg(p.user, p.host);
+
+    const QString windowTitle = QString("PQ-SSH: %1 (%2)").arg(p.name, connLabel);
+    const QString tabTitle    = QString("%1 (%2)").arg(p.name, connLabel);
+
     if (newWindow) {
         auto *w = new QMainWindow();
         w->setAttribute(Qt::WA_DeleteOnClose, true);
-        w->setWindowTitle(QString("PQ-SSH: %1").arg(p.name));
+        w->setWindowTitle(windowTitle);
         w->resize(p.termWidth > 0 ? p.termWidth : 900,
                   p.termHeight > 0 ? p.termHeight : 500);
 
         auto *term = createTerm(p, w);
         w->setCentralWidget(term);
 
-        // ✅ If user closes the terminal window, also disconnect libssh + update UI
+        // If user closes the terminal window, also disconnect libssh + update UI
         connect(w, &QObject::destroyed, this, [this]() {
             onDisconnectClicked();
         });
@@ -694,10 +755,10 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         m_tabbedShellWindow->setWindowTitle("PQ-SSH Tabs");
 
         m_tabWidget = new QTabWidget(m_tabbedShellWindow);
-        m_tabWidget->setTabsClosable(true);                 // ✅ show close buttons on tabs
+        m_tabWidget->setTabsClosable(true);
         m_tabbedShellWindow->setCentralWidget(m_tabWidget);
 
-        // ✅ Close individual tabs; if last tab closes -> disconnect
+        // Close individual tabs; if last tab closes -> disconnect
         connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, [this](int idx) {
             if (!m_tabWidget) return;
 
@@ -705,15 +766,14 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
             m_tabWidget->removeTab(idx);
             if (w) w->deleteLater();
 
-            // If no more tabs, close the tabbed window and disconnect
             if (m_tabWidget->count() == 0) {
                 if (m_tabbedShellWindow)
-                    m_tabbedShellWindow->close(); // WA_DeleteOnClose -> destroyed will run
+                    m_tabbedShellWindow->close();
                 onDisconnectClicked();
             }
         });
 
-        // ✅ If user closes the whole tab window, disconnect too
+        // If user closes the whole tab window, disconnect too
         connect(m_tabbedShellWindow, &QObject::destroyed, this, [this]() {
             m_tabbedShellWindow = nullptr;
             m_tabWidget = nullptr;
@@ -724,14 +784,18 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     }
 
     auto *term = createTerm(p, m_tabWidget);
-    const int idx = m_tabWidget->addTab(term, p.name);
+    const int idx = m_tabWidget->addTab(term, tabTitle);
     m_tabWidget->setCurrentIndex(idx);
+
+    // Optional: also reflect active tab in window title
+    m_tabbedShellWindow->setWindowTitle(QString("PQ-SSH Tabs — %1").arg(connLabel));
 
     m_tabbedShellWindow->show();
     m_tabbedShellWindow->raise();
     m_tabbedShellWindow->activateWindow();
     focusTerminalWindow(m_tabbedShellWindow, term);
 }
+
 
 
 
