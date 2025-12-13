@@ -34,6 +34,8 @@
 #include <QFont>
 #include "CpunkTermWidget.h"
 #include <qtermwidget5/qtermwidget.h>
+#include <QtConcurrent/QtConcurrent>
+#include <QFutureWatcher>
 
 
 
@@ -335,17 +337,15 @@ void MainWindow::onConnectClicked()
     // ---- 1) Ensure a profile is selected ----
     const int row = m_profileList ? m_profileList->currentRow() : -1;
     if (row < 0 || row >= m_profiles.size()) {
-        if (m_statusLabel)
-            m_statusLabel->setText("No profile selected.");
+        if (m_statusLabel) m_statusLabel->setText("No profile selected.");
         return;
     }
 
-    const SshProfile &p = m_profiles[row];
+    const SshProfile p = m_profiles[row]; // copy: safe for async lambdas
 
     // ---- 2) Validate profile basics ----
     if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
-        if (m_statusLabel)
-            m_statusLabel->setText("Profile has empty user/host.");
+        if (m_statusLabel) m_statusLabel->setText("Profile has empty user/host.");
         return;
     }
 
@@ -358,42 +358,81 @@ void MainWindow::onConnectClicked()
                        .arg(p.name, p.user, p.host)
                        .arg(p.port));
 
-    // ---- 3) PQ probe (OpenSSH CLI, safe & independent) ----
-    const bool pqOk = probePqSupport(shownTarget);
-    updatePqStatusLabel(
-        pqOk ? "PQ: ACTIVE" : "PQ: OFF",
-        pqOk ? "#4caf50" : "#ff5252"
-    );
-
-    // ---- 4) libssh connection (for SFTP / drag-drop) ----
-    bool sshOk = false;
-    QString sshErr;
-
-    const QString keyType =
-        p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
-
-    if (keyType == "auto" || keyType == "openssh") {
-        sshOk = m_ssh.connectProfile(p, &sshErr);
-        if (sshOk) {
-            appendTerminalLine(QString("[SSH] libssh connected (%1@%2:%3)")
-                               .arg(p.user, p.host)
-                               .arg(p.port));
-        } else {
-            appendTerminalLine(QString(
-                "[SSH] libssh connect failed → SFTP disabled: %1"
-            ).arg(sshErr));
-        }
-    } else {
-        appendTerminalLine(QString(
-            "[SSH] key_type='%1' not supported yet for libssh (PQ auth pending) → SFTP disabled."
-        ).arg(keyType));
-    }
-
-    // ---- 5) Launch interactive terminal ----
+    // ---- 3) Launch interactive terminal IMMEDIATELY (snappy UX) ----
     const bool newWindow =
         (m_openInNewWindowCheck && m_openInNewWindowCheck->isChecked());
 
     openShellForProfile(p, shownTarget, newWindow);
+
+    // ---- 4) Kick PQ probe async (non-blocking) ----
+    updatePqStatusLabel("PQ: checking…", "#888");
+
+    auto *pqProc = new QProcess(this);
+
+    QStringList pqArgs;
+    pqArgs << "-o" << "KexAlgorithms=sntrup761x25519-sha512@openssh.com";
+    pqArgs << "-o" << "PreferredAuthentications=none";
+    pqArgs << "-o" << "PasswordAuthentication=no";
+    pqArgs << "-o" << "BatchMode=yes";
+    pqArgs << "-o" << "NumberOfPasswordPrompts=0";
+    pqArgs << "-o" << "ConnectTimeout=3";
+    pqArgs << "-o" << "ConnectionAttempts=1";
+
+    // Important: probe same port as profile if not 22
+    if (p.port > 0 && p.port != 22) {
+        pqArgs << "-p" << QString::number(p.port);
+    }
+
+    pqArgs << shownTarget << "true";
+
+    connect(pqProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, [this, pqProc](int, QProcess::ExitStatus) {
+                const QString err = QString::fromUtf8(pqProc->readAllStandardError());
+                const bool pqOk =
+                    !(err.contains("no matching key exchange", Qt::CaseInsensitive) ||
+                      err.contains("no matching key exchange method", Qt::CaseInsensitive));
+
+                updatePqStatusLabel(pqOk ? "PQ: ACTIVE" : "PQ: OFF",
+                                    pqOk ? "#4caf50" : "#ff5252");
+                pqProc->deleteLater();
+            });
+
+    pqProc->start("ssh", pqArgs);
+
+    // ---- 5) Kick libssh connect async (non-blocking) ----
+    const QString keyType =
+        p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
+
+    if (!(keyType == "auto" || keyType == "openssh")) {
+        appendTerminalLine(QString("[SSH] key_type='%1' not supported yet for libssh (PQ auth pending) → SFTP disabled.")
+                           .arg(keyType));
+    } else {
+        // run in background thread so UI doesn't freeze
+        auto *watcher = new QFutureWatcher<QPair<bool, QString>>(this);
+
+        connect(watcher, &QFutureWatcher<QPair<bool, QString>>::finished,
+                this, [this, watcher, p]() {
+                    const auto res = watcher->result();
+                    const bool ok = res.first;
+                    const QString err = res.second;
+
+                    if (ok) {
+                        appendTerminalLine(QString("[SSH] libssh connected (%1@%2:%3)")
+                                           .arg(p.user, p.host)
+                                           .arg(p.port));
+                    } else {
+                        appendTerminalLine(QString("[SSH] libssh connect failed → SFTP disabled: %1").arg(err));
+                    }
+
+                    watcher->deleteLater();
+                });
+
+        watcher->setFuture(QtConcurrent::run([this, p]() -> QPair<bool, QString> {
+            QString e;
+            const bool ok = m_ssh.connectProfile(p, &e);
+            return qMakePair(ok, e);
+        }));
+    }
 
     // ---- 6) Update UI state ----
     if (m_connectBtn)    m_connectBtn->setEnabled(false);
@@ -402,6 +441,7 @@ void MainWindow::onConnectClicked()
     if (m_statusLabel)
         m_statusLabel->setText(QString("Ready: %1").arg(shownTarget));
 }
+
 
 void MainWindow::onProfileDoubleClicked()
 {
