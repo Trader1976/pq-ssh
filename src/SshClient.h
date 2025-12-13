@@ -2,6 +2,7 @@
 #pragma once
 #include <QString>
 #include <QByteArray>
+#include "SshProfile.h"
 
 struct ssh_session_struct; // forward declare libssh type
 using ssh_session = ssh_session_struct*;
@@ -10,7 +11,7 @@ class SshClient {
 public:
     SshClient();
     ~SshClient();
-
+    bool connectProfile(const SshProfile& profile, QString* err = nullptr);
     bool connectPublicKey(const QString& target, QString* err=nullptr);
     void disconnect();
     bool isConnected() const;

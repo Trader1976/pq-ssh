@@ -42,6 +42,41 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
         return false;
     }
 
+    // Build a temporary profile (backwards compatible path)
+    SshProfile p;
+    p.host = host;
+    p.user = user.isEmpty() ? qEnvironmentVariable("USER", "user") : user;
+    p.port = 22;
+    p.keyType = "auto";
+    // p.keyFile left empty intentionally
+
+    return connectProfile(p, err);
+}
+
+
+bool SshClient::connectProfile(const SshProfile& profile, QString* err)
+{
+    if (err) err->clear();
+
+    const QString host = profile.host.trimmed();
+    const QString user = profile.user.trimmed();
+
+    if (host.isEmpty()) {
+        if (err) *err = QStringLiteral("No host specified.");
+        return false;
+    }
+    if (user.isEmpty()) {
+        if (err) *err = QStringLiteral("No user specified.");
+        return false;
+    }
+
+    // Key-type gate (PQ later)
+    const QString kt = profile.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : profile.keyType.trimmed();
+    if (kt != "auto" && kt != "openssh") {
+        if (err) *err = QStringLiteral("Unsupported key_type '%1' (PQ keys not implemented yet).").arg(kt);
+        return false;
+    }
+
     // Clean previous session
     disconnect();
 
@@ -53,13 +88,20 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
 
     // Options
     ssh_options_set(s, SSH_OPTIONS_HOST, host.toUtf8().constData());
-    if (!user.isEmpty()) {
-        ssh_options_set(s, SSH_OPTIONS_USER, user.toUtf8().constData());
-    }
+    ssh_options_set(s, SSH_OPTIONS_USER, user.toUtf8().constData());
+
+    const int port = (profile.port > 0) ? profile.port : 22;
+    ssh_options_set(s, SSH_OPTIONS_PORT, &port);
 
     // Optional: keep it responsive
     int timeoutSec = 8;
     ssh_options_set(s, SSH_OPTIONS_TIMEOUT, &timeoutSec);
+
+    // If a specific identity (private key) is set, tell libssh to use it
+    if (!profile.keyFile.trimmed().isEmpty()) {
+        const QByteArray p = QFile::encodeName(profile.keyFile.trimmed());
+        ssh_options_set(s, SSH_OPTIONS_IDENTITY, p.constData());
+    }
 
     // Connect
     int rc = ssh_connect(s);
@@ -69,8 +111,15 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
         return false;
     }
 
-    // Public key auth only (no password prompts)
-    rc = ssh_userauth_publickey_auto(s, nullptr, nullptr);
+    // Auth:
+    // 1) try agent (nice if user has ssh-agent running)
+    rc = ssh_userauth_agent(s, nullptr);
+
+    // 2) then try publickey auto (uses SSH_OPTIONS_IDENTITY if set, else default keys)
+    if (rc != SSH_AUTH_SUCCESS) {
+        rc = ssh_userauth_publickey_auto(s, nullptr, nullptr);
+    }
+
     if (rc != SSH_AUTH_SUCCESS) {
         if (err) *err = QStringLiteral("Public-key auth failed: %1").arg(libsshError(s));
         ssh_disconnect(s);

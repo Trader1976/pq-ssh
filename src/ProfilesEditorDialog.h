@@ -54,5 +54,9 @@ private:
     QSpinBox  *m_widthSpin = nullptr;
     QSpinBox  *m_heightSpin = nullptr;
 
+    // NEW: Key auth UI
+    QComboBox *m_keyTypeCombo = nullptr;
+    QLineEdit *m_keyFileEdit  = nullptr;
+
     QDialogButtonBox *m_buttonsBox = nullptr;
 };

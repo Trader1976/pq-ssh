@@ -13,12 +13,14 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QAbstractItemView>
-#include "CpunkTermWidget.h"
 #include <QStringList>
 #include <QSet>
+#include <QWidget>
+#include <QFileDialog>
+#include <QToolButton>
+#include <QDir>
 
-
-
+#include "CpunkTermWidget.h"
 
 ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles, QWidget *parent)
     : QDialog(parent),
@@ -102,7 +104,6 @@ static void fillSchemeCombo(QComboBox *combo)
         if (idx >= 0) combo->setCurrentIndex(idx);
     }
 }
-
 
 static QStringList installedSchemes()
 {
@@ -217,8 +218,6 @@ void ProfilesEditorDialog::buildUi()
     m_colorSchemeCombo = new QComboBox(rightWidget);
     fillSchemeCombo(m_colorSchemeCombo);
 
-
-
     m_fontSizeSpin = new QSpinBox(rightWidget);
     m_fontSizeSpin->setRange(6, 32);
     m_fontSizeSpin->setValue(11);
@@ -231,6 +230,37 @@ void ProfilesEditorDialog::buildUi()
     m_heightSpin->setRange(300, 3000);
     m_heightSpin->setValue(500);
 
+    // --- NEW: Key file + Key type ---
+    m_keyTypeCombo = new QComboBox(rightWidget);
+    m_keyTypeCombo->addItem("auto");
+    m_keyTypeCombo->addItem("openssh");
+    m_keyTypeCombo->addItem("pq"); // placeholder for later; you can add dilithium5/mldsa87/etc later
+
+    m_keyFileEdit = new QLineEdit(rightWidget);
+    m_keyFileEdit->setPlaceholderText("e.g. /home/timo/.ssh/id_ed25519 (optional)");
+
+    auto *browseBtn = new QToolButton(rightWidget);
+    browseBtn->setText("...");
+
+    auto *keyRow = new QWidget(rightWidget);
+    auto *keyRowLayout = new QHBoxLayout(keyRow);
+    keyRowLayout->setContentsMargins(0, 0, 0, 0);
+    keyRowLayout->setSpacing(6);
+    keyRowLayout->addWidget(m_keyFileEdit, 1);
+    keyRowLayout->addWidget(browseBtn, 0);
+
+    connect(browseBtn, &QToolButton::clicked, this, [this]() {
+        const QString startDir = QDir::homePath() + "/.ssh";
+        const QString path = QFileDialog::getOpenFileName(
+            this,
+            "Select private key file",
+            startDir,
+            "Key files (*)"
+        );
+        if (!path.isEmpty())
+            m_keyFileEdit->setText(path);
+    });
+
     form->addRow("Name:", m_nameEdit);
     form->addRow("User:", m_userEdit);
     form->addRow("Host:", m_hostEdit);
@@ -240,6 +270,10 @@ void ProfilesEditorDialog::buildUi()
     form->addRow("Font size:", m_fontSizeSpin);
     form->addRow("Window width:", m_widthSpin);
     form->addRow("Window height:", m_heightSpin);
+
+    // Add auth fields near host/user/port (feel free to move them higher if you want)
+    form->addRow("Key type:", m_keyTypeCombo);
+    form->addRow("Key file:", keyRow);
 
     rightLayout->addLayout(form);
 
@@ -289,6 +323,10 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         m_fontSizeSpin->setValue(11);
         m_widthSpin->setValue(900);
         m_heightSpin->setValue(500);
+
+        // NEW: key auth
+        if (m_keyTypeCombo) m_keyTypeCombo->setCurrentText("auto");
+        if (m_keyFileEdit) m_keyFileEdit->clear();
         return;
     }
 
@@ -313,6 +351,17 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
     m_fontSizeSpin->setValue(p.termFontSize > 0 ? p.termFontSize : 11);
     m_widthSpin->setValue(p.termWidth > 0 ? p.termWidth : 900);
     m_heightSpin->setValue(p.termHeight > 0 ? p.termHeight : 500);
+
+    // NEW: key auth
+    if (m_keyTypeCombo) {
+        const QString kt = p.keyType.trimmed().isEmpty() ? QString("auto") : p.keyType.trimmed();
+        const int kidx = m_keyTypeCombo->findText(kt);
+        if (kidx >= 0) m_keyTypeCombo->setCurrentIndex(kidx);
+        else m_keyTypeCombo->setCurrentText(kt);
+    }
+    if (m_keyFileEdit) {
+        m_keyFileEdit->setText(p.keyFile);
+    }
 }
 
 void ProfilesEditorDialog::syncFormToCurrent()
@@ -333,6 +382,15 @@ void ProfilesEditorDialog::syncFormToCurrent()
 
     p.termWidth  = m_widthSpin->value();
     p.termHeight = m_heightSpin->value();
+
+    // NEW: key auth
+    if (m_keyTypeCombo) {
+        const QString kt = m_keyTypeCombo->currentText().trimmed();
+        p.keyType = kt.isEmpty() ? QString("auto") : kt;
+    }
+    if (m_keyFileEdit) {
+        p.keyFile = m_keyFileEdit->text().trimmed();
+    }
 
     if (p.name.isEmpty())
         p.name = QString("%1@%2").arg(p.user, p.host);
@@ -370,6 +428,10 @@ void ProfilesEditorDialog::addProfile()
     p.termWidth = 900;
     p.termHeight = 500;
 
+    // NEW: key auth defaults
+    p.keyFile = "";
+    p.keyType = "auto";
+
     p.name = QString("%1@%2").arg(p.user, p.host);
 
     m_working.push_back(p);
@@ -404,6 +466,15 @@ bool ProfilesEditorDialog::validateProfiles(QString *errMsg) const
         if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
             if (errMsg) *errMsg = "Each profile must have non-empty user and host.";
             return false;
+        }
+
+        // Optional sanity: if key type != auto and key file is empty -> warn
+        const QString kt = p.keyType.trimmed();
+        if (!kt.isEmpty() && kt != "auto") {
+            if (p.keyFile.trimmed().isEmpty()) {
+                if (errMsg) *errMsg = "Key type is set but key file is empty. Either set a key file or set key type to auto.";
+                return false;
+            }
         }
     }
     if (errMsg) errMsg->clear();

@@ -318,50 +318,93 @@ void MainWindow::onProfileSelectionChanged(int row)
 
     const SshProfile &p = m_profiles[row];
 
-    if (m_hostField)
-        m_hostField->setText(QString("%1@%2").arg(p.user, p.host));
+    if (m_hostField) {
+        QString shown = QString("%1@%2").arg(p.user, p.host);
+        if (p.port > 0 && p.port != 22)
+            shown += QString(":%1").arg(p.port);   // display only
+        m_hostField->setText(shown);
+    }
 
     if (m_pqDebugCheck)
         m_pqDebugCheck->setChecked(p.pqDebug);
 }
 
-void MainWindow::onProfileDoubleClicked()
-{
-    onConnectClicked();
-}
-
 void MainWindow::onConnectClicked()
 {
-    const QString target = m_hostField ? m_hostField->text().trimmed() : QString();
-    if (target.isEmpty()) {
-        if (m_statusLabel) m_statusLabel->setText("No host specified.");
-        return;
-    }
-
+    // ---- 1) Ensure a profile is selected ----
     const int row = m_profileList ? m_profileList->currentRow() : -1;
     if (row < 0 || row >= m_profiles.size()) {
-        if (m_statusLabel) m_statusLabel->setText("No profile selected.");
+        if (m_statusLabel)
+            m_statusLabel->setText("No profile selected.");
         return;
     }
 
+    const SshProfile &p = m_profiles[row];
+
+    // ---- 2) Validate profile basics ----
+    if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
+        if (m_statusLabel)
+            m_statusLabel->setText("Profile has empty user/host.");
+        return;
+    }
+
+    const QString shownTarget = QString("%1@%2").arg(p.user, p.host);
+
     if (m_statusLabel)
-        m_statusLabel->setText(QString("Connecting to %1 ...").arg(target));
+        m_statusLabel->setText(QString("Connecting to %1 ...").arg(shownTarget));
 
-    // ✅ Password-based system right now -> do NOT attempt public-key libssh
-    appendTerminalLine("[SSH] Password-based login in use. SFTP (libssh) disabled for now.");
+    appendTerminalLine(QString("[CONNECT] Using profile '%1' (%2@%3:%4)")
+                       .arg(p.name, p.user, p.host)
+                       .arg(p.port));
 
-    // PQ probe (still ok)
-    const bool pqOk = probePqSupport(target);
-    updatePqStatusLabel(pqOk ? "PQ: ACTIVE" : "PQ: OFF", pqOk ? "#4caf50" : "#ff5252");
+    // ---- 3) PQ probe (OpenSSH CLI, safe & independent) ----
+    const bool pqOk = probePqSupport(shownTarget);
+    updatePqStatusLabel(
+        pqOk ? "PQ: ACTIVE" : "PQ: OFF",
+        pqOk ? "#4caf50" : "#ff5252"
+    );
 
-    const bool newWindow = (m_openInNewWindowCheck && m_openInNewWindowCheck->isChecked());
-    openShellForProfile(m_profiles[row], target, newWindow);
+    // ---- 4) libssh connection (for SFTP / drag-drop) ----
+    bool sshOk = false;
+    QString sshErr;
 
+    const QString keyType =
+        p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
+
+    if (keyType == "auto" || keyType == "openssh") {
+        sshOk = m_ssh.connectProfile(p, &sshErr);
+        if (sshOk) {
+            appendTerminalLine(QString("[SSH] libssh connected (%1@%2:%3)")
+                               .arg(p.user, p.host)
+                               .arg(p.port));
+        } else {
+            appendTerminalLine(QString(
+                "[SSH] libssh connect failed → SFTP disabled: %1"
+            ).arg(sshErr));
+        }
+    } else {
+        appendTerminalLine(QString(
+            "[SSH] key_type='%1' not supported yet for libssh (PQ auth pending) → SFTP disabled."
+        ).arg(keyType));
+    }
+
+    // ---- 5) Launch interactive terminal ----
+    const bool newWindow =
+        (m_openInNewWindowCheck && m_openInNewWindowCheck->isChecked());
+
+    openShellForProfile(p, shownTarget, newWindow);
+
+    // ---- 6) Update UI state ----
     if (m_connectBtn)    m_connectBtn->setEnabled(false);
     if (m_disconnectBtn) m_disconnectBtn->setEnabled(true);
 
     if (m_statusLabel)
-        m_statusLabel->setText(QString("Ready: %1").arg(target));
+        m_statusLabel->setText(QString("Ready: %1").arg(shownTarget));
+}
+
+void MainWindow::onProfileDoubleClicked()
+{
+    onConnectClicked();
 }
 
 void MainWindow::onDisconnectClicked()
@@ -482,8 +525,55 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     QStringList args;
     args << "-tt";
     if (p.pqDebug) args << "-vv";
+
+    // PQ KEX (safe to keep; if server doesn't support, ssh will negotiate/fail accordingly)
     args << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
-    args << p.user + "@" + p.host;
+
+    // --- NEW: auth behavior based on profile ---
+    const QString kt = p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
+    const bool hasKeyFile = !p.keyFile.trimmed().isEmpty();
+
+    if (kt == "auto" || kt == "openssh") {
+        // Allow pubkey + agent by default
+        args << "-o" << "PubkeyAuthentication=yes";
+        args << "-o" << "IdentitiesOnly=yes"; // if -i provided, prefer it
+        args << "-o" << "PreferredAuthentications=publickey,password,keyboard-interactive";
+        args << "-o" << "PasswordAuthentication=yes";
+        args << "-o" << "KbdInteractiveAuthentication=yes";
+        args << "-o" << "NumberOfPasswordPrompts=3";
+        args << "-o" << "GSSAPIAuthentication=no";
+        args << "-o" << "HostbasedAuthentication=no";
+
+        if (hasKeyFile) {
+            args << "-i" << p.keyFile.trimmed();
+        }
+        // NOTE: we do NOT disable IdentityAgent anymore. Let ssh-agent work.
+    } else {
+        // PQ key types not implemented in OpenSSH client side here yet.
+        // So we fall back to password prompting (same as your old behavior) and log clearly.
+        appendTerminalLine(QString("[SSH] key_type='%1' not implemented yet → falling back to password auth for terminal session.")
+                           .arg(kt));
+
+        args << "-o" << "PreferredAuthentications=password,keyboard-interactive";
+        args << "-o" << "PubkeyAuthentication=no";
+        args << "-o" << "IdentityAgent=none";  // disables ssh-agent
+        args << "-o" << "KbdInteractiveAuthentication=yes";
+        args << "-o" << "PasswordAuthentication=yes";
+        args << "-o" << "NumberOfPasswordPrompts=3";
+        args << "-o" << "GSSAPIAuthentication=no";
+        args << "-o" << "HostbasedAuthentication=no";
+    }
+
+    // Target (use profile values; your hostField may include user@host too)
+    // Also include port if non-default
+    if (p.port > 0 && p.port != 22) {
+        args << "-p" << QString::number(p.port);
+    }
+
+    args << (p.user + "@" + p.host);
+
+    // Debug: show the exact command in your log panel
+    appendTerminalLine(QString("[SSH-CMD] ssh %1").arg(args.join(" ")));
 
     term->setArgs(args);
     term->startShellProgram();
@@ -491,13 +581,11 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     QTimer::singleShot(0,  term, [term]() { protectTermFromAppStyles(term); });
     QTimer::singleShot(50, term, [term]() { protectTermFromAppStyles(term); });
 
-    // ✅ Only force black when actually using WhiteOnBlack
+    // Only force black when actually using WhiteOnBlack
     const QString scheme = p.termColorScheme.isEmpty() ? "WhiteOnBlack" : p.termColorScheme;
     if (scheme == "WhiteOnBlack") {
         QTimer::singleShot(0,  term, [term]() { forceBlackBackground(term); });
         QTimer::singleShot(50, term, [term]() { forceBlackBackground(term); });
-    } else {
-
     }
 
     connect(term, &CpunkTermWidget::fileDropped,
@@ -505,6 +593,7 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
 
     return term;
 }
+
 
 
 static void forceBlackBackground(CpunkTermWidget *term)
@@ -572,7 +661,6 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
 
 
 
-
 void MainWindow::openShellForProfile(const SshProfile &p, const QString &target, bool newWindow)
 {
     Q_UNUSED(target);
@@ -586,6 +674,11 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
 
         auto *term = createTerm(p, w);
         w->setCentralWidget(term);
+
+        // ✅ If user closes the terminal window, also disconnect libssh + update UI
+        connect(w, &QObject::destroyed, this, [this]() {
+            onDisconnectClicked();
+        });
 
         w->show();
         w->raise();
@@ -601,12 +694,30 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         m_tabbedShellWindow->setWindowTitle("PQ-SSH Tabs");
 
         m_tabWidget = new QTabWidget(m_tabbedShellWindow);
+        m_tabWidget->setTabsClosable(true);                 // ✅ show close buttons on tabs
         m_tabbedShellWindow->setCentralWidget(m_tabWidget);
 
-        // if user closes the tab window, clear pointers
+        // ✅ Close individual tabs; if last tab closes -> disconnect
+        connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, [this](int idx) {
+            if (!m_tabWidget) return;
+
+            QWidget *w = m_tabWidget->widget(idx);
+            m_tabWidget->removeTab(idx);
+            if (w) w->deleteLater();
+
+            // If no more tabs, close the tabbed window and disconnect
+            if (m_tabWidget->count() == 0) {
+                if (m_tabbedShellWindow)
+                    m_tabbedShellWindow->close(); // WA_DeleteOnClose -> destroyed will run
+                onDisconnectClicked();
+            }
+        });
+
+        // ✅ If user closes the whole tab window, disconnect too
         connect(m_tabbedShellWindow, &QObject::destroyed, this, [this]() {
             m_tabbedShellWindow = nullptr;
             m_tabWidget = nullptr;
+            onDisconnectClicked();
         });
 
         m_tabbedShellWindow->resize(1000, 650);
@@ -615,11 +726,14 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     auto *term = createTerm(p, m_tabWidget);
     const int idx = m_tabWidget->addTab(term, p.name);
     m_tabWidget->setCurrentIndex(idx);
+
     m_tabbedShellWindow->show();
     m_tabbedShellWindow->raise();
     m_tabbedShellWindow->activateWindow();
     focusTerminalWindow(m_tabbedShellWindow, term);
 }
+
+
 
 static void protectTermFromAppStyles(CpunkTermWidget *term)
 {

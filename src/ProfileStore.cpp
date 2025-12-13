@@ -46,6 +46,10 @@ QVector<SshProfile> ProfileStore::defaults()
     p.termWidth       = 900;
     p.termHeight      = 500;
 
+    // Key auth defaults (empty keyFile means "not set")
+    p.keyFile = "";
+    p.keyType = "auto";
+
     out.push_back(p);
     return out;
 }
@@ -65,6 +69,14 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
         obj["term_font_size"]    = prof.termFontSize;
         obj["term_width"]        = prof.termWidth;
         obj["term_height"]       = prof.termHeight;
+
+        // Key-based auth (optional)
+        if (!prof.keyFile.trimmed().isEmpty())
+            obj["key_file"] = prof.keyFile;
+
+        // Always store key_type (so we can evolve behavior later cleanly)
+        // If you prefer, you can omit when "auto", but storing is harmless.
+        obj["key_type"] = prof.keyType.trimmed().isEmpty() ? QString("auto") : prof.keyType;
 
         arr.append(obj);
     }
@@ -132,6 +144,12 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         p.termFontSize    = obj.value("term_font_size").toInt(11);
         p.termWidth       = obj.value("term_width").toInt(900);
         p.termHeight      = obj.value("term_height").toInt(500);
+
+        // Key-based auth (optional)
+        p.keyFile = obj.value("key_file").toString();
+        p.keyType = obj.value("key_type").toString("auto").trimmed();
+        if (p.keyType.isEmpty())
+            p.keyType = "auto";
 
         if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty())
             continue;

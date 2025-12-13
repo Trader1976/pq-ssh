@@ -2,6 +2,7 @@
     "profiles": [
         {
             "host": "localhost",
+            "key_type": "auto",
             "name": "Localhost",
             "port": 22,
             "pq_debug": true,
@@ -13,6 +14,7 @@
         },
         {
             "host": "192.168.1.221",
+            "key_type": "auto",
             "name": "DHT Server",
             "port": 22,
             "pq_debug": false,
