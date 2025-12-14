@@ -1,4 +1,6 @@
 #include "MainWindow.h"
+#include "KeyGeneratorDialog.h"
+#include "KeyMetadataUtils.h"
 
 #include <QApplication>
 #include <QWidget>
@@ -25,24 +27,52 @@
 #include <QDialog>
 #include <QDebug>
 #include <QTimer>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDateTime>
 
 #include "AppTheme.h"
 #include "ProfileStore.h"
 #include "ProfilesEditorDialog.h"
 #include "SshClient.h"
+
 #include <QTabWidget>
 #include <QFont>
 #include "CpunkTermWidget.h"
 #include <qtermwidget5/qtermwidget.h>
 #include <QtConcurrent/QtConcurrent>
 #include <QFutureWatcher>
+#include <QRegularExpression>
 
 
+// =====================================================
+// Forward declarations
+// =====================================================
 
 class CpunkTermWidget;
 static void forceBlackBackground(CpunkTermWidget *term);
 static void protectTermFromAppStyles(CpunkTermWidget *term);
 
+static void focusTerminalWindow(QWidget *window, QWidget *termWidget)
+{
+    if (!window || !termWidget) return;
+
+    window->show();
+    window->raise();
+    window->activateWindow();
+
+    QTimer::singleShot(0, window, [termWidget]() {
+        termWidget->setFocus(Qt::OtherFocusReason);
+    });
+
+    QTimer::singleShot(50, window, [termWidget]() {
+        termWidget->setFocus(Qt::OtherFocusReason);
+    });
+}
+
+// =====================================================
+// MainWindow
+// =====================================================
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -55,34 +85,52 @@ MainWindow::MainWindow(QWidget *parent)
     setupUi();
     setupMenus();
     loadProfiles();
+
+    // ---- Startup security warning: expired keys ----
+    {
+        // 1) Auto-mark expired keys in metadata.json (so UI/status stays consistent)
+        const QString metaPath = QDir(QDir::homePath()).filePath(".pq-ssh/keys/metadata.json");
+
+        QString autoErr;
+        autoExpireMetadataFile(metaPath, &autoErr);   // <-- NEW
+
+        if (!autoErr.isEmpty()) {
+            appendTerminalLine("[WARN] " + autoErr);
+        }
+
+        // 2) Now count expired keys (after auto-marking)
+        QString e;
+        const int expired = countExpiredKeysInMetadata(&e);
+
+        if (!e.isEmpty()) {
+            appendTerminalLine("[WARN] " + e);
+        }
+
+        if (expired > 0) {
+            const QString msg =
+                QString("⚠ WARNING: You have %1 expired SSH key(s). Open Key Generator → Keys tab to review/rotate.")
+                    .arg(expired);
+
+            if (m_statusLabel) {
+                m_statusLabel->setText(msg);
+                m_statusLabel->setStyleSheet("color: #ff5252; font-weight: bold;");
+            }
+
+            appendTerminalLine("[SECURITY] " + msg);
+        }
+    }
 }
+
+
 
 MainWindow::~MainWindow()
 {
-    // Clean disconnect (libssh via SshClient)
     m_ssh.disconnect();
 }
 
-static void focusTerminalWindow(QWidget *window, QWidget *termWidget)
-{
-    if (!window || !termWidget) return;
-
-    window->show();
-    window->raise();
-    window->activateWindow();
-
-    // Focus after the window is actually shown/mapped
-    QTimer::singleShot(0, window, [termWidget]() {
-        termWidget->setFocus(Qt::OtherFocusReason);
-    });
-
-    // Some window managers need a second poke
-    QTimer::singleShot(50, window, [termWidget]() {
-        termWidget->setFocus(Qt::OtherFocusReason);
-    });
-}
-
-
+// ========================
+// UI
+// ========================
 
 void MainWindow::setupUi()
 {
@@ -147,7 +195,7 @@ void MainWindow::setupUi()
     terminalFont.setPointSize(11);
     m_terminal->setFont(terminalFont);
 
-    // --- Input bar (currently not wired to a real shell) ---
+    // --- Input bar ---
     auto *inputBar = new QWidget(rightWidget);
     auto *inputLayout = new QHBoxLayout(inputBar);
     inputLayout->setContentsMargins(0, 0, 0, 0);
@@ -206,7 +254,6 @@ void MainWindow::setupUi()
     connect(m_disconnectBtn, &QPushButton::clicked,
             this, &MainWindow::onDisconnectClicked);
 
-    // itemDoubleClicked sends QListWidgetItem* -> use lambda since slot is void()
     connect(m_profileList, &QListWidget::itemDoubleClicked,
             this, [this](QListWidgetItem*) { onProfileDoubleClicked(); });
 
@@ -234,6 +281,16 @@ void MainWindow::setupMenus()
     connect(downloadSel, &QAction::triggered,
             this, &MainWindow::downloadSelectionTriggered);
 
+    // Keys menu
+    auto *keysMenu = menuBar()->addMenu("&Keys");
+    QAction *keyGenAct = new QAction("Key Generator...", this);
+    keysMenu->addAction(keyGenAct);
+
+    connect(keyGenAct, &QAction::triggered, this, [this]() {
+        KeyGeneratorDialog dlg(this);
+        dlg.exec();
+    });
+
     menuBar()->addMenu("&View");
     menuBar()->addMenu("&Help");
 
@@ -253,9 +310,9 @@ void MainWindow::updatePqStatusLabel(const QString &text, const QString &colorHe
     m_pqStatusLabel->setStyleSheet(QString("color: %1; font-weight: bold;").arg(colorHex));
 }
 
-// ------------------------
+// ========================
 // Profiles
-// ------------------------
+// ========================
 
 void MainWindow::loadProfiles()
 {
@@ -310,9 +367,9 @@ void MainWindow::onEditProfilesClicked()
     appendTerminalLine("[INFO] Profiles updated.");
 }
 
-// ------------------------
+// ========================
 // Connect / disconnect
-// ------------------------
+// ========================
 
 void MainWindow::onProfileSelectionChanged(int row)
 {
@@ -324,7 +381,7 @@ void MainWindow::onProfileSelectionChanged(int row)
     if (m_hostField) {
         QString shown = QString("%1@%2").arg(p.user, p.host);
         if (p.port > 0 && p.port != 22)
-            shown += QString(":%1").arg(p.port);   // display only
+            shown += QString(":%1").arg(p.port);
         m_hostField->setText(shown);
     }
 
@@ -334,16 +391,14 @@ void MainWindow::onProfileSelectionChanged(int row)
 
 void MainWindow::onConnectClicked()
 {
-    // ---- 1) Ensure a profile is selected ----
     const int row = m_profileList ? m_profileList->currentRow() : -1;
     if (row < 0 || row >= m_profiles.size()) {
         if (m_statusLabel) m_statusLabel->setText("No profile selected.");
         return;
     }
 
-    const SshProfile p = m_profiles[row]; // copy: safe for async lambdas
+    const SshProfile p = m_profiles[row];
 
-    // ---- 2) Validate profile basics ----
     if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
         if (m_statusLabel) m_statusLabel->setText("Profile has empty user/host.");
         return;
@@ -358,13 +413,11 @@ void MainWindow::onConnectClicked()
                        .arg(p.name, p.user, p.host)
                        .arg(p.port));
 
-    // ---- 3) Launch interactive terminal IMMEDIATELY (snappy UX) ----
     const bool newWindow =
         (m_openInNewWindowCheck && m_openInNewWindowCheck->isChecked());
 
     openShellForProfile(p, shownTarget, newWindow);
 
-    // ---- 4) Kick PQ probe async (non-blocking) ----
     updatePqStatusLabel("PQ: checking…", "#888");
 
     auto *pqProc = new QProcess(this);
@@ -378,7 +431,6 @@ void MainWindow::onConnectClicked()
     pqArgs << "-o" << "ConnectTimeout=3";
     pqArgs << "-o" << "ConnectionAttempts=1";
 
-    // Important: probe same port as profile if not 22
     if (p.port > 0 && p.port != 22) {
         pqArgs << "-p" << QString::number(p.port);
     }
@@ -399,7 +451,6 @@ void MainWindow::onConnectClicked()
 
     pqProc->start("ssh", pqArgs);
 
-    // ---- 5) Kick libssh connect async (non-blocking) ----
     const QString keyType =
         p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
 
@@ -407,7 +458,6 @@ void MainWindow::onConnectClicked()
         appendTerminalLine(QString("[SSH] key_type='%1' not supported yet for libssh (PQ auth pending) → SFTP disabled.")
                            .arg(keyType));
     } else {
-        // run in background thread so UI doesn't freeze
         auto *watcher = new QFutureWatcher<QPair<bool, QString>>(this);
 
         connect(watcher, &QFutureWatcher<QPair<bool, QString>>::finished,
@@ -434,14 +484,12 @@ void MainWindow::onConnectClicked()
         }));
     }
 
-    // ---- 6) Update UI state ----
     if (m_connectBtn)    m_connectBtn->setEnabled(false);
     if (m_disconnectBtn) m_disconnectBtn->setEnabled(true);
 
     if (m_statusLabel)
         m_statusLabel->setText(QString("Ready: %1").arg(shownTarget));
 }
-
 
 void MainWindow::onProfileDoubleClicked()
 {
@@ -460,7 +508,6 @@ void MainWindow::onDisconnectClicked()
 
 void MainWindow::onSendInput()
 {
-    // No interactive shell wired yet (ShellManager not implemented).
     const QString text = m_inputField ? m_inputField->text().trimmed() : QString();
     if (text.isEmpty()) return;
 
@@ -470,9 +517,9 @@ void MainWindow::onSendInput()
     if (m_inputField) m_inputField->clear();
 }
 
-// ------------------------
-// Drag-drop upload (will be connected once ShellManager exists)
-// ------------------------
+// ========================
+// Drag-drop upload
+// ========================
 
 void MainWindow::onFileDropped(const QString &path, const QByteArray &data)
 {
@@ -516,18 +563,18 @@ void MainWindow::onFileDropped(const QString &path, const QByteArray &data)
     appendTerminalLine(QString("[UPLOAD] OK → %1").arg(remotePath));
 }
 
-// ------------------------
-// Download selection (needs ShellManager selection support)
-// ------------------------
+// ========================
+// Download selection
+// ========================
 
 void MainWindow::downloadSelectionTriggered()
 {
     appendTerminalLine("[DOWNLOAD] Shell not implemented yet (no selection source).");
 }
 
-// ------------------------
+// ========================
 // PQ probe
-// ------------------------
+// ========================
 
 bool MainWindow::probePqSupport(const QString &target)
 {
@@ -556,17 +603,17 @@ bool MainWindow::probePqSupport(const QString &target)
     return true;
 }
 
+// ========================
+// Terminal creation
+// ========================
+
 CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
 {
-    // IMPORTANT:
-    // QTermWidget(int startnow, ...) starts the default shell if startnow != 0.
-    // We MUST start with 0 so it doesn't launch a local bash before we configure ssh.
     auto *term = new CpunkTermWidget(0, parent);
     term->setHistorySize(2000);
 
     applyProfileToTerm(term, p);
 
-    // ---------- Build SSH args ----------
     QStringList sshArgs;
     sshArgs << "-tt";
     if (p.pqDebug) sshArgs << "-vv";
@@ -575,7 +622,6 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     sshArgs << "-o" << "ConnectTimeout=5";
     sshArgs << "-o" << "ConnectionAttempts=1";
 
-    // Avoid interactive host-key prompt inside embedded terminal
     sshArgs << "-o" << "StrictHostKeyChecking=accept-new";
     sshArgs << "-o" << ("UserKnownHostsFile=" + QDir::homePath() + "/.ssh/known_hosts");
 
@@ -592,7 +638,6 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
         sshArgs << "-o" << "GSSAPIAuthentication=no";
         sshArgs << "-o" << "HostbasedAuthentication=no";
 
-        // Disable muxing
         sshArgs << "-o" << "ControlMaster=no";
         sshArgs << "-o" << "ControlPath=none";
         sshArgs << "-o" << "ControlPersist=no";
@@ -621,7 +666,6 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
 
     appendTerminalLine(QString("[SSH-CMD] ssh %1").arg(sshArgs.join(" ")));
 
-    // ---------- Wrapper: exec ssh (no local shell fallback) ----------
     auto shQuote = [](const QString &s) -> QString {
         QString out = s;
         out.replace("'", "'\"'\"'");
@@ -635,14 +679,12 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     appendTerminalLine(QString("[SSH-WRAP] %1").arg(cmd));
     appendTerminalLine("[SECURITY] Local shell fallback disabled (exec ssh)");
 
-    // Configure terminal program BEFORE startShellProgram()
     term->setShellProgram("/bin/bash");
     term->setArgs(QStringList() << "-lc" << cmd);
 
     term->setAutoClose(true);
     term->startShellProgram();
 
-    // ---------- Styling ----------
     QTimer::singleShot(0,  term, [term]() { protectTermFromAppStyles(term); });
     QTimer::singleShot(50, term, [term]() { protectTermFromAppStyles(term); });
 
@@ -655,7 +697,6 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     connect(term, &CpunkTermWidget::fileDropped,
             this, &MainWindow::onFileDropped);
 
-    // Close tab/window on finished (your qtermwidget has finished() with no args)
     connect(term, &QTermWidget::finished, this, [this, term]() {
         appendTerminalLine("[TERM] ssh ended; closing terminal tab/window and disconnecting.");
 
@@ -684,17 +725,11 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     return term;
 }
 
-
-
-
-
 static void forceBlackBackground(CpunkTermWidget *term)
 {
     if (!term) return;
 
     term->setAutoFillBackground(true);
-
-    // Strong override vs global qApp stylesheet
     term->setStyleSheet("background: #000; color: #fff;");
 
     QPalette pal = term->palette();
@@ -718,7 +753,6 @@ static void forceBlackBackground(CpunkTermWidget *term)
     term->update();
 }
 
-
 void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
 {
     if (!term) return;
@@ -731,10 +765,8 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
     appendTerminalLine(QString("[TERM] available schemes: %1")
                        .arg(term->availableColorSchemes().join(", ")));
 
-    // Apply scheme FIRST (it updates palette internally)
     term->setColorScheme(scheme);
 
-    // ✅ Now shield it from AppTheme::dark() overriding colors
     protectTermFromAppStyles(term);
 
     QFont f("Monospace");
@@ -744,14 +776,11 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
 
     term->setTerminalOpacity(1.0);
 
-    // Optional: remove gray flash ONLY for WhiteOnBlack
     if (scheme == "WhiteOnBlack") {
-        forceBlackBackground(term);        // forces black palette
-        protectTermFromAppStyles(term);    // re-shield after forcing palette
+        forceBlackBackground(term);
+        protectTermFromAppStyles(term);
     }
 }
-
-
 
 void MainWindow::openShellForProfile(const SshProfile &p, const QString &target, bool newWindow)
 {
@@ -776,7 +805,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         auto *term = createTerm(p, w);
         w->setCentralWidget(term);
 
-        // If user closes the terminal window, also disconnect libssh + update UI
         connect(w, &QObject::destroyed, this, [this]() {
             onDisconnectClicked();
         });
@@ -788,7 +816,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         return;
     }
 
-    // Tabbed window
     if (!m_tabbedShellWindow) {
         m_tabbedShellWindow = new QMainWindow();
         m_tabbedShellWindow->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -798,7 +825,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         m_tabWidget->setTabsClosable(true);
         m_tabbedShellWindow->setCentralWidget(m_tabWidget);
 
-        // Close individual tabs; if last tab closes -> disconnect
         connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, [this](int idx) {
             if (!m_tabWidget) return;
 
@@ -813,7 +839,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
             }
         });
 
-        // If user closes the whole tab window, disconnect too
         connect(m_tabbedShellWindow, &QObject::destroyed, this, [this]() {
             m_tabbedShellWindow = nullptr;
             m_tabWidget = nullptr;
@@ -827,7 +852,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     const int idx = m_tabWidget->addTab(term, tabTitle);
     m_tabWidget->setCurrentIndex(idx);
 
-    // Optional: also reflect active tab in window title
     m_tabbedShellWindow->setWindowTitle(QString("PQ-SSH Tabs — %1").arg(connLabel));
 
     m_tabbedShellWindow->show();
@@ -835,9 +859,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     m_tabbedShellWindow->activateWindow();
     focusTerminalWindow(m_tabbedShellWindow, term);
 }
-
-
-
 
 static void protectTermFromAppStyles(CpunkTermWidget *term)
 {

@@ -50,6 +50,10 @@ add_executable(pq-ssh
         src/ThemeInstaller.cpp
         src/ThemeInstaller.h
         src/ThemeInstaller.cpp
+        src/KeyGeneratorDialog.h
+        src/KeyGeneratorDialog.cpp
+        src/KeyMetadataUtils.h
+        src/KeyMetadataUtils.cpp
 )
 
 target_include_directories(pq-ssh
