@@ -30,6 +30,9 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDateTime>
+#include <QSysInfo>
+#include <QCoreApplication>
+#include <QGuiApplication>
 
 #include "AppTheme.h"
 #include "ProfileStore.h"
@@ -43,6 +46,9 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QFutureWatcher>
 #include <QRegularExpression>
+#include <QDesktopServices>
+#include <QUrl>
+#include "Logger.h"
 
 
 // =====================================================
@@ -119,6 +125,14 @@ static void syncTerminalSurroundingsToTerm(CpunkTermWidget* term)
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    // ---- Startup logs (go to pq-ssh.log via Logger::install in main.cpp) ----
+    qInfo() << "MainWindow constructing";
+    qInfo() << "App:" << QCoreApplication::applicationName()
+            << "Version:" << QCoreApplication::applicationVersion();
+    qInfo() << "Qt:" << QT_VERSION_STR
+            << "OS:" << QSysInfo::prettyProductName()
+            << "Platform:" << QGuiApplication::platformName();
+
     qApp->setStyleSheet(AppTheme::dark());
 
     setWindowTitle("CPUNK PQ-SSH");
@@ -128,16 +142,20 @@ MainWindow::MainWindow(QWidget *parent)
     setupMenus();
     loadProfiles();
 
+    qInfo() << "UI ready; profiles loaded";
+
     // ---- Startup security warning: expired keys ----
     {
-        // 1) Auto-mark expired keys in metadata.json (so UI/status stays consistent)
         const QString metaPath = QDir(QDir::homePath()).filePath(".pq-ssh/keys/metadata.json");
+        qInfo() << "Checking key metadata:" << metaPath;
 
+        // 1) Auto-mark expired keys in metadata.json (so UI/status stays consistent)
         QString autoErr;
-        autoExpireMetadataFile(metaPath, &autoErr);   // <-- NEW
+        autoExpireMetadataFile(metaPath, &autoErr);
 
         if (!autoErr.isEmpty()) {
             appendTerminalLine("[WARN] " + autoErr);
+            qWarning() << "autoExpireMetadataFile:" << autoErr;
         }
 
         // 2) Now count expired keys (after auto-marking)
@@ -146,7 +164,10 @@ MainWindow::MainWindow(QWidget *parent)
 
         if (!e.isEmpty()) {
             appendTerminalLine("[WARN] " + e);
+            qWarning() << "countExpiredKeysInMetadata:" << e;
         }
+
+        qInfo() << "Expired keys:" << expired;
 
         if (expired > 0) {
             const QString msg =
@@ -159,10 +180,12 @@ MainWindow::MainWindow(QWidget *parent)
             }
 
             appendTerminalLine("[SECURITY] " + msg);
+            qWarning() << "SECURITY:" << msg;
         }
     }
-}
 
+    qInfo() << "MainWindow constructed OK";
+}
 
 
 MainWindow::~MainWindow()
@@ -362,11 +385,22 @@ void MainWindow::setupMenus()
         dlg.exec();
     });
 
+    // View menu (placeholder for future)
     menuBar()->addMenu("&View");
-    menuBar()->addMenu("&Help");
+
+    // Help menu
+    auto *helpMenu = menuBar()->addMenu("&Help");
+
+    QAction *openLogAct = new QAction("Open log file", this);
+    openLogAct->setToolTip("Open pq-ssh log file");
+    connect(openLogAct, &QAction::triggered,
+            this, &MainWindow::onOpenLogFile);
+
+    helpMenu->addAction(openLogAct);
 
     statusBar()->showMessage("CPUNK PQ-SSH prototype");
 }
+
 
 void MainWindow::appendTerminalLine(const QString &line)
 {
@@ -950,4 +984,20 @@ static void protectTermFromAppStyles(CpunkTermWidget *term)
         w->setAutoFillBackground(true);
         w->setStyleSheet(shield);
     }
+}
+
+void MainWindow::onOpenLogFile()
+{
+    const QString path = Logger::logFilePath();
+
+    if (path.isEmpty()) {
+        appendTerminalLine("[LOG] Log file path not available.");
+        qWarning() << "Log file path is empty";
+        return;
+    }
+
+    const QUrl url = QUrl::fromLocalFile(path);
+    QDesktopServices::openUrl(url);
+
+    qInfo() << "Opened log file:" << path;
 }

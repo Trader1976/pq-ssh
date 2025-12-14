@@ -54,6 +54,8 @@ add_executable(pq-ssh
         src/KeyGeneratorDialog.cpp
         src/KeyMetadataUtils.h
         src/KeyMetadataUtils.cpp
+        src/Logger.h
+        src/Logger.cpp
 )
 
 target_include_directories(pq-ssh

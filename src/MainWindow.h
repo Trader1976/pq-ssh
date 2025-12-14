@@ -43,6 +43,7 @@ private slots:
     void onFileDropped(const QString &path, const QByteArray &data);
 
     void downloadSelectionTriggered();
+    void onOpenLogFile();
 
 private:
     void setupUi();

@@ -12,11 +12,17 @@
 #include <iostream>
 #include "MainWindow.h"
 #include "ThemeInstaller.h"
+#include "Logger.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    // ✅ Install logger as early as possible
+    Logger::install("pq-ssh");
+
     installBundledColorSchemes();
+
     // Global dark palette
     QPalette dark;
     dark.setColor(QPalette::Window, QColor(0,0,0));
@@ -27,7 +33,7 @@ int main(int argc, char *argv[])
 
     app.setPalette(dark);
 
-    qDebug() << "PQ-SSH starting (qDebug)";
+    qInfo() << "PQ-SSH starting";   // goes to log file
     std::cout << "PQ-SSH starting (std::cout)" << std::endl;
 
     MainWindow w;
