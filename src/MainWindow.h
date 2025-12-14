@@ -8,6 +8,7 @@
 
 #include "SshProfile.h"
 #include "SshClient.h"
+#include <QUuid>
 
 
 // Forward declarations (Qt)
@@ -56,6 +57,13 @@ private:
 
     void appendTerminalLine(const QString &line);
     void updatePqStatusLabel(const QString &text, const QString &colorHex);
+
+    QString m_sessionId;
+    void logSessionInfo(const QString& msg);
+    void uiInfo(const QString& msg);
+    void uiWarn(const QString& msg);
+    void uiDebug(const QString& msg);
+    bool uiVerbose() const;
 
 
     // UI

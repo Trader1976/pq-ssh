@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
+#include <QDebug>
 
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
@@ -28,6 +29,8 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
 {
     if (err) err->clear();
 
+    qInfo().noquote() << QString("[SSH] connectPublicKey target='%1'").arg(target.trimmed());
+
     // Parse user@host (user optional)
     QString user;
     QString host = target.trimmed();
@@ -39,6 +42,7 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
 
     if (host.isEmpty()) {
         if (err) *err = QStringLiteral("No host specified.");
+        qWarning().noquote() << QString("[SSH] connectPublicKey FAILED: %1").arg(err ? *err : "No host specified.");
         return false;
     }
 
@@ -48,9 +52,15 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
     p.user = user.isEmpty() ? qEnvironmentVariable("USER", "user") : user;
     p.port = 22;
     p.keyType = "auto";
-    // p.keyFile left empty intentionally
 
-    return connectProfile(p, err);
+    const bool ok = connectProfile(p, err);
+
+    if (ok) qInfo().noquote() << QString("[SSH] connectPublicKey OK user='%1' host='%2' port=%3")
+                                 .arg(p.user, p.host).arg(p.port);
+    else     qWarning().noquote() << QString("[SSH] connectPublicKey FAILED: %1")
+                                 .arg(err ? *err : QString("unknown error"));
+
+    return ok;
 }
 
 
@@ -63,10 +73,12 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 
     if (host.isEmpty()) {
         if (err) *err = QStringLiteral("No host specified.");
+        qWarning().noquote() << QString("[SSH] connectProfile FAILED: %1").arg(err ? *err : "No host");
         return false;
     }
     if (user.isEmpty()) {
         if (err) *err = QStringLiteral("No user specified.");
+        qWarning().noquote() << QString("[SSH] connectProfile FAILED host='%1': %2").arg(host, err ? *err : "No user");
         return false;
     }
 
@@ -74,23 +86,37 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     const QString kt = profile.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : profile.keyType.trimmed();
     if (kt != "auto" && kt != "openssh") {
         if (err) *err = QStringLiteral("Unsupported key_type '%1' (PQ keys not implemented yet).").arg(kt);
+        qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
+                                .arg(user, host, err ? *err : "Unsupported key_type");
         return false;
     }
 
+    const int port = (profile.port > 0) ? profile.port : 22;
+    const bool hasIdentity = !profile.keyFile.trimmed().isEmpty();
+
+    qInfo().noquote() << QString("[SSH] connectProfile start user='%1' host='%2' port=%3 keyType='%4'%5")
+                         .arg(user, host)
+                         .arg(port)
+                         .arg(kt)
+                         .arg(hasIdentity ? " identity=explicit" : "");
+
     // Clean previous session
+    if (m_session) {
+        qInfo().noquote() << "[SSH] existing session present -> disconnecting before reconnect";
+    }
     disconnect();
 
     ssh_session s = ssh_new();
     if (!s) {
         if (err) *err = QStringLiteral("ssh_new() failed.");
+        qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
+                                .arg(user, host, err ? *err : "ssh_new failed");
         return false;
     }
 
     // Options
     ssh_options_set(s, SSH_OPTIONS_HOST, host.toUtf8().constData());
     ssh_options_set(s, SSH_OPTIONS_USER, user.toUtf8().constData());
-
-    const int port = (profile.port > 0) ? profile.port : 22;
     ssh_options_set(s, SSH_OPTIONS_PORT, &port);
 
     // Optional: keep it responsive
@@ -98,47 +124,80 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     ssh_options_set(s, SSH_OPTIONS_TIMEOUT, &timeoutSec);
 
     // If a specific identity (private key) is set, tell libssh to use it
-    if (!profile.keyFile.trimmed().isEmpty()) {
+    if (hasIdentity) {
         const QByteArray p = QFile::encodeName(profile.keyFile.trimmed());
         ssh_options_set(s, SSH_OPTIONS_IDENTITY, p.constData());
+        // NOTE: do NOT log the key path (can be sensitive); we only log that it's explicit
     }
 
     // Connect
     int rc = ssh_connect(s);
     if (rc != SSH_OK) {
-        if (err) *err = QStringLiteral("ssh_connect failed: %1").arg(libsshError(s));
+        const QString e = libsshError(s);
+        if (err) *err = QStringLiteral("ssh_connect failed: %1").arg(e);
+
+        qWarning().noquote() << QString("[SSH] ssh_connect FAILED user='%1' host='%2' port=%3 err='%4'")
+                                .arg(user, host)
+                                .arg(port)
+                                .arg(e);
+
         ssh_free(s);
         return false;
     }
 
+    qInfo().noquote() << QString("[SSH] ssh_connect OK host='%1' port=%2").arg(host).arg(port);
+
     // Auth:
     // 1) try agent (nice if user has ssh-agent running)
     rc = ssh_userauth_agent(s, nullptr);
+    if (rc == SSH_AUTH_SUCCESS) {
+        qInfo().noquote() << QString("[SSH] auth OK via agent user='%1' host='%2'").arg(user, host);
+    }
 
     // 2) then try publickey auto (uses SSH_OPTIONS_IDENTITY if set, else default keys)
     if (rc != SSH_AUTH_SUCCESS) {
+        qInfo().noquote() << QString("[SSH] auth via agent failed -> trying publickey_auto user='%1' host='%2'")
+                             .arg(user, host);
+
         rc = ssh_userauth_publickey_auto(s, nullptr, nullptr);
+
+        if (rc == SSH_AUTH_SUCCESS) {
+            qInfo().noquote() << QString("[SSH] auth OK via publickey_auto user='%1' host='%2'").arg(user, host);
+        }
     }
 
     if (rc != SSH_AUTH_SUCCESS) {
-        if (err) *err = QStringLiteral("Public-key auth failed: %1").arg(libsshError(s));
+        const QString e = libsshError(s);
+        if (err) *err = QStringLiteral("Public-key auth failed: %1").arg(e);
+
+        qWarning().noquote() << QString("[SSH] auth FAILED user='%1' host='%2' err='%3'")
+                                .arg(user, host, e);
+
         ssh_disconnect(s);
         ssh_free(s);
         return false;
     }
 
     m_session = s;
+
+    qInfo().noquote() << QString("[SSH] connectProfile OK user='%1' host='%2' port=%3")
+                         .arg(user, host)
+                         .arg(port);
+
     return true;
 }
+
 
 void SshClient::disconnect()
 {
     if (m_session) {
+        qInfo().noquote() << "[SSH] disconnect (ssh_disconnect + free)";
         ssh_disconnect(m_session);
         ssh_free(m_session);
         m_session = nullptr;
     }
 }
+
 
 bool SshClient::isConnected() const
 {

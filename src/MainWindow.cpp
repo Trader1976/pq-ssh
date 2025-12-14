@@ -404,6 +404,20 @@ void MainWindow::setupMenus()
 
 void MainWindow::appendTerminalLine(const QString &line)
 {
+    const bool verbose = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
+
+    // Hide noisy diagnostics in normal mode
+    if (!verbose) {
+        if (line.startsWith("[SSH-CMD]") ||
+            line.startsWith("[SSH-WRAP]") ||
+            line.startsWith("[TERM] available schemes:") ||
+            line.startsWith("[TERM] profile=") ||
+            line.startsWith("[SECURITY] Local shell fallback")) {
+            // Still log to file for debugging
+            qInfo().noquote() << "[UI-HIDDEN]" << line;
+            return;
+            }
+    }
     if (m_terminal)
         m_terminal->appendPlainText(line);
 }
@@ -496,9 +510,18 @@ void MainWindow::onProfileSelectionChanged(int row)
 
 void MainWindow::onConnectClicked()
 {
+    // New session id per connect attempt
+    m_sessionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+
+    const QString rawHost = m_hostField ? m_hostField->text().trimmed() : QString();
     const int row = m_profileList ? m_profileList->currentRow() : -1;
+
+    logSessionInfo(QString("Connect clicked; profileRow=%1 rawHost='%2'")
+                   .arg(row).arg(rawHost));
+
     if (row < 0 || row >= m_profiles.size()) {
         if (m_statusLabel) m_statusLabel->setText("No profile selected.");
+        uiWarn("[WARN] No profile selected.");
         return;
     }
 
@@ -506,17 +529,25 @@ void MainWindow::onConnectClicked()
 
     if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
         if (m_statusLabel) m_statusLabel->setText("Profile has empty user/host.");
+        uiWarn("[WARN] Profile has empty user/host.");
         return;
     }
 
+    const int port = (p.port > 0) ? p.port : 22;
     const QString shownTarget = QString("%1@%2").arg(p.user, p.host);
 
     if (m_statusLabel)
         m_statusLabel->setText(QString("Connecting to %1 ...").arg(shownTarget));
 
-    appendTerminalLine(QString("[CONNECT] Using profile '%1' (%2@%3:%4)")
-                       .arg(p.name, p.user, p.host)
-                       .arg(p.port));
+    // ✅ Clean UI line (instead of giant [CONNECT] message)
+    uiInfo(QString("[CONNECT] %1 → %2:%3").arg(p.name, shownTarget).arg(port));
+
+    // Keep the detailed one in the log file only
+    logSessionInfo(QString("Using profile='%1' user='%2' host='%3' port=%4 keyType='%5' scheme='%6'")
+                   .arg(p.name, p.user, p.host)
+                   .arg(port)
+                   .arg(p.keyType)
+                   .arg(p.termColorScheme));
 
     const bool newWindow =
         (m_openInNewWindowCheck && m_openInNewWindowCheck->isChecked());
@@ -525,6 +556,9 @@ void MainWindow::onConnectClicked()
 
     updatePqStatusLabel("PQ: checking…", "#888");
 
+    // ----------------------------
+    // PQ KEX probe (OpenSSH)
+    // ----------------------------
     auto *pqProc = new QProcess(this);
 
     QStringList pqArgs;
@@ -536,47 +570,62 @@ void MainWindow::onConnectClicked()
     pqArgs << "-o" << "ConnectTimeout=3";
     pqArgs << "-o" << "ConnectionAttempts=1";
 
-    if (p.port > 0 && p.port != 22) {
-        pqArgs << "-p" << QString::number(p.port);
+    if (port != 22) {
+        pqArgs << "-p" << QString::number(port);
     }
 
     pqArgs << shownTarget << "true";
 
+    // Noisy command line -> file log always, UI only if PQ debug enabled
+    uiDebug(QString("[PQ-PROBE] ssh %1").arg(pqArgs.join(" ")));
+
     connect(pqProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, [this, pqProc](int, QProcess::ExitStatus) {
+            this, [this, pqProc](int exitCode, QProcess::ExitStatus st) {
                 const QString err = QString::fromUtf8(pqProc->readAllStandardError());
+
+                // Log details
+                logSessionInfo(QString("PQ probe finished exitCode=%1 status=%2 stderrLen=%3")
+                               .arg(exitCode)
+                               .arg(st == QProcess::NormalExit ? "normal" : "crash")
+                               .arg(err.size()));
+                uiDebug(QString("[PQ-PROBE] stderr: %1").arg(err.trimmed()));
+
                 const bool pqOk =
                     !(err.contains("no matching key exchange", Qt::CaseInsensitive) ||
                       err.contains("no matching key exchange method", Qt::CaseInsensitive));
 
                 updatePqStatusLabel(pqOk ? "PQ: ACTIVE" : "PQ: OFF",
                                     pqOk ? "#4caf50" : "#ff5252");
+
                 pqProc->deleteLater();
             });
 
     pqProc->start("ssh", pqArgs);
 
+    // ----------------------------
+    // libssh connect (SFTP support)
+    // ----------------------------
     const QString keyType =
         p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
 
     if (!(keyType == "auto" || keyType == "openssh")) {
-        appendTerminalLine(QString("[SSH] key_type='%1' not supported yet for libssh (PQ auth pending) → SFTP disabled.")
-                           .arg(keyType));
+        uiWarn(QString("[SFTP] Disabled (key_type='%1' not supported yet)").arg(keyType));
+        logSessionInfo(QString("SFTP disabled due to unsupported key_type='%1'").arg(keyType));
     } else {
         auto *watcher = new QFutureWatcher<QPair<bool, QString>>(this);
 
         connect(watcher, &QFutureWatcher<QPair<bool, QString>>::finished,
-                this, [this, watcher, p]() {
+                this, [this, watcher, p, port]() {
                     const auto res = watcher->result();
                     const bool ok = res.first;
                     const QString err = res.second;
 
                     if (ok) {
-                        appendTerminalLine(QString("[SSH] libssh connected (%1@%2:%3)")
-                                           .arg(p.user, p.host)
-                                           .arg(p.port));
+                        uiInfo(QString("[SFTP] Ready (%1@%2:%3)").arg(p.user, p.host).arg(port));
+                        logSessionInfo("libssh connected OK (SFTP ready)");
                     } else {
-                        appendTerminalLine(QString("[SSH] libssh connect failed → SFTP disabled: %1").arg(err));
+                        uiWarn(QString("[SFTP] Disabled (libssh connect failed: %1)").arg(err));
+                        logSessionInfo(QString("libssh connect FAILED: %1").arg(err));
                     }
 
                     watcher->deleteLater();
@@ -593,8 +642,9 @@ void MainWindow::onConnectClicked()
     if (m_disconnectBtn) m_disconnectBtn->setEnabled(true);
 
     if (m_statusLabel)
-        m_statusLabel->setText(QString("Ready: %1").arg(shownTarget));
+        m_statusLabel->setText(QString("Connected: %1").arg(shownTarget));
 }
+
 
 void MainWindow::onProfileDoubleClicked()
 {
@@ -603,6 +653,7 @@ void MainWindow::onProfileDoubleClicked()
 
 void MainWindow::onDisconnectClicked()
 {
+    logSessionInfo("Disconnect clicked (user requested)");
     m_ssh.disconnect();
 
     if (m_connectBtn)    m_connectBtn->setEnabled(true);
@@ -1000,4 +1051,35 @@ void MainWindow::onOpenLogFile()
     QDesktopServices::openUrl(url);
 
     qInfo() << "Opened log file:" << path;
+}
+
+void MainWindow::logSessionInfo(const QString& msg)
+{
+    const QString sid = m_sessionId.isEmpty() ? "-" : m_sessionId;
+    qInfo().noquote() << QString("[SESSION %1] %2").arg(sid, msg);
+}
+
+void MainWindow::uiInfo(const QString& msg)
+{
+    appendTerminalLine(msg);
+    qInfo().noquote() << "[UI]" << msg;
+}
+
+void MainWindow::uiWarn(const QString& msg)
+{
+    appendTerminalLine(msg);
+    qWarning().noquote() << "[UI]" << msg;
+}
+
+void MainWindow::uiDebug(const QString& msg)
+{
+    // Only show debug noise in the UI when PQ debug is enabled
+    const bool verbose = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
+    qInfo().noquote() << "[UI-DEBUG]" << msg;          // always goes to file
+    if (verbose) appendTerminalLine(msg);              // UI only if enabled
+}
+
+bool MainWindow::uiVerbose() const
+{
+    return (m_pqDebugCheck && m_pqDebugCheck->isChecked());
 }
