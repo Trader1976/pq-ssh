@@ -291,6 +291,35 @@ KeyGeneratorDialog::KeyGeneratorDialog(QWidget *parent)
     form->addRow("Passphrase:", m_pass1Edit);
     form->addRow("Passphrase (again):", m_pass2Edit);
 
+    // --- Passphrase UX: disable for Dilithium5 (not supported yet) ---
+    auto updatePassphraseUi = [this]() {
+        const bool isDilithium = (m_algoCombo->currentText() == "dilithium5");
+
+        m_pass1Edit->setEnabled(!isDilithium);
+        m_pass2Edit->setEnabled(!isDilithium);
+
+        if (isDilithium) {
+            m_pass1Edit->clear();
+            m_pass2Edit->clear();
+            m_pass1Edit->setPlaceholderText("Not supported yet");
+            m_pass2Edit->setPlaceholderText("Not supported yet");
+            m_pass1Edit->setToolTip("Dilithium5 private key passphrase encryption is not implemented yet.");
+            m_pass2Edit->setToolTip("Dilithium5 private key passphrase encryption is not implemented yet.");
+        } else {
+            m_pass1Edit->setPlaceholderText(QString());
+            m_pass2Edit->setPlaceholderText(QString());
+            m_pass1Edit->setToolTip(QString());
+            m_pass2Edit->setToolTip(QString());
+        }
+    };
+
+    // Run once + whenever algorithm changes
+    updatePassphraseUi();
+    connect(m_algoCombo, &QComboBox::currentTextChanged, this, [updatePassphraseUi](const QString&) {
+        updatePassphraseUi();
+    });
+    // --- end passphrase UX ---
+
     genLayout->addLayout(form);
 
     m_resultLabel = new QLabel(this);
@@ -379,6 +408,9 @@ KeyGeneratorDialog::KeyGeneratorDialog(QWidget *parent)
     refreshKeysTable();
     onKeySelectionChanged();
 }
+
+
+
 
 QString KeyGeneratorDialog::keysDir() const
 {
