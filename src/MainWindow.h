@@ -45,6 +45,8 @@ private slots:
 
     void downloadSelectionTriggered();
     void onOpenLogFile();
+    void onOpenUserManual();
+
 
 private:
     void setupUi();

@@ -49,7 +49,6 @@ add_executable(pq-ssh
         resources/pqssh_resources.qrc
         src/ThemeInstaller.cpp
         src/ThemeInstaller.h
-        src/ThemeInstaller.cpp
         src/KeyGeneratorDialog.h
         src/KeyGeneratorDialog.cpp
         src/KeyMetadataUtils.h

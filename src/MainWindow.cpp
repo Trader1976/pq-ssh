@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 #include "KeyGeneratorDialog.h"
 #include "KeyMetadataUtils.h"
-
+#include <QTextBrowser>
 #include <QApplication>
 #include <QWidget>
 #include <QSplitter>
@@ -49,6 +49,15 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include "Logger.h"
+
+#include <QStandardPaths>
+
+
+#include <QFileInfo>
+
+
+
+
 
 
 // =====================================================
@@ -283,20 +292,6 @@ void MainWindow::setupUi()
     termLayout->addWidget(m_terminal, 1);
     termContainer->setLayout(termLayout);
 
-    // --- Input bar ---
-    auto *inputBar = new QWidget(rightWidget);
-    auto *inputLayout = new QHBoxLayout(inputBar);
-    inputLayout->setContentsMargins(0, 0, 0, 0);
-    inputLayout->setSpacing(6);
-
-    auto *inputLabel = new QLabel("Input:", inputBar);
-    m_inputField = new QLineEdit(inputBar);
-    m_sendBtn = new QPushButton("Send", inputBar);
-
-    inputLayout->addWidget(inputLabel);
-    inputLayout->addWidget(m_inputField, 1);
-    inputLayout->addWidget(m_sendBtn);
-    inputBar->setLayout(inputLayout);
 
     // --- Bottom bar ---
     auto *bottomBar = new QWidget(rightWidget);
@@ -314,7 +309,7 @@ void MainWindow::setupUi()
     m_pqDebugCheck->setChecked(true);
 
     m_openInNewWindowCheck = new QCheckBox("Open new connection in NEW window", bottomBar);
-    m_openInNewWindowCheck->setChecked(false);
+    m_openInNewWindowCheck->setChecked(true);
 
     bottomLayout->addWidget(m_statusLabel, 1);
     bottomLayout->addWidget(m_openInNewWindowCheck, 0);
@@ -325,7 +320,6 @@ void MainWindow::setupUi()
     // Assemble right side
     outer->addWidget(topBar);
     outer->addWidget(termContainer, 1);
-    outer->addWidget(inputBar);
     outer->addWidget(bottomBar);
     rightWidget->setLayout(outer);
 
@@ -391,11 +385,16 @@ void MainWindow::setupMenus()
     // Help menu
     auto *helpMenu = menuBar()->addMenu("&Help");
 
+    QAction *manualAct = new QAction("User Manual", this);
+    manualAct->setToolTip("Open PQ-SSH user manual");
+    connect(manualAct, &QAction::triggered,
+            this, &MainWindow::onOpenUserManual);
+    helpMenu->addAction(manualAct);
+
     QAction *openLogAct = new QAction("Open log file", this);
     openLogAct->setToolTip("Open pq-ssh log file");
     connect(openLogAct, &QAction::triggered,
             this, &MainWindow::onOpenLogFile);
-
     helpMenu->addAction(openLogAct);
 
     statusBar()->showMessage("CPUNK PQ-SSH prototype");
@@ -1082,4 +1081,46 @@ void MainWindow::uiDebug(const QString& msg)
 bool MainWindow::uiVerbose() const
 {
     return (m_pqDebugCheck && m_pqDebugCheck->isChecked());
+}
+
+void MainWindow::onOpenUserManual()
+{
+    const QUrl url("qrc:/docs/user-manual.html");
+
+    if (!QFile::exists(":/docs/user-manual.html")) {
+        appendTerminalLine("[WARN] User manual resource missing: :/docs/user-manual.html");
+        return;
+    }
+
+    auto *dlg = new QDialog(this);
+    dlg->setAttribute(Qt::WA_DeleteOnClose, true);
+    dlg->setWindowTitle("PQ-SSH User Manual");
+    dlg->resize(980, 720);
+
+    auto *layout = new QVBoxLayout(dlg);
+
+    auto *browser = new QTextBrowser(dlg);
+    // 🔒 Fallback styling for Qt HTML engine (prevents blue links)
+    browser->document()->setDefaultStyleSheet(
+        "body { background:#0b0b0c; color:#e7e7ea; }"
+        "a, a:link, a:visited { color:#00ff99; text-decoration:none; }"
+        "a:hover { text-decoration:underline; color:#7cffc8; }"
+    );
+    browser->document()->setDefaultStyleSheet(
+    "a { color:#00ff99; }"
+    ".nav a, a.btn {"
+    "  display:inline-block;"
+    "  padding:6px 12px;"
+    "  border-radius:999px;"
+    "  background:rgba(0,255,153,.08);"
+    "  border:1px solid rgba(0,255,153,.28);"
+    "  text-decoration:none;"
+    "}"
+);
+    browser->setOpenExternalLinks(true);     // clickable links open in system browser
+    browser->setSource(url);                 // loads from qrc
+    layout->addWidget(browser);
+
+    dlg->setLayout(layout);
+    dlg->show();
 }

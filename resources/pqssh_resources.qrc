@@ -3,4 +3,9 @@
         <file alias="CPUNK-DNA.colorscheme">color-schemes/CPUNK-DNA.colorscheme</file>
         <file alias="CPUNK-Aurora.colorscheme">color-schemes/CPUNK-Aurora.colorscheme</file>
     </qresource>
+
+    <qresource prefix="/docs">
+        <file alias="user-manual.html">docs/user-manual.html</file>
+        <file alias="user-manual.css">docs/user-manual.css</file>
+    </qresource>
 </RCC>

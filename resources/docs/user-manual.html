@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CPUNK PQ-SSH — User Manual</title>
+    <meta name="description" content="User manual for CPUNK PQ-SSH (profile-based SSH client with PQ status and logging)." />
+
+    <!-- IMPORTANT for QTextBrowser + QRC -->
+    <link rel="stylesheet" href="qrc:/docs/user-manual.css" />
+</head>
+
+<body>
+<header class="top">
+    <div class="wrap">
+        <div class="brand">
+            <div class="logo" aria-hidden="true">CP</div>
+            <div>
+                <h1>CPUNK PQ-SSH</h1>
+                <p class="subtitle">User Manual</p>
+            </div>
+        </div>
+
+        <nav class="nav" aria-label="Manual navigation">
+            <a class="btn" href="#getting-started">Getting started</a>
+            <a class="btn" href="#profiles">Profiles</a>
+            <a class="btn" href="#connect">Connect</a>
+            <a class="btn" href="#pq-status">PQ status</a>
+            <a class="btn" href="#sftp">SFTP</a>
+            <a class="btn" href="#logging">Logging</a>
+            <a class="btn" href="#troubleshooting">Troubleshooting</a>
+        </nav>
+    </div>
+</header>
+
+<main class="wrap content">
+    <section class="card intro">
+        <h2>What PQ-SSH is</h2>
+        <p>
+            <b>CPUNK PQ-SSH</b> is a profile-based SSH client focused on a clean terminal workflow,
+            strong security defaults, and a <b>post-quantum (PQ) readiness indicator</b>.
+        </p>
+
+        <div class="callouts">
+            <div class="callout">
+                <div class="callout-title">Terminal-first</div>
+                <p>You type commands directly in the SSH terminal. There is no separate command field.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Profiles</div>
+                <p>Save host/user/port and preferences. Connect with one click.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Diagnostics</div>
+                <p>Clean UI by default; detailed debug output only when <b>PQ debug</b> is enabled.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="getting-started" class="card">
+        <h2>Getting started</h2>
+        <ol>
+            <li>Open <b>PQ-SSH</b>.</li>
+            <li>Click <b>Edit profiles…</b>.</li>
+            <li>Create a profile (Name, User, Host/IP, Port).</li>
+            <li>Select a profile and click <b>Connect</b> (or double-click the profile).</li>
+        </ol>
+
+        <div class="note">
+            <b>Default behavior:</b> “Open new connection in new window” is enabled, so each connection opens separately.
+        </div>
+    </section>
+
+    <section id="profiles" class="card">
+        <h2>Profiles</h2>
+        <p>A profile stores connection details and UI preferences:</p>
+
+        <ul class="bullets">
+            <li><b>Name</b> — friendly label (e.g. “DHT Server”)</li>
+            <li><b>User</b> — SSH username (e.g. <code>timo</code>)</li>
+            <li><b>Host</b> — hostname or IP (e.g. <code>192.168.1.221</code>)</li>
+            <li><b>Port</b> — default is <code>22</code></li>
+            <li><b>Key type</b> — usually <code>auto</code> or <code>openssh</code></li>
+            <li><b>Terminal scheme</b> — color scheme for the terminal</li>
+        </ul>
+
+        <div class="tip">
+            Tip: keep profile names short and consistent (Prod, Staging, Home, etc.).
+        </div>
+    </section>
+
+    <section id="connect" class="card">
+        <h2>Connecting</h2>
+        <ol>
+            <li>Select a profile from the list.</li>
+            <li>Click <b>Connect</b> (or double-click the profile).</li>
+            <li>A terminal window opens and SSH starts automatically.</li>
+        </ol>
+
+        <div class="note">
+            If the terminal does not become interactive, check <a href="#logging">logs</a> or enable <b>PQ debug</b>.
+        </div>
+    </section>
+
+    <section id="pq-status" class="card">
+        <h2>PQ status indicator</h2>
+        <p>
+            PQ-SSH runs a quick probe to detect whether the remote server supports a PQ-capable key exchange.
+            This does <b>not</b> change server settings; it is informational.
+        </p>
+
+        <div class="badges">
+            <span class="badge ok">PQ: ACTIVE</span>
+            <span class="badge off">PQ: OFF</span>
+            <span class="badge wait">PQ: checking…</span>
+        </div>
+
+        <ul class="bullets">
+            <li><b>PQ: ACTIVE</b> — PQ-safe KEX detected.</li>
+            <li><b>PQ: OFF</b> — classical SSH key exchange only.</li>
+            <li><b>PQ: checking…</b> — probe in progress.</li>
+        </ul>
+    </section>
+
+    <section id="sftp" class="card">
+        <h2>SFTP (libssh)</h2>
+        <p>
+            PQ-SSH can establish a separate <b>libssh</b> session for SFTP features (uploads/downloads).
+        </p>
+
+        <ul class="bullets">
+            <li>If libssh connects successfully, you’ll see a message like <b>SFTP Ready</b>.</li>
+            <li>If libssh fails, SFTP is disabled and the SSH terminal still works.</li>
+        </ul>
+
+        <div class="note">
+            If you use a key type not supported by libssh yet, SFTP will be disabled by design.
+        </div>
+    </section>
+
+    <section id="logging" class="card">
+        <h2>Logging & Debug</h2>
+
+        <h3>Open the log file</h3>
+        <p>Use the menu: <b>Help → Open log file</b></p>
+
+        <pre class="codeblock"><code>~/.local/share/pq-ssh/logs/pq-ssh.log</code></pre>
+
+        <h3>PQ debug mode</h3>
+        <p>
+            Enable <b>PQ debug</b> in the bottom bar to show extra diagnostics in the UI
+            (SSH command details, scheme lists, low-level messages).
+        </p>
+
+        <div class="warn">
+            <b>Privacy note:</b> PQ-SSH does not log passwords or private key contents.
+            Debug output may still contain hostnames and file paths.
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Keys & expiration warnings</h2>
+        <p>Open <b>Keys → Key Generator…</b> to create/manage keys.</p>
+
+        <ul class="bullets">
+            <li>At startup PQ-SSH may auto-mark expired keys in metadata.</li>
+            <li>If expired keys exist, a warning is shown in the status area.</li>
+            <li>Rotate keys regularly for best security.</li>
+        </ul>
+    </section>
+
+    <section id="troubleshooting" class="card">
+        <h2>Troubleshooting</h2>
+
+        <details>
+            <summary>Connection fails immediately</summary>
+            <ul class="bullets">
+                <li>Verify host/IP and port in the profile.</li>
+                <li>Check the log file (Help → Open log file).</li>
+                <li>Enable <b>PQ debug</b> for detailed SSH diagnostics.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>PQ shows OFF</summary>
+            <ul class="bullets">
+                <li>The server likely does not offer the probed PQ key exchange.</li>
+                <li>This is informational; normal SSH can still be secure depending on your policies.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>SFTP disabled</summary>
+            <ul class="bullets">
+                <li>libssh session may fail even if the terminal SSH works.</li>
+                <li>Some key types are not supported by libssh yet.</li>
+                <li>Check logs for <code>ssh_connect</code> or auth errors.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Too much debug output in UI</summary>
+            <ul class="bullets">
+                <li>Turn off <b>PQ debug</b>.</li>
+                <li>The app will hide noisy lines like SSH command wrappers by default.</li>
+            </ul>
+        </details>
+    </section>
+
+    <footer class="footer">
+        <div class="muted">© CPUNK Project — PQ-SSH user documentation</div>
+    </footer>
+</main>
+</body>
+</html>

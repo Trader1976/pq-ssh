@@ -29,10 +29,83 @@
 #include <QMessageBox>
 #include <QColor>
 #include <QJsonValue>
+#include <QCryptographicHash>
+#include <QRandomGenerator>
+#include <QBrush>
 
 static QString isoUtcNow()
 {
     return QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
+}
+
+// ---------------------------------------------------------------------------
+// PQSSH helpers (Dilithium5 stub)
+// ---------------------------------------------------------------------------
+
+static QString sha256Fingerprint(const QByteArray &data)
+{
+    const QByteArray digest = QCryptographicHash::hash(data, QCryptographicHash::Sha256);
+    QString b64 = QString::fromLatin1(digest.toBase64());
+    b64.remove('='); // OpenSSH-style (often no padding)
+    return "SHA256:" + b64;
+}
+
+static bool runDilithium5StubKeygen(const QString &privPath,
+                                   const QString &comment,
+                                   const QString &passphrase,
+                                   QString *errOut)
+{
+    Q_UNUSED(passphrase); // (we’ll add encryption later if/when you want)
+
+    // Placeholder sizes (close to ML-DSA-87 / “Dilithium5” typical sizes)
+    QByteArray pub(2592, Qt::Uninitialized);
+    QByteArray priv(4896, Qt::Uninitialized);
+
+    QRandomGenerator::global()->generate(pub.begin(), pub.end());
+    QRandomGenerator::global()->generate(priv.begin(), priv.end());
+
+    // avoid overwrite prompt
+    QFile::remove(privPath);
+    QFile::remove(privPath + ".pub");
+
+    // Write private key (simple PQSSH format for now)
+    {
+        QFile f(privPath);
+        if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            if (errOut) *errOut = QString("Failed to write private key: %1").arg(f.errorString());
+            return false;
+        }
+        f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+
+        f.write("PQSSH-PRIVATE-KEY v1\n");
+        f.write("alg:dilithium5\n");
+        f.write("encoding:base64\n");
+        f.write(priv.toBase64());
+        f.write("\n");
+        f.close();
+    }
+
+    // Write public key line (so your existing copy/export UI works)
+    {
+        QFile f(privPath + ".pub");
+        if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            if (errOut) *errOut = QString("Failed to write public key: %1").arg(f.errorString());
+            return false;
+        }
+
+        // Format: pqssh-dilithium5 <base64> <comment>
+        QByteArray line = "pqssh-dilithium5 ";
+        line += pub.toBase64();
+        if (!comment.isEmpty()) {
+            line += " ";
+            line += comment.toUtf8();
+        }
+        line += "\n";
+        f.write(line);
+        f.close();
+    }
+
+    return true;
 }
 
 // ============================================================================
@@ -128,16 +201,12 @@ private:
     QDateTimeEdit *expireDate{};
 };
 
-
-
 static bool isExpiredNow(const QString &expiresIso)
 {
     QDateTime expUtc;
     if (!parseIsoUtc(expiresIso, expUtc)) return false;
     return expUtc < QDateTime::currentDateTimeUtc();
 }
-
-
 
 // ============================================================================
 // KeyGeneratorDialog
@@ -165,7 +234,8 @@ KeyGeneratorDialog::KeyGeneratorDialog(QWidget *parent)
     form->setLabelAlignment(Qt::AlignRight);
 
     m_algoCombo = new QComboBox(this);
-    m_algoCombo->addItems({ "ed25519", "rsa3072", "rsa4096" });
+    // Added dilithium5
+    m_algoCombo->addItems({ "ed25519", "rsa3072", "rsa4096", "dilithium5" });
     form->addRow("Algorithm:", m_algoCombo);
 
     m_keyNameEdit = new QLineEdit(this);
@@ -335,6 +405,11 @@ bool KeyGeneratorDialog::runSshKeygen(const QString &algo, const QString &privPa
                                      const QString &comment, const QString &passphrase,
                                      QString *errOut)
 {
+    // Route PQ keygen here (does not use ssh-keygen)
+    if (algo == "dilithium5") {
+        return runDilithium5StubKeygen(privPath, comment, passphrase, errOut);
+    }
+
     QStringList args;
 
     if (algo == "ed25519") {
@@ -372,27 +447,55 @@ bool KeyGeneratorDialog::runSshKeygen(const QString &algo, const QString &privPa
 
 bool KeyGeneratorDialog::computeFingerprint(const QString &pubPath, QString *fpOut, QString *errOut)
 {
-    QProcess p;
-    p.start("ssh-keygen", { "-lf", pubPath, "-E", "sha256" });
+    // 1) Try OpenSSH fingerprinting first (ed25519/rsa keys)
+    {
+        QProcess p;
+        p.start("ssh-keygen", { "-lf", pubPath, "-E", "sha256" });
 
-    if (!p.waitForFinished(15000)) {
-        if (errOut) *errOut = "ssh-keygen fingerprint timed out.";
+        if (p.waitForFinished(15000) &&
+            p.exitStatus() == QProcess::NormalExit &&
+            p.exitCode() == 0)
+        {
+            const QString out = QString::fromLocal8Bit(p.readAllStandardOutput()).trimmed();
+            const QStringList parts = out.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+            if (parts.size() >= 2 && parts[1].startsWith("SHA256:")) {
+                *fpOut = parts[1];
+                return true;
+            }
+        }
+        // fallthrough to PQSSH parsing
+    }
+
+    // 2) Fallback: PQSSH pubkey format: pqssh-dilithium5 <base64> <comment...>
+    QFile f(pubPath);
+    if (!f.open(QIODevice::ReadOnly)) {
+        if (errOut) *errOut = "Cannot read public key: " + f.errorString();
         return false;
     }
-    if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0) {
-        if (errOut) *errOut = QString("Fingerprint failed:\n%1")
-            .arg(QString::fromLocal8Bit(p.readAllStandardError()));
+    const QString line = QString::fromUtf8(f.readLine()).trimmed();
+    f.close();
+
+    const QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+    if (parts.size() < 2) {
+        if (errOut) *errOut = QString("Unrecognized public key format:\n%1").arg(line);
         return false;
     }
 
-    const QString out = QString::fromLocal8Bit(p.readAllStandardOutput()).trimmed();
-    const QStringList parts = out.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-    if (parts.size() < 2 || !parts[1].startsWith("SHA256:")) {
-        if (errOut) *errOut = QString("Unexpected fingerprint output:\n%1").arg(out);
+    const QString kind = parts[0];
+    const QString b64  = parts[1];
+
+    if (!kind.startsWith("pqssh-")) {
+        if (errOut) *errOut = QString("Unsupported public key format (not OpenSSH, not PQSSH): %1").arg(kind);
         return false;
     }
 
-    *fpOut = parts[1];
+    const QByteArray pub = QByteArray::fromBase64(b64.toLatin1());
+    if (pub.isEmpty()) {
+        if (errOut) *errOut = "Invalid base64 public key data.";
+        return false;
+    }
+
+    *fpOut = sha256Fingerprint(pub);
     return true;
 }
 
@@ -502,6 +605,36 @@ QMap<QString, KeyGeneratorDialog::KeyRow> KeyGeneratorDialog::buildInventory(QSt
     const QStringList pubs = d.entryList({ "*.pub" }, QDir::Files, QDir::Name);
     for (const QString &pubFile : pubs) {
         const QString pubPath = d.filePath(pubFile);
+
+        const QString pubLine = readPublicKeyLine(pubPath);
+
+        // Try to infer algorithm from pubkey line (helps when metadata.json missing)
+        QString inferredAlgo;
+        if (!pubLine.isEmpty()) {
+            const QStringList parts = pubLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+            const QString kind = parts.isEmpty() ? QString() : parts[0];
+
+            if (kind == "pqssh-dilithium5") {
+                inferredAlgo = "dilithium5";
+            } else if (kind == "ssh-ed25519") {
+                inferredAlgo = "ed25519";
+            } else if (kind == "ssh-rsa") {
+                // Could be rsa3072 or rsa4096; unknown without metadata, keep generic
+                inferredAlgo = "rsa";
+            } else if (kind.startsWith("pqssh-")) {
+                inferredAlgo = kind.mid(QString("pqssh-").size());
+            }
+        }
+
+        // Infer created time from pub file mtime (useful when metadata missing)
+        QString inferredCreated;
+        {
+            const QFileInfo fi(pubPath);
+            const QDateTime mtimeUtc = fi.lastModified().toUTC();
+            if (mtimeUtc.isValid())
+                inferredCreated = mtimeUtc.toString(Qt::ISODateWithMs);
+        }
+
         QString fp;
         QString e;
         if (!computeFingerprint(pubPath, &fp, &e)) {
@@ -512,10 +645,14 @@ QMap<QString, KeyGeneratorDialog::KeyRow> KeyGeneratorDialog::buildInventory(QSt
         row.fingerprint = fp;
         row.pubPath = pubPath;
         row.privPath = pubPath.left(pubPath.size() - 4); // remove ".pub"
-        row.comment = readPublicKeyLine(pubPath);
+        row.comment = pubLine;
+        row.algorithm = inferredAlgo;
+        row.created = inferredCreated;   // <-- added
         row.hasFiles = true;
+
         inv[fp] = row;
     }
+
 
     // 2) merge metadata
     QMap<QString, QJsonObject> metaMap;
@@ -632,7 +769,7 @@ void KeyGeneratorDialog::refreshKeysTable()
 {
     QString autoErr;
     autoExpireMetadataFile(metadataPath(), &autoErr);
-    // (optional) show autoErr somewhere if you want; I usually just keep it silent
+    // keep autoErr silent unless you want to show it
 
     QString err;
     m_inventory = buildInventory(&err);
@@ -660,13 +797,11 @@ void KeyGeneratorDialog::refreshKeysTable()
         bool isExpired = false;
         QDateTime expUtc;
         if (!k.expires.isEmpty()) {
-            // parseIsoUtc() should accept ISODateWithMs and ISODate and return UTC
             if (parseIsoUtc(k.expires, expUtc) && expUtc.isValid() && expUtc < nowUtc) {
                 isExpired = true;
             }
         }
 
-        // Optionally show "expired" in Status column even if metadata status is still "active"
         QString statusShown = k.status;
         if (isExpired && statusShown != "expired")
             statusShown = "expired";
@@ -683,7 +818,6 @@ void KeyGeneratorDialog::refreshKeysTable()
         m_table->setItem(r, 9, mkItem(keyFileShown));
 
         // --- Row coloring priority ---
-        // 1) expired (red)
         if (isExpired) {
             const QString tip = QString("Key is expired (expire_date=%1 UTC)").arg(expUtc.toString(Qt::ISODateWithMs));
             for (int c = 0; c < m_table->columnCount(); ++c) {
@@ -693,14 +827,12 @@ void KeyGeneratorDialog::refreshKeysTable()
                 }
             }
         }
-        // 2) missing metadata (orange)
         else if (!k.hasMetadata) {
             for (int c = 0; c < m_table->columnCount(); ++c) {
                 if (auto *it = m_table->item(r, c))
                     it->setForeground(QBrush(QColor("#ffb74d"))); // orange
             }
         }
-        // 3) missing files (red)
         else if (!k.hasFiles) {
             for (int c = 0; c < m_table->columnCount(); ++c) {
                 if (auto *it = m_table->item(r, c))
@@ -721,7 +853,6 @@ void KeyGeneratorDialog::refreshKeysTable()
 
     onKeySelectionChanged();
 }
-
 
 int KeyGeneratorDialog::selectedTableRow() const
 {
@@ -945,4 +1076,3 @@ void KeyGeneratorDialog::onDeleteKey()
 
     refreshKeysTable();
 }
-
