@@ -16,3 +16,9 @@ resist both classical and quantum cryptographic attacks.
 This project is licensed under the Apache License 2.0.
 
 Commercial licenses are available for enterprise and OEM use.
+
+
+## Cryptography
+
+PQ-SSH uses libsodium for password-based key derivation (Argon2id) and
+authenticated encryption of post-quantum private keys.
