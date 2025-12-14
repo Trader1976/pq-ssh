@@ -69,6 +69,48 @@ static void focusTerminalWindow(QWidget *window, QWidget *termWidget)
         termWidget->setFocus(Qt::OtherFocusReason);
     });
 }
+static void applyBg(QWidget* w, const QColor& bg)
+{
+    if (!w) return;
+    w->setAutoFillBackground(true);
+    QPalette p = w->palette();
+    p.setColor(QPalette::Window, bg);
+    w->setPalette(p);
+    w->setStyleSheet(QString("background:%1;").arg(bg.name()));
+}
+
+static QColor guessTermBg(QWidget* term)
+{
+    if (!term) return QColor(0,0,0);
+
+    // Prefer Base if it's meaningful, else Window.
+    const QColor base = term->palette().color(QPalette::Base);
+    if (base.isValid() && base.alpha() > 0) return base;
+
+    const QColor win = term->palette().color(QPalette::Window);
+    if (win.isValid() && win.alpha() > 0) return win;
+
+    return QColor(0,0,0);
+}
+
+static void syncTerminalSurroundingsToTerm(CpunkTermWidget* term)
+{
+    if (!term) return;
+
+    const QColor bg = guessTermBg(term);
+
+    // terminal itself
+    applyBg(term, bg);
+
+    // immediate parent and one level up (tab page / container)
+    QWidget* p1 = term->parentWidget();
+    applyBg(p1, bg);
+
+    if (p1) {
+        QWidget* p2 = p1->parentWidget();
+        applyBg(p2, bg);
+    }
+}
 
 // =====================================================
 // MainWindow
@@ -136,6 +178,7 @@ void MainWindow::setupUi()
 {
     auto *splitter = new QSplitter(Qt::Horizontal, this);
     splitter->setChildrenCollapsible(false);
+    splitter->setHandleWidth(1); // thinner handle
     setCentralWidget(splitter);
 
     // ============================
@@ -161,12 +204,14 @@ void MainWindow::setupUi()
     profilesWidget->setLayout(profilesLayout);
 
     // ============================
-    // Right: log + controls
+    // Right: bars + terminal
     // ============================
     auto *rightWidget = new QWidget(splitter);
-    auto *rightLayout = new QVBoxLayout(rightWidget);
-    rightLayout->setContentsMargins(8, 8, 8, 8);
-    rightLayout->setSpacing(6);
+
+    // Outer layout keeps padding for top/input/bottom bars
+    auto *outer = new QVBoxLayout(rightWidget);
+    outer->setContentsMargins(8, 8, 8, 8);
+    outer->setSpacing(6);
 
     // --- Top bar ---
     auto *topBar = new QWidget(rightWidget);
@@ -188,12 +233,32 @@ void MainWindow::setupUi()
     topLayout->addWidget(m_disconnectBtn);
     topBar->setLayout(topLayout);
 
-    // --- Terminal log ---
-    m_terminal = new QPlainTextEdit(rightWidget);
+    // --- Terminal container (no padding so no gutters show) ---
+    auto *termContainer = new QWidget(rightWidget);
+    auto *termLayout = new QVBoxLayout(termContainer);
+    termLayout->setContentsMargins(0, 0, 0, 0);
+    termLayout->setSpacing(0);
+
+    // Terminal log (placeholder). In the "real" app this may be CpunkTermWidget instead.
+    m_terminal = new QPlainTextEdit(termContainer);
     m_terminal->setReadOnly(true);
+
+    // Remove frames/margins that can show black borders
+    m_terminal->setFrameShape(QFrame::NoFrame);
+    m_terminal->setLineWidth(0);
+    m_terminal->setContentsMargins(0, 0, 0, 0);
+    m_terminal->document()->setDocumentMargin(0);
+
+    // Qt5-safe: affect the viewport directly (setViewportMargins is protected in Qt5)
+    m_terminal->viewport()->setAutoFillBackground(true);
+    m_terminal->viewport()->setContentsMargins(0, 0, 0, 0);
+
     QFont terminalFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     terminalFont.setPointSize(11);
     m_terminal->setFont(terminalFont);
+
+    termLayout->addWidget(m_terminal, 1);
+    termContainer->setLayout(termLayout);
 
     // --- Input bar ---
     auto *inputBar = new QWidget(rightWidget);
@@ -234,16 +299,21 @@ void MainWindow::setupUi()
     bottomLayout->addWidget(m_pqDebugCheck, 0);
     bottomBar->setLayout(bottomLayout);
 
-    rightLayout->addWidget(topBar);
-    rightLayout->addWidget(m_terminal, 1);
-    rightLayout->addWidget(inputBar);
-    rightLayout->addWidget(bottomBar);
-    rightWidget->setLayout(rightLayout);
+    // Assemble right side
+    outer->addWidget(topBar);
+    outer->addWidget(termContainer, 1);
+    outer->addWidget(inputBar);
+    outer->addWidget(bottomBar);
+    rightWidget->setLayout(outer);
 
+    // Add panes to splitter
     splitter->addWidget(profilesWidget);
     splitter->addWidget(rightWidget);
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
+
+    // Optional: ensure splitter handle isn't black in dark theme
+    splitter->setStyleSheet("QSplitter::handle { background-color: #121212; }");
 
     // ============================
     // Wiring
@@ -269,6 +339,7 @@ void MainWindow::setupUi()
     connect(m_editProfilesBtn, &QPushButton::clicked,
             this, &MainWindow::onEditProfilesClicked);
 }
+
 
 void MainWindow::setupMenus()
 {
@@ -780,7 +851,11 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
         forceBlackBackground(term);
         protectTermFromAppStyles(term);
     }
+
+    // ✅ ADD THIS at the end:
+    syncTerminalSurroundingsToTerm(term);
 }
+
 
 void MainWindow::openShellForProfile(const SshProfile &p, const QString &target, bool newWindow)
 {

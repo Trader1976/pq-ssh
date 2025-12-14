@@ -83,7 +83,7 @@ QString AppTheme::dark()
 
         // Tabs
         "QTabWidget::pane {"
-        "   border: 1px solid #00FF99;"
+        "   border: 0px;"
         "}"
         "QTabBar::tab {"
         "   height: 14px;"

@@ -15,6 +15,7 @@
 #include <QDebug>
 #include <QTimer>
 #include <QFile>
+#include <QPalette>
 
 
 
@@ -23,6 +24,15 @@ TerminalView::TerminalView(QWidget *parent)
 {
     setAcceptDrops(true);
     setReadOnly(false);
+
+    // ✅ remove frame/border
+    setFrameShape(QFrame::NoFrame);
+    setLineWidth(0);
+
+    // ✅ remove internal margins that can show parent background
+    setContentsMargins(0, 0, 0, 0);
+    setViewportMargins(0, 0, 0, 0);
+    document()->setDocumentMargin(0);
 
     // Use a fixed-width font so it feels like a terminal
     QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
@@ -197,6 +207,26 @@ QString TerminalView::downloadRemoteFileForDrag(const QString &fileName) const
     }
 
     return localPath;
+}
+
+void TerminalView::applyTerminalBackground(const QColor& bg)
+{
+    // This affects the widget "outside" the viewport
+    setAutoFillBackground(true);
+    QPalette p = palette();
+    p.setColor(QPalette::Window, bg);
+    p.setColor(QPalette::Base, bg);   // ✅ this is the text area's bg
+    setPalette(p);
+
+    // This affects the actual painted area
+    viewport()->setAutoFillBackground(true);
+    viewport()->setPalette(p);
+
+    // Extra insurance against style fallbacks
+    setStyleSheet(QString(
+        "QPlainTextEdit { background:%1; border:0px; padding:0px; }"
+        "QPlainTextEdit::viewport { background:%1; }"
+    ).arg(bg.name()));
 }
 
 void TerminalView::dragEnterEvent(QDragEnterEvent *event)

@@ -14,6 +14,7 @@ public:
     ~TerminalView() override;
 
     void setRemoteContext(const QString &user, const QString &host);
+    void applyTerminalBackground(const QColor& bg);
 
     signals:
         void bytesTyped(const QByteArray &data);
