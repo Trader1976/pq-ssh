@@ -55,6 +55,8 @@ add_executable(pq-ssh
         src/KeyMetadataUtils.cpp
         src/Logger.h
         src/Logger.cpp
+        src/DilithiumKeyCrypto.h
+        src/DilithiumKeyCrypto.cpp
 )
 
 target_include_directories(pq-ssh
@@ -78,4 +80,23 @@ target_link_libraries(pq-ssh
 
 set_target_properties(pq-ssh PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+find_package(PkgConfig REQUIRED)
+
+pkg_check_modules(LIBSSH REQUIRED libssh)
+pkg_check_modules(QTERM  REQUIRED qtermwidget5)
+pkg_check_modules(SODIUM REQUIRED libsodium)
+
+target_include_directories(pq-ssh PRIVATE
+        ${LIBSSH_INCLUDE_DIRS}
+        ${QTERM_INCLUDE_DIRS}
+        ${SODIUM_INCLUDE_DIRS}
+)
+
+target_link_libraries(pq-ssh PRIVATE
+        Qt5::Widgets
+        ${LIBSSH_LIBRARIES}
+        ${QTERM_LIBRARIES}
+        ${SODIUM_LIBRARIES}
 )

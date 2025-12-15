@@ -8,9 +8,13 @@
 
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
+#include <libssh/callbacks.h>
 
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sodium.h>
+#include <cstring>   // memset, memcpy
+#include "DilithiumKeyCrypto.h"
 
 static QString libsshError(ssh_session s)
 {
@@ -18,7 +22,7 @@ static QString libsshError(ssh_session s)
     return QString::fromLocal8Bit(ssh_get_error(s));
 }
 
-SshClient::SshClient() = default;
+SshClient::SshClient(QObject *parent) : QObject(parent) {}
 
 SshClient::~SshClient()
 {
@@ -62,6 +66,61 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
 
     return ok;
 }
+
+
+
+QString SshClient::requestPassphrase(const QString& keyFile, bool *ok)
+{
+    if (!m_passphraseProvider) {
+        if (ok) *ok = false;
+        return QString();
+    }
+    return m_passphraseProvider(keyFile, ok);
+}
+
+bool SshClient::testUnlockDilithiumKey(const QString& encKeyPath, QString* err)
+{
+    if (err) err->clear();
+
+    QFile f(encKeyPath);
+    if (!f.open(QIODevice::ReadOnly)) {
+        if (err) *err = QString("Cannot read key file: %1").arg(f.errorString());
+        return false;
+    }
+    const QByteArray enc = f.readAll();
+    f.close();
+
+    if (!m_passphraseProvider) {
+        if (err) *err = "No passphrase provider set (UI callback missing).";
+        return false;
+    }
+
+    bool ok = false;
+    const QString pass = m_passphraseProvider(encKeyPath, &ok);
+    if (!ok) {
+        if (err) *err = "Cancelled by user.";
+        return false;
+    }
+
+    QByteArray plain;
+    QString decErr;
+    if (!decryptDilithiumKey(enc, pass, &plain, &decErr)) {
+        if (err) *err = "Decrypt failed: " + decErr;
+        return false;
+    }
+
+    if (plain.isEmpty()) {
+        if (err) *err = "Decrypt returned empty plaintext.";
+        return false;
+    }
+
+    // best-effort wipe
+    if (sodium_init() >= 0) sodium_memzero(plain.data(), (size_t)plain.size());
+    else std::fill(plain.begin(), plain.end(), '\0');
+
+    return true;
+}
+
 
 
 bool SshClient::connectProfile(const SshProfile& profile, QString* err)
@@ -127,8 +186,57 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     if (hasIdentity) {
         const QByteArray p = QFile::encodeName(profile.keyFile.trimmed());
         ssh_options_set(s, SSH_OPTIONS_IDENTITY, p.constData());
-        // NOTE: do NOT log the key path (can be sensitive); we only log that it's explicit
+        // NOTE: do NOT log the key path (can be sensitive)
     }
+
+    // ------------------------------------------------------------
+    // Option A: Passphrase callback (UI provides passphrase)
+    // ------------------------------------------------------------
+    // IMPORTANT: the callbacks struct must stay alive while session is alive.
+    // We'll keep it static because PQ-SSH uses one SshClient instance / one session at a time.
+    static ssh_callbacks_struct cb;
+    std::memset(&cb, 0, sizeof(cb));
+
+    cb.userdata = this;
+
+    // libssh will call this when it needs a passphrase for a private key
+    cb.auth_function = [](const char *prompt,
+                          char *buf,
+                          size_t len,
+                          int echo,
+                          int verify,
+                          void *userdata) -> int
+    {
+        Q_UNUSED(prompt);
+        Q_UNUSED(echo);
+        Q_UNUSED(verify);
+
+        auto *self = static_cast<SshClient*>(userdata);
+        if (!self) return SSH_AUTH_DENIED;
+
+        if (!self->m_passphraseProvider) {
+            return SSH_AUTH_DENIED; // no UI hook installed
+        }
+
+        bool ok = false;
+
+        // We don't get the key path reliably from libssh here; pass empty.
+        const QString pass = self->m_passphraseProvider(QString(), &ok);
+
+        if (!ok) return SSH_AUTH_DENIED;
+
+        const QByteArray utf8 = pass.toUtf8();
+        if (len == 0) return SSH_AUTH_DENIED;
+
+        const size_t n = std::min(len - 1, static_cast<size_t>(utf8.size()));
+        std::memcpy(buf, utf8.constData(), n);
+        buf[n] = '\0';
+
+        return SSH_AUTH_SUCCESS;
+    };
+
+    ssh_set_callbacks(s, &cb);
+    // ------------------------------------------------------------
 
     // Connect
     int rc = ssh_connect(s);
@@ -187,7 +295,6 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     return true;
 }
 
-
 void SshClient::disconnect()
 {
     if (m_session) {
@@ -197,7 +304,6 @@ void SshClient::disconnect()
         m_session = nullptr;
     }
 }
-
 
 bool SshClient::isConnected() const
 {

@@ -1,5 +1,6 @@
 #include "KeyGeneratorDialog.h"
 #include "KeyMetadataUtils.h"
+#include "DilithiumKeyCrypto.h"
 
 #include <QVBoxLayout>
 #include <QFormLayout>
@@ -30,8 +31,9 @@
 #include <QColor>
 #include <QJsonValue>
 #include <QCryptographicHash>
-#include <QRandomGenerator>
 #include <QBrush>
+#include <sodium.h>
+#include "DilithiumKeyCrypto.h"
 
 static QString isoUtcNow()
 {
@@ -39,7 +41,40 @@ static QString isoUtcNow()
 }
 
 // ---------------------------------------------------------------------------
-// PQSSH helpers (Dilithium5 stub)
+// libsodium init + base64 helpers
+// ---------------------------------------------------------------------------
+
+static bool sodiumInitOnce(QString *errOut)
+{
+    static bool inited = false;
+    if (inited) return true;
+
+    if (sodium_init() < 0) {
+        if (errOut) *errOut = "libsodium init failed (sodium_init).";
+        return false;
+    }
+    inited = true;
+    return true;
+}
+
+static QByteArray b64NoPad(const QByteArray &in)
+{
+    QByteArray b = in.toBase64();
+    while (!b.isEmpty() && b.endsWith('=')) b.chop(1);
+    return b;
+}
+
+static QByteArray b64DecodeLoose(const QByteArray &in)
+{
+    // Accept no-padding base64 by adding padding back
+    QByteArray b = in.trimmed();
+    const int mod = b.size() % 4;
+    if (mod) b.append(QByteArray(4 - mod, '='));
+    return QByteArray::fromBase64(b);
+}
+
+// ---------------------------------------------------------------------------
+// PQSSH helpers (Dilithium5 + fingerprints)
 // ---------------------------------------------------------------------------
 
 static QString sha256Fingerprint(const QByteArray &data)
@@ -50,25 +85,30 @@ static QString sha256Fingerprint(const QByteArray &data)
     return "SHA256:" + b64;
 }
 
+
+
+
 static bool runDilithium5StubKeygen(const QString &privPath,
                                    const QString &comment,
                                    const QString &passphrase,
                                    QString *errOut)
 {
-    Q_UNUSED(passphrase); // (we’ll add encryption later if/when you want)
+    Q_UNUSED(passphrase); // encryption is handled later via DilithiumKeyCrypto + .enc
+
+    if (!sodiumInitOnce(errOut)) return false;
 
     // Placeholder sizes (close to ML-DSA-87 / “Dilithium5” typical sizes)
     QByteArray pub(2592, Qt::Uninitialized);
     QByteArray priv(4896, Qt::Uninitialized);
 
-    QRandomGenerator::global()->generate(pub.begin(), pub.end());
-    QRandomGenerator::global()->generate(priv.begin(), priv.end());
+    randombytes_buf(pub.data(),  (size_t)pub.size());
+    randombytes_buf(priv.data(), (size_t)priv.size());
 
     // avoid overwrite prompt
     QFile::remove(privPath);
     QFile::remove(privPath + ".pub");
 
-    // Write private key (simple PQSSH format for now)
+    // Write RAW plaintext private key bytes (temporary; onGenerate() will encrypt to .enc and delete this file)
     {
         QFile f(privPath);
         if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
@@ -76,16 +116,11 @@ static bool runDilithium5StubKeygen(const QString &privPath,
             return false;
         }
         f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
-
-        f.write("PQSSH-PRIVATE-KEY v1\n");
-        f.write("alg:dilithium5\n");
-        f.write("encoding:base64\n");
-        f.write(priv.toBase64());
-        f.write("\n");
+        f.write(priv);
         f.close();
     }
 
-    // Write public key line (so your existing copy/export UI works)
+    // Write public key line (so existing copy/export UI works)
     {
         QFile f(privPath + ".pub");
         if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
@@ -95,7 +130,7 @@ static bool runDilithium5StubKeygen(const QString &privPath,
 
         // Format: pqssh-dilithium5 <base64> <comment>
         QByteArray line = "pqssh-dilithium5 ";
-        line += pub.toBase64();
+        line += b64NoPad(pub);
         if (!comment.isEmpty()) {
             line += " ";
             line += comment.toUtf8();
@@ -107,6 +142,8 @@ static bool runDilithium5StubKeygen(const QString &privPath,
 
     return true;
 }
+
+
 
 // ============================================================================
 // Inline helper dialog (must be defined BEFORE use in onEditMetadata())
@@ -291,20 +328,30 @@ KeyGeneratorDialog::KeyGeneratorDialog(QWidget *parent)
     form->addRow("Passphrase:", m_pass1Edit);
     form->addRow("Passphrase (again):", m_pass2Edit);
 
-    // --- Passphrase UX: disable for Dilithium5 (not supported yet) ---
+
+    connect(m_algoCombo, &QComboBox::currentTextChanged, this, [this](const QString& a){
+        const bool isDilithium = (a == "dilithium5");
+        m_pass1Edit->setEnabled(true);
+        m_pass2Edit->setEnabled(true);
+        if (isDilithium)
+            m_pass1Edit->setPlaceholderText("Required (encrypts private key)");
+    });
+
+    emit m_algoCombo->currentTextChanged(m_algoCombo->currentText());
+
+    // --- Passphrase UX: Dilithium5 now uses passphrase to encrypt private key at rest ---
     auto updatePassphraseUi = [this]() {
         const bool isDilithium = (m_algoCombo->currentText() == "dilithium5");
 
-        m_pass1Edit->setEnabled(!isDilithium);
-        m_pass2Edit->setEnabled(!isDilithium);
+        // always enabled now
+        m_pass1Edit->setEnabled(true);
+        m_pass2Edit->setEnabled(true);
 
         if (isDilithium) {
-            m_pass1Edit->clear();
-            m_pass2Edit->clear();
-            m_pass1Edit->setPlaceholderText("Not supported yet");
-            m_pass2Edit->setPlaceholderText("Not supported yet");
-            m_pass1Edit->setToolTip("Dilithium5 private key passphrase encryption is not implemented yet.");
-            m_pass2Edit->setToolTip("Dilithium5 private key passphrase encryption is not implemented yet.");
+            m_pass1Edit->setPlaceholderText("Encrypt Dilithium5 private key (required)");
+            m_pass2Edit->setPlaceholderText("Repeat passphrase");
+            m_pass1Edit->setToolTip("Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305).");
+            m_pass2Edit->setToolTip("Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305).");
         } else {
             m_pass1Edit->setPlaceholderText(QString());
             m_pass2Edit->setPlaceholderText(QString());
@@ -313,7 +360,6 @@ KeyGeneratorDialog::KeyGeneratorDialog(QWidget *parent)
         }
     };
 
-    // Run once + whenever algorithm changes
     updatePassphraseUi();
     connect(m_algoCombo, &QComboBox::currentTextChanged, this, [updatePassphraseUi](const QString&) {
         updatePassphraseUi();
@@ -408,9 +454,6 @@ KeyGeneratorDialog::KeyGeneratorDialog(QWidget *parent)
     refreshKeysTable();
     onKeySelectionChanged();
 }
-
-
-
 
 QString KeyGeneratorDialog::keysDir() const
 {
@@ -514,14 +557,15 @@ bool KeyGeneratorDialog::computeFingerprint(const QString &pubPath, QString *fpO
     }
 
     const QString kind = parts[0];
-    const QString b64  = parts[1];
+    const QByteArray b64  = parts[1].toLatin1();
 
     if (!kind.startsWith("pqssh-")) {
         if (errOut) *errOut = QString("Unsupported public key format (not OpenSSH, not PQSSH): %1").arg(kind);
         return false;
     }
 
-    const QByteArray pub = QByteArray::fromBase64(b64.toLatin1());
+    // pqssh pubkeys are stored no-pad base64 -> decode loosely
+    const QByteArray pub = b64DecodeLoose(b64);
     if (pub.isEmpty()) {
         if (errOut) *errOut = "Invalid base64 public key data.";
         return false;
@@ -679,12 +723,11 @@ QMap<QString, KeyGeneratorDialog::KeyRow> KeyGeneratorDialog::buildInventory(QSt
         row.privPath = pubPath.left(pubPath.size() - 4); // remove ".pub"
         row.comment = pubLine;
         row.algorithm = inferredAlgo;
-        row.created = inferredCreated;   // <-- added
+        row.created = inferredCreated;   // inferred if metadata missing
         row.hasFiles = true;
 
         inv[fp] = row;
     }
-
 
     // 2) merge metadata
     QMap<QString, QJsonObject> metaMap;
@@ -729,25 +772,39 @@ QMap<QString, KeyGeneratorDialog::KeyRow> KeyGeneratorDialog::buildInventory(QSt
 
 void KeyGeneratorDialog::onGenerate()
 {
+    // Read algo once (FIX: no redeclaration)
+    const QString algo = m_algoCombo->currentText();
+    const bool isDilithium = (algo == "dilithium5");
+
+    // If we're using Dilithium5, we force passphrase
+    if (isDilithium) {
+        if (m_pass1Edit->text().isEmpty()) {
+            m_resultLabel->setText("Dilithium5 keys require a passphrase.");
+            return;
+        }
+        if (m_pass1Edit->text() != m_pass2Edit->text()) {
+            m_resultLabel->setText("Passphrases do not match.");
+            return;
+        }
+    }
+
     QString err;
     if (!ensureKeysDir(&err)) {
         m_resultLabel->setText(err);
         return;
     }
 
-    const QString algo = m_algoCombo->currentText();
-
     QString keyName = m_keyNameEdit->text().trimmed();
     if (keyName.isEmpty()) {
         keyName = QString("id_%1_pqssh_%2")
-            .arg(algo, QDateTime::currentDateTimeUtc().toString("yyyyMMdd_HHmmss"));
+                      .arg(algo, QDateTime::currentDateTimeUtc().toString("yyyyMMdd_HHmmss"));
     }
 
-    const QString label = m_labelEdit->text().trimmed();
-    const QString owner = m_ownerEdit->text().trimmed();
+    const QString label   = m_labelEdit->text().trimmed();
+    const QString owner   = m_ownerEdit->text().trimmed();
     const QString purpose = m_purposeEdit->text().trimmed();
     const int rotationDays = m_rotationSpin->value();
-    const QString status = m_statusCombo->currentText();
+    const QString status  = m_statusCombo->currentText();
 
     const QString pass1 = m_pass1Edit->text();
     const QString pass2 = m_pass2Edit->text();
@@ -760,11 +817,49 @@ void KeyGeneratorDialog::onGenerate()
     const QString pubPath  = privPath + ".pub";
 
     QString comment = label;
-    if (comment.isEmpty() && !owner.isEmpty()) comment = owner;
+    if (comment.isEmpty() && !owner.isEmpty())
+        comment = owner;
 
+    // Generate keypair (for Dilithium we pass pass1; for others it may be empty)
     if (!runSshKeygen(algo, privPath, comment, pass1, &err)) {
         m_resultLabel->setText(err);
         return;
+    }
+
+    // If Dilithium: encrypt the private key and remove plaintext
+    QString finalPrivPath = privPath; // what we store into metadata + show in UI
+    if (isDilithium) {
+        QFile plainFile(privPath);
+        if (!plainFile.open(QIODevice::ReadOnly)) {
+            m_resultLabel->setText("Failed to read generated Dilithium private key.");
+            return;
+        }
+
+        const QByteArray plainKey = plainFile.readAll();
+        plainFile.close();
+
+        QByteArray encrypted;
+        QString encErr;
+        if (!encryptDilithiumKey(plainKey, pass1, &encrypted, &encErr)) {
+            m_resultLabel->setText("Encryption failed: " + encErr);
+            return;
+        }
+
+        // Write encrypted key next to original name
+        const QString encPath = privPath + ".enc";
+        QFile encFile(encPath);
+        if (!encFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            m_resultLabel->setText("Failed to write encrypted Dilithium key.");
+            return;
+        }
+        encFile.write(encrypted);
+        encFile.close();
+
+        // Remove plaintext private key file
+        QFile::remove(privPath);
+
+        // Metadata should point to the encrypted file
+        finalPrivPath = encPath;
     }
 
     QString fp;
@@ -779,7 +874,8 @@ void KeyGeneratorDialog::onGenerate()
         expires = m_expireDate->dateTime().toUTC().toString(Qt::ISODateWithMs);
     }
 
-    if (!saveMetadata(fp, label, owner, created, expires, purpose, algo, rotationDays, status, privPath, pubPath, &err)) {
+    if (!saveMetadata(fp, label, owner, created, expires, purpose,
+                      algo, rotationDays, status, finalPrivPath, pubPath, &err)) {
         m_resultLabel->setText(err);
         return;
     }
@@ -790,12 +886,13 @@ void KeyGeneratorDialog::onGenerate()
                 "Private: %2\n"
                 "Public:  %3\n"
                 "Metadata: %4")
-            .arg(fp, privPath, pubPath, metadataPath())
+            .arg(fp, finalPrivPath, pubPath, metadataPath())
     );
 
     refreshKeysTable();
     m_tabs->setCurrentIndex(1);
 }
+
 
 void KeyGeneratorDialog::refreshKeysTable()
 {

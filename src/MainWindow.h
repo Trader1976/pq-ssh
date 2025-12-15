@@ -9,6 +9,7 @@
 #include "SshProfile.h"
 #include "SshClient.h"
 #include <QUuid>
+#include <QAction>
 
 
 // Forward declarations (Qt)
@@ -46,6 +47,7 @@ private slots:
     void downloadSelectionTriggered();
     void onOpenLogFile();
     void onOpenUserManual();
+    void onTestUnlockDilithiumKey();
 
 
 private:
@@ -100,6 +102,7 @@ private:
 
     QMainWindow *m_tabbedShellWindow = nullptr;
     QTabWidget  *m_tabWidget = nullptr;
+    QAction *m_devTestUnlockAct = nullptr;
 
 };
 

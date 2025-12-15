@@ -2,6 +2,7 @@
 #include "KeyGeneratorDialog.h"
 #include "KeyMetadataUtils.h"
 #include <QTextBrowser>
+#include <QInputDialog>
 #include <QApplication>
 #include <QWidget>
 #include <QSplitter>
@@ -49,10 +50,12 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include "Logger.h"
-
+#include <QFileDialog>
 #include <QStandardPaths>
-
-
+#include <QMessageBox>
+#include <QCryptographicHash>
+#include "DilithiumKeyCrypto.h"
+#include <sodium.h>
 #include <QFileInfo>
 
 
@@ -151,7 +154,33 @@ MainWindow::MainWindow(QWidget *parent)
     setupMenus();
     loadProfiles();
 
+    // ✅ Passphrase prompt for encrypted OpenSSH private keys (libssh fallback)
+    m_ssh.setPassphraseProvider([this](const QString& keyFile, bool *ok) -> QString {
+        const QString title = "SSH Key Passphrase";
+        const QString label = keyFile.trimmed().isEmpty()
+            ? QString("Enter passphrase for private key:")
+            : QString("Enter passphrase for key:\n%1").arg(QFileInfo(keyFile).fileName());
+
+        bool localOk = false;
+        const QString pass = QInputDialog::getText(
+            this,
+            title,
+            label,
+            QLineEdit::Password,
+            QString(),
+            &localOk
+        );
+
+        if (ok) *ok = localOk;
+        return pass;
+    });
+
+
+
+
     qInfo() << "UI ready; profiles loaded";
+
+
 
     // ---- Startup security warning: expired keys ----
     {
@@ -357,7 +386,6 @@ void MainWindow::setupUi()
             this, &MainWindow::onEditProfilesClicked);
 }
 
-
 void MainWindow::setupMenus()
 {
     auto *fileMenu = menuBar()->addMenu("&File");
@@ -377,6 +405,80 @@ void MainWindow::setupMenus()
     connect(keyGenAct, &QAction::triggered, this, [this]() {
         KeyGeneratorDialog dlg(this);
         dlg.exec();
+    });
+
+    // DEV/Tester: hidden behind PQ debug
+    QAction *testUnlockAct = new QAction("DEV: Test Dilithium key unlock…", this);
+    testUnlockAct->setToolTip("Dev tool: decrypt .enc key and validate format (only visible when PQ debug is ON).");
+    keysMenu->addAction(testUnlockAct);
+
+    auto syncDevVisibility = [this, testUnlockAct]() {
+        const bool on = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
+        testUnlockAct->setVisible(on);
+        testUnlockAct->setEnabled(on);
+    };
+    syncDevVisibility();
+
+    if (m_pqDebugCheck) {
+        connect(m_pqDebugCheck, &QCheckBox::toggled, this, [syncDevVisibility](bool) {
+            syncDevVisibility();
+        });
+    }
+
+    connect(testUnlockAct, &QAction::triggered, this, [this]() {
+        // Safety gate (in case someone triggers it via shortcut later)
+        if (!(m_pqDebugCheck && m_pqDebugCheck->isChecked())) {
+            appendTerminalLine("[DEV] PQ debug is OFF. Enable it to use the tester.");
+            return;
+        }
+
+        const QString path = QFileDialog::getOpenFileName(
+            this,
+            "Select encrypted Dilithium key (.enc)",
+            QDir(QDir::homePath()).filePath(".pq-ssh/keys"),
+            "Encrypted keys (*.enc);;All files (*)"
+        );
+        if (path.isEmpty()) return;
+
+        // Extra useful info (no secrets)
+        QFile f(path);
+        if (!f.open(QIODevice::ReadOnly)) {
+            appendTerminalLine(QString("[TEST] ❌ Cannot read file: %1").arg(f.errorString()));
+            return;
+        }
+        const QByteArray enc = f.readAll();
+        f.close();
+
+        appendTerminalLine(QString("[TEST] File: %1").arg(QFileInfo(path).fileName()));
+        appendTerminalLine(QString("[TEST] Enc size: %1 bytes").arg(enc.size()));
+
+        // Minimal structure check: MAGIC(6)+SALT(16)+NONCE(24)+TAG(16) at least
+        const int minSize =
+            6 + crypto_pwhash_SALTBYTES + crypto_aead_xchacha20poly1305_ietf_NPUBBYTES +
+            crypto_aead_xchacha20poly1305_ietf_ABYTES;
+
+        if (enc.size() < minSize) {
+            appendTerminalLine(QString("[TEST] ❌ Too small to be valid (need >= %1 bytes)").arg(minSize));
+            return;
+        }
+
+        const QByteArray magic = enc.left(6);
+        appendTerminalLine(QString("[TEST] Magic: '%1'").arg(QString::fromLatin1(magic)));
+        if (magic != "PQSSH1") {
+            appendTerminalLine("[TEST] ⚠ WARN: Magic mismatch (expected 'PQSSH1'). Will still try decrypt.");
+        }
+
+        QString err;
+        const bool ok = m_ssh.testUnlockDilithiumKey(path, &err);
+        if (ok) {
+            appendTerminalLine(QString("[TEST] ✅ Unlock OK: %1").arg(QFileInfo(path).fileName()));
+
+            // Optional: also compute SHA256 of encrypted blob (useful to compare files)
+            const QByteArray encSha = QCryptographicHash::hash(enc, QCryptographicHash::Sha256).toHex();
+            appendTerminalLine(QString("[TEST] Enc SHA256: %1").arg(QString::fromLatin1(encSha)));
+        } else {
+            appendTerminalLine(QString("[TEST] ❌ Unlock FAILED: %1").arg(err));
+        }
     });
 
     // View menu (placeholder for future)
@@ -399,6 +501,7 @@ void MainWindow::setupMenus()
 
     statusBar()->showMessage("CPUNK PQ-SSH prototype");
 }
+
 
 
 void MainWindow::appendTerminalLine(const QString &line)
@@ -1123,4 +1226,106 @@ void MainWindow::onOpenUserManual()
 
     dlg->setLayout(layout);
     dlg->show();
+}
+
+void MainWindow::onTestUnlockDilithiumKey()
+{
+    // Safety: only allow when PQ debug is on
+    if (!(m_pqDebugCheck && m_pqDebugCheck->isChecked())) {
+        appendTerminalLine("[DEV] PQ debug is OFF. Enable it to use the tester.");
+        return;
+    }
+
+    const QString startDir = QDir(QDir::homePath()).filePath(".pq-ssh/keys");
+    const QString path = QFileDialog::getOpenFileName(
+        this,
+        "Select encrypted Dilithium private key",
+        startDir,
+        "Encrypted keys (*.enc);;All files (*)"
+    );
+    if (path.isEmpty())
+        return;
+
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "DEV test failed", "Cannot read file:\n" + f.errorString());
+        return;
+    }
+    const QByteArray enc = f.readAll();
+    f.close();
+
+    // Basic format checks BEFORE asking passphrase
+    // Expected layout from your crypto: MAGIC(6) + SALT(16) + NONCE(24) + CIPHERTEXT(...)
+    if (enc.size() < (6 + crypto_pwhash_SALTBYTES + crypto_aead_xchacha20poly1305_ietf_NPUBBYTES + 16)) {
+        QMessageBox::warning(this, "DEV test failed",
+                             "File is too small to be a valid PQSSH encrypted key.\n"
+                             "Expected: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...).");
+        return;
+    }
+
+    const QByteArray magic = enc.left(6);
+    appendTerminalLine(QString("[DEV] Selected: %1").arg(QFileInfo(path).fileName()));
+    appendTerminalLine(QString("[DEV] Enc size: %1 bytes").arg(enc.size()));
+    appendTerminalLine(QString("[DEV] Magic: '%1'").arg(QString::fromLatin1(magic)));
+
+    // If your MAGIC is "PQSSH1" this will pass. If you later change the magic, this will tell you immediately.
+    if (magic != "PQSSH1") {
+        appendTerminalLine("[DEV][WARN] Magic mismatch. Expected 'PQSSH1'. Continuing anyway to test decrypt...");
+    }
+
+    // Ask passphrase via the provider (MainWindow already set m_ssh.setPassphraseProvider)
+    bool ok = false;
+    QString pass;
+
+
+    // Use your existing SshClient path: add a tiny public wrapper OR just reuse your callback directly:
+    // If you don't have direct access here, simplest is to use QInputDialog again here (dev-only).
+    {
+        bool localOk = false;
+        pass = QInputDialog::getText(this,
+                                     "Dilithium Key Passphrase",
+                                     QString("Enter passphrase for:\n%1").arg(QFileInfo(path).fileName()),
+                                     QLineEdit::Password,
+                                     QString(),
+                                     &localOk);
+        ok = localOk;
+    }
+
+    if (!ok) {
+        appendTerminalLine("[DEV] Cancelled by user.");
+        return;
+    }
+
+    QByteArray plain;
+    QString decErr;
+    if (!decryptDilithiumKey(enc, pass, &plain, &decErr)) {
+        appendTerminalLine(QString("[DEV][FAIL] Decrypt failed: %1").arg(decErr));
+        QMessageBox::warning(this, "DEV test failed", "Decrypt failed:\n" + decErr);
+        return;
+    }
+
+    if (plain.isEmpty()) {
+        appendTerminalLine("[DEV][FAIL] Decrypt returned empty plaintext.");
+        QMessageBox::warning(this, "DEV test failed", "Decrypt returned empty plaintext.");
+        return;
+    }
+
+    // Useful validation: report plaintext size + SHA-256 digest (NOT the plaintext itself)
+    const QByteArray digest = QCryptographicHash::hash(plain, QCryptographicHash::Sha256).toHex();
+    appendTerminalLine(QString("[DEV][OK] Decrypted plaintext size: %1 bytes").arg(plain.size()));
+    appendTerminalLine(QString("[DEV][OK] Plain SHA256: %1").arg(QString::fromLatin1(digest)));
+
+    // Optional: quick heuristic checks (won’t reveal content)
+    // e.g. Dilithium private key blobs are typically several KB
+    if (plain.size() < 2048) {
+        appendTerminalLine("[DEV][WARN] Plaintext is unexpectedly small for Dilithium private key material.");
+    }
+
+    // Wipe plaintext ASAP
+    sodium_memzero(plain.data(), (size_t)plain.size());
+
+    QMessageBox::information(this, "DEV test OK",
+                             "Decrypt OK.\n\n"
+                             "Validated format + passphrase unlock.\n"
+                             "Details written to the terminal/log.");
 }
