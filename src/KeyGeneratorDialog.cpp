@@ -33,12 +33,14 @@
 #include <QCryptographicHash>
 #include <QBrush>
 #include <sodium.h>
-#include "DilithiumKeyCrypto.h"
+
 
 static QString isoUtcNow()
 {
     return QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
 }
+
+static bool isOpenSshPrivateKeyEncrypted(const QString &privPath);
 
 // ---------------------------------------------------------------------------
 // libsodium init + base64 helpers
@@ -388,6 +390,8 @@ KeyGeneratorDialog::KeyGeneratorDialog(QWidget *parent)
     // ============================
     auto *keysTab = new QWidget(this);
     auto *keysLayout = new QVBoxLayout(keysTab);
+
+
 
     m_keysHintLabel = new QLabel(this);
     m_keysHintLabel->setWordWrap(true);
@@ -894,6 +898,7 @@ void KeyGeneratorDialog::onGenerate()
 }
 
 
+
 void KeyGeneratorDialog::refreshKeysTable()
 {
     QString autoErr;
@@ -918,6 +923,18 @@ void KeyGeneratorDialog::refreshKeysTable()
             return it;
         };
 
+        // 🔒 Locked detection (two types)
+        const bool isEncFile = k.privPath.endsWith(".enc", Qt::CaseInsensitive);
+        const bool isOpenSshEnc = (!isEncFile && !k.privPath.isEmpty())
+            ? isOpenSshPrivateKeyEncrypted(k.privPath)
+            : false;
+
+        const bool isLocked = isEncFile || isOpenSshEnc;
+
+        QString lockTip;
+        if (isEncFile)   lockTip = "🔒 Private key is stored encrypted at rest (.enc)";
+        if (isOpenSshEnc) lockTip = "🔒 OpenSSH private key is passphrase-protected";
+
         const QString keyFileShown = k.pubPath.isEmpty()
             ? QString()
             : QFileInfo(k.pubPath).fileName();
@@ -935,10 +952,14 @@ void KeyGeneratorDialog::refreshKeysTable()
         if (isExpired && statusShown != "expired")
             statusShown = "expired";
 
+        QString algoShown = k.algorithm;
+        if (isLocked)
+            algoShown = QString::fromUtf8("🔒 ") + algoShown;
+
         m_table->setItem(r, 0, mkItem(k.fingerprint));
         m_table->setItem(r, 1, mkItem(k.label));
         m_table->setItem(r, 2, mkItem(k.owner));
-        m_table->setItem(r, 3, mkItem(k.algorithm));
+        m_table->setItem(r, 3, mkItem(algoShown));
         m_table->setItem(r, 4, mkItem(statusShown));
         m_table->setItem(r, 5, mkItem(k.created));
         m_table->setItem(r, 6, mkItem(k.expires));
@@ -946,9 +967,16 @@ void KeyGeneratorDialog::refreshKeysTable()
         m_table->setItem(r, 8, mkItem(k.rotationDays > 0 ? QString::number(k.rotationDays) : QString()));
         m_table->setItem(r, 9, mkItem(keyFileShown));
 
+        // Tooltip for lock (don’t override expired tooltip later)
+        if (isLocked && !lockTip.isEmpty()) {
+            if (auto *it = m_table->item(r, 3))
+                it->setToolTip(lockTip);
+        }
+
         // --- Row coloring priority ---
         if (isExpired) {
-            const QString tip = QString("Key is expired (expire_date=%1 UTC)").arg(expUtc.toString(Qt::ISODateWithMs));
+            const QString tip = QString("Key is expired (expire_date=%1 UTC)")
+                                    .arg(expUtc.toString(Qt::ISODateWithMs));
             for (int c = 0; c < m_table->columnCount(); ++c) {
                 if (auto *it = m_table->item(r, c)) {
                     it->setForeground(QBrush(QColor("#ef5350"))); // red
@@ -982,6 +1010,9 @@ void KeyGeneratorDialog::refreshKeysTable()
 
     onKeySelectionChanged();
 }
+
+
+
 
 int KeyGeneratorDialog::selectedTableRow() const
 {
@@ -1024,6 +1055,62 @@ void KeyGeneratorDialog::onCopyFingerprint()
     if (k.fingerprint.isEmpty()) return;
     QApplication::clipboard()->setText(k.fingerprint);
 }
+
+
+static bool isOpenSshPrivateKeyEncrypted(const QString &privPath)
+{
+    QFile f(privPath);
+    if (!f.exists()) return false;
+    if (!f.open(QIODevice::ReadOnly)) return false;
+
+    const QByteArray text = f.readAll();
+    f.close();
+
+    // PEM/PKCS8 encrypted markers
+    if (text.contains("BEGIN ENCRYPTED PRIVATE KEY")) return true;
+    if (text.contains("Proc-Type: 4,ENCRYPTED")) return true; // legacy PEM
+    if (!text.contains("BEGIN OPENSSH PRIVATE KEY")) return false;
+
+    // Extract base64 payload
+    QByteArray b64;
+    const QList<QByteArray> lines = text.split('\n');
+    for (const QByteArray &ln : lines) {
+        if (ln.startsWith("-----")) continue;
+        const QByteArray t = ln.trimmed();
+        if (!t.isEmpty()) b64 += t;
+    }
+
+    const QByteArray blob = QByteArray::fromBase64(b64);
+    const QByteArray magic("openssh-key-v1\0", 15); // IMPORTANT: include NUL byte
+
+    if (!blob.startsWith(magic)) return false;
+    int off = magic.size();
+
+    auto readU32 = [&](quint32 &out) -> bool {
+        if (off + 4 > blob.size()) return false;
+        out = (quint8(blob[off]) << 24) |
+              (quint8(blob[off+1]) << 16) |
+              (quint8(blob[off+2]) << 8) |
+              (quint8(blob[off+3]));
+        off += 4;
+        return true;
+    };
+
+    auto readString = [&](QByteArray &out) -> bool {
+        quint32 len = 0;
+        if (!readU32(len)) return false;
+        if (off + int(len) > blob.size()) return false;
+        out = blob.mid(off, int(len));
+        off += int(len);
+        return true;
+    };
+
+    QByteArray ciphername;
+    if (!readString(ciphername)) return false;
+
+    return ciphername != "none";
+}
+
 
 void KeyGeneratorDialog::onCopyPublicKey()
 {
