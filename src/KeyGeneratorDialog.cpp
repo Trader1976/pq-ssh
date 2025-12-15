@@ -411,6 +411,22 @@ KeyGeneratorDialog::KeyGeneratorDialog(QWidget *parent)
     m_table->horizontalHeader()->setStretchLastSection(true);
     m_table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_table->verticalHeader()->setVisible(false);
+    m_table->setSortingEnabled(true);
+    m_table->horizontalHeader()->setSortIndicatorShown(true);
+    m_table->horizontalHeader()->setSectionsClickable(true);
+    // ---- Persist sort column + order across refreshes ----
+    m_sortColumn = m_table->horizontalHeader()->sortIndicatorSection();
+    m_sortOrder  = m_table->horizontalHeader()->sortIndicatorOrder();
+
+    // Track header clicks (user changes sort)
+    connect(m_table->horizontalHeader(), &QHeaderView::sortIndicatorChanged,
+            this, [this](int col, Qt::SortOrder order) {
+                m_sortColumn = col;
+                m_sortOrder  = order;
+            });
+
+    // Apply initial indicator from stored values (so UI matches)
+    m_table->horizontalHeader()->setSortIndicator(m_sortColumn, m_sortOrder);
 
     keysLayout->addWidget(m_table, 1);
 
@@ -901,10 +917,13 @@ void KeyGeneratorDialog::onGenerate()
 
 void KeyGeneratorDialog::refreshKeysTable()
 {
+    m_sortColumn = m_table->horizontalHeader()->sortIndicatorSection();
+    m_sortOrder  = m_table->horizontalHeader()->sortIndicatorOrder();
+    m_table->setSortingEnabled(false);
     QString autoErr;
     autoExpireMetadataFile(metadataPath(), &autoErr);
     // keep autoErr silent unless you want to show it
-
+    m_table->setSortingEnabled(false);
     QString err;
     m_inventory = buildInventory(&err);
 
@@ -1007,7 +1026,10 @@ void KeyGeneratorDialog::refreshKeysTable()
         m_keysHintLabel->setText(QString("metadata: %1\nkeys: %2")
                                      .arg(metadataPath(), keysDir()));
     }
-
+    m_table->setSortingEnabled(true);
+    m_table->setSortingEnabled(true);
+    m_table->sortItems(m_sortColumn, m_sortOrder);
+    m_table->horizontalHeader()->setSortIndicator(m_sortColumn, m_sortOrder);
     onKeySelectionChanged();
 }
 

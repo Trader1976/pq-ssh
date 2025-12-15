@@ -3,6 +3,7 @@
 #include <QDialog>
 #include <QMap>
 #include <QJsonObject>
+#include <Qt>
 
 class QLineEdit;
 class QComboBox;
@@ -126,4 +127,7 @@ private:
     QPushButton *m_editMetaBtn{};
     // data cache
     QMap<QString, KeyRow> m_inventory; // fingerprint -> info
+    // --- persist table sorting ---
+    int m_sortColumn = 0;
+    Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
 };
