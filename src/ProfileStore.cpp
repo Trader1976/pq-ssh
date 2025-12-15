@@ -46,6 +46,9 @@ QVector<SshProfile> ProfileStore::defaults()
     p.termWidth       = 900;
     p.termHeight      = 500;
 
+    // ✅ NEW: terminal scrollback history (0 = unlimited)
+    p.historyLines    = 2000;
+
     // Key auth defaults (empty keyFile means "not set")
     p.keyFile = "";
     p.keyType = "auto";
@@ -69,6 +72,9 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
         obj["term_font_size"]    = prof.termFontSize;
         obj["term_width"]        = prof.termWidth;
         obj["term_height"]       = prof.termHeight;
+
+        // ✅ NEW: scrollback history (0 = unlimited)
+        obj["history_lines"]     = prof.historyLines;
 
         // Key-based auth (optional)
         if (!prof.keyFile.trimmed().isEmpty())
@@ -144,6 +150,9 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         p.termFontSize    = obj.value("term_font_size").toInt(11);
         p.termWidth       = obj.value("term_width").toInt(900);
         p.termHeight      = obj.value("term_height").toInt(500);
+
+        // ✅ NEW: scrollback history (0 = unlimited)
+        p.historyLines    = obj.value("history_lines").toInt(2000);
 
         // Key-based auth (optional)
         p.keyFile = obj.value("key_file").toString();

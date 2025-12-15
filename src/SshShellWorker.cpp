@@ -79,15 +79,29 @@ void SshShellWorker::startShell()
         QThread::msleep(5);
     }
 
+    int exitStatus = -1;
+
     if (m_channel) {
+        // libssh: exit status is only valid AFTER channel is closed
+        exitStatus = ssh_channel_get_exit_status(m_channel);
+
         ssh_channel_send_eof(m_channel);
         ssh_channel_close(m_channel);
         ssh_channel_free(m_channel);
         m_channel = nullptr;
     }
 
-    qDebug() << "[SshShellWorker] leaving startShell(), emitting shellClosed";
-    emit shellClosed(QStringLiteral("Shell terminated"));
+    QString reason;
+    if (exitStatus < 0) {
+        reason = QStringLiteral("Shell terminated");
+    } else if (exitStatus == 0) {
+        reason = QStringLiteral("Shell exited normally");
+    } else {
+        reason = QString("Shell exited with status %1").arg(exitStatus);
+    }
+
+    qDebug() << "[SshShellWorker] leaving startShell(), exitStatus =" << exitStatus;
+    emit shellClosed(reason);
 }
 
 

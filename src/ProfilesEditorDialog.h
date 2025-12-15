@@ -16,7 +16,9 @@ class ProfilesEditorDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit ProfilesEditorDialog(const QVector<SshProfile> &profiles, QWidget *parent = nullptr);
+    explicit ProfilesEditorDialog(const QVector<SshProfile> &profiles,
+                                  int initialRow = 0,
+                                  QWidget *parent = nullptr);
 
     QVector<SshProfile> resultProfiles() const { return m_result; }
 
@@ -59,4 +61,5 @@ private:
     QLineEdit *m_keyFileEdit  = nullptr;
 
     QDialogButtonBox *m_buttonsBox = nullptr;
+    QSpinBox *m_historySpin = nullptr;
 };

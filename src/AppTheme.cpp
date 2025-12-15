@@ -45,6 +45,43 @@ QString AppTheme::dark()
         "   border-radius: 3px;"
         "   color: #EEEEEE;"
         "}"
+        // --------------------------------
+        // SpinBox (dark + readable arrows)
+        // --------------------------------
+        "QSpinBox {"
+        "   background-color: #1A1A1A;"
+        "   border: 1px solid #3A3A3A;"
+        "   padding-right: 18px;"          // room for buttons
+        "}"
+
+        "QSpinBox::up-button, QSpinBox::down-button {"
+        "   background-color: #202020;"
+        "   border-left: 1px solid #3A3A3A;"
+        "   width: 18px;"
+        "}"
+
+        "QSpinBox::up-button:hover, QSpinBox::down-button:hover {"
+        "   background-color: #262626;"
+        "}"
+
+        // Dark arrows (almost black, but visible)
+        "QSpinBox::up-arrow {"
+        "   image: none;"
+        "   width: 0;"
+        "   height: 0;"
+        "   border-left: 5px solid transparent;"
+        "   border-right: 5px solid transparent;"
+        "   border-bottom: 7px solid #8A8A8A;"
+        "}"
+
+        "QSpinBox::down-arrow {"
+        "   image: none;"
+        "   width: 0;"
+        "   height: 0;"
+        "   border-left: 5px solid transparent;"
+        "   border-right: 5px solid transparent;"
+        "   border-top: 7px solid #8A8A8A;"
+        "}"
 
         // Combo popup
         "QComboBox QAbstractItemView {"

@@ -389,14 +389,7 @@ void MainWindow::setupUi()
 void MainWindow::setupMenus()
 {
     auto *fileMenu = menuBar()->addMenu("&File");
-
-    QAction *downloadSel = new QAction("Download Selection", this);
-    downloadSel->setShortcut(QKeySequence("Ctrl+D"));
-    fileMenu->addAction(downloadSel);
-
-    connect(downloadSel, &QAction::triggered,
-            this, &MainWindow::downloadSelectionTriggered);
-
+    // (no File actions yet)
     // Keys menu
     auto *keysMenu = menuBar()->addMenu("&Keys");
     QAction *keyGenAct = new QAction("Key Generator...", this);
@@ -575,7 +568,8 @@ void MainWindow::saveProfilesToDisk()
 
 void MainWindow::onEditProfilesClicked()
 {
-    ProfilesEditorDialog dlg(m_profiles, this);
+    const int selectedRow = m_profileList ? m_profileList->currentRow() : 0;
+    ProfilesEditorDialog dlg(m_profiles, selectedRow, this);
     if (dlg.exec() != QDialog::Accepted)
         return;
 
@@ -868,7 +862,8 @@ bool MainWindow::probePqSupport(const QString &target)
 CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
 {
     auto *term = new CpunkTermWidget(0, parent);
-    term->setHistorySize(2000);
+    term->setHistorySize(qMax(0, p.historyLines));
+
 
     applyProfileToTerm(term, p);
 

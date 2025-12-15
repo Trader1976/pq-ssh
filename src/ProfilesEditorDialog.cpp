@@ -22,7 +22,9 @@
 
 #include "CpunkTermWidget.h"
 
-ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles, QWidget *parent)
+ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles,
+                                           int initialRow,
+                                           QWidget *parent)
     : QDialog(parent),
       m_working(profiles)
 {
@@ -31,9 +33,16 @@ ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles, 
 
     buildUi();
 
-    if (!m_working.isEmpty()) {
-        m_list->setCurrentRow(0);
-        onListRowChanged(0);
+    // ✅ Select the same profile the user had selected in MainWindow
+    int row = initialRow;
+
+    if (row < 0 || row >= m_working.size()) {
+        row = m_working.isEmpty() ? -1 : 0;
+    }
+
+    if (row >= 0) {
+        m_list->setCurrentRow(row);
+        onListRowChanged(row);
     } else {
         loadProfileToForm(-1);
     }
@@ -230,7 +239,14 @@ void ProfilesEditorDialog::buildUi()
     m_heightSpin->setRange(300, 3000);
     m_heightSpin->setValue(500);
 
-    // --- NEW: Key file + Key type ---
+    // ✅ NEW: Scrollback lines (0 = unlimited)
+    m_historySpin = new QSpinBox(rightWidget);
+    m_historySpin->setRange(0, 50000);
+    m_historySpin->setSingleStep(500);
+    m_historySpin->setValue(2000);
+    m_historySpin->setToolTip("Terminal scrollback buffer lines (0 = unlimited)");
+
+    // --- Key file + Key type ---
     m_keyTypeCombo = new QComboBox(rightWidget);
     m_keyTypeCombo->addItem("auto");
     m_keyTypeCombo->addItem("openssh");
@@ -270,6 +286,9 @@ void ProfilesEditorDialog::buildUi()
     form->addRow("Font size:", m_fontSizeSpin);
     form->addRow("Window width:", m_widthSpin);
     form->addRow("Window height:", m_heightSpin);
+
+    // ✅ NEW: scrollback
+    form->addRow("Scrollback lines:", m_historySpin);
 
     // Add auth fields near host/user/port (feel free to move them higher if you want)
     form->addRow("Key type:", m_keyTypeCombo);
@@ -324,7 +343,10 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         m_widthSpin->setValue(900);
         m_heightSpin->setValue(500);
 
-        // NEW: key auth
+        // ✅ NEW: history
+        if (m_historySpin) m_historySpin->setValue(2000);
+
+        // key auth
         if (m_keyTypeCombo) m_keyTypeCombo->setCurrentText("auto");
         if (m_keyFileEdit) m_keyFileEdit->clear();
         return;
@@ -352,7 +374,11 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
     m_widthSpin->setValue(p.termWidth > 0 ? p.termWidth : 900);
     m_heightSpin->setValue(p.termHeight > 0 ? p.termHeight : 500);
 
-    // NEW: key auth
+    // ✅ NEW: history
+    if (m_historySpin)
+        m_historySpin->setValue(p.historyLines >= 0 ? p.historyLines : 2000);
+
+    // key auth
     if (m_keyTypeCombo) {
         const QString kt = p.keyType.trimmed().isEmpty() ? QString("auto") : p.keyType.trimmed();
         const int kidx = m_keyTypeCombo->findText(kt);
@@ -383,7 +409,11 @@ void ProfilesEditorDialog::syncFormToCurrent()
     p.termWidth  = m_widthSpin->value();
     p.termHeight = m_heightSpin->value();
 
-    // NEW: key auth
+    // ✅ NEW: history
+    if (m_historySpin)
+        p.historyLines = m_historySpin->value();
+
+    // key auth
     if (m_keyTypeCombo) {
         const QString kt = m_keyTypeCombo->currentText().trimmed();
         p.keyType = kt.isEmpty() ? QString("auto") : kt;
@@ -428,7 +458,10 @@ void ProfilesEditorDialog::addProfile()
     p.termWidth = 900;
     p.termHeight = 500;
 
-    // NEW: key auth defaults
+    // ✅ NEW: history default
+    p.historyLines = 2000;
+
+    // key auth defaults
     p.keyFile = "";
     p.keyType = "auto";
 

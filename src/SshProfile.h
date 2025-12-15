@@ -14,7 +14,7 @@ struct SshProfile {
     int     termFontSize = 11;
     int     termWidth  = 900;
     int     termHeight = 500;
-
+    int historyLines = 2000;
     // Key-based authentication (optional, future PQ-ready)
     // keyType values (suggested):
     //  - "auto"    (default)
