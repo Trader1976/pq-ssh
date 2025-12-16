@@ -1,4 +1,17 @@
 // SshClient.h
+//
+// Purpose:
+//   Lightweight wrapper around libssh providing:
+//     - Connection/authentication for SFTP + remote exec helpers
+//     - Simple file upload/download via SFTP
+//     - Idempotent authorized_keys installation (with backup)
+//     - Optional dev helper to test unlocking encrypted Dilithium keys
+//
+// Design boundary:
+//   Interactive terminal sessions are handled by spawning OpenSSH
+//   (qtermwidget + "ssh ...") elsewhere. This class is primarily used
+//   when the app needs *programmatic* operations (SFTP/exec).
+
 #pragma once
 
 #include <QObject>
@@ -7,12 +20,11 @@
 #include <functional>
 
 #include "SshProfile.h"
-#include <sodium.h>           // if decrypt uses libsodium/wipe
 
-struct ssh_session_struct; // forward declare libssh type
+// Forward-declare libssh session type to avoid pulling libssh headers into the header.
+// (Keeps compile times down and avoids header coupling.)
+struct ssh_session_struct;
 using ssh_session = ssh_session_struct*;
-
-
 
 class SshClient : public QObject
 {
@@ -21,32 +33,81 @@ public:
     explicit SshClient(QObject *parent = nullptr);
     ~SshClient() override;
 
+    // UI-injected callback used when libssh needs a passphrase for an encrypted key.
+    // - keyFile: path (or hint) for which key is being unlocked (may be empty)
+    // - ok: set false if user cancelled
+    // Returns passphrase text (never log it).
     using PassphraseProvider = std::function<QString(const QString& keyFile, bool *ok)>;
 
+    // Register passphrase provider (typically set by MainWindow).
     void setPassphraseProvider(PassphraseProvider cb) { m_passphraseProvider = std::move(cb); }
 
+    // Connect using a profile (preferred modern path).
+    // Supports "auto"/"openssh" key_type today.
+    // On success, m_session becomes valid and SFTP/exec helpers can be used.
     bool connectProfile(const SshProfile& profile, QString* err = nullptr);
+
+    // Backwards-compatible helper: connect using "user@host" string.
+    // Builds a temporary profile (port 22, key_type auto) and calls connectProfile().
     bool connectPublicKey(const QString& target, QString* err = nullptr);
+
+    // DEV helper: prompt passphrase + attempt to decrypt an encrypted Dilithium key blob.
+    // This only validates "unlock works"; it must not expose plaintext.
     bool testUnlockDilithiumKey(const QString& encKeyPath, QString* err = nullptr);
 
+    // Close/free current libssh session (safe to call multiple times).
     void disconnect();
+
+    // True if a libssh session is active.
     bool isConnected() const;
 
+    // Run remote `pwd` and return its trimmed output.
+    // Used by drag-drop upload to decide where to upload by default.
     QString remotePwd(QString* err = nullptr) const;
+
+    // Upload raw bytes to a remote file via SFTP (create/truncate).
     bool uploadBytes(const QString& remotePath, const QByteArray& data, QString* err = nullptr);
+
+    // Download remote file via SFTP to a local path (creates local dirs if needed).
     bool downloadToFile(const QString& remotePath, const QString& localPath, QString* err = nullptr);
+
+    // Execute a remote command, capture stdout/stderr, and fail if exit status != 0.
+    // SECURITY NOTE: callers must quote/sanitize user-controlled inputs.
     bool exec(const QString& command, QString* out = nullptr, QString* err = nullptr);
+
+    // Read remote text file via SFTP (intended for small files like authorized_keys).
     bool readRemoteTextFile(const QString& remotePath, QString* textOut, QString* err = nullptr);
+
+    // Write remote text atomically-ish via SFTP temp file + rename.
+    // Ensures final permissions (chmod) as some servers ignore create perms.
     bool writeRemoteTextFileAtomic(const QString& remotePath, const QString& text, int permsOctal, QString* err = nullptr);
+
+    // Ensure remote directory exists and apply permissions.
     bool ensureRemoteDir(const QString& path, int permsOctal, QString* err = nullptr);
+
+    // Idempotent authorized_keys installer:
+    //   - ensures ~/.ssh exists (0700)
+    //   - backs up authorized_keys if it exists
+    //   - appends key only if missing (no duplicates)
+    //   - enforces authorized_keys perms (0600)
+    //
+    // alreadyOut:
+    //   set true if key was already present (no change made)
+    //
+    // backupPathOut:
+    //   returns remote path of the created backup (when applicable)
     bool installAuthorizedKey(const QString& pubKeyLine,
                               QString* errOut,
                               bool* alreadyOut,
                               QString* backupPathOut = nullptr);
 
-
 private:
+    // Active libssh session used for SFTP and remote exec helpers.
     ssh_session m_session = nullptr;
+
+    // Provided by UI; used when libssh asks for a passphrase.
     PassphraseProvider m_passphraseProvider;
+
+    // Internal helper: call provider if installed.
     QString requestPassphrase(const QString& keyFile, bool *ok);
 };
