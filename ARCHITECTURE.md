@@ -1,184 +1,263 @@
 # pq-ssh Architecture
 
-pq-ssh is a Qt (Widgets) desktop SSH client. It aims to provide a clean GUI for managing SSH profiles, connecting to hosts, and working in an embedded terminal view. It also includes a workflow for installing an SSH public key on a remote server in an idempotent way.
+pq-ssh is a Qt (Widgets) desktop SSH client built on top of libssh and qtermwidget.  
+It provides a profile-based GUI for connecting to SSH servers, working in an embedded terminal, and managing SSH keys, including post-quantum keys.
 
-This document describes the current architecture at a module level and the main execution flows.
+This document describes the architecture at a module and responsibility level, focusing on current, implemented behavior.
 
 ---
 
 ## Goals
 
-- Simple, profile-based SSH connections (host/user/port/auth).
-- Embedded interactive shell/terminal inside the app.
+- Simple, profile-based SSH connections (host / user / port).
+- Embedded interactive terminal inside the application.
 - Clear separation between UI, SSH/session logic, and terminal presentation.
-- Repeatable (“idempotent”) remote public-key installation.
-- Predictable theming across platforms/builds.
+- Safe, repeatable (“idempotent”) remote public-key installation.
+- Consistent theming across platforms and builds.
+- Optional verbose diagnostics gated behind an explicit debug mode.
 
 ---
 
 ## Non-goals
 
 - Replacing OpenSSH server-side components.
-- Implementing advanced SSH features unless explicitly planned (agent forwarding, port forwarding, jump hosts, etc.).
-- Hard-coupling the app to any specific identity system (out of scope for now).
+- Requiring server-side configuration changes.
+- Implementing identity or naming systems not yet defined.
+- Acting as a full SSH feature superset (only planned features are implemented).
+
+---
+
+## Repository Layout
+
+/
+├── src/ # Application source code (Qt / C++)
+│ ├── main.cpp # Application entry point
+│ ├── MainWindow.* # Main UI orchestration
+│ ├── AppTheme.* # Global Qt widget theming
+│ ├── Logger.* # Application logging utilities
+│
+│ ├── ProfileStore.* # Profile persistence (JSON-backed)
+│ ├── SshProfile.h # SSH profile data model
+│ ├── ProfilesEditorDialog.* # Profile editor UI
+│
+│ ├── SshClient.* # libssh session wrapper
+│ ├── SshShellWorker.* # SSH shell execution worker
+│ ├── SshShellHelpers.h # Shared helpers for shell/PTY setup
+│
+│ ├── ShellManager.* # Lifecycle management of shell sessions
+│ ├── TerminalView.* # Terminal container widget
+│ ├── CpunkTermWidget.* # qtermwidget integration and fixes
+│
+│ ├── KeyGeneratorDialog.* # Key generation UI
+│ ├── DilithiumKeyCrypto.* # Post-quantum key cryptographic operations
+│ ├── KeyMetadataUtils.* # Key metadata parsing and expiration handling
+│
+│ ├── ThemeInstaller.* # Terminal color theme installation
+│ └── SSH_KeyTypeSpecification.html # Reference documentation
+│
+├── resources/ # Qt resources bundled into the binary
+│ ├── color-schemes/ # Terminal color themes
+│ ├── docs/ # User manual and help documents
+│ └── pqssh_resources.qrc # Qt resource manifest
+│
+├── profiles/
+│ └── profiles.json # User SSH profiles (runtime data)
+│
+├── ARCHITECTURE.md # Architectural overview
+├── README.md # Project overview
+├── CMakeLists.txt # Build configuration
+├── LICENSE
+├── DUAL_LICENSE.md
+└── THIRD_PARTY_LICENSES.md
+
 
 ---
 
 ## High-level Modules
 
-### UI Layer (Qt Widgets)
+### Main UI Layer
 
-Responsible for user interaction and orchestration.
+**Files:**
+- `MainWindow.h/.cpp`
+- `AppTheme.h/.cpp`
+- `Logger.h/.cpp`
 
-Typical responsibilities:
-- Profile list and profile selection.
-- Connecting/disconnecting.
-- Showing connection status, logs, and errors.
-- Triggering actions like “Install public key on server”.
+Responsibilities:
+- Owns the main window, menus, dialogs, and layout.
+- Orchestrates user actions (connect, disconnect, key install, profile edit).
+- Applies global Qt widget theming.
+- Displays logs, status messages, and user-facing errors.
+- Controls whether verbose SSH diagnostics are shown (debug-gated).
 
-Key characteristics:
-- Owns the main window widgets and wires signals/slots.
-- Delegates all network/session work to the SSH layer.
-- Receives events/callbacks and updates UI accordingly.
+Design notes:
+- UI code does not directly perform blocking SSH operations.
+- All long-running or network work is delegated to worker components.
 
 ---
 
 ### Profiles & Configuration
 
-Stores and loads connection profiles.
+**Files:**
+- `ProfileStore.h/.cpp`
+- `SshProfile.h`
+- `ProfilesEditorDialog.h/.cpp`
+- `profiles/profiles.json`
 
-Typical fields:
-- Display name
-- Host, port, username
-- Authentication method (password, key path, etc.)
-- Optional per-profile UI preferences (future)
+Responsibilities:
+- Load and save SSH profiles from JSON.
+- Provide a profile editor UI so users do not need to edit JSON manually.
+- Act as the single source of truth for connection parameters.
 
 Design notes:
-- Profiles are stored in a user-accessible config location (JSON-based).
-- UI should not require the user to edit JSON directly (profiles editor exists/expected).
+- Profiles are user runtime data, not bundled resources.
+- Profile changes should immediately reflect in the UI.
 
 ---
 
-### SSH Session Layer (libssh wrapper)
+### SSH Session & Shell Execution
 
-Implements SSH connection handling and exposes a higher-level API to the UI.
+**Files:**
+- `SshClient.h/.cpp`
+- `SshShellWorker.h/.cpp`
+- `SshShellHelpers.h`
+- `ShellManager.h/.cpp`
 
-Typical responsibilities:
-- Create SSH session, set options (host/user/port).
-- Authenticate (password and/or key-based).
-- Open a PTY/channel for an interactive shell.
-- Read/write loop for shell I/O.
-- Clean shutdown and error propagation.
+Responsibilities:
+- Wrap libssh session creation and configuration.
+- Perform authentication (password and/or key-based).
+- Open PTY-backed shell channels.
+- Manage lifecycle of SSH sessions and shell workers.
+- Ensure sessions are closed cleanly when terminals are closed.
 
 Design notes:
-- Runs potentially blocking operations off the UI thread.
-- Emits structured events (connected, auth failed, disconnected, output available, error text).
-- Does not own UI objects.
+- SSH operations run off the UI thread.
+- Worker components communicate with the UI via signals/slots.
+- Resource cleanup is explicit and defensive.
 
 ---
 
-### Terminal Presentation (qtermwidget integration)
+### Terminal Integration
 
-Renders the shell as a terminal-like widget inside the app.
+**Files:**
+- `TerminalView.h/.cpp`
+- `CpunkTermWidget.h/.cpp`
 
-Typical responsibilities:
-- Display remote output and accept user input.
-- Provide consistent terminal colors/theme.
-- Provide copy/paste, selection, scrollback.
-- Optional drag/drop behaviors (download/upload features may live around here, but should be kept modular).
+Responsibilities:
+- Embed an interactive terminal widget inside the Qt UI.
+- Bridge SSH shell I/O to qtermwidget.
+- Apply terminal color schemes and visual fixes.
+- Prevent accidental fallback to a local shell.
 
 Design notes:
-- Terminal widget should stay responsive even when SSH output is heavy.
-- Terminal theme should be applied early so the initial screen matches expected colors.
+- Terminal must remain responsive even under heavy output.
+- Terminal theming is applied early to avoid visual flicker.
 
 ---
 
-### Key Installation Workflow (Remote authorized_keys management)
+### Key Management & Cryptography
 
-Provides a guided UI flow to install a public key on the remote server.
+**Files:**
+- `KeyGeneratorDialog.h/.cpp`
+- `DilithiumKeyCrypto.h/.cpp`
+- `KeyMetadataUtils.h/.cpp`
+
+Responsibilities:
+- Generate SSH-compatible keys, including post-quantum keys.
+- Handle cryptographic operations in a dedicated module.
+- Parse and evaluate key metadata (expiration, validity).
+- Expose safe, user-facing workflows for key installation.
+
+Design notes:
+- Cryptographic logic is isolated from UI logic.
+- Debug/test functionality is hidden unless explicitly enabled.
+- Sensitive material is handled carefully and never logged.
+
+---
+
+### Key Installation Workflow (Remote authorized_keys Management)
 
 User flow:
-1. User triggers “Install public key” action.
-2. App confirms host/user/port and shows key preview.
-3. App connects (typically password auth) and runs remote commands:
-   - Ensure `~/.ssh` exists and has correct permissions:
+1. User initiates “Install public key”.
+2. Application confirms host, user, port, and shows a key preview.
+3. Application connects to the server (typically using password auth).
+4. Remote commands are executed:
+   - Ensure `~/.ssh` exists with correct permissions:
      - `mkdir -p ~/.ssh && chmod 700 ~/.ssh`
-   - Backup existing `authorized_keys` if present:
-     - copy to `authorized_keys.bak_YYYYMMDD_HHMMSS`
-   - Append the key **only if missing** (avoid duplicates).
+   - If `authorized_keys` exists, create a timestamped backup.
+   - Append the public key **only if it is not already present**.
    - Fix permissions:
      - `chmod 600 ~/.ssh/authorized_keys`
-4. App reports success/failure with log details.
+5. UI reports success or failure with clear diagnostics.
 
 Design notes:
-- Must be idempotent: repeating the action should not add duplicates.
-- Must preserve existing keys (backup + append-only).
-- Should avoid changing unrelated SSH server configuration.
+- Workflow is idempotent: repeating it does not duplicate keys.
+- Existing keys are preserved.
+- No SSH server configuration is modified.
 
-Security notes:
-- Always show the key to the user before installing.
-- Avoid logging full private material (public key is OK; passwords are never logged).
+---
+
+### Themes & Resources
+
+**Files / directories:**
+- `ThemeInstaller.h/.cpp`
+- `resources/color-schemes/`
+- `resources/docs/`
+- `resources/pqssh_resources.qrc`
+
+Responsibilities:
+- Ship terminal color schemes with the application.
+- Ensure consistent terminal appearance across installs.
+- Bundle user manual and help documents into the binary.
 
 ---
 
 ## Runtime Data Flow
 
-### Connect flow (typical)
+### Typical Connect Flow
 
 1. User selects a profile.
-2. UI invokes SSH layer to connect using profile settings.
-3. SSH layer establishes a libssh session and authenticates.
-4. SSH layer opens a shell channel + PTY.
-5. Terminal widget is activated and connected to the I/O stream.
-6. UI updates status to connected; logs show handshake/auth milestones.
+2. UI invokes the SSH layer with profile parameters.
+3. SSH session is created and authenticated.
+4. A PTY-backed shell channel is opened.
+5. Terminal widget is activated and connected to shell I/O.
+6. UI updates connection state and logs progress.
 
 ---
 
 ## Threading Model
 
-- UI runs on the Qt main thread.
-- SSH connection/auth and channel I/O run off the UI thread.
-- Communication uses signals/slots (queued connections) or a thread-safe event dispatch model.
+- Qt UI runs on the main thread.
+- SSH sessions and shell workers run on background threads.
+- Communication uses Qt signals/slots with queued connections.
 
-Key rule:
-- No direct UI manipulation from worker threads.
+Rule:
+- Worker threads never manipulate UI widgets directly.
 
 ---
 
 ## Logging & Diagnostics
 
-- UI should surface a readable log (session lifecycle, errors).
-- Internals may log additional details for debugging, but should not leak secrets.
-- Prefer structured messages (component prefix + message) to make support easier.
+- Application provides a user-accessible log file.
+- Logs include connection lifecycle and errors.
+- Verbose SSH diagnostics are hidden unless debug mode is enabled.
+- Secrets (passwords, private keys) are never logged.
 
 Example prefixes:
-- `[UI]`, `[SSH]`, `[TERM]`, `[KEYS]`
+- `[UI]`, `[SSH]`, `[SHELL]`, `[TERM]`, `[KEYS]`
 
 ---
 
 ## Theming
 
-- App provides a consistent dark theme for core widgets.
-- Terminal theme is handled separately (qtermwidget color scheme).
-- Theme assets must ship with the application so the user sees the same result on every install.
-
----
-
-## Future Extensions (non-binding)
-
-Potential areas to expand later:
-- Better profile editor UX (validation, import/export).
-- Safer key management UI (detect duplicates, show fingerprints, expiry metadata).
-- Optional SFTP features for download/upload in a dedicated module.
-- Connection features: jump hosts, keepalive tuning, known_hosts UI, etc.
-
-(These are intentionally non-committal and can be revised.)
+- Global Qt widget theme is applied via `AppTheme`.
+- Terminal colors are handled independently via shipped color schemes.
+- All theme assets are bundled to ensure consistent appearance.
 
 ---
 
 ## Notes for Contributors
 
-- Keep UI logic (widgets, dialogs) separate from SSH/libssh calls.
-- Avoid blocking the UI thread.
-- Prefer small, testable units for SSH and key-install logic.
-- Document any “why” decisions in code comments near the relevant logic.
+- Keep UI logic separate from SSH and cryptographic logic.
+- Do not block the UI thread.
+- Prefer explicit ownership and cleanup of SSH resources.
+- Document *why* decisions are made, not just *what* the code does.
