@@ -24,6 +24,33 @@
 // NONCE  : crypto_aead_xchacha20poly1305_ietf_NPUBBYTES (currently 24)
 // TAG    : crypto_aead_xchacha20poly1305_ietf_ABYTES (currently 16), included in ciphertext output
 //
+// FORMAT EVOLUTION / GOTCHAS
+// --------------------------
+// 1) Versioning:
+//    - MAGIC doubles as a version marker. If the layout changes, bump MAGIC (e.g. "PQSSH2").
+//    - If you bump MAGIC, keep PQSSH1 decrypt support (migration) in a higher-level module.
+//
+// 2) KDF parameters:
+//    - Today we hardcode crypto_pwhash_OPSLIMIT_MODERATE / MEMLIMIT_MODERATE.
+//    - If you ever change these, old blobs become undecryptable unless the parameters are stored.
+//    - Recommended future header extension: store opsLimit+memLimit (and alg) in the header.
+//
+// 3) Associated Data (AD):
+//    - We currently pass AD=nullptr. AEAD still authenticates ciphertext, but header is not
+//      *explicitly* bound as AD. It is indirectly validated (wrong header => wrong key/nonce => fail).
+//    - Recommended future: use AD = header bytes (MAGIC+salt+nonce+params) to bind the header.
+//
+// 4) Secret handling:
+//    - Derived key is wiped with sodium_memzero().
+//    - Plaintext is returned to caller; caller MUST wipe it after use.
+//
+// 5) Randomness:
+//    - salt + nonce come from randombytes_buf() (libsodium CSPRNG). No manual RNG.
+//
+// 6) Side-channels / logging:
+//    - Never log passphrase, plaintext, derived key, or ciphertext.
+//    - Logging sizes + filenames is OK.
+//
 // Notes:
 // - The salt is required to derive the same key during decryption.
 // - XChaCha20 uses a 24-byte nonce which is safe to generate randomly.
@@ -81,6 +108,13 @@ bool encryptDilithiumKey(
     unsigned char salt[crypto_pwhash_SALTBYTES];
     randombytes_buf(salt, sizeof salt);
 
+    // Build header bytes to authenticate as Associated Data (AD).
+    // This binds MAGIC + salt + nonce to the AEAD tag.
+    QByteArray header;
+    header.append(MAGIC, 6);
+    header.append(reinterpret_cast<const char*>(salt), (int)sizeof salt);
+    header.append(reinterpret_cast<const char*>(nonce), (int)sizeof nonce);
+
     // Derive an AEAD key from the passphrase using Argon2id.
     // MODERATE limits: reasonable interactive security vs performance tradeoff.
     unsigned char key[crypto_aead_xchacha20poly1305_ietf_KEYBYTES];
@@ -113,7 +147,9 @@ bool encryptDilithiumKey(
         reinterpret_cast<unsigned char*>(cipher.data()), &clen,
         reinterpret_cast<const unsigned char*>(plain.constData()),
         (unsigned long long)plain.size(),
-        nullptr, 0, nullptr, // AD = none, nsec = none
+        reinterpret_cast<const unsigned char*>(header.constData()),
+        (unsigned long long)header.size(),
+        nullptr,
         nonce, key
     );
 
@@ -128,9 +164,7 @@ bool encryptDilithiumKey(
 
     // Build the final blob: header + ciphertext
     outEncrypted->clear();
-    outEncrypted->append(MAGIC, 6);
-    outEncrypted->append(reinterpret_cast<const char*>(salt), (int)sizeof salt);
-    outEncrypted->append(reinterpret_cast<const char*>(nonce), (int)sizeof nonce);
+    outEncrypted->append(header);
     outEncrypted->append(cipher);
 
     // Wipe derived key from stack memory.
