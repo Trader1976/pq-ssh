@@ -35,7 +35,13 @@ public:
     QString remotePwd(QString* err = nullptr) const;
     bool uploadBytes(const QString& remotePath, const QByteArray& data, QString* err = nullptr);
     bool downloadToFile(const QString& remotePath, const QString& localPath, QString* err = nullptr);
-
+    bool exec(const QString& command, QString* out = nullptr, QString* err = nullptr);
+    bool readRemoteTextFile(const QString& remotePath, QString* textOut, QString* err = nullptr);
+    bool writeRemoteTextFileAtomic(const QString& remotePath, const QString& text, int permsOctal, QString* err = nullptr);
+    bool ensureRemoteDir(const QString& path, int permsOctal, QString* err = nullptr);
+    bool installAuthorizedKey(const QString& openSshPubKeyLine,
+                           QString* err = nullptr,
+                           bool* alreadyPresent = nullptr);
 
 
 private:

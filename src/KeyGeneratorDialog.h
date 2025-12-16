@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QJsonObject>
 #include <Qt>
+#include <QStringList>
 
 class QLineEdit;
 class QComboBox;
@@ -19,7 +20,8 @@ class KeyGeneratorDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit KeyGeneratorDialog(QWidget *parent = nullptr);
+    // ✅ NEW: pass profile names so the dialog can offer a "choose profile" installer
+    explicit KeyGeneratorDialog(const QStringList& profileNames, QWidget *parent = nullptr);
 
 private slots:
     void onGenerate();
@@ -33,6 +35,9 @@ private slots:
     void onMarkRevoked();
     void onDeleteKey();
     void onEditMetadata();
+
+    // ✅ NEW: installer flow
+    void onInstallSelectedKey();
 
 private:
     struct KeyRow {
@@ -88,14 +93,17 @@ private:
     int selectedTableRow() const;
 
     bool updateMetadataFields(const QString &fingerprint,
-                          const QString &label,
-                          const QString &owner,
-                          const QString &purpose,
-                          int rotationDays,
-                          const QString &expiresIsoOrEmpty,
-                          QString *errOut);
+                              const QString &label,
+                              const QString &owner,
+                              const QString &purpose,
+                              int rotationDays,
+                              const QString &expiresIsoOrEmpty,
+                              QString *errOut);
 
 private:
+    // ✅ profiles for installer
+    QStringList m_profileNames;
+
     // UI - tabs
     QTabWidget *m_tabs{};
 
@@ -120,14 +128,21 @@ private:
     QPushButton *m_copyFpBtn{};
     QPushButton *m_copyPubBtn{};
     QPushButton *m_exportPubBtn{};
+    QPushButton *m_installBtn{};      // ✅ NEW
     QPushButton *m_revokeBtn{};
     QPushButton *m_deleteBtn{};
     QCheckBox *m_deleteFilesCheck{};
     QLabel *m_keysHintLabel{};
     QPushButton *m_editMetaBtn{};
+
     // data cache
     QMap<QString, KeyRow> m_inventory; // fingerprint -> info
-    // --- persist table sorting ---
+
+    // persist table sorting
     int m_sortColumn = 0;
     Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
+
+signals:
+    // ✅ MainWindow listens to this and does the real install via SshClient
+    void installPublicKeyRequested(const QString& pubKeyLine, int profileIndex);
 };

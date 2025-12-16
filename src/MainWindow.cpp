@@ -57,6 +57,8 @@
 #include "DilithiumKeyCrypto.h"
 #include <sodium.h>
 #include <QFileInfo>
+#include <QUuid>
+#include <QFrame>
 
 
 
@@ -151,8 +153,8 @@ MainWindow::MainWindow(QWidget *parent)
     resize(1100, 700);
 
     setupUi();
-    setupMenus();
     loadProfiles();
+    setupMenus();
 
     // ✅ Passphrase prompt for encrypted OpenSSH private keys (libssh fallback)
     m_ssh.setPassphraseProvider([this](const QString& keyFile, bool *ok) -> QString {
@@ -322,6 +324,23 @@ void MainWindow::setupUi()
     termContainer->setLayout(termLayout);
 
 
+    // --- Input bar (optional, shell not implemented yet but keeps UI consistent) ---
+    auto *inputBar = new QWidget(rightWidget);
+    auto *inputLayout = new QHBoxLayout(inputBar);
+    inputLayout->setContentsMargins(0, 0, 0, 0);
+    inputLayout->setSpacing(6);
+
+    m_inputField = new QLineEdit(inputBar);
+    m_inputField->setPlaceholderText("Type command (not wired yet) ...");
+
+    m_sendBtn = new QPushButton("Send", inputBar);
+    m_sendBtn->setEnabled(true);
+
+    inputLayout->addWidget(m_inputField, 1);
+    inputLayout->addWidget(m_sendBtn);
+    inputBar->setLayout(inputLayout);
+
+
     // --- Bottom bar ---
     auto *bottomBar = new QWidget(rightWidget);
     auto *bottomLayout = new QHBoxLayout(bottomBar);
@@ -349,8 +368,8 @@ void MainWindow::setupUi()
     // Assemble right side
     outer->addWidget(topBar);
     outer->addWidget(termContainer, 1);
+    outer->addWidget(inputBar, 0);   // NEW
     outer->addWidget(bottomBar);
-    rightWidget->setLayout(outer);
 
     // Add panes to splitter
     splitter->addWidget(profilesWidget);
@@ -396,9 +415,52 @@ void MainWindow::setupMenus()
     keysMenu->addAction(keyGenAct);
 
     connect(keyGenAct, &QAction::triggered, this, [this]() {
-        KeyGeneratorDialog dlg(this);
+        // Build profile name list every time (stays correct even after profile edits)
+
+
+
+            QStringList names;
+            for (const auto& p : m_profiles) names << p.name;
+
+            KeyGeneratorDialog dlg(names, this);
+
+        connect(&dlg, &KeyGeneratorDialog::installPublicKeyRequested,
+                this, &MainWindow::onInstallPublicKeyRequested);
+
         dlg.exec();
     });
+
+    // ✅ ADD THIS BLOCK RIGHT HERE (menu-based test installer)
+    QAction *installPubAct = new QAction("Install public key to server…", this);
+    installPubAct->setToolTip("Append an OpenSSH public key to ~/.ssh/authorized_keys on the selected profile host.");
+    keysMenu->addAction(installPubAct);
+
+    connect(installPubAct, &QAction::triggered, this, [this]() {
+        const int row = m_profileList ? m_profileList->currentRow() : -1;
+        if (row < 0 || row >= m_profiles.size()) {
+            QMessageBox::warning(this, "Key install", "No profile selected.");
+            return;
+        }
+
+        const QString pubPath = QFileDialog::getOpenFileName(
+            this,
+            "Select OpenSSH public key (.pub)",
+            QDir::homePath() + "/.ssh",
+            "Public keys (*.pub);;All files (*)"
+        );
+        if (pubPath.isEmpty()) return;
+
+        QFile f(pubPath);
+        if (!f.open(QIODevice::ReadOnly)) {
+            QMessageBox::critical(this, "Key install failed", "Cannot read file:\n" + f.errorString());
+            return;
+        }
+        const QString pubLine = QString::fromUtf8(f.readAll()).trimmed();
+        f.close();
+
+        onInstallPublicKeyRequested(pubLine, row);
+    });
+    // ✅ END BLOCK
 
     // DEV/Tester: hidden behind PQ debug
     QAction *testUnlockAct = new QAction("DEV: Test Dilithium key unlock…", this);
@@ -581,6 +643,88 @@ void MainWindow::onEditProfilesClicked()
         m_statusLabel->setText("Profiles updated.");
     appendTerminalLine("[INFO] Profiles updated.");
 }
+
+
+void MainWindow::onInstallPublicKeyRequested(const QString& pubKeyLine, int profileIndex)
+{
+    if (pubKeyLine.trimmed().isEmpty()) {
+        QMessageBox::warning(this, "Key install", "Public key is empty.");
+        return;
+    }
+
+    if (profileIndex < 0 || profileIndex >= m_profiles.size()) {
+        QMessageBox::warning(this, "Key install", "Invalid target profile.");
+        return;
+    }
+
+    const SshProfile &p = m_profiles[profileIndex];
+
+    if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
+        QMessageBox::warning(this, "Key install", "Profile has empty user/host.");
+        return;
+    }
+
+    const int port = (p.port > 0) ? p.port : 22;
+
+    const QString hostLine =
+        (port != 22)
+            ? QString("%1@%2:%3").arg(p.user, p.host).arg(port)
+            : QString("%1@%2").arg(p.user, p.host);
+
+    // Extract a friendly key summary (type + short preview)
+    const QStringList parts =
+        pubKeyLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+    const QString keyType = parts.size() >= 1 ? parts[0] : QString("unknown");
+    const QString keyBlob = parts.size() >= 2 ? parts[1] : QString();
+    const QString preview =
+        keyBlob.isEmpty() ? QString() : (keyBlob.left(18) + "…" + keyBlob.right(10));
+
+    const QString confirmText =
+        "You are about to install a public key to this host:\n\n"
+        "Target profile:\n  " + p.name + "\n\n"
+        "Host:\n  " + hostLine + "\n\n"
+        "Remote path:\n  ~/.ssh/authorized_keys\n\n"
+        "Key type:\n  " + keyType + "\n\n"
+        "Key preview:\n  " + preview + "\n\n"
+        "Proceed?";
+
+    auto btn = QMessageBox::question(
+        this,
+        "Confirm key install",
+        confirmText,
+        QMessageBox::Yes | QMessageBox::Cancel,
+        QMessageBox::Cancel
+    );
+
+    if (btn != QMessageBox::Yes)
+        return;
+
+    // Ensure we have a libssh session (SFTP) to that host
+    if (!m_ssh.isConnected()) {
+        QString e;
+        if (!m_ssh.connectProfile(p, &e)) {
+            QMessageBox::critical(this, "Key install failed",
+                                  "SSH(SFTP) connection failed:\n" + e);
+            return;
+        }
+    }
+
+    QString err;
+    bool already = false;
+
+    if (!m_ssh.installAuthorizedKey(pubKeyLine, &err, &already)) {
+        QMessageBox::critical(this, "Key install failed", err);
+        return;
+    }
+
+    QMessageBox::information(
+        this,
+        "Key install",
+        already ? "Key already existed in authorized_keys."
+                : "Key installed successfully."
+    );
+}
+
 
 // ========================
 // Connect / disconnect
@@ -1203,16 +1347,14 @@ void MainWindow::onOpenUserManual()
         "body { background:#0b0b0c; color:#e7e7ea; }"
         "a, a:link, a:visited { color:#00ff99; text-decoration:none; }"
         "a:hover { text-decoration:underline; color:#7cffc8; }"
-    );
-    browser->document()->setDefaultStyleSheet(
-    "a { color:#00ff99; }"
-    ".nav a, a.btn {"
-    "  display:inline-block;"
-    "  padding:6px 12px;"
-    "  border-radius:999px;"
-    "  background:rgba(0,255,153,.08);"
-    "  border:1px solid rgba(0,255,153,.28);"
-    "  text-decoration:none;"
+        ".nav a, a.btn {"
+        "  display:inline-block;"
+        "  padding:6px 12px;"
+        "  border-radius:999px;"
+        "  background:rgba(0,255,153,.08);"
+        "  border:1px solid rgba(0,255,153,.28);"
+        "  text-decoration:none;"
+        "}"
     "}"
 );
     browser->setOpenExternalLinks(true);     // clickable links open in system browser

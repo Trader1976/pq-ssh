@@ -5,6 +5,8 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QDebug>
+#include <QRegularExpression>
+#include <QDateTime>
 
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
@@ -14,6 +16,8 @@
 #include <sys/stat.h>
 #include <sodium.h>
 #include <cstring>   // memset, memcpy
+#include <algorithm> // std::min, std::fill
+
 #include "DilithiumKeyCrypto.h"
 
 static QString libsshError(ssh_session s)
@@ -67,8 +71,6 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
     return ok;
 }
 
-
-
 QString SshClient::requestPassphrase(const QString& keyFile, bool *ok)
 {
     if (!m_passphraseProvider) {
@@ -120,8 +122,6 @@ bool SshClient::testUnlockDilithiumKey(const QString& encKeyPath, QString* err)
 
     return true;
 }
-
-
 
 bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 {
@@ -192,14 +192,11 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     // ------------------------------------------------------------
     // Option A: Passphrase callback (UI provides passphrase)
     // ------------------------------------------------------------
-    // IMPORTANT: the callbacks struct must stay alive while session is alive.
-    // We'll keep it static because PQ-SSH uses one SshClient instance / one session at a time.
     static ssh_callbacks_struct cb;
     std::memset(&cb, 0, sizeof(cb));
 
     cb.userdata = this;
 
-    // libssh will call this when it needs a passphrase for a private key
     cb.auth_function = [](const char *prompt,
                           char *buf,
                           size_t len,
@@ -219,10 +216,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
         }
 
         bool ok = false;
-
-        // We don't get the key path reliably from libssh here; pass empty.
         const QString pass = self->m_passphraseProvider(QString(), &ok);
-
         if (!ok) return SSH_AUTH_DENIED;
 
         const QByteArray utf8 = pass.toUtf8();
@@ -256,13 +250,11 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     qInfo().noquote() << QString("[SSH] ssh_connect OK host='%1' port=%2").arg(host).arg(port);
 
     // Auth:
-    // 1) try agent (nice if user has ssh-agent running)
     rc = ssh_userauth_agent(s, nullptr);
     if (rc == SSH_AUTH_SUCCESS) {
         qInfo().noquote() << QString("[SSH] auth OK via agent user='%1' host='%2'").arg(user, host);
     }
 
-    // 2) then try publickey auto (uses SSH_OPTIONS_IDENTITY if set, else default keys)
     if (rc != SSH_AUTH_SUCCESS) {
         qInfo().noquote() << QString("[SSH] auth via agent failed -> trying publickey_auto user='%1' host='%2'")
                              .arg(user, host);
@@ -429,7 +421,6 @@ bool SshClient::downloadToFile(const QString& remotePath, const QString& localPa
         return false;
     }
 
-    // Ensure local folder exists
     QFileInfo li(localPath);
     QDir().mkpath(li.absolutePath());
 
@@ -474,6 +465,310 @@ bool SshClient::downloadToFile(const QString& remotePath, const QString& localPa
     }
     out.write(data);
     out.close();
+
+    return true;
+}
+
+bool SshClient::exec(const QString& command, QString* out, QString* err)
+{
+    if (out) out->clear();
+    if (err) err->clear();
+    if (!m_session) { if (err) *err = "Not connected."; return false; }
+
+    ssh_channel ch = ssh_channel_new(m_session);
+    if (!ch) { if (err) *err = "ssh_channel_new failed."; return false; }
+
+    if (ssh_channel_open_session(ch) != SSH_OK) {
+        if (err) *err = "ssh_channel_open_session failed: " + libsshError(m_session);
+        ssh_channel_free(ch);
+        return false;
+    }
+
+    if (ssh_channel_request_exec(ch, command.toUtf8().constData()) != SSH_OK) {
+        if (err) *err = "ssh_channel_request_exec failed: " + libsshError(m_session);
+        ssh_channel_close(ch);
+        ssh_channel_free(ch);
+        return false;
+    }
+
+    QByteArray outBuf, errBuf;
+    char buf[4096];
+    int n;
+
+    while ((n = ssh_channel_read(ch, buf, sizeof(buf), 0)) > 0) {
+        outBuf.append(buf, n);
+    }
+    while ((n = ssh_channel_read(ch, buf, sizeof(buf), 1)) > 0) {
+        errBuf.append(buf, n);
+    }
+
+    ssh_channel_send_eof(ch);
+    ssh_channel_close(ch);
+
+    const int status = ssh_channel_get_exit_status(ch);
+    ssh_channel_free(ch);
+
+    if (out) *out = QString::fromUtf8(outBuf);
+    if (status != 0) {
+        if (err) {
+            const QString e = QString::fromUtf8(errBuf).trimmed();
+            *err = e.isEmpty() ? QString("Remote command failed (exit %1).").arg(status)
+                               : QString("Remote command failed (exit %1): %2").arg(status).arg(e);
+        }
+        return false;
+    }
+
+    return true;
+}
+
+bool SshClient::ensureRemoteDir(const QString& path, int permsOctal, QString* err)
+{
+    QString out;
+    const QString cmd = QString("mkdir -p %1 && chmod %2 %1")
+        .arg(path)
+        .arg(QString::number(permsOctal, 8));
+    return exec(cmd, &out, err);
+}
+
+bool SshClient::readRemoteTextFile(const QString& remotePath, QString* textOut, QString* err)
+{
+    if (textOut) textOut->clear();
+    if (err) err->clear();
+    if (!m_session) { if (err) *err = "Not connected."; return false; }
+
+    sftp_session sftp = sftp_new(m_session);
+    if (!sftp) { if (err) *err = "sftp_new failed."; return false; }
+    if (sftp_init(sftp) != SSH_OK) {
+        if (err) *err = "sftp_init failed: " + libsshError(m_session);
+        sftp_free(sftp);
+        return false;
+    }
+
+    sftp_file f = sftp_open(sftp, remotePath.toUtf8().constData(), O_RDONLY, 0);
+    if (!f) {
+        if (err) *err = QString("sftp_open failed for '%1' (may not exist).").arg(remotePath);
+        sftp_free(sftp);
+        return false;
+    }
+
+    QByteArray data;
+    char buf[4096];
+    int n;
+    while ((n = (int)sftp_read(f, buf, sizeof(buf))) > 0) {
+        data.append(buf, n);
+    }
+
+    sftp_close(f);
+    sftp_free(sftp);
+
+    if (textOut) *textOut = QString::fromUtf8(data);
+    return true;
+}
+
+bool SshClient::writeRemoteTextFileAtomic(const QString& remotePath, const QString& text, int permsOctal, QString* err)
+{
+    if (err) err->clear();
+    if (!m_session) { if (err) *err = "Not connected."; return false; }
+
+    const QString tmpPath = remotePath + ".pqssh.tmp";
+
+    sftp_session sftp = sftp_new(m_session);
+    if (!sftp) { if (err) *err = "sftp_new failed."; return false; }
+    if (sftp_init(sftp) != SSH_OK) {
+        if (err) *err = "sftp_init failed: " + libsshError(m_session);
+        sftp_free(sftp);
+        return false;
+    }
+
+    sftp_file f = sftp_open(
+        sftp,
+        tmpPath.toUtf8().constData(),
+        O_WRONLY | O_CREAT | O_TRUNC,
+        (mode_t)permsOctal
+    );
+    if (!f) {
+        if (err) *err = QString("sftp_open failed for '%1'.").arg(tmpPath);
+        sftp_free(sftp);
+        return false;
+    }
+
+    const QByteArray bytes = text.toUtf8();
+    const char* ptr = bytes.constData();
+    ssize_t remaining = bytes.size();
+
+    while (remaining > 0) {
+        ssize_t written = sftp_write(f, ptr, (size_t)remaining);
+        if (written < 0) {
+            if (err) *err = QString("sftp_write failed for '%1'.").arg(tmpPath);
+            sftp_close(f);
+            sftp_free(sftp);
+            return false;
+        }
+
+        ptr += written;
+        remaining -= written;
+    }
+
+    sftp_close(f);
+
+    // Atomic-ish replace: rename tmp -> target
+    if (sftp_rename(sftp, tmpPath.toUtf8().constData(), remotePath.toUtf8().constData()) != SSH_OK) {
+
+        // Many servers refuse rename-overwrite. Try unlink dest then rename again.
+        sftp_unlink(sftp, remotePath.toUtf8().constData());
+
+        if (sftp_rename(sftp, tmpPath.toUtf8().constData(), remotePath.toUtf8().constData()) != SSH_OK) {
+            if (err) *err = QString("sftp_rename failed for '%1' → '%2' (server may not allow overwrite).")
+                                .arg(tmpPath, remotePath);
+            sftp_free(sftp);
+            return false;
+        }
+    }
+
+    sftp_free(sftp);
+
+    // Ensure perms (some servers ignore perms on create)
+    QString out;
+    const QString chmodCmd = QString("chmod %1 %2").arg(QString::number(permsOctal, 8), remotePath);
+    exec(chmodCmd, &out, nullptr);
+
+    return true;
+}
+
+static QString normalizeKeyLine(const QString& line)
+{
+    QString s = line.trimmed();
+    s.replace(QRegularExpression("\\s+"), " ");
+    return s;
+}
+
+static bool looksLikeOpenSshPubKey(const QString& line)
+{
+    const QString s = line.trimmed();
+    return s.startsWith("ssh-ed25519 ") || s.startsWith("ssh-rsa ") ||
+           s.startsWith("ecdsa-sha2-") || s.startsWith("sk-ssh-ed25519");
+}
+
+static QString shQuote(const QString& s)
+{
+    // POSIX-safe single-quote escaping:  abc'd  ->  'abc'"'"'d'
+    QString out = s;
+    out.replace("'", "'\"'\"'");
+    return "'" + out + "'";
+}
+
+bool SshClient::installAuthorizedKey(const QString& pubKeyLine, QString* err, bool* alreadyPresent)
+{
+    if (err) err->clear();
+    if (alreadyPresent) *alreadyPresent = false;
+
+    if (!m_session) {
+        if (err) *err = "Not connected.";
+        return false;
+    }
+
+    const QString key = normalizeKeyLine(pubKeyLine);
+    if (key.isEmpty()) {
+        if (err) *err = "Public key line is empty.";
+        return false;
+    }
+    if (!looksLikeOpenSshPubKey(key)) {
+        if (err) *err = "Does not look like an OpenSSH public key line.";
+        return false;
+    }
+
+    // 1) Resolve remote $HOME safely
+    QString homeOut, e;
+    if (!exec("printf %s \"$HOME\"", &homeOut, &e)) {
+        if (err) *err = "Failed to read remote $HOME: " + e;
+        return false;
+    }
+    const QString home = homeOut.trimmed();
+    if (home.isEmpty()) {
+        if (err) *err = "Remote $HOME is empty.";
+        return false;
+    }
+
+    const QString sshDir = home + "/.ssh";
+    const QString akPath = sshDir + "/authorized_keys";
+
+    // 2) Ensure ~/.ssh exists and is 0700
+    if (!ensureRemoteDir(sshDir, 0700, &e)) {
+        if (err) *err = e;
+        return false;
+    }
+
+    // 3) Read existing authorized_keys (if present)
+    QString existing, readErr;
+    const bool hasExisting = readRemoteTextFile(akPath, &existing, &readErr);
+
+    const QString normKey = normalizeKeyLine(key);
+
+    // Duplicate check (line-based)
+    if (hasExisting) {
+        const QStringList lines = existing.split('\n', Qt::SkipEmptyParts);
+        for (const QString& ln : lines) {
+            if (normalizeKeyLine(ln) == normKey) {
+                if (alreadyPresent) *alreadyPresent = true;
+                return true; // already installed
+            }
+        }
+    }
+
+    // 4) Backup existing file (STRICT: if file exists, backup must succeed)
+    QString backupPath;
+    if (hasExisting) {
+        const QString backupDir = sshDir + "/pqssh_backups";
+        if (!ensureRemoteDir(backupDir, 0700, &e)) {
+            if (err) *err = "Failed to create backup dir: " + e;
+            return false;
+        }
+
+        const QString ts = QDateTime::currentDateTimeUtc().toString("yyyyMMdd-HHmmss");
+        backupPath = backupDir + "/authorized_keys." + ts + ".bak";
+
+        QString out, cpErr;
+
+        const QString cpCmd = QString("cp -f -- %1 %2")
+                                  .arg(shQuote(akPath), shQuote(backupPath));
+
+        if (!exec(cpCmd, &out, &cpErr)) {
+            const QString cpCmd2 = QString("cp -f %1 %2")
+                                       .arg(shQuote(akPath), shQuote(backupPath));
+
+            if (!exec(cpCmd2, &out, &cpErr)) {
+                if (err) *err = QString("Backup failed. Aborting install.\nTried:\n%1\n%2\nError: %3")
+                                    .arg(cpCmd, cpCmd2, cpErr);
+                return false;
+            }
+        }
+
+        exec(QString("chmod 600 %1").arg(shQuote(backupPath)), &out, nullptr);
+    }
+
+    // 5) Append key with newline
+    QString newText = existing;
+    if (!newText.isEmpty() && !newText.endsWith('\n'))
+        newText += "\n";
+    newText += key;
+    newText += "\n";
+
+    // 6) Write atomically and chmod 600
+    if (!writeRemoteTextFileAtomic(akPath, newText, 0600, &e)) {
+        // If we created a backup and write failed, try to restore backup best-effort
+        if (!backupPath.isEmpty()) {
+            QString out;
+            exec(QString("cp -f %1 %2").arg(shQuote(backupPath), shQuote(akPath)), &out, nullptr);
+            exec(QString("chmod 600 %1").arg(shQuote(akPath)), &out, nullptr);
+        }
+
+        if (err) *err = e;
+        return false;
+    }
+
+    // Extra safety: sshd can be picky if perms drift
+    QString out;
+    exec(QString("chmod 600 %1").arg(shQuote(akPath)), &out, nullptr);
 
     return true;
 }
