@@ -39,9 +39,10 @@ public:
     bool readRemoteTextFile(const QString& remotePath, QString* textOut, QString* err = nullptr);
     bool writeRemoteTextFileAtomic(const QString& remotePath, const QString& text, int permsOctal, QString* err = nullptr);
     bool ensureRemoteDir(const QString& path, int permsOctal, QString* err = nullptr);
-    bool installAuthorizedKey(const QString& openSshPubKeyLine,
-                           QString* err = nullptr,
-                           bool* alreadyPresent = nullptr);
+    bool installAuthorizedKey(const QString& pubKeyLine,
+                              QString* errOut,
+                              bool* alreadyOut,
+                              QString* backupPathOut = nullptr);
 
 
 private:

@@ -27,6 +27,7 @@
             <a class="btn" href="#connect">Connect</a>
             <a class="btn" href="#pq-status">PQ status</a>
             <a class="btn" href="#sftp">SFTP</a>
+            <a class="btn" href="#key-install">Key install</a>
             <a class="btn" href="#logging">Logging</a>
             <a class="btn" href="#troubleshooting">Troubleshooting</a>
         </nav>
@@ -136,6 +137,98 @@
         <div class="note">
             If you use a key type not supported by libssh yet, SFTP will be disabled by design.
         </div>
+    </section>
+
+    <section class="card" id="key-install">
+        <h2>Installing a public key on a server</h2>
+        <p>
+            PQ-SSH can install an <b>OpenSSH public key</b> directly to the remote server’s
+            <code>~/.ssh/authorized_keys</code> file in a safe, non-destructive way.
+        </p>
+
+        <p>This feature is available from:</p>
+        <ul class="bullets">
+            <li><b>Keys → Install public key to server…</b> (main menu)</li>
+            <li><b>Key Generator → Keys tab → Install…</b> (install a selected key)</li>
+        </ul>
+
+        <h3>What you see (confirmation step)</h3>
+        <p>Before anything is changed on the server, PQ-SSH shows a confirmation dialog with:</p>
+        <ul class="bullets">
+            <li><b>Target profile name</b></li>
+            <li><b>User / host / port</b></li>
+            <li><b>Remote path:</b> <code>~/.ssh/authorized_keys</code></li>
+            <li><b>Key type</b> (for example <code>ssh-ed25519</code>)</li>
+            <li><b>Key preview</b> (a short excerpt of the key)</li>
+        </ul>
+
+        <div class="note">
+            Nothing happens unless you explicitly confirm.
+        </div>
+
+        <h3>What happens on the server</h3>
+        <p>After confirmation, PQ-SSH connects using SSH/SFTP and performs these steps:</p>
+
+        <ol>
+            <li>
+                <b>Ensure the SSH directory exists</b>
+                <pre class="codeblock"><code>mkdir -p ~/.ssh
+chmod 700 ~/.ssh</code></pre>
+            </li>
+            <li>
+                <b>Read existing <code>authorized_keys</code> (if present)</b>
+                <p>If the same key already exists, nothing is changed.</p>
+            </li>
+            <li>
+                <b>Create a timestamped backup (if the file exists)</b>
+                <p>
+                    If <code>~/.ssh/authorized_keys</code> exists, it is backed up before modification:
+                </p>
+                <pre class="codeblock"><code>~/.ssh/pqssh_backups/authorized_keys.YYYYMMDD-HHMMSS.bak</code></pre>
+                <div class="warn">
+                    Backup creation is mandatory. If backup fails, key installation is aborted.
+                </div>
+            </li>
+            <li>
+                <b>Append the key only if missing</b>
+                <p>The public key is added as a new line. Duplicate keys are never inserted.</p>
+            </li>
+            <li>
+                <b>Fix permissions</b>
+                <pre class="codeblock"><code>chmod 600 ~/.ssh/authorized_keys</code></pre>
+            </li>
+        </ol>
+
+        <p>
+            For safety, writes are done <b>atomically</b> to avoid partial/corrupted files.
+            If a write fails after a backup was created, PQ-SSH attempts to restore the original file.
+        </p>
+
+        <h3>Safety guarantees</h3>
+        <ul class="bullets">
+            <li>Existing keys are preserved</li>
+            <li>Automatic backup before modification</li>
+            <li>No duplicate keys</li>
+            <li>Correct SSH permissions enforced</li>
+            <li>No passwords or private keys are uploaded</li>
+            <li>Operation aborts safely on error</li>
+        </ul>
+
+        <h3>What PQ-SSH does not do</h3>
+        <ul class="bullets">
+            <li>Does not overwrite existing keys</li>
+            <li>Does not remove or reorder keys</li>
+            <li>Does not modify SSH server configuration</li>
+            <li>Does not upload private keys</li>
+            <li>Does not require root access</li>
+        </ul>
+
+        <h3>Tip: auditing & rollback</h3>
+        <p>Backups are stored on the server under:</p>
+        <pre class="codeblock"><code>~/.ssh/pqssh_backups/</code></pre>
+        <p>You can manually restore a previous version:</p>
+        <pre class="codeblock"><code>cp ~/.ssh/pqssh_backups/authorized_keys.YYYYMMDD-HHMMSS.bak ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys</code></pre>
     </section>
 
     <section id="logging" class="card">

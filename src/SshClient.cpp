@@ -657,10 +657,14 @@ static QString shQuote(const QString& s)
     return "'" + out + "'";
 }
 
-bool SshClient::installAuthorizedKey(const QString& pubKeyLine, QString* err, bool* alreadyPresent)
+bool SshClient::installAuthorizedKey(const QString& pubKeyLine,
+                                     QString* err,
+                                     bool* alreadyPresent,
+                                     QString* backupPathOut)
 {
     if (err) err->clear();
     if (alreadyPresent) *alreadyPresent = false;
+    if (backupPathOut) backupPathOut->clear();
 
     if (!m_session) {
         if (err) *err = "Not connected.";
@@ -744,6 +748,9 @@ bool SshClient::installAuthorizedKey(const QString& pubKeyLine, QString* err, bo
         }
 
         exec(QString("chmod 600 %1").arg(shQuote(backupPath)), &out, nullptr);
+
+        // ✅ expose the backup path to caller (same behavior for menu + key generator)
+        if (backupPathOut) *backupPathOut = backupPath;
     }
 
     // 5) Append key with newline
@@ -772,3 +779,4 @@ bool SshClient::installAuthorizedKey(const QString& pubKeyLine, QString* err, bo
 
     return true;
 }
+
