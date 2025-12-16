@@ -3,62 +3,69 @@
 #include <QDialog>
 #include <QMap>
 #include <QJsonObject>
-#include <Qt>
 #include <QStringList>
 
-class QLineEdit;
-class QComboBox;
-class QCheckBox;
-class QDateTimeEdit;
-class QSpinBox;
-class QLabel;
-class QPushButton;
 class QTabWidget;
 class QTableWidget;
+class QLabel;
+class QPushButton;
+class QCheckBox;
+class QComboBox;
+class QLineEdit;
+class QDateTimeEdit;
+class QSpinBox;
 
 class KeyGeneratorDialog : public QDialog
 {
     Q_OBJECT
+
 public:
-    // ✅ NEW: pass profile names so the dialog can offer a "choose profile" installer
     explicit KeyGeneratorDialog(const QStringList& profileNames, QWidget *parent = nullptr);
+
+signals:
+    void installPublicKeyRequested(const QString& pubKeyLine, int profileIndex);
 
 private slots:
     void onGenerate();
-
-    // Keys tab actions
     void refreshKeysTable();
     void onKeySelectionChanged();
+
     void onCopyFingerprint();
     void onCopyPublicKey();
     void onExportPublicKey();
+
+    void onEditMetadata();
     void onMarkRevoked();
     void onDeleteKey();
-    void onEditMetadata();
 
-    // ✅ NEW: installer flow
+    void onKeysContextMenuRequested(const QPoint& pos);
     void onInstallSelectedKey();
 
 private:
     struct KeyRow {
         QString fingerprint;
+
         QString label;
         QString owner;
-        QString created;
-        QString expires;   // empty if none
-        QString purpose;
         QString algorithm;
-        int rotationDays = 0;
         QString status;
+
+        QString created;
+        QString expires;
+
+        QString purpose;
+        int rotationDays = 0;
 
         QString pubPath;
         QString privPath;
-        QString comment;   // from .pub line if available
+
+        QString comment;
 
         bool hasMetadata = false;
         bool hasFiles = false;
     };
 
+    // Paths / helpers
     QString keysDir() const;
     QString metadataPath() const;
 
@@ -66,9 +73,9 @@ private:
     bool runSshKeygen(const QString &algo, const QString &privPath,
                       const QString &comment, const QString &passphrase,
                       QString *errOut);
+
     bool computeFingerprint(const QString &pubPath, QString *fpOut, QString *errOut);
 
-    // Metadata
     bool loadMetadata(QMap<QString, QJsonObject> *out, QString *errOut);
     bool writeMetadata(const QJsonObject &root, QString *errOut);
 
@@ -85,12 +92,12 @@ private:
                       const QString &pubPath,
                       QString *errOut);
 
-    // Scanning keys on disk
-    QMap<QString, KeyRow> buildInventory(QString *errOut);
-    static QString readPublicKeyLine(const QString &pubPath);
+    QString readPublicKeyLine(const QString &pubPath);
 
-    KeyRow selectedRow() const;
+    QMap<QString, KeyRow> buildInventory(QString *errOut);
+
     int selectedTableRow() const;
+    KeyRow selectedRow() const;
 
     bool updateMetadataFields(const QString &fingerprint,
                               const QString &label,
@@ -101,48 +108,41 @@ private:
                               QString *errOut);
 
 private:
-    // ✅ profiles for installer
     QStringList m_profileNames;
 
-    // UI - tabs
+    // UI
     QTabWidget *m_tabs{};
+    QLabel *m_resultLabel{};
+    QLabel *m_keysHintLabel{};
 
-    // Generate tab UI
+    // Generate tab controls
     QComboBox *m_algoCombo{};
     QLineEdit *m_keyNameEdit{};
     QLineEdit *m_labelEdit{};
     QLineEdit *m_ownerEdit{};
     QLineEdit *m_purposeEdit{};
-    QSpinBox  *m_rotationSpin{};
+    QSpinBox *m_rotationSpin{};
     QComboBox *m_statusCombo{};
     QCheckBox *m_expireCheck{};
     QDateTimeEdit *m_expireDate{};
     QLineEdit *m_pass1Edit{};
     QLineEdit *m_pass2Edit{};
-    QLabel *m_resultLabel{};
     QPushButton *m_generateBtn{};
 
-    // Keys tab UI
+    // Keys tab controls
     QTableWidget *m_table{};
     QPushButton *m_refreshBtn{};
     QPushButton *m_copyFpBtn{};
     QPushButton *m_copyPubBtn{};
     QPushButton *m_exportPubBtn{};
-    QPushButton *m_installBtn{};      // ✅ NEW
+    QPushButton *m_installBtn{};
+    QPushButton *m_editMetaBtn{};
     QPushButton *m_revokeBtn{};
     QPushButton *m_deleteBtn{};
     QCheckBox *m_deleteFilesCheck{};
-    QLabel *m_keysHintLabel{};
-    QPushButton *m_editMetaBtn{};
 
-    // data cache
-    QMap<QString, KeyRow> m_inventory; // fingerprint -> info
-
-    // persist table sorting
+    // Sorting + inventory
     int m_sortColumn = 0;
     Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
-
-signals:
-    // ✅ MainWindow listens to this and does the real install via SshClient
-    void installPublicKeyRequested(const QString& pubKeyLine, int profileIndex);
+    QMap<QString, KeyRow> m_inventory;
 };

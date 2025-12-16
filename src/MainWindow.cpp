@@ -423,9 +423,8 @@ void MainWindow::setupMenus()
             for (const auto& p : m_profiles) names << p.name;
 
             KeyGeneratorDialog dlg(names, this);
-
-        connect(&dlg, &KeyGeneratorDialog::installPublicKeyRequested,
-                this, &MainWindow::onInstallPublicKeyRequested);
+            connect(&dlg, &KeyGeneratorDialog::installPublicKeyRequested,
+                    this, &MainWindow::onInstallPublicKeyRequested);
 
         dlg.exec();
     });

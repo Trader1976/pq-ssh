@@ -35,6 +35,12 @@
 #include <QComboBox>
 #include <QGroupBox>
 #include <sodium.h>
+#include <QMenu>
+#include <QInputDialog>
+
+
+
+
 
 static QString isoUtcNow()
 {
@@ -363,6 +369,12 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
     keysLayout->addWidget(m_keysHintLabel);
 
     m_table = new QTableWidget(this);
+
+    // Right-click menu on keys table (put it HERE, after m_table exists)
+    m_table->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_table, &QTableWidget::customContextMenuRequested,
+            this, &KeyGeneratorDialog::onKeysContextMenuRequested);
+
     m_table->setColumnCount(10);
     m_table->setHorizontalHeaderLabels({
         "Fingerprint", "Label", "Owner", "Algorithm", "Status",
@@ -1101,84 +1113,7 @@ void KeyGeneratorDialog::onExportPublicKey()
     f.close();
 }
 
-// ✅ NEW: Install selected key… flow (choose profile + backup info dialog)
-void KeyGeneratorDialog::onInstallSelectedKey()
-{
-    KeyRow k = selectedRow();
-    if (k.fingerprint.isEmpty() || k.pubPath.isEmpty() || !QFile::exists(k.pubPath)) {
-        QMessageBox::warning(this, "Install key", "No valid public key selected.");
-        return;
-    }
-    if (m_profileNames.isEmpty()) {
-        QMessageBox::warning(this, "Install key", "No profiles available.");
-        return;
-    }
 
-    const QString pubLine = readPublicKeyLine(k.pubPath).trimmed();
-    if (pubLine.isEmpty()) {
-        QMessageBox::warning(this, "Install key", "Public key file is empty.");
-        return;
-    }
-
-    // --- Dialog: choose profile + show backup details ---
-    QDialog dlg(this);
-    dlg.setWindowTitle("Install selected key");
-    dlg.setModal(true);
-    dlg.resize(560, 260);
-
-    auto *root = new QVBoxLayout(&dlg);
-
-    auto *info = new QLabel(&dlg);
-    info->setWordWrap(true);
-    info->setText(
-        "This will install the selected public key to the chosen profile:\n"
-        "  Remote: ~/.ssh/authorized_keys\n\n"
-        "Safety:\n"
-        "  PQ-SSH will create a backup first on the server under:\n"
-        "  ~/.ssh/pqssh_backups/authorized_keys.<timestamp>.bak\n"
-    );
-    root->addWidget(info);
-
-    auto *form = new QFormLayout();
-    form->setLabelAlignment(Qt::AlignRight);
-
-    auto *profileCombo = new QComboBox(&dlg);
-    profileCombo->addItems(m_profileNames);
-
-    auto *backupCheck = new QCheckBox("Create server-side backup before install (recommended)", &dlg);
-    backupCheck->setChecked(true);
-    backupCheck->setEnabled(false); // informational: your SshClient already enforces backup
-
-    form->addRow("Install to profile:", profileCombo);
-    form->addRow("", backupCheck);
-    root->addLayout(form);
-
-    auto *preview = new QLabel(&dlg);
-    preview->setWordWrap(true);
-    preview->setText(QString("Selected key:\n%1").arg(pubLine.left(160) + (pubLine.size() > 160 ? "..." : "")));
-    preview->setStyleSheet("color:#aaa;");
-    root->addWidget(preview);
-
-    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, &dlg);
-    auto *installBtn = buttons->addButton("Install", QDialogButtonBox::AcceptRole);
-    installBtn->setDefault(true);
-
-    QObject::connect(buttons, &QDialogButtonBox::rejected, &dlg, &QDialog::reject);
-    QObject::connect(installBtn, &QPushButton::clicked, &dlg, &QDialog::accept);
-
-    root->addWidget(buttons);
-
-    if (dlg.exec() != QDialog::Accepted)
-        return;
-
-    const int profileIndex = profileCombo->currentIndex();
-    if (profileIndex < 0) {
-        QMessageBox::warning(this, "Install key", "No profile selected.");
-        return;
-    }
-
-    emit installPublicKeyRequested(pubLine, profileIndex);
-}
 
 bool KeyGeneratorDialog::updateMetadataFields(const QString &fingerprint,
                                              const QString &label,
@@ -1324,4 +1259,87 @@ void KeyGeneratorDialog::onDeleteKey()
     }
 
     refreshKeysTable();
+}
+
+void KeyGeneratorDialog::onKeysContextMenuRequested(const QPoint& pos)
+{
+    if (!m_table) return;
+
+    const QModelIndex idx = m_table->indexAt(pos);
+    if (!idx.isValid()) return;
+
+    // Select the row under cursor (so action uses what user clicked)
+    m_table->selectRow(idx.row());
+    onKeySelectionChanged();
+
+    KeyRow k = selectedRow();
+    const bool hasPub = !k.pubPath.isEmpty() && QFile::exists(k.pubPath);
+
+    QMenu menu(this);
+
+    QAction *installAct = menu.addAction("Install selected key…");
+    installAct->setEnabled(hasPub && !m_profileNames.isEmpty());
+
+    if (!hasPub)
+        installAct->setToolTip("Selected key has no readable .pub file.");
+    else if (m_profileNames.isEmpty())
+        installAct->setToolTip("No profiles available.");
+
+    connect(installAct, &QAction::triggered, this, &KeyGeneratorDialog::onInstallSelectedKey);
+
+    menu.exec(m_table->viewport()->mapToGlobal(pos));
+}
+
+void KeyGeneratorDialog::onInstallSelectedKey()
+{
+    KeyRow k = selectedRow();
+    if (k.pubPath.isEmpty() || !QFile::exists(k.pubPath)) {
+        QMessageBox::warning(this, "Install key", "Selected key has no readable public key file.");
+        return;
+    }
+
+    const QString pubLine = readPublicKeyLine(k.pubPath).trimmed();
+    if (pubLine.isEmpty()) {
+        QMessageBox::warning(this, "Install key", "Public key line is empty.");
+        return;
+    }
+
+    if (m_profileNames.isEmpty()) {
+        QMessageBox::warning(this, "Install key", "No profiles available.");
+        return;
+    }
+
+    bool ok = false;
+    const QString chosen = QInputDialog::getItem(
+        this,
+        "Install selected key",
+        "Choose target profile:",
+        m_profileNames,
+        0,
+        false,
+        &ok
+    );
+    if (!ok || chosen.isEmpty()) return;
+
+    const int profileIndex = m_profileNames.indexOf(chosen);
+    if (profileIndex < 0) {
+        QMessageBox::warning(this, "Install key", "Invalid profile selection.");
+        return;
+    }
+
+    // Optional: small local sanity preview before handing to MainWindow confirm
+    const QStringList parts = pubLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+    const QString kind = parts.value(0);
+    const QString preview = parts.value(1).left(24);
+
+    const QString localConfirm =
+        QString("Install this key?\n\n"
+                "Key: %1 (%2…)\n"
+                "To profile: %3")
+            .arg(kind, preview, chosen);
+
+    if (QMessageBox::question(this, "Confirm selection", localConfirm) != QMessageBox::Yes)
+        return;
+
+    emit installPublicKeyRequested(pubLine, profileIndex);
 }
