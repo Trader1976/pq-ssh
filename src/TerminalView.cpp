@@ -1,5 +1,4 @@
 // src/TerminalView.cpp
-
 #include "TerminalView.h"
 
 #include <QKeyEvent>
@@ -17,24 +16,45 @@
 #include <QFile>
 #include <QPalette>
 
-
+/*
+ * TerminalView
+ * ------------
+ * A lightweight “terminal-like” widget built on QPlainTextEdit.
+ *
+ * Why this exists:
+ *  - Provides a simple text surface with local echo
+ *  - Emits typed bytes so a real SSH shell worker can send them
+ *  - Implements drag & drop:
+ *      * Drop local file into app -> emits fileDropped(path, bytes)
+ *      * Drag selected word out of the terminal -> tries scp download
+ *
+ * Important architectural note:
+ *  - This is NOT a real terminal emulator.
+ *  - In the current codebase, the embedded real terminal is qtermwidget
+ *    (CpunkTermWidget). TerminalView is used for simpler flows / legacy
+ *    paths / prototyping. Keep its responsibilities modest.
+ */
 
 TerminalView::TerminalView(QWidget *parent)
     : QPlainTextEdit(parent)
 {
+    // Enable accepting files dragged from OS into this widget
     setAcceptDrops(true);
+
+    // This widget is “terminal-like”: it shows what you type (local echo)
+    // and emits bytesTyped() so the SSH layer can forward input upstream.
     setReadOnly(false);
 
-    // ✅ remove frame/border
+    // Remove the standard QTextEdit/QPlainTextEdit frame to blend with app theme
     setFrameShape(QFrame::NoFrame);
     setLineWidth(0);
 
-    // ✅ remove internal margins that can show parent background
+    // Remove extra margins that can show parent background colors behind the viewport
     setContentsMargins(0, 0, 0, 0);
     setViewportMargins(0, 0, 0, 0);
     document()->setDocumentMargin(0);
 
-    // Use a fixed-width font so it feels like a terminal
+    // Fixed-width font so it visually resembles a terminal
     QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     f.setPointSize(11);
     setFont(f);
@@ -42,24 +62,63 @@ TerminalView::TerminalView(QWidget *parent)
 
 TerminalView::~TerminalView() = default;
 
+/*
+ * setRemoteContext
+ * ----------------
+ * Provides the remote user/host needed for the “drag remote filename to desktop”
+ * feature (implemented using scp in downloadRemoteFileForDrag()).
+ *
+ * Without this context, we do not attempt remote download on drag.
+ */
 void TerminalView::setRemoteContext(const QString &user, const QString &host)
 {
     m_remoteUser = user;
     m_remoteHost = host;
 }
 
+/*
+ * keyPressEvent
+ * -------------
+ * Emits the typed bytes (best-effort) for upstream SSH shell forwarding.
+ *
+ * Current behavior:
+ *  - Uses event->text() (textual input) -> local8Bit conversion
+ *  - Also calls base class so the widget echoes locally
+ *
+ * Notes:
+ *  - This is not perfect for special keys (arrows, F-keys, etc.)
+ *    because those are not plain text. A real terminal emulator
+ *    (qtermwidget) handles that properly.
+ */
 void TerminalView::keyPressEvent(QKeyEvent *event)
 {
-    // Emit bytes so libssh shell can send them
+    // Emit typed bytes so libssh shell can send them
     if (!event->text().isEmpty()) {
         const QByteArray data = event->text().toLocal8Bit();
         emit bytesTyped(data);
     }
 
-    // Keep local echo / cursor etc.
+    // Keep local echo / cursor movement etc.
     QPlainTextEdit::keyPressEvent(event);
 }
 
+/*
+ * mousePressEvent / mouseMoveEvent
+ * --------------------------------
+ * Implements “drag file from remote” flow:
+ *  - When user drags a word/selection out of terminal,
+ *    interpret it as a remote filename.
+ *  - Download it to a temp directory via scp.
+ *  - Start a drag containing a local file URL.
+ *
+ * This is a UX shortcut for quick file retrieval.
+ *
+ * Security / UX notes:
+ *  - scp may prompt (host key / password) in a detached context,
+ *    depending on how ssh is configured.
+ *  - Words containing spaces won’t work (WordUnderCursor logic).
+ *  - This is “v1” behavior; future improvement: detect full paths.
+ */
 void TerminalView::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
@@ -76,6 +135,7 @@ void TerminalView::mouseMoveEvent(QMouseEvent *event)
         return;
     }
 
+    // Only consider it a drag after crossing Qt’s drag threshold
     const int dist = (event->pos() - m_dragStartPos).manhattanLength();
     if (dist < QApplication::startDragDistance()) {
         QPlainTextEdit::mouseMoveEvent(event);
@@ -103,7 +163,7 @@ void TerminalView::mouseMoveEvent(QMouseEvent *event)
         return;
     }
 
-    // Try to download the file first
+    // Download the remote “word” as a filename using scp
     const QString localPath = downloadRemoteFileForDrag(word);
     if (localPath.isEmpty()) {
         qDebug() << "[TerminalView] SCP download failed for" << word;
@@ -111,7 +171,7 @@ void TerminalView::mouseMoveEvent(QMouseEvent *event)
         return;
     }
 
-    // Start drag with local file URL
+    // Start drag with local file URL so desktop apps can receive it
     auto *mime = new QMimeData();
     mime->setText(localPath);
 
@@ -126,6 +186,12 @@ void TerminalView::mouseMoveEvent(QMouseEvent *event)
     // Do not call base after starting a drag
 }
 
+/*
+ * wordAtPosition
+ * --------------
+ * Returns the word under the mouse cursor position using Qt’s built-in
+ * WordUnderCursor selection.
+ */
 QString TerminalView::wordAtPosition(const QPoint &pos) const
 {
     QTextCursor c = cursorForPosition(pos);
@@ -133,7 +199,21 @@ QString TerminalView::wordAtPosition(const QPoint &pos) const
     return c.selectedText();
 }
 
-// Helper: run `scp user@host:filename /tmp/pq-ssh-drops/filename`
+/*
+ * downloadRemoteFileForDrag
+ * -------------------------
+ * Implements a simple scp-based fetch:
+ *    scp user@host:<fileName> /tmp/pq-ssh-drops/<fileName>
+ *
+ * Behavior:
+ *  - Creates a temp dir under QDir::tempPath()
+ *  - Avoids overwriting existing files by adding _N suffix
+ *  - Runs scp synchronously (blocking) up to 30 seconds
+ *
+ * NOTE:
+ *  - This is intentionally “simple v1”.
+ *  - Future: replace with libssh+sftp for consistency and better UX.
+ */
 QString TerminalView::downloadRemoteFileForDrag(const QString &fileName) const
 {
     if (fileName.isEmpty())
@@ -209,16 +289,27 @@ QString TerminalView::downloadRemoteFileForDrag(const QString &fileName) const
     return localPath;
 }
 
+/*
+ * applyTerminalBackground
+ * -----------------------
+ * Forces a specific background color for both:
+ *  - the widget frame area (Window)
+ *  - the editable text area (Base)
+ *  - the viewport palette + stylesheet as extra protection
+ *
+ * This exists because Qt style sheets and parent palettes can override
+ * QPlainTextEdit backgrounds and cause “gray until first repaint” effects.
+ */
 void TerminalView::applyTerminalBackground(const QColor& bg)
 {
-    // This affects the widget "outside" the viewport
     setAutoFillBackground(true);
+
     QPalette p = palette();
     p.setColor(QPalette::Window, bg);
-    p.setColor(QPalette::Base, bg);   // ✅ this is the text area's bg
+    p.setColor(QPalette::Base, bg);   // text area background
     setPalette(p);
 
-    // This affects the actual painted area
+    // Viewport is where QPlainTextEdit actually paints text/background
     viewport()->setAutoFillBackground(true);
     viewport()->setPalette(p);
 
@@ -229,6 +320,18 @@ void TerminalView::applyTerminalBackground(const QColor& bg)
     ).arg(bg.name()));
 }
 
+/*
+ * dragEnterEvent / dropEvent
+ * --------------------------
+ * Implements local file drop INTO the terminal area:
+ *  - Accept file URLs
+ *  - Read file bytes (after a short delay)
+ *  - Emit fileDropped(path, content)
+ *
+ * Delay rationale:
+ *  - Some desktop environments provide a temporary “portal” file that
+ *    becomes readable slightly later, which can otherwise appear as 0 bytes.
+ */
 void TerminalView::dragEnterEvent(QDragEnterEvent *event)
 {
     if (event->mimeData()->hasUrls())
@@ -265,7 +368,7 @@ void TerminalView::dropEvent(QDropEvent *event)
 
     event->acceptProposedAction();
 
-    // 🔹 Wait a bit longer to avoid 0-byte portal/temporary file issues
+    // Wait a bit longer to avoid 0-byte portal/temporary file issues
     QTimer::singleShot(200, this, [this, filePath]() {
         QFileInfo fi2(filePath);
         qDebug() << "[DROP] after delay path:" << filePath
@@ -287,4 +390,3 @@ void TerminalView::dropEvent(QDropEvent *event)
         emit fileDropped(filePath, content);
     });
 }
-
