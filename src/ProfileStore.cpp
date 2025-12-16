@@ -8,19 +8,48 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+/*
+    ProfileStore
+    ------------
+    Responsible for loading/saving SSH profiles (JSON-backed).
+
+    Current design (dev-friendly):
+    - profiles.json lives inside the *project* folder:
+        pq-ssh/profiles/profiles.json
+
+    Notes:
+    - This is not yet the typical "installed app config" approach.
+      (Installed apps usually store config under QStandardPaths.)
+    - For now, this is convenient while iterating locally.
+*/
+
 QString ProfileStore::configPath()
 {
-    // Profiles live inside the project directory now:
-    // pq-ssh/profiles/profiles.json
+    /*
+        We locate profiles.json relative to the built binary.
+
+        Typical dev layout:
+            pq-ssh/
+              profiles/profiles.json
+              build/
+                bin/
+                  pq-ssh   <-- applicationDirPath() points here
+
+        So:
+            applicationDirPath() = .../pq-ssh/build/bin
+            cdUp() -> .../pq-ssh/build
+            cdUp() -> .../pq-ssh
+    */
 
     QString baseDir = QCoreApplication::applicationDirPath();
 
-    // If binary is in build/bin/, go up two levels to project root
     QDir dir(baseDir);
-    dir.cdUp(); // bin -> build
-    dir.cdUp(); // build -> pq-ssh
+    dir.cdUp(); // bin  -> build
+    dir.cdUp(); // build -> pq-ssh (project root)
 
     const QString profilesDir = dir.absolutePath() + "/profiles";
+
+    // Ensure folder exists so save() can write successfully
     if (!QDir().exists(profilesDir)) {
         QDir().mkpath(profilesDir);
     }
@@ -30,6 +59,10 @@ QString ProfileStore::configPath()
 
 QVector<SshProfile> ProfileStore::defaults()
 {
+    /*
+        Seed profile(s) for first run / empty config.
+        Caller may use these if load() returns empty.
+    */
     QVector<SshProfile> out;
 
     const QString user = qEnvironmentVariable("USER", "user");
@@ -39,17 +72,22 @@ QVector<SshProfile> ProfileStore::defaults()
     p.user    = user;
     p.host    = "localhost";
     p.port    = 22;
+
+    // Debug defaults: currently enabled for localhost so dev logs are visible
     p.pqDebug = true;
 
+    // Terminal UX defaults (feel free to tune as you iterate)
     p.termColorScheme = "WhiteOnBlack";
     p.termFontSize    = 11;
     p.termWidth       = 900;
     p.termHeight      = 500;
 
-    // ✅ NEW: terminal scrollback history (0 = unlimited)
+    // Scrollback history (0 = unlimited). You default to 2000 lines.
     p.historyLines    = 2000;
 
-    // Key auth defaults (empty keyFile means "not set")
+    // Key auth defaults:
+    // - keyFile empty = "not set"
+    // - keyType "auto" means "let libssh/OpenSSH defaults decide"
     p.keyFile = "";
     p.keyType = "auto";
 
@@ -59,29 +97,57 @@ QVector<SshProfile> ProfileStore::defaults()
 
 bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
 {
+    /*
+        JSON format:
+        {
+          "profiles": [
+            {
+              "name": "...",
+              "user": "...",
+              "host": "...",
+              "port": 22,
+              "pq_debug": true,
+              "term_color_scheme": "...",
+              "term_font_size": 11,
+              "term_width": 900,
+              "term_height": 500,
+              "history_lines": 2000,
+              "key_file": "...",        // optional
+              "key_type": "auto"        // always stored
+            },
+            ...
+          ]
+        }
+    */
+
     QJsonArray arr;
     for (const auto &prof : profiles) {
         QJsonObject obj;
+
+        // Connection identity
         obj["name"]     = prof.name;
         obj["user"]     = prof.user;
         obj["host"]     = prof.host;
         obj["port"]     = prof.port;
+
+        // UI / diagnostics flags
         obj["pq_debug"] = prof.pqDebug;
 
+        // Terminal presentation
         obj["term_color_scheme"] = prof.termColorScheme;
         obj["term_font_size"]    = prof.termFontSize;
         obj["term_width"]        = prof.termWidth;
         obj["term_height"]       = prof.termHeight;
 
-        // ✅ NEW: scrollback history (0 = unlimited)
+        // Scrollback history lines (0 = unlimited)
         obj["history_lines"]     = prof.historyLines;
 
-        // Key-based auth (optional)
+        // Key-based auth: store key_file only if explicitly set
         if (!prof.keyFile.trimmed().isEmpty())
             obj["key_file"] = prof.keyFile;
 
-        // Always store key_type (so we can evolve behavior later cleanly)
-        // If you prefer, you can omit when "auto", but storing is harmless.
+        // Always store key_type to keep schema stable as features evolve
+        // (Even if "auto" today, future versions can interpret additional values.)
         obj["key_type"] = prof.keyType.trimmed().isEmpty() ? QString("auto") : prof.keyType;
 
         arr.append(obj);
@@ -107,11 +173,20 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
 
 QVector<SshProfile> ProfileStore::load(QString* err)
 {
+    /*
+        Load profiles from configPath().
+
+        Behavior:
+        - If file doesn't exist -> returns empty list (not an error).
+        - If JSON invalid -> returns empty list and sets err.
+        - Invalid profiles (missing host/user) are skipped.
+    */
+
     QVector<SshProfile> out;
 
     QFile f(configPath());
     if (!f.exists()) {
-        if (err) err->clear(); // not an error; caller may seed defaults
+        if (err) err->clear(); // not an error; caller may seed defaults()
         return out;
     }
 
@@ -140,29 +215,36 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         const QJsonObject obj = val.toObject();
 
         SshProfile p;
+
+        // Connection identity
         p.name    = obj.value("name").toString();
         p.user    = obj.value("user").toString();
         p.host    = obj.value("host").toString();
         p.port    = obj.value("port").toInt(22);
+
+        // Diagnostics / UI flags
         p.pqDebug = obj.value("pq_debug").toBool(true);
 
+        // Terminal defaults if missing
         p.termColorScheme = obj.value("term_color_scheme").toString("WhiteOnBlack");
         p.termFontSize    = obj.value("term_font_size").toInt(11);
         p.termWidth       = obj.value("term_width").toInt(900);
         p.termHeight      = obj.value("term_height").toInt(500);
 
-        // ✅ NEW: scrollback history (0 = unlimited)
+        // Scrollback defaults if missing
         p.historyLines    = obj.value("history_lines").toInt(2000);
 
-        // Key-based auth (optional)
+        // Key auth fields (optional but supported)
         p.keyFile = obj.value("key_file").toString();
         p.keyType = obj.value("key_type").toString("auto").trimmed();
         if (p.keyType.isEmpty())
             p.keyType = "auto";
 
+        // Skip incomplete profiles
         if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty())
             continue;
 
+        // If name missing, generate something human-readable
         if (p.name.trimmed().isEmpty())
             p.name = QString("%1@%2").arg(p.user, p.host);
 
