@@ -5,6 +5,10 @@
 #include <QJsonObject>
 #include <QStringList>
 
+/*
+ * Forward declarations for Qt widgets used by the dialog.
+ * Keeps compile times lower and avoids heavy includes in the header.
+ */
 class QTabWidget;
 class QTableWidget;
 class QLabel;
@@ -15,33 +19,72 @@ class QLineEdit;
 class QDateTimeEdit;
 class QSpinBox;
 
+/*
+ * KeyGeneratorDialog
+ * ------------------
+ * UI dialog responsible for:
+ *  - Generating SSH keys (OpenSSH + Dilithium5)
+ *  - Encrypting Dilithium private keys at rest
+ *  - Managing key metadata (label, owner, purpose, expiry, rotation)
+ *  - Displaying a key inventory table
+ *  - Installing selected public keys to remote servers via profiles
+ *
+ * This dialog is UI-centric:
+ *  - Cryptography lives in DilithiumKeyCrypto.*
+ *  - SSH operations are delegated to MainWindow / SshClient
+ */
 class KeyGeneratorDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit KeyGeneratorDialog(const QStringList& profileNames, QWidget *parent = nullptr);
+    /*
+     * @param profileNames  List of available SSH profile names.
+     *                      Used when installing a public key to a remote host.
+     */
+    explicit KeyGeneratorDialog(const QStringList& profileNames,
+                                QWidget *parent = nullptr);
 
 signals:
+    /*
+     * Emitted when the user confirms installing a selected public key.
+     *
+     * @param pubKeyLine     Full OpenSSH-compatible public key line
+     * @param profileIndex  Index into profileNames (resolved by MainWindow)
+     *
+     * MainWindow owns the actual SSH connection and remote key installation.
+     */
     void installPublicKeyRequested(const QString& pubKeyLine, int profileIndex);
 
 private slots:
+    // Key generation / inventory refresh
     void onGenerate();
     void refreshKeysTable();
     void onKeySelectionChanged();
 
+    // Clipboard / export actions
     void onCopyFingerprint();
     void onCopyPublicKey();
     void onExportPublicKey();
 
+    // Metadata & lifecycle actions
     void onEditMetadata();
     void onMarkRevoked();
     void onDeleteKey();
 
+    // Context menu + install flow
     void onKeysContextMenuRequested(const QPoint& pos);
     void onInstallSelectedKey();
 
 private:
+    /*
+     * KeyRow
+     * ------
+     * Aggregated view-model for one key entry in the inventory table.
+     * Combines:
+     *  - metadata.json content
+     *  - filesystem-discovered key files
+     */
     struct KeyRow {
         QString fingerprint;
 
@@ -65,16 +108,36 @@ private:
         bool hasFiles = false;
     };
 
-    // Paths / helpers
+    // ---------------------------------------------------------------------
+    // Paths & helpers
+    // ---------------------------------------------------------------------
+
+    // ~/.pq-ssh/keys
     QString keysDir() const;
+
+    // ~/.pq-ssh/keys/metadata.json
     QString metadataPath() const;
 
     bool ensureKeysDir(QString *errOut);
-    bool runSshKeygen(const QString &algo, const QString &privPath,
-                      const QString &comment, const QString &passphrase,
+
+    /*
+     * Runs ssh-keygen (OpenSSH) or Dilithium5 stub generator.
+     * Writes raw key material to disk; encryption handled elsewhere.
+     */
+    bool runSshKeygen(const QString &algo,
+                      const QString &privPath,
+                      const QString &comment,
+                      const QString &passphrase,
                       QString *errOut);
 
-    bool computeFingerprint(const QString &pubPath, QString *fpOut, QString *errOut);
+    // Computes SHA256 fingerprint for OpenSSH or PQSSH public keys
+    bool computeFingerprint(const QString &pubPath,
+                            QString *fpOut,
+                            QString *errOut);
+
+    // ---------------------------------------------------------------------
+    // Metadata persistence
+    // ---------------------------------------------------------------------
 
     bool loadMetadata(QMap<QString, QJsonObject> *out, QString *errOut);
     bool writeMetadata(const QJsonObject &root, QString *errOut);
@@ -92,13 +155,21 @@ private:
                       const QString &pubPath,
                       QString *errOut);
 
+    // Reads first line of a .pub file
     QString readPublicKeyLine(const QString &pubPath);
 
+    /*
+     * Builds the inventory by merging:
+     *  - *.pub files on disk
+     *  - entries from metadata.json
+     */
     QMap<QString, KeyRow> buildInventory(QString *errOut);
 
+    // Helpers for table selection
     int selectedTableRow() const;
     KeyRow selectedRow() const;
 
+    // Updates editable metadata fields for an existing key
     bool updateMetadataFields(const QString &fingerprint,
                               const QString &label,
                               const QString &owner,
@@ -108,14 +179,18 @@ private:
                               QString *errOut);
 
 private:
+    // Names of SSH profiles (owned by MainWindow)
     QStringList m_profileNames;
 
-    // UI
+    // ---------------------------------------------------------------------
+    // UI widgets
+    // ---------------------------------------------------------------------
+
     QTabWidget *m_tabs{};
     QLabel *m_resultLabel{};
     QLabel *m_keysHintLabel{};
 
-    // Generate tab controls
+    // Generate tab
     QComboBox *m_algoCombo{};
     QLineEdit *m_keyNameEdit{};
     QLineEdit *m_labelEdit{};
@@ -129,7 +204,7 @@ private:
     QLineEdit *m_pass2Edit{};
     QPushButton *m_generateBtn{};
 
-    // Keys tab controls
+    // Keys tab
     QTableWidget *m_table{};
     QPushButton *m_refreshBtn{};
     QPushButton *m_copyFpBtn{};
@@ -141,7 +216,7 @@ private:
     QPushButton *m_deleteBtn{};
     QCheckBox *m_deleteFilesCheck{};
 
-    // Sorting + inventory
+    // Sorting + inventory state
     int m_sortColumn = 0;
     Qt::SortOrder m_sortOrder = Qt::AscendingOrder;
     QMap<QString, KeyRow> m_inventory;
