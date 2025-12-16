@@ -1,0 +1,35 @@
+We are continuing development of pq-ssh, a Qt/C++ SSH client with post-quantum experiments.
+
+Key facts:
+- Language: C++17 + Qt (Widgets)
+- SSH backend: libssh
+- Terminal: QTermWidget + custom TerminalView
+- Project has an ARCHITECTURE.md that describes the structure
+- We already heavily commented these files:
+  - DilithiumKeyCrypto.{h,cpp}
+  - KeyGeneratorDialog.{h,cpp}
+  - SshClient.{h,cpp}
+  - SshShellWorker.{h,cpp}
+  - TerminalView.{h,cpp}
+  - ProfileStore.{h,cpp}
+  - ProfilesEditorDialog.{h,cpp}
+  - ThemeInstaller.cpp
+- Current state:
+  - Dilithium keys are encrypted at rest using libsodium (Argon2id + XChaCha20-Poly1305)
+  - Dilithium is NOT used for SSH authentication yet
+  - Key installation only uploads OpenSSH-style public keys
+  - No DNA-identity logic yet (intentionally postponed)
+
+Goal for this session:
+<write what you want to do now>
+
+
+    ***************************
+
+Every few days (or before a break), do this once:
+    
+Status snapshot (date):
+- Last thing we finished:
+- Known TODOs:
+- Known design constraints:
+- Things explicitly NOT decided yet:
