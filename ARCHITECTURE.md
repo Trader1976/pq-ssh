@@ -1,271 +1,291 @@
+# pq-ssh Architecture
 
-•	pq-ssh Architecture
-pq-ssh is a Qt (Widgets) desktop SSH client built on top of OpenSSH, libssh, and qtermwidget.
-It provides a profile-based GUI for connecting to SSH servers, working in an interactive terminal, and managing SSH keys (including PQ-SSH’s Dilithium-related key tooling).
-This document describes the architecture at a module and responsibility level, focusing on current, implemented behavior.
-________________________________________
-•	Goals
-•	Simple, profile-based SSH connections (host / user / port).
-•	Embedded interactive terminal sessions driven by OpenSSH.
-•	Clear separation between UI orchestration, SSH/session logic, and terminal presentation.
-•	Safe, repeatable (“idempotent”) remote public-key installation.
-•	Consistent theming across platforms and builds.
-•	Optional verbose diagnostics gated behind an explicit debug mode.
-________________________________________
-•	Non-goals
-•	Replacing OpenSSH server-side components.
-•	Requiring server-side configuration changes.
-•	Implementing identity or naming systems not yet defined.
-•	Acting as a full SSH feature superset (only implemented features are in scope).
-________________________________________
-•	Repository Layout
+pq-ssh is a Qt (Widgets)–based desktop SSH client built on top of **libssh** and **qtermwidget**.  
+It focuses on a clean, profile-driven UI, embedded terminals, safe SSH key handling, and **experimental post-quantum (PQ) key management** — without requiring any server-side changes.
+
+This document describes the **current implemented architecture** of pq-ssh.  
+Speculative features and future directions are explicitly called out and **not** mixed with current behavior.
+
+---
+
+## Goals
+
+- Simple, profile-based SSH connections (host / user / port).
+- Embedded interactive terminal inside the application.
+- Clear separation between UI, SSH/session logic, and terminal rendering.
+- Safe, repeatable (“idempotent”) public-key installation on remote hosts.
+- Post-quantum **key generation and at-rest protection** (client-side only).
+- Consistent theming across platforms and installations.
+- Explicit control over debug verbosity (PQ / SSH diagnostics).
+
+---
+
+## Non-Goals (Current Scope)
+
+- Replacing OpenSSH server-side components.
+- Requiring server-side configuration changes.
+- Using post-quantum keys for SSH authentication on stock OpenSSH servers.
+- Implementing decentralized identity (DNA identity, agents, etc.).
+- Acting as a full OpenSSH feature superset.
+
+---
+
+## Repository Layout
+
 /
-├── src/ # Application source code (Qt / C++)
-│ ├── main.cpp # Application entry point (logger install, app init)
-│ ├── MainWindow.* # Main UI orchestration + workflows
+├── src/
+│ ├── main.cpp # Application entry point
+│ ├── MainWindow.* # Main UI orchestration
 │ ├── AppTheme.* # Global Qt widget theming
-│ ├── Logger.* # Application logging utilities
+│ ├── Logger.* # Centralized logging
 │
 │ ├── ProfileStore.* # Profile persistence (JSON-backed)
 │ ├── SshProfile.h # SSH profile data model
 │ ├── ProfilesEditorDialog.* # Profile editor UI
 │
-│ ├── SshClient.* # libssh session wrapper (SFTP/control-plane + key install)
-│ ├── SshShellWorker.* # SSH shell execution worker (legacy/auxiliary)
-│ ├── SshShellHelpers.h # Shared helpers for shell/PTY setup
+│ ├── SshClient.* # libssh session wrapper
+│ ├── SshShellWorker.* # SSH PTY shell worker
+│ ├── SshShellHelpers.h # Shell / PTY helpers
 │
-│ ├── ShellManager.* # Lifecycle management of shell sessions (auxiliary)
-│ ├── TerminalView.* # Terminal container widget (auxiliary)
-│ ├── CpunkTermWidget.* # qtermwidget integration, drag/drop, autostart fixes
+│ ├── TerminalView.* # Lightweight terminal widget (QPlainTextEdit)
+│ ├── CpunkTermWidget.* # qtermwidget integration & fixes
 │
-│ ├── KeyGeneratorDialog.* # Key generation + key inventory UI
-│ ├── DilithiumKeyCrypto.* # Dilithium key encryption/decryption helpers
-│ ├── KeyMetadataUtils.* # Key metadata parsing + expiration handling
+│ ├── KeyGeneratorDialog.* # Key generation & inventory UI
+│ ├── DilithiumKeyCrypto.* # PQ private-key encryption (libsodium)
+│ ├── KeyMetadataUtils.* # Metadata parsing & expiration handling
 │
-│ ├── ThemeInstaller.* # Terminal color theme installation
-│ └── SSH_KeyTypeSpecification.html # Reference documentation
+│ ├── ThemeInstaller.* # Terminal color scheme installer
+│ └── SSH_KeyTypeSpecification.html # Experimental PQ SSH key draft (reference)
 │
-├── resources/ # Qt resources bundled into the binary
-│ ├── color-schemes/ # Terminal color themes
-│ ├── docs/ # User manual and help documents
+├── resources/
+│ ├── color-schemes/ # Bundled terminal themes
+│ ├── docs/ # User manual
 │ └── pqssh_resources.qrc # Qt resource manifest
 │
 ├── profiles/
-│ └── profiles.json # Default profiles shipped with the repo
+│ └── profiles.json # Runtime SSH profiles
 │
-├── ARCHITECTURE.md # Architectural overview (this document)
-├── README.md # Project overview
-├── CMakeLists.txt # Build configuration
+├── ARCHITECTURE.md
+├── README.md
+├── CMakeLists.txt
 ├── LICENSE
 ├── DUAL_LICENSE.md
 └── THIRD_PARTY_LICENSES.md
-________________________________________
-•	High-level Modules
-•	Main UI Layer
-Files:
-•	MainWindow.h/.cpp
-•	AppTheme.h/.cpp
-•	Logger.h/.cpp
-Responsibilities:
-•	Owns the main window, menus, dialogs, and layout.
-•	Orchestrates user actions (connect, disconnect, key install, profile edit).
-•	Applies global Qt widget theming.
-•	Displays logs, status messages, and user-facing errors.
-•	Controls whether verbose diagnostics are shown in the UI (debug-gated).
-Design notes:
-•	UI code avoids blocking network work (libssh connect runs async).
-•	OpenSSH terminal sessions are launched as child processes via the terminal widget.
-•	Detailed logs go to file; UI is intentionally quieter unless PQ debug is enabled.
-________________________________________
-•	Profiles & Configuration
-Files:
-•	ProfileStore.h/.cpp
-•	SshProfile.h
-•	ProfilesEditorDialog.h/.cpp
-•	profiles/profiles.json
-Responsibilities:
-•	Load and save SSH profiles from JSON (single source of truth for connection parameters).
-•	Provide a profile editor UI so users do not need to edit JSON manually.
-•	Apply selected profile values to the UI (host line, debug toggle, etc.).
-Design notes:
-•	Profiles are configuration, not runtime session state.
-•	Profile changes should immediately reflect in the UI.
-________________________________________
-•	Connection Model (Two Planes)
-pq-ssh uses two related but independent connection mechanisms:
-1.	Interactive shell plane (OpenSSH)
-o	Used for the actual user terminal session.
-o	Launched as an ssh process inside qtermwidget (wrapped by CpunkTermWidget).
-2.	Control plane (libssh via SshClient)
-o	Used for SFTP and server-side operations (key install, uploads, remote pwd).
-o	Connected asynchronously and may fail without breaking the terminal session.
-This split is intentional:
-•	The terminal experience stays close to standard OpenSSH behavior.
-•	libssh provides structured APIs for file transfer and controlled remote file edits.
-________________________________________
-•	SSH Session & Control Plane (SshClient)
-Files:
-•	SshClient.h/.cpp
-Responsibilities (current behavior):
-•	Establish and hold a libssh session for a selected profile.
-•	Provide SFTP helpers (upload bytes, read remote pwd).
-•	Implement safe remote public key installation into ~/.ssh/authorized_keys.
-•	Provide a passphrase provider callback (UI supplies passphrase on demand).
-Design notes:
-•	libssh connection is created in the background (via QtConcurrent / QFutureWatcher).
-•	Failure degrades features (SFTP/key install) but does not stop OpenSSH terminal sessions.
-•	No secrets are logged; errors are surfaced to the UI safely.
-________________________________________
-•	Terminal Integration (Interactive Shell)
-Files:
-•	CpunkTermWidget.h/.cpp
-•	(auxiliary / evolving: TerminalView.*, ShellManager.*, SshShellWorker.*)
-Responsibilities (current behavior in MainWindow):
-•	Create an interactive terminal widget and run OpenSSH inside it.
-•	Apply per-profile terminal options (history size, font size, color scheme).
-•	Prevent accidental fallback to a local shell by using exec ssh.
-•	Support drag-and-drop upload integration.
-Design notes:
-•	The terminal must accept input immediately (focus enforcement).
-•	Terminal styling is protected from global Qt stylesheet bleed.
-•	“WhiteOnBlack” is forced to true black where needed to avoid gray gutters/flicker.
-________________________________________
-•	PQ Awareness (Best-effort Probe)
-Files:
-•	Implemented primarily in MainWindow.cpp via QProcess running ssh.
-Responsibilities:
-•	Perform a short-lived OpenSSH probe using:
-o	KexAlgorithms=sntrup761x25519-sha512@openssh.com
-o	authentication disabled (PreferredAuthentications=none, BatchMode=yes, etc.)
-•	Parse stderr to decide whether PQ KEX is available on the target.
-•	Update a UI label:
-o	PQ: ACTIVE (green) or PQ: OFF (red)
-Design notes:
-•	The probe is informational and does not control the actual terminal session.
-•	Probe noise is printed to the UI only when PQ debug is enabled; always logged to file.
-________________________________________
-•	Key Management & Cryptography
-Files:
-•	KeyGeneratorDialog.h/.cpp
-•	DilithiumKeyCrypto.h/.cpp
-•	KeyMetadataUtils.h/.cpp
-Responsibilities:
-•	Key UI flows (generation/inventory via KeyGeneratorDialog).
-•	Key metadata parsing and expiration handling (KeyMetadataUtils).
-•	Encrypted Dilithium key operations and dev-only validation tools (DilithiumKeyCrypto).
-Design notes:
-•	Cryptographic logic is isolated from UI orchestration.
-•	Debug/test functionality is hidden unless explicitly enabled (PQ debug).
-•	Sensitive material is handled carefully:
-o	plaintext is not logged
-o	decrypted buffers are wiped (sodium_memzero) when used in dev tests
-________________________________________
-•	Key Installation Workflow (Remote authorized_keys Management)
-This workflow appends an OpenSSH public key line to the remote ~/.ssh/authorized_keys safely and idempotently.
-User flow:
-1.	User initiates “Install public key” (from Key Generator or menu).
-2.	Application confirms:
-o	profile name
-o	user/host/port
-o	remote path ~/.ssh/authorized_keys
-o	key type + short preview
-3.	Application ensures a libssh session exists (connects if needed).
-4.	Server-side operations are performed (via SshClient):
-o	Ensure ~/.ssh exists and permissions are correct.
-o	Backup existing authorized_keys if present.
-o	Append the key only if missing.
-o	Enforce permissions on authorized_keys.
-Design notes:
-•	Workflow is idempotent: repeating it does not duplicate keys.
-•	Existing keys are preserved and backed up.
-•	No SSH server configuration is modified.
-________________________________________
-•	Themes & Resources
-Files / directories:
-•	ThemeInstaller.h/.cpp
-•	resources/color-schemes/
-•	resources/docs/
-•	resources/pqssh_resources.qrc
-•	AppTheme.h/.cpp
-Responsibilities:
-•	Ship terminal color schemes with the application.
-•	Ensure consistent terminal appearance across installs.
-•	Bundle user manual and help documents into the binary (Qt resources).
-•	Apply a consistent dark theme to normal Qt widgets.
-Design notes:
-•	Terminal colors are handled independently from global widget stylesheet.
-•	Resource-based docs allow offline manual viewing.
-________________________________________
-•	Runtime Data Flow
-•	Typical Connect Flow (What actually happens today)
-1.	User selects a profile (UI fills user@host[:port], debug toggle, etc.).
-2.	User clicks Connect.
-3.	MainWindow:
-o	logs a session id for the attempt
-o	opens an interactive terminal session (OpenSSH in qtermwidget)
-o	starts a PQ KEX probe (short-lived ssh process)
-o	starts an async libssh connect (SFTP/control plane) when supported by profile key type
-4.	UI updates:
-o	Connect/Disconnect button states
-o	Status text
-o	PQ status label once probe completes
-5.	When the terminal exits:
-o	terminal tab/window closes
-o	libssh is disconnected
-o	UI returns to disconnected state
-Key rule:
-•	The interactive terminal is the “real” session.
-libssh is a helper channel for SFTP + key installation.
-________________________________________
-•	Drag & Drop Upload Behavior
-Drag-drop is handled from the terminal widget to MainWindow::onFileDropped().
-Behavior:
-•	If libssh is not connected:
-o	save dropped file to ~/pqssh_drops/ (local fallback)
-•	If libssh is connected:
-o	upload bytes via SFTP to $PWD/<filename> on the remote host
-Design notes:
-•	This is a safe degradation path: users never lose a dropped file.
-•	Remote destination is intentionally simple and predictable (current directory).
-________________________________________
-•	Threading Model
-•	Qt UI runs on the main thread.
-•	libssh connect and other potentially blocking operations run in background threads (QtConcurrent).
-•	Communication uses Qt signals/slots or watcher callbacks.
-Rule:
-•	Worker threads never manipulate UI widgets directly.
-Note:
-•	The OpenSSH terminal session itself is a child process managed by the terminal widget.
-________________________________________
-•	Logging & Diagnostics
-•	Application provides a user-accessible log file (Logger).
-•	Logs include connection lifecycle, probe results, and libssh diagnostics.
-•	UI log output is filtered:
-o	normal mode hides noisy diagnostics
-o	PQ debug mode shows more detail
-•	Secrets (passwords, private keys) are never logged.
-Common prefixes:
-•	[UI], [CONNECT], [SFTP], [PQ-PROBE], [TERM], [KEYS], [DEV], [SECURITY]
-Design notes:
-•	pq-ssh uses a “dual channel” approach:
-o	file log = always detailed
-o	UI terminal = user-friendly unless debug enabled
-________________________________________
-•	User Manual
-•	Manual is embedded as a Qt resource (qrc:/docs/user-manual.html).
-•	Displayed in a QTextBrowser dialog with dark styling and external links enabled.
-•	If resource is missing, UI shows a warning line.
-________________________________________
-•	Theming
-•	Global Qt widget theme is applied via AppTheme.
-•	Terminal colors are handled via shipped color schemes and explicit safeguards.
-•	Terminal widgets are protected from global stylesheets to avoid unintended palette bleed.
-________________________________________
-•	Notes for Contributors
-•	Keep UI orchestration separate from SSH and cryptographic logic.
-•	Do not block the UI thread.
-•	Prefer explicit ownership and cleanup of SSH resources.
-•	Degrade features gracefully:
-o	terminal should still work even if libssh fails
-•	Document why decisions are made, not just what the code does.
 
+---
+
+## High-Level Modules
+
+### 1. Main UI Layer
+
+**Files**
+- `MainWindow.h/.cpp`
+- `AppTheme.h/.cpp`
+- `Logger.h/.cpp`
+
+**Responsibilities**
+- Owns the main window, menus, dialogs, and layout.
+- Coordinates user actions (connect, disconnect, key install, profile edit).
+- Applies global Qt widget theming.
+- Displays logs, status messages, and errors.
+- Controls debug verbosity (e.g. PQ / SSH diagnostics).
+
+**Design Notes**
+- UI code never performs blocking SSH operations.
+- All network and shell work is delegated to worker components.
+- Errors are surfaced in a user-readable form.
+
+---
+
+### 2. Profiles & Configuration
+
+**Files**
+- `ProfileStore.h/.cpp`
+- `SshProfile.h`
+- `ProfilesEditorDialog.h/.cpp`
+- `profiles/profiles.json`
+
+**Responsibilities**
+- Load and save SSH profiles as JSON.
+- Provide a GUI editor so users never edit JSON manually.
+- Store terminal preferences (size, font, colors, history).
+- Store optional key-based authentication settings.
+
+**Design Notes**
+- Profiles are runtime user data, not bundled resources.
+- Profiles are validated before being saved.
+- Defaults are provided when no configuration exists.
+
+---
+
+### 3. SSH Session & Shell Execution
+
+**Files**
+- `SshClient.h/.cpp`
+- `SshShellWorker.h/.cpp`
+- `SshShellHelpers.h`
+
+**Responsibilities**
+- Wrap libssh session creation and configuration.
+- Perform password and/or key-based authentication.
+- Execute remote commands and file transfers.
+- Open PTY-backed interactive shells.
+- Cleanly manage SSH session lifecycle.
+
+**Design Notes**
+- SSH operations run outside the UI thread.
+- Worker communication uses Qt signals/slots.
+- Resources are explicitly closed and cleaned up.
+- Secrets are never logged.
+
+---
+
+### 4. Terminal Integration
+
+**Files**
+- `TerminalView.h/.cpp`
+- `CpunkTermWidget.h/.cpp`
+
+**Responsibilities**
+- Embed interactive terminals inside the UI.
+- Bridge SSH shell I/O to the terminal widgets.
+- Apply terminal color schemes and font settings.
+- Support drag-and-drop:
+  - Local → remote (upload)
+  - Remote → local (via SCP helper)
+
+**Design Notes**
+- `TerminalView` is a lightweight custom terminal for SSH shell I/O.
+- `CpunkTermWidget` is used where a full terminal emulator is required.
+- Terminal appearance is isolated from global Qt styles.
+
+---
+
+### 5. Key Management & Cryptography
+
+**Files**
+- `KeyGeneratorDialog.h/.cpp`
+- `DilithiumKeyCrypto.h/.cpp`
+- `KeyMetadataUtils.h/.cpp`
+
+**Responsibilities**
+- Generate SSH keys (Ed25519, RSA, experimental Dilithium5).
+- Maintain a local key inventory with metadata.
+- Encrypt Dilithium private keys at rest using libsodium.
+- Track expiration, rotation, and status (active / expired / revoked).
+- Provide safe UI workflows for key installation.
+
+**Important Current Behavior**
+- **Dilithium keys are NOT used for SSH authentication.**
+- Dilithium private keys are:
+  - Encrypted using Argon2id + XChaCha20-Poly1305
+  - Stored as `.enc` files
+- Only **OpenSSH-compatible public keys** are installed on servers.
+
+---
+
+### 6. Remote Key Installation Workflow
+
+**User Flow**
+1. User selects a public key in the Key Generator.
+2. User chooses a target profile.
+3. Application confirms host, user, port, and key preview.
+4. Application connects to the server (typically via password auth).
+5. Remote commands are executed:
+   - Ensure `~/.ssh` exists with correct permissions  
+     ```
+     mkdir -p ~/.ssh && chmod 700 ~/.ssh
+     ```
+   - If `authorized_keys` exists, create a timestamped backup.
+   - Append the public key **only if it is not already present**.
+   - Fix permissions:
+     ```
+     chmod 600 ~/.ssh/authorized_keys
+     ```
+6. UI reports success or failure.
+
+**Design Notes**
+- Workflow is idempotent (safe to repeat).
+- Existing keys are preserved.
+- No server-side configuration is modified.
+
+---
+
+### 7. Themes & Resources
+
+**Files**
+- `ThemeInstaller.h/.cpp`
+- `resources/color-schemes/`
+- `resources/docs/`
+- `resources/pqssh_resources.qrc`
+
+**Responsibilities**
+- Bundle terminal color schemes with the application.
+- Install schemes to system or user locations as appropriate.
+- Ensure consistent terminal appearance across installs.
+- Bundle user documentation into the binary.
+
+---
+
+## Runtime Data Flow
+
+### Typical Connect Flow
+
+1. User selects a profile.
+2. UI requests connection via `SshClient`.
+3. SSH session is created and authenticated.
+4. A PTY-backed shell channel is opened.
+5. Terminal widget is attached to shell I/O.
+6. UI updates connection state and logs progress.
+
+---
+
+## Threading Model
+
+- Qt UI runs on the main thread.
+- SSH sessions and shell workers run in background threads.
+- Communication uses Qt signals/slots with queued connections.
+
+**Rule**
+- Worker threads must never manipulate UI widgets directly.
+
+---
+
+## Logging & Diagnostics
+
+- Centralized logging via `Logger`.
+- Log file stored in application data directory.
+- Log rotation is supported.
+- Verbose SSH / PQ diagnostics are gated behind debug flags.
+- Secrets (passwords, private keys) are never logged.
+
+**Typical prefixes**
+- `[UI]`, `[SSH]`, `[SHELL]`, `[TERM]`, `[KEYS]`
+
+---
+
+## Notes for Contributors
+
+- Keep UI, SSH, terminal, and crypto logic strictly separated.
+- Do not block the UI thread.
+- Be explicit about ownership and cleanup.
+- Prefer clear, defensive code over clever abstractions.
+- Document **why** a design choice exists, not just **what** it does.
+
+---
+
+## Status Summary
+
+**Implemented**
+- Profile-based SSH connections
+- Embedded terminals
+- Key generation and inventory
+- Encrypted Dilithium private keys (at rest)
+- Safe public-key installation
+- Theming and resource bundling
+
+**Explicitly Not Implemented (Yet)**
+- PQ SSH authentication
+- SSH agent / agent forwarding
+- DNA identity integration
+- Server-side PQ support
