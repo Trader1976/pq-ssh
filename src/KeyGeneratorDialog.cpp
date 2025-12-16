@@ -1,3 +1,27 @@
+// KeyGeneratorDialog.cpp
+//
+// Purpose:
+//   GUI for generating, inventorying, and managing SSH keys used by pq-ssh.
+//
+// Responsibilities:
+//   - Generate keys (OpenSSH ed25519 / RSA, plus Dilithium5 stub)
+//   - Encrypt Dilithium private keys at rest using libsodium
+//   - Maintain metadata.json describing keys (labels, owner, expiry, status)
+//   - Provide a searchable/sortable key inventory UI
+//   - Export / copy public keys
+//   - Emit signal to install selected public key onto a remote server
+//
+// Non-goals (by design):
+//   - No direct SSH connections here
+//   - No server-side logic
+//   - No DNA-identity concepts (explicitly excluded for now)
+//
+// Security model:
+//   - Private keys live under ~/.pq-ssh/keys
+//   - Dilithium private keys are *always encrypted at rest*
+//   - OpenSSH keys may be encrypted or plaintext (detected automatically)
+//   - Passphrases are never logged or persisted
+//
 #include "KeyGeneratorDialog.h"
 #include "KeyMetadataUtils.h"
 #include "DilithiumKeyCrypto.h"
@@ -41,18 +65,23 @@
 
 
 
-
+// Return current UTC timestamp in ISO 8601 with milliseconds.
+// Used consistently across metadata.json.
 static QString isoUtcNow()
 {
     return QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
 }
-
+// Detect whether an OpenSSH private key is encrypted.
+//
+// Used purely for UI signaling (🔒 icon),
+// not for unlocking or decryption.
 static bool isOpenSshPrivateKeyEncrypted(const QString &privPath);
 
 // ---------------------------------------------------------------------------
 // libsodium init + base64 helpers
 // ---------------------------------------------------------------------------
-
+// libsodium must be initialized exactly once per process.
+// This helper enforces lazy, idempotent initialization.
 static bool sodiumInitOnce(QString *errOut)
 {
     static bool inited = false;
@@ -66,6 +95,8 @@ static bool sodiumInitOnce(QString *errOut)
     return true;
 }
 
+// Base64 without '=' padding.
+// Matches OpenSSH fingerprint style and avoids visual clutter.
 static QByteArray b64NoPad(const QByteArray &in)
 {
     QByteArray b = in.toBase64();
@@ -73,6 +104,8 @@ static QByteArray b64NoPad(const QByteArray &in)
     return b;
 }
 
+// Decode base64 while tolerating missing padding.
+// Useful when parsing public key lines.
 static QByteArray b64DecodeLoose(const QByteArray &in)
 {
     QByteArray b = in.trimmed();
@@ -84,7 +117,10 @@ static QByteArray b64DecodeLoose(const QByteArray &in)
 // ---------------------------------------------------------------------------
 // PQSSH helpers (Dilithium5 + fingerprints)
 // ---------------------------------------------------------------------------
-
+// Compute SHA256 fingerprint and format it as:
+//   SHA256:<base64-no-padding>
+//
+// This matches ssh-keygen -lf -E sha256 output format.
 static QString sha256Fingerprint(const QByteArray &data)
 {
     const QByteArray digest = QCryptographicHash::hash(data, QCryptographicHash::Sha256);
@@ -93,6 +129,15 @@ static QString sha256Fingerprint(const QByteArray &data)
     return "SHA256:" + b64;
 }
 
+// Temporary stub generator for Dilithium5 keys.
+//
+// IMPORTANT:
+//   This does NOT implement real Dilithium cryptography.
+//   It exists solely to validate UI flow, encryption-at-rest,
+//   metadata handling, and install mechanics.
+//
+// Future:
+//   Replace with real PQ keygen (liboqs / reference impl).
 static bool runDilithium5StubKeygen(const QString &privPath,
                                    const QString &comment,
                                    const QString &passphrase,
@@ -146,6 +191,12 @@ static bool runDilithium5StubKeygen(const QString &privPath,
 // ============================================================================
 // Inline helper dialog (must be defined BEFORE use in onEditMetadata())
 // ============================================================================
+// Lightweight modal dialog for editing *existing* key metadata.
+//
+// Embedded here intentionally:
+//   - Only used by KeyGeneratorDialog
+//   - Keeps metadata UX logic close to inventory logic
+//   - Avoids over-abstracting a UI that may change often
 class EditMetadataDialog : public QDialog
 {
 public:
@@ -239,7 +290,16 @@ private:
 // ============================================================================
 // KeyGeneratorDialog
 // ============================================================================
-
+// Main dialog constructor.
+//
+// UI structure:
+//   Tabs:
+//     1) Generate — create new keys + metadata
+//     2) Keys     — inventory, status, install, revoke, delete
+//
+// profileNames:
+//   Injected list of SSH profiles from MainWindow.
+//   Used ONLY for "Install selected key".
 KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget *parent)
     : QDialog(parent),
       m_profileNames(profileNames)
@@ -456,6 +516,22 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
     onKeySelectionChanged();
 }
 
+// ~/.pq-ssh/keys
+//   - id_ed25519_*.pub
+//   - id_ed25519_*
+//   - id_dilithium5_*.enc
+//   - metadata.json
+// Key generation flow (onGenerate):
+//
+// 1. Validate input (algo, passphrase rules)
+// 2. Ensure ~/.pq-ssh/keys exists
+// 3. Run ssh-keygen OR Dilithium stub generator
+// 4. If Dilithium:
+//      - Encrypt private key using DilithiumKeyCrypto
+//      - Remove plaintext private key
+// 5. Compute fingerprint
+// 6. Persist metadata.json entry
+// 7. Refresh inventory UI
 QString KeyGeneratorDialog::keysDir() const
 {
     return QDir(QDir::homePath()).filePath(".pq-ssh/keys");
@@ -665,6 +741,15 @@ QString KeyGeneratorDialog::readPublicKeyLine(const QString &pubPath)
     return line;
 }
 
+// Inventory is built by *merging*:
+//
+//   A) Files on disk (*.pub)
+//   B) metadata.json entries
+//
+// This allows:
+//   - Detecting orphaned files
+//   - Detecting missing metadata
+//   - Showing warnings visually in UI
 QMap<QString, KeyGeneratorDialog::KeyRow> KeyGeneratorDialog::buildInventory(QString *errOut)
 {
     QMap<QString, KeyRow> inv;
@@ -1290,6 +1375,14 @@ void KeyGeneratorDialog::onKeysContextMenuRequested(const QPoint& pos)
     menu.exec(m_table->viewport()->mapToGlobal(pos));
 }
 
+// Install selected key flow:
+//
+// 1. Validate .pub exists
+// 2. Let user choose target profile
+// 3. Local confirmation dialog (preview only)
+// 4. Emit installPublicKeyRequested(pubLine, profileIndex)
+//
+// Actual SSH work happens elsewhere.
 void KeyGeneratorDialog::onInstallSelectedKey()
 {
     KeyRow k = selectedRow();
