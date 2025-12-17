@@ -14,6 +14,7 @@ class QFileSystemModel;
 class QProgressDialog;
 
 class RemoteDropTable; // <-- real class (in RemoteDropTable.h)
+class QProgressDialog;
 
 class FilesTab : public QWidget
 {
@@ -36,6 +37,8 @@ private slots:
     void onRemoteFilesDropped(const QStringList& localPaths); // <-- drag→upload entry
 
     void onTransferProgress(quint64 done, quint64 total);
+    void uploadFolder();
+    void goLocalUp();
 
 private:
     void buildUi();
@@ -44,6 +47,7 @@ private:
 
     void runTransfer(const QString& title,
                      const std::function<bool(QString *err)> &fn);
+    void startUploadPaths(const QStringList& paths);
 
 private:
     SshClient *m_ssh = nullptr;
@@ -63,4 +67,8 @@ private:
 
     // Progress (one at a time for MVP)
     QProgressDialog *m_progressDlg = nullptr;
+    QPushButton *m_uploadFolderBtn = nullptr;
+    QPushButton *m_localUpBtn = nullptr;
+    QString m_localCwd;
+
 };

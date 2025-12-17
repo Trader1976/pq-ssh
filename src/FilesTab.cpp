@@ -16,6 +16,8 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QFutureWatcher>
 #include <QDateTime>
+#include <QDirIterator>
+#include <QSet>
 
 
 static QString prettySize(quint64 bytes)
@@ -34,6 +36,45 @@ FilesTab::FilesTab(SshClient *ssh, QWidget *parent)
     setRemoteCwd(QStringLiteral("~")); // placeholder until connected
 }
 
+struct UploadTask {
+    QString localPath;
+    QString remotePath;
+    quint64 size = 0;
+};
+
+static QString joinRemote(const QString& base, const QString& name)
+{
+    if (base.endsWith('/')) return base + name;
+    return base + "/" + name;
+}
+
+static void collectDirRecursive(const QString& localRoot,
+                                const QString& remoteRoot,
+                                QVector<UploadTask>& out)
+{
+    QDirIterator it(localRoot,
+                    QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot,
+                    QDirIterator::Subdirectories);
+
+    while (it.hasNext()) {
+        it.next();
+        const QFileInfo fi = it.fileInfo();
+
+        // Skip symlinks for safety (avoid loops / weird targets)
+        if (fi.isSymLink())
+            continue;
+
+        if (fi.isFile()) {
+            const QString rel = QDir(localRoot).relativeFilePath(fi.absoluteFilePath());
+            UploadTask t;
+            t.localPath  = fi.absoluteFilePath();
+            t.remotePath = joinRemote(remoteRoot, rel);
+            t.size       = (quint64)fi.size();
+            out.push_back(t);
+        }
+    }
+}
+
 void FilesTab::buildUi()
 {
     auto *outer = new QVBoxLayout(this);
@@ -49,14 +90,18 @@ void FilesTab::buildUi()
     m_upBtn = new QPushButton("Up", top);
     m_refreshBtn = new QPushButton("Refresh", top);
     m_uploadBtn = new QPushButton("Upload…", top);
+    m_uploadFolderBtn = new QPushButton("Upload folder…", top); // NEW
     m_downloadBtn = new QPushButton("Download…", top);
+    m_localUpBtn = new QPushButton("Local Up", top);
+    m_upBtn       = new QPushButton("Remote Up", top);
 
     m_remotePathLabel = new QLabel("Remote: ~", top);
     m_remotePathLabel->setStyleSheet("color:#888;");
-
+    topL->addWidget(m_localUpBtn);
     topL->addWidget(m_upBtn);
     topL->addWidget(m_refreshBtn);
     topL->addWidget(m_uploadBtn);
+    topL->addWidget(m_uploadFolderBtn);
     topL->addWidget(m_downloadBtn);
     topL->addWidget(m_remotePathLabel, 1);
 
@@ -68,6 +113,7 @@ void FilesTab::buildUi()
     // Local
     m_localModel = new QFileSystemModel(this);
     m_localModel->setRootPath(QDir::homePath());
+    m_localCwd = QDir::homePath();
 
     m_localView = new QTreeView(split);
     m_localView->setModel(m_localModel);
@@ -75,6 +121,20 @@ void FilesTab::buildUi()
     m_localView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_localView->setSortingEnabled(true);
     m_localView->sortByColumn(0, Qt::AscendingOrder);
+    // Track local directory navigation (double-click folders)
+    m_localCwd = QDir::homePath();
+
+    connect(m_localView, &QTreeView::doubleClicked, this,
+            [this](const QModelIndex& idx) {
+                if (!m_localModel) return;
+
+                const QFileInfo fi = m_localModel->fileInfo(idx);
+                if (!fi.isDir()) return;
+
+                const QString path = fi.absoluteFilePath();
+                m_localCwd = path;
+                m_localView->setRootIndex(m_localModel->index(path));
+            });
 
     // Enable dragging files from local tree
     m_localView->setDragEnabled(true);
@@ -107,9 +167,11 @@ void FilesTab::buildUi()
     outer->addWidget(split, 1);
 
     connect(m_refreshBtn, &QPushButton::clicked, this, &FilesTab::refreshRemote);
+    connect(m_localUpBtn, &QPushButton::clicked, this, &FilesTab::goLocalUp);
     connect(m_upBtn, &QPushButton::clicked, this, &FilesTab::goRemoteUp);
     connect(m_uploadBtn, &QPushButton::clicked, this, &FilesTab::uploadSelected);
     connect(m_downloadBtn, &QPushButton::clicked, this, &FilesTab::downloadSelected);
+    connect(m_uploadFolderBtn, &QPushButton::clicked, this, &FilesTab::uploadFolder);
     connect(m_remoteTable, &QTableWidget::cellDoubleClicked, this, &FilesTab::remoteItemActivated);
     connect(m_remoteTable, &RemoteDropTable::filesDropped,
             this, &FilesTab::onRemoteFilesDropped);
@@ -305,30 +367,10 @@ void FilesTab::runTransfer(const QString& title,
 
 void FilesTab::uploadSelected()
 {
-    if (!m_ssh || !m_ssh->isConnected()) {
-        QMessageBox::information(this, "Upload", "Not connected.");
-        return;
-    }
-
     const QStringList files = QFileDialog::getOpenFileNames(
         this, "Select local files to upload", QDir::homePath(), "All files (*)");
-    if (files.isEmpty()) return;
 
-    // MVP: upload sequentially; show progress for the first file only
-    const QString first = files.first();
-    const QString remote = (m_remoteCwd.endsWith('/') ? m_remoteCwd : m_remoteCwd + "/")
-        + QFileInfo(first).fileName();
-
-    runTransfer(QString("Uploading %1…").arg(QFileInfo(first).fileName()),
-                [this, first, remote](QString *err) -> bool {
-                    return m_ssh->uploadFile(first, remote, err,
-                        [this](quint64 d, quint64 t) {
-                            QMetaObject::invokeMethod(this, "onTransferProgress",
-                                Qt::QueuedConnection,
-                                Q_ARG(quint64, d),
-                                Q_ARG(quint64, t));
-                        });
-                });
+    startUploadPaths(files);
 }
 
 void FilesTab::downloadSelected()
@@ -375,49 +417,132 @@ void FilesTab::downloadSelected()
 }
 void FilesTab::onRemoteFilesDropped(const QStringList& localPaths)
 {
+    startUploadPaths(localPaths);
+}
+
+void FilesTab::startUploadPaths(const QStringList& paths)
+{
     if (!m_ssh || !m_ssh->isConnected()) {
         QMessageBox::information(this, "Upload", "Not connected.");
         return;
     }
+    if (paths.isEmpty()) return;
 
-    // Filter to real files only (skip directories for MVP)
-    QStringList files;
-    for (const QString& p : localPaths) {
-        QFileInfo fi(p);
-        if (fi.exists() && fi.isFile())
-            files << fi.absoluteFilePath();
+    // Build task list (files + folders)
+    QVector<UploadTask> tasks;
+    tasks.reserve(256);
+
+    for (const QString& p : paths) {
+        const QFileInfo fi(p);
+        if (!fi.exists()) continue;
+
+        if (fi.isDir()) {
+            // Preserve folder name under current remote cwd
+            const QString remoteRoot = joinRemote(m_remoteCwd, fi.fileName());
+            collectDirRecursive(fi.absoluteFilePath(), remoteRoot, tasks);
+        } else if (fi.isFile()) {
+            UploadTask t;
+            t.localPath  = fi.absoluteFilePath();
+            t.remotePath = joinRemote(m_remoteCwd, fi.fileName());
+            t.size       = (quint64)fi.size();
+            tasks.push_back(t);
+        }
     }
 
-    if (files.isEmpty()) {
-        QMessageBox::information(this, "Upload", "Drop contained no regular files (folders not supported yet).");
+    if (tasks.isEmpty()) {
+        QMessageBox::information(this, "Upload", "No files found to upload.");
         return;
     }
 
-    const QString cwd = m_remoteCwd; // capture
+    // Compute total bytes for a real progress bar across all files
+    quint64 totalBytes = 0;
+    for (const auto& t : tasks) totalBytes += t.size;
 
-    runTransfer(QString("Uploading %1 file(s)…").arg(files.size()),
-                [this, files, cwd](QString *err) -> bool {
+    // Create needed remote directories (best-effort, de-dup)
+    QSet<QString> dirs;
+    dirs.reserve(tasks.size());
 
-                    for (int i = 0; i < files.size(); ++i) {
-                        const QString local = files[i];
-                        const QString remote =
-                            (cwd.endsWith('/') ? cwd : cwd + "/") + QFileInfo(local).fileName();
+    for (const auto& t : tasks) {
+        const QString dir = QFileInfo(t.remotePath).path();
+        dirs.insert(dir);
+    }
 
-                        // Progress callback updates UI thread
-                        auto progress = [this](quint64 d, quint64 t) {
-                            QMetaObject::invokeMethod(this, "onTransferProgress",
-                                Qt::QueuedConnection,
-                                Q_ARG(quint64, d),
-                                Q_ARG(quint64, t));
-                        };
+    runTransfer(QString("Uploading %1 items…").arg(tasks.size()),
+                [this, tasks, totalBytes, dirs](QString *err) -> bool {
 
+                    // 1) mkdir remote dirs
+                    for (const QString& d : dirs) {
                         QString e;
-                        if (!m_ssh->uploadFile(local, remote, &e, progress)) {
-                            if (err) *err = QString("Upload failed for '%1' → '%2': %3").arg(local, remote, e);
+                        if (!m_ssh->ensureRemoteDir(d, 0755, &e)) {
+                            if (err) *err = "Failed to create remote dir:\n" + d + "\n" + e;
                             return false;
                         }
                     }
 
+                    // 2) upload sequentially with aggregated progress
+                    quint64 completedBytes = 0;
+
+                    for (int i = 0; i < tasks.size(); ++i) {
+                        const auto& t = tasks[i];
+
+                        quint64 lastFileDone = 0;
+
+                        QString e;
+                        const bool ok = m_ssh->uploadFile(
+                            t.localPath,
+                            t.remotePath,
+                            &e,
+                            [this, &completedBytes, &lastFileDone, totalBytes](quint64 fileDone, quint64 /*fileTotal*/) {
+
+                                // Aggregate: overall = completedBytes + delta(fileDone)
+                                const quint64 delta = (fileDone >= lastFileDone)
+                                    ? (fileDone - lastFileDone)
+                                    : 0;
+
+                                lastFileDone = fileDone;
+
+                                const quint64 overallDone = completedBytes + delta;
+
+                                QMetaObject::invokeMethod(this, "onTransferProgress",
+                                    Qt::QueuedConnection,
+                                    Q_ARG(quint64, overallDone),
+                                    Q_ARG(quint64, totalBytes));
+                            });
+
+                        if (!ok) {
+                            if (err) *err = e;
+                            return false; // includes cancel path
+                        }
+
+                        completedBytes += t.size;
+                    }
+
                     return true;
                 });
+}
+
+void FilesTab::uploadFolder()
+{
+    const QString dir = QFileDialog::getExistingDirectory(
+        this, "Select folder to upload", QDir::homePath());
+
+    if (dir.isEmpty()) return;
+
+    startUploadPaths(QStringList{dir});
+}
+void FilesTab::goLocalUp()
+{
+    if (!m_localModel || !m_localView) return;
+
+    QString cur = m_localCwd;
+    if (cur.isEmpty()) {
+        cur = m_localModel->filePath(m_localView->rootIndex());
+    }
+
+    QDir d(cur);
+    if (!d.cdUp()) return; // already at filesystem root
+
+    const QString up = d.absolutePath();
+    m_localCwd = up;
+    m_localView->setRootIndex(m_localModel->index(up));
 }
