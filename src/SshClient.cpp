@@ -6,6 +6,7 @@
 //   - Authenticates with agent/public key (OpenSSH-compatible today)
 //   - Provides small “remote exec” helpers used by the UI
 //   - Provides SFTP upload/download helpers
+//   - Provides SFTP directory listing/stat helpers (file manager UI)
 //   - Implements idempotent authorized_keys installation (with backups)
 //
 // Design notes:
@@ -15,7 +16,6 @@
 //   - Never log secrets (passwords, passphrases, private key paths).
 
 #include "SshClient.h"
-
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
@@ -42,6 +42,36 @@ static QString libsshError(ssh_session s)
 {
     if (!s) return QStringLiteral("libssh: null session");
     return QString::fromLocal8Bit(ssh_get_error(s));
+}
+
+
+void SshClient::requestCancelTransfer()
+{
+    m_cancelRequested.store(true);
+}
+
+// ------------------------------------------------------------
+// Small helper: open+init SFTP for current session
+// ------------------------------------------------------------
+static bool openSftp(ssh_session session, sftp_session *out, QString *err)
+{
+    if (err) err->clear();
+    if (!out) { if (err) *err = "openSftp: out is null."; return false; }
+    *out = nullptr;
+
+    if (!session) { if (err) *err = "Not connected."; return false; }
+
+    sftp_session sftp = sftp_new(session);
+    if (!sftp) { if (err) *err = "sftp_new failed."; return false; }
+
+    if (sftp_init(sftp) != SSH_OK) {
+        if (err) *err = "sftp_init failed: " + libsshError(session);
+        sftp_free(sftp);
+        return false;
+    }
+
+    *out = sftp;
+    return true;
 }
 
 SshClient::SshClient(QObject *parent) : QObject(parent) {}
@@ -234,12 +264,6 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 
     // ------------------------------------------------------------
     // Passphrase callback (UI supplies passphrase)
-    //
-    // libssh may call this when attempting publickey auth with an
-    // encrypted private key.
-    //
-    // NOTE: cb is static, but userdata points to "this".
-    //       We must ensure self is valid for the duration of session.
     // ------------------------------------------------------------
     static ssh_callbacks_struct cb;
     std::memset(&cb, 0, sizeof(cb));
@@ -303,12 +327,8 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 
     // ------------------------------------------------------------
     // Authentication strategy (best effort):
-    //   1) Try SSH agent (fast, common on dev machines)
-    //   2) Try publickey_auto (lets libssh choose identities)
-    //
-    // Note: Password auth is NOT currently attempted here, because
-    // we mainly use libssh for SFTP/exec and keep the UI flow simple.
-    // (The interactive terminal still supports password via OpenSSH.)
+    //   1) Try SSH agent
+    //   2) Try publickey_auto
     // ------------------------------------------------------------
     rc = ssh_userauth_agent(s, nullptr);
     if (rc == SSH_AUTH_SUCCESS) {
@@ -417,6 +437,285 @@ QString SshClient::remotePwd(QString* err) const
 }
 
 // ------------------------------------------------------------
+// SFTP: list remote directory (non-recursive).
+// ------------------------------------------------------------
+bool SshClient::listRemoteDir(const QString& remotePath,
+                              QVector<RemoteEntry>* outItems,
+                              QString* err)
+{
+    if (err) err->clear();
+    if (outItems) outItems->clear();
+
+    if (!m_session) {
+        if (err) *err = "Not connected.";
+        return false;
+    }
+
+    const QString path = remotePath.trimmed().isEmpty() ? QStringLiteral(".") : remotePath.trimmed();
+
+    sftp_session sftp = nullptr;
+    if (!openSftp(m_session, &sftp, err)) return false;
+
+    sftp_dir dir = sftp_opendir(sftp, path.toUtf8().constData());
+    if (!dir) {
+        if (err) *err = QString("sftp_opendir failed for '%1'.").arg(path);
+        sftp_free(sftp);
+        return false;
+    }
+
+    QVector<RemoteEntry> items;
+
+    while (true) {
+        sftp_attributes a = sftp_readdir(sftp, dir);
+        if (!a) break;
+
+        const QString name = QString::fromUtf8(a->name ? a->name : "");
+        if (name == "." || name == "..") {
+            sftp_attributes_free(a);
+            continue;
+        }
+
+        RemoteEntry e;
+        e.name = name;
+        e.fullPath = path.endsWith('/') ? (path + name) : (path + "/" + name);
+        e.size  = (quint64)a->size;
+        e.perms = (quint32)a->permissions;
+        e.mtime = (qint64)a->mtime;
+
+        // Determine directory bit from mode
+        e.isDir = ((a->permissions & S_IFMT) == S_IFDIR);
+
+        items.push_back(e);
+        sftp_attributes_free(a);
+    }
+
+    sftp_closedir(dir);
+    sftp_free(sftp);
+
+    if (outItems) *outItems = items;
+    return true;
+}
+
+// ------------------------------------------------------------
+// SFTP: stat remote path (file or directory).
+// ------------------------------------------------------------
+bool SshClient::statRemotePath(const QString& remotePath,
+                               RemoteEntry* outInfo,
+                               QString* err)
+{
+    if (err) err->clear();
+    if (!outInfo) { if (err) *err = "statRemotePath: outInfo is null."; return false; }
+    *outInfo = RemoteEntry{};
+
+    if (!m_session) {
+        if (err) *err = "Not connected.";
+        return false;
+    }
+    if (remotePath.trimmed().isEmpty()) {
+        if (err) *err = "Remote path is empty.";
+        return false;
+    }
+
+    sftp_session sftp = nullptr;
+    if (!openSftp(m_session, &sftp, err)) return false;
+
+    sftp_attributes a = sftp_stat(sftp, remotePath.toUtf8().constData());
+    if (!a) {
+        if (err) *err = QString("sftp_stat failed for '%1'.").arg(remotePath);
+        sftp_free(sftp);
+        return false;
+    }
+
+    RemoteEntry e;
+    QFileInfo fi(remotePath);
+    e.name     = fi.fileName();
+    e.fullPath = remotePath;
+    e.size     = (quint64)a->size;
+    e.perms    = (quint32)a->permissions;
+    e.mtime    = (qint64)a->mtime;
+    e.isDir    = ((a->permissions & S_IFMT) == S_IFDIR);
+
+    sftp_attributes_free(a);
+    sftp_free(sftp);
+
+    *outInfo = e;
+    return true;
+}
+
+// ------------------------------------------------------------
+// SFTP: streaming upload local file -> remote file.
+// ------------------------------------------------------------
+bool SshClient::uploadFile(const QString& localPath,
+                           const QString& remotePath,
+                           QString *err,
+                           std::function<void(quint64, quint64)> progressCb)
+{
+    if (err) err->clear();
+    m_cancelRequested.store(false);
+
+    QFile in(localPath);
+    if (!in.open(QIODevice::ReadOnly)) {
+        if (err) *err = in.errorString();
+        return false;
+    }
+
+    const quint64 totalSize = in.size();
+
+    sftp_session sftp = sftp_new(m_session);
+    if (!sftp || sftp_init(sftp) != SSH_OK) {
+        if (err) *err = "SFTP init failed";
+        return false;
+    }
+
+    const QString tmpPath = remotePath + ".pqssh.part";
+
+    sftp_file f = sftp_open(
+        sftp,
+        tmpPath.toUtf8().constData(),
+        O_WRONLY | O_CREAT | O_TRUNC,
+        S_IRUSR | S_IWUSR
+    );
+
+    if (!f) {
+        if (err) *err = "Cannot open remote file";
+        sftp_free(sftp);
+        return false;
+    }
+
+    QByteArray buf(64 * 1024, Qt::Uninitialized);
+    quint64 sent = 0;
+
+    while (!in.atEnd()) {
+
+        // 🔴 CANCEL CHECK
+        if (m_cancelRequested.load()) {
+            sftp_close(f);
+            sftp_unlink(sftp, tmpPath.toUtf8().constData());
+            sftp_free(sftp);
+            if (err) *err = "Cancelled by user";
+            return false;
+        }
+
+        const qint64 n = in.read(buf.data(), buf.size());
+        if (n <= 0) break;
+
+        const ssize_t w = sftp_write(f, buf.constData(), (size_t)n);
+        if (w < 0) {
+            if (err) *err = "SFTP write failed";
+            sftp_close(f);
+            sftp_unlink(sftp, tmpPath.toUtf8().constData());
+            sftp_free(sftp);
+            return false;
+        }
+
+        sent += w;
+        if (progressCb) progressCb(sent, totalSize);
+    }
+
+    sftp_close(f);
+
+    // Atomic replace
+    sftp_rename(sftp,
+                tmpPath.toUtf8().constData(),
+                remotePath.toUtf8().constData());
+
+    sftp_free(sftp);
+    return true;
+}
+// ------------------------------------------------------------
+// SFTP: streaming download remote file -> local file.
+// ------------------------------------------------------------
+
+bool SshClient::downloadFile(const QString& remotePath,
+                             const QString& localPath,
+                             QString *err,
+                             std::function<void(quint64, quint64)> progressCb)
+{
+    if (err) err->clear();
+    m_cancelRequested.store(false);
+
+    sftp_session sftp = sftp_new(m_session);
+    if (!sftp || sftp_init(sftp) != SSH_OK) {
+        if (err) *err = "SFTP init failed";
+        return false;
+    }
+
+    sftp_file f = sftp_open(
+        sftp,
+        remotePath.toUtf8().constData(),
+        O_RDONLY,
+        0
+    );
+
+    if (!f) {
+        if (err) *err = "Cannot open remote file";
+        sftp_free(sftp);
+        return false;
+    }
+
+    // Best-effort total size
+    quint64 total = 0;
+    if (auto *st = sftp_stat(sftp, remotePath.toUtf8().constData())) {
+        total = st->size;
+        sftp_attributes_free(st);
+    }
+
+    const QString tmpLocal = localPath + ".pqssh.part";
+    QFile out(tmpLocal);
+    if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        if (err) *err = out.errorString();
+        sftp_close(f);
+        sftp_free(sftp);
+        return false;
+    }
+
+    QByteArray buf(64 * 1024, Qt::Uninitialized);
+    quint64 done = 0;
+
+    while (true) {
+
+        // 🔴 CANCEL SUPPORT
+        if (m_cancelRequested.load()) {
+            out.close();
+            out.remove();
+            sftp_close(f);
+            sftp_free(sftp);
+            if (err) *err = "Cancelled by user";
+            return false;
+        }
+
+        const ssize_t n = sftp_read(f, buf.data(), buf.size());
+        if (n == 0)
+            break; // EOF
+        if (n < 0) {
+            if (err) *err = "SFTP read failed";
+            out.close();
+            out.remove();
+            sftp_close(f);
+            sftp_free(sftp);
+            return false;
+        }
+
+        out.write(buf.constData(), n);
+        done += n;
+
+        if (progressCb)
+            progressCb(done, total);
+    }
+
+    out.close();
+    sftp_close(f);
+    sftp_free(sftp);
+
+    QFile::remove(localPath);
+    QFile::rename(tmpLocal, localPath);
+
+    return true;
+}
+
+
+
+// ------------------------------------------------------------
 // Upload raw bytes to a remote file via SFTP.
 // Creates/truncates the target and writes all data.
 // ------------------------------------------------------------
@@ -433,16 +732,8 @@ bool SshClient::uploadBytes(const QString& remotePath, const QByteArray& data, Q
         return false;
     }
 
-    sftp_session sftp = sftp_new(m_session);
-    if (!sftp) {
-        if (err) *err = QStringLiteral("sftp_new failed.");
-        return false;
-    }
-    if (sftp_init(sftp) != SSH_OK) {
-        if (err) *err = QStringLiteral("sftp_init failed: %1").arg(libsshError(m_session));
-        sftp_free(sftp);
-        return false;
-    }
+    sftp_session sftp = nullptr;
+    if (!openSftp(m_session, &sftp, err)) return false;
 
     // Mode: 0644 by default (owner rw, group r, others r)
     sftp_file f = sftp_open(
@@ -480,6 +771,7 @@ bool SshClient::uploadBytes(const QString& remotePath, const QByteArray& data, Q
 // ------------------------------------------------------------
 // Download remote file via SFTP and write to local file.
 // Simple implementation reads whole file into memory.
+// NOTE: prefer downloadFile() for large files.
 // ------------------------------------------------------------
 bool SshClient::downloadToFile(const QString& remotePath, const QString& localPath, QString* err)
 {
@@ -502,16 +794,8 @@ bool SshClient::downloadToFile(const QString& remotePath, const QString& localPa
     QFileInfo li(localPath);
     QDir().mkpath(li.absolutePath());
 
-    sftp_session sftp = sftp_new(m_session);
-    if (!sftp) {
-        if (err) *err = QStringLiteral("sftp_new failed.");
-        return false;
-    }
-    if (sftp_init(sftp) != SSH_OK) {
-        if (err) *err = QStringLiteral("sftp_init failed: %1").arg(libsshError(m_session));
-        sftp_free(sftp);
-        return false;
-    }
+    sftp_session sftp = nullptr;
+    if (!openSftp(m_session, &sftp, err)) return false;
 
     sftp_file f = sftp_open(
         sftp,
@@ -630,13 +914,8 @@ bool SshClient::readRemoteTextFile(const QString& remotePath, QString* textOut, 
     if (err) err->clear();
     if (!m_session) { if (err) *err = "Not connected."; return false; }
 
-    sftp_session sftp = sftp_new(m_session);
-    if (!sftp) { if (err) *err = "sftp_new failed."; return false; }
-    if (sftp_init(sftp) != SSH_OK) {
-        if (err) *err = "sftp_init failed: " + libsshError(m_session);
-        sftp_free(sftp);
-        return false;
-    }
+    sftp_session sftp = nullptr;
+    if (!openSftp(m_session, &sftp, err)) return false;
 
     sftp_file f = sftp_open(sftp, remotePath.toUtf8().constData(), O_RDONLY, 0);
     if (!f) {
@@ -675,13 +954,8 @@ bool SshClient::writeRemoteTextFileAtomic(const QString& remotePath, const QStri
 
     const QString tmpPath = remotePath + ".pqssh.tmp";
 
-    sftp_session sftp = sftp_new(m_session);
-    if (!sftp) { if (err) *err = "sftp_new failed."; return false; }
-    if (sftp_init(sftp) != SSH_OK) {
-        if (err) *err = "sftp_init failed: " + libsshError(m_session);
-        sftp_free(sftp);
-        return false;
-    }
+    sftp_session sftp = nullptr;
+    if (!openSftp(m_session, &sftp, err)) return false;
 
     // NOTE: permsOctal is passed as-is; servers may still ignore it.
     sftp_file f = sftp_open(

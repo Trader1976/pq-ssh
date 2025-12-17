@@ -4,6 +4,7 @@
 //   Lightweight wrapper around libssh providing:
 //     - Connection/authentication for SFTP + remote exec helpers
 //     - Simple file upload/download via SFTP
+//     - Remote directory listing/stat (for file manager UI)
 //     - Idempotent authorized_keys installation (with backup)
 //     - Optional dev helper to test unlocking encrypted Dilithium keys
 //
@@ -17,9 +18,11 @@
 #include <QObject>
 #include <QString>
 #include <QByteArray>
+#include <QVector>
 #include <functional>
 
 #include "SshProfile.h"
+#include <atomic>
 
 // Forward-declare libssh session type to avoid pulling libssh headers into the header.
 // (Keeps compile times down and avoids header coupling.)
@@ -38,6 +41,21 @@ public:
     // - ok: set false if user cancelled
     // Returns passphrase text (never log it).
     using PassphraseProvider = std::function<QString(const QString& keyFile, bool *ok)>;
+
+    // Optional progress callback for streaming transfers (done/total bytes).
+    using ProgressCb = std::function<void(quint64 done, quint64 total)>;
+
+    // Remote file listing entry (minimal metadata for a file manager view).
+    struct RemoteEntry
+    {
+        QString name;       // basename
+        QString fullPath;   // absolute/combined path (as returned/constructed)
+        bool    isDir = false;
+
+        quint64 size  = 0;  // bytes
+        quint32 perms = 0;  // st_mode (permissions + type bits)
+        qint64  mtime = 0;  // seconds since epoch
+    };
 
     // Register passphrase provider (typically set by MainWindow).
     void setPassphraseProvider(PassphraseProvider cb) { m_passphraseProvider = std::move(cb); }
@@ -65,10 +83,45 @@ public:
     // Used by drag-drop upload to decide where to upload by default.
     QString remotePwd(QString* err = nullptr) const;
 
+    // ------------------------------------------------------------
+    // SFTP: file manager primitives
+    // ------------------------------------------------------------
+
+    // List a remote directory (non-recursive).
+    // remotePath may be ".", "~", "/path", etc. (server-dependent).
+    bool listRemoteDir(const QString& remotePath,
+                       QVector<RemoteEntry>* outItems,
+                       QString* err = nullptr);
+
+    // Stat a remote path (file or directory).
+    bool statRemotePath(const QString& remotePath,
+                        RemoteEntry* outInfo,
+                        QString* err = nullptr);
+
+    // Streaming upload local file -> remote file (create/truncate).
+    // Progress callback is optional.
+    bool uploadFile(const QString& localPath,
+                    const QString& remotePath,
+                    QString* err = nullptr,
+                    ProgressCb progress = nullptr);
+
+    // Streaming download remote file -> local file (creates local dirs if needed).
+    // Progress callback is optional.
+    bool downloadFile(const QString& remotePath,
+                      const QString& localPath,
+                      QString *err,
+                      std::function<void(quint64 done, quint64 total)> progressCb);
+
+    // ------------------------------------------------------------
+    // Existing helpers (kept for compatibility / small-file use)
+    // ------------------------------------------------------------
+
     // Upload raw bytes to a remote file via SFTP (create/truncate).
+    // NOTE: not ideal for huge data; prefer uploadFile() for real files.
     bool uploadBytes(const QString& remotePath, const QByteArray& data, QString* err = nullptr);
 
     // Download remote file via SFTP to a local path (creates local dirs if needed).
+    // NOTE: current implementation reads whole file into memory; prefer downloadFile().
     bool downloadToFile(const QString& remotePath, const QString& localPath, QString* err = nullptr);
 
     // Execute a remote command, capture stdout/stderr, and fail if exit status != 0.
@@ -101,6 +154,8 @@ public:
                               bool* alreadyOut,
                               QString* backupPathOut = nullptr);
 
+    void requestCancelTransfer();
+
 private:
     // Active libssh session used for SFTP and remote exec helpers.
     ssh_session m_session = nullptr;
@@ -110,4 +165,5 @@ private:
 
     // Internal helper: call provider if installed.
     QString requestPassphrase(const QString& keyFile, bool *ok);
+    std::atomic_bool m_cancelRequested{false};
 };

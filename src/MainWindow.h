@@ -23,6 +23,7 @@ class QCheckBox;
 
 class QTabWidget;
 class CpunkTermWidget;
+class FilesTab;   // add this near other forward declarations
 
 class MainWindow : public QMainWindow
 {
@@ -94,6 +95,9 @@ private:
 
     // Modules
     SshClient m_ssh;
+
+    QTabWidget *m_mainTabs = nullptr;
+    FilesTab   *m_filesTab = nullptr;
 
 
     // Terminal UI (QTermWidget-based)

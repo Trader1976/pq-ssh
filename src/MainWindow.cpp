@@ -1,6 +1,8 @@
 #include "MainWindow.h"
 #include "KeyGeneratorDialog.h"
 #include "KeyMetadataUtils.h"
+#include "FilesTab.h"
+#include "FilesTab.h"
 #include <QTextBrowser>
 #include <QInputDialog>
 #include <QApplication>
@@ -344,21 +346,26 @@ void MainWindow::setupUi()
     // Real interactive terminals are created on connect via CpunkTermWidget.
     // Keeping a simple log view here helps debugging and provides a consistent
     // place for status text even when terminals open in separate windows.
+    // --- Terminal container -> now a QTabWidget with Log + Files ---
     auto *termContainer = new QWidget(rightWidget);
     auto *termLayout = new QVBoxLayout(termContainer);
     termLayout->setContentsMargins(0, 0, 0, 0);
     termLayout->setSpacing(0);
 
-    m_terminal = new QPlainTextEdit(termContainer);
-    m_terminal->setReadOnly(true);
+    m_mainTabs = new QTabWidget(termContainer);
+    m_mainTabs->setDocumentMode(true);
 
-    // Remove frames/margins that can show borders under dark theme.
+    auto *logPage = new QWidget(m_mainTabs);
+    auto *logLayout = new QVBoxLayout(logPage);
+    logLayout->setContentsMargins(0, 0, 0, 0);
+    logLayout->setSpacing(0);
+
+    m_terminal = new QPlainTextEdit(logPage);
+    m_terminal->setReadOnly(true);
     m_terminal->setFrameShape(QFrame::NoFrame);
     m_terminal->setLineWidth(0);
     m_terminal->setContentsMargins(0, 0, 0, 0);
     m_terminal->document()->setDocumentMargin(0);
-
-    // Qt5-safe: affect the viewport directly (setViewportMargins is protected in Qt5)
     m_terminal->viewport()->setAutoFillBackground(true);
     m_terminal->viewport()->setContentsMargins(0, 0, 0, 0);
 
@@ -366,7 +373,15 @@ void MainWindow::setupUi()
     terminalFont.setPointSize(11);
     m_terminal->setFont(terminalFont);
 
-    termLayout->addWidget(m_terminal, 1);
+    logLayout->addWidget(m_terminal, 1);
+    logPage->setLayout(logLayout);
+
+    m_filesTab = new FilesTab(&m_ssh, m_mainTabs);
+
+    m_mainTabs->addTab(logPage, "Log");
+    m_mainTabs->addTab(m_filesTab, "Files");
+
+    termLayout->addWidget(m_mainTabs, 1);
     termContainer->setLayout(termLayout);
 
     // --- Input bar ---
@@ -1030,6 +1045,7 @@ void MainWindow::onConnectClicked()
     if (!(keyType == "auto" || keyType == "openssh")) {
         uiWarn(QString("[SFTP] Disabled (key_type='%1' not supported yet)").arg(keyType));
         logSessionInfo(QString("SFTP disabled due to unsupported key_type='%1'").arg(keyType));
+        if (m_filesTab) m_filesTab->onSshDisconnected();
     } else {
         // Async connect: do not block UI thread.
         // QFutureWatcher result is delivered back on UI thread.
@@ -1045,11 +1061,21 @@ void MainWindow::onConnectClicked()
                     if (ok) {
                         uiInfo(QString("[SFTP] Ready (%1@%2:%3)").arg(p.user, p.host).arg(port));
                         logSessionInfo("libssh connected OK (SFTP ready)");
+
+                        if (m_filesTab) {
+                            // Now remote listing/upload/download can work.
+                            m_filesTab->onSshConnected();
+                        }
                     } else {
                         // Non-fatal: terminal still works, but uploads/key install will be unavailable.
                         uiWarn(QString("[SFTP] Disabled (libssh connect failed: %1)").arg(err));
                         logSessionInfo(QString("libssh connect FAILED: %1").arg(err));
+
+                        if (m_filesTab) {
+                            m_filesTab->onSshDisconnected();
+                        }
                     }
+
 
                     watcher->deleteLater();
                 });
@@ -1085,7 +1111,7 @@ void MainWindow::onDisconnectClicked()
     // it will exit when the user closes the terminal or ssh ends.
     logSessionInfo("Disconnect clicked (user requested)");
     m_ssh.disconnect();
-
+    if (m_filesTab) m_filesTab->onSshDisconnected();
     if (m_connectBtn)    m_connectBtn->setEnabled(true);
     if (m_disconnectBtn) m_disconnectBtn->setEnabled(false);
 

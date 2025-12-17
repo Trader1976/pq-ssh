@@ -113,7 +113,6 @@ bool encryptDilithiumKey(
     QByteArray header;
     header.append(MAGIC, 6);
     header.append(reinterpret_cast<const char*>(salt), (int)sizeof salt);
-    header.append(reinterpret_cast<const char*>(nonce), (int)sizeof nonce);
 
     // Derive an AEAD key from the passphrase using Argon2id.
     // MODERATE limits: reasonable interactive security vs performance tradeoff.
@@ -137,6 +136,9 @@ bool encryptDilithiumKey(
     // Stored in the blob header.
     unsigned char nonce[crypto_aead_xchacha20poly1305_ietf_NPUBBYTES];
     randombytes_buf(nonce, sizeof nonce);
+
+    // Now that nonce exists, append it into header (and thus into AD)
+    header.append(reinterpret_cast<const char*>(nonce), (int)sizeof nonce);
 
     // Allocate ciphertext buffer: plaintext + authentication tag.
     QByteArray cipher;
@@ -216,6 +218,9 @@ bool decryptDilithiumKey(
     // Ciphertext includes the Poly1305 authentication tag at the end (libsodium convention).
     const QByteArray cipher = encrypted.mid(headerLen);
 
+    // Rebuild header bytes for Associated Data (must match encrypt side)
+    const QByteArray header = encrypted.left(headerLen);
+
     const QByteArray passUtf8 = passphrase.toUtf8();
 
     // Re-derive the same AEAD key from passphrase+salt.
@@ -251,7 +256,8 @@ bool decryptDilithiumKey(
         nullptr, // nsec out (unused)
         reinterpret_cast<const unsigned char*>(cipher.constData()),
         (unsigned long long)cipher.size(),
-        nullptr, 0, // AD = none
+        reinterpret_cast<const unsigned char*>(header.constData()),
+        (unsigned long long)header.size(),
         nonce, key
     );
 

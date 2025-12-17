@@ -57,6 +57,10 @@ add_executable(pq-ssh
         src/Logger.cpp
         src/DilithiumKeyCrypto.h
         src/DilithiumKeyCrypto.cpp
+        src/FilesTab.h
+        src/FilesTab.cpp
+        src/RemoteDropTable.h
+        src/RemoteDropTable.cpp
 )
 
 target_include_directories(pq-ssh
