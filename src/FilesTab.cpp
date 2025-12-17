@@ -22,6 +22,9 @@
 #include <QDropEvent>
 #include <QtConcurrent/QtConcurrent>
 #include <QFutureWatcher>
+#include <QMenu>
+#include <QAction>
+#include <QInputDialog>
 
 static QString prettySize(quint64 bytes)
 {
@@ -42,6 +45,13 @@ static QString joinRemote(const QString& base, const QString& rel)
 {
     if (base.endsWith('/')) return base + rel;
     return base + "/" + rel;
+}
+
+static QString shQuote(const QString& s)
+{
+    QString out = s;
+    out.replace("'", "'\"'\"'");
+    return "'" + out + "'";
 }
 
 static QString joinLocal(const QString& base, const QString& rel)
@@ -149,6 +159,10 @@ void FilesTab::buildUi()
     m_localView->viewport()->setAcceptDrops(true);
     m_localView->viewport()->installEventFilter(this);
 
+    m_localView->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_localView, &QWidget::customContextMenuRequested,
+            this, &FilesTab::showLocalContextMenu);
+
     // Remote
     m_remoteTable = new RemoteDropTable(split);
     m_remoteTable->setColumnCount(4);
@@ -163,6 +177,10 @@ void FilesTab::buildUi()
     m_remoteTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_remoteTable->setShowGrid(false);
     m_remoteTable->setAlternatingRowColors(true);
+
+    m_remoteTable->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(m_remoteTable, &QWidget::customContextMenuRequested,
+            this, &FilesTab::showRemoteContextMenu);
 
     split->setStretchFactor(0, 1);
     split->setStretchFactor(1, 1);
@@ -648,4 +666,142 @@ void FilesTab::downloadSelected()
     }
 
     startDownloadPaths(remotePaths, destDir);
+}
+
+void FilesTab::showLocalContextMenu(const QPoint& pos)
+{
+    if (!m_localView || !m_localModel) return;
+
+    QMenu menu(this);
+    QAction* del = menu.addAction("Delete");
+
+    const QAction* chosen = menu.exec(m_localView->viewport()->mapToGlobal(pos));
+    if (chosen == del) {
+        deleteLocalSelection();
+    }
+}
+
+void FilesTab::showRemoteContextMenu(const QPoint& pos)
+{
+    if (!m_remoteTable) return;
+
+    QMenu menu(this);
+    QAction* del = menu.addAction("Delete");
+
+    const QAction* chosen = menu.exec(m_remoteTable->viewport()->mapToGlobal(pos));
+    if (chosen == del) {
+        deleteRemoteSelection();
+    }
+}
+
+void FilesTab::deleteLocalSelection()
+{
+    if (!m_localView || !m_localModel) return;
+
+    const QModelIndexList rows = m_localView->selectionModel()->selectedRows();
+    if (rows.isEmpty()) {
+        QMessageBox::information(this, "Delete", "Select one or more local items first.");
+        return;
+    }
+
+    QStringList paths;
+    paths.reserve(rows.size());
+    for (const QModelIndex& idx : rows) {
+        const QFileInfo fi = m_localModel->fileInfo(idx);
+        if (fi.exists())
+            paths << fi.absoluteFilePath();
+    }
+    paths.removeDuplicates();
+
+    if (paths.isEmpty()) return;
+
+    const QString msg = QString("Delete %1 local item(s)?\n\nThis cannot be undone.")
+                            .arg(paths.size());
+
+    if (QMessageBox::question(this, "Delete", msg,
+                             QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) {
+        return;
+                             }
+
+    // Delete (files + folders)
+    for (const QString& p : paths) {
+        QFileInfo fi(p);
+        if (!fi.exists()) continue;
+
+        if (fi.isDir()) {
+            QDir dir(p);
+            if (!dir.removeRecursively()) {
+                QMessageBox::warning(this, "Delete",
+                                     "Failed to delete folder:\n" + p);
+                return;
+            }
+        } else {
+            if (!QFile::remove(p)) {
+                QMessageBox::warning(this, "Delete",
+                                     "Failed to delete file:\n" + p);
+                return;
+            }
+        }
+    }
+
+    // Refresh local view (keep same cwd)
+    m_localView->setRootIndex(m_localModel->index(m_localCwd));
+}
+
+void FilesTab::deleteRemoteSelection()
+{
+    if (!m_ssh || !m_ssh->isConnected() || !m_remoteTable) {
+        QMessageBox::information(this, "Delete", "Not connected.");
+        return;
+    }
+
+    const auto rows = m_remoteTable->selectionModel()->selectedRows();
+    if (rows.isEmpty()) {
+        QMessageBox::information(this, "Delete", "Select one or more remote items first.");
+        return;
+    }
+
+    struct Item { QString path; bool isDir = false; };
+    QVector<Item> items;
+    items.reserve(rows.size());
+
+    for (const auto& idx : rows) {
+        auto* it = m_remoteTable->item(idx.row(), 0);
+        if (!it) continue;
+
+        Item x;
+        x.path  = it->data(Qt::UserRole).toString();
+        x.isDir = (it->data(Qt::UserRole + 1).toInt() == 1);
+        if (!x.path.isEmpty())
+            items.push_back(x);
+    }
+
+    if (items.isEmpty()) return;
+
+    const QString msg =
+        QString("Delete %1 remote item(s)?\n\nFolders will be deleted recursively.")
+            .arg(items.size());
+
+    if (QMessageBox::question(this, "Delete", msg,
+                             QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) {
+        return;
+                             }
+
+    runTransfer(QString("Deleting %1 item(s)…").arg(items.size()),
+                [this, items](QString* err) -> bool {
+
+        for (const auto& x : items) {
+            // Use "--" to avoid option injection. Quote everything.
+            const QString cmd = x.isDir
+                ? QString("rm -rf -- %1").arg(shQuote(x.path))
+                : QString("rm -f  -- %1").arg(shQuote(x.path));
+
+            QString out, e;
+            if (!m_ssh->exec(cmd, &out, &e)) {
+                if (err) *err = "Remote delete failed:\n" + x.path + "\n" + e;
+                return false;
+            }
+        }
+        return true;
+    });
 }

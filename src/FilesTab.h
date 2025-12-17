@@ -38,6 +38,11 @@ private slots:
     void onRemoteFilesDropped(const QStringList& localPaths);
 
     void onTransferProgress(quint64 done, quint64 total);
+    void showLocalContextMenu(const QPoint& pos);
+    void showRemoteContextMenu(const QPoint& pos);
+
+    void deleteLocalSelection();
+    void deleteRemoteSelection();
 
 private:
     void buildUi();
