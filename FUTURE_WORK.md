@@ -63,4 +63,7 @@ Nothing in this file is required for the current build to function.
 - Profiles grouping (colors)
 - Dilithium keygen (real)
 - tooltips
-- TCP
+- logging on file transfers
+- confirm checksum calculation
+- settings menu
+- 

@@ -25,6 +25,18 @@
 #include <QMenu>
 #include <QAction>
 #include <QEvent>
+#include <QStyle>
+#include <algorithm>
+
+
+static QString joinListPreview(const QStringList& xs, int maxN = 6)
+{
+    QStringList out;
+    for (int i = 0; i < xs.size() && i < maxN; ++i) out << xs[i];
+    if (xs.size() > maxN) out << QString("…(+%1)").arg(xs.size() - maxN);
+    return out.join(", ");
+}
+
 
 static QString prettySize(quint64 bytes)
 {
@@ -175,6 +187,20 @@ void FilesTab::buildUi()
     m_remoteTable->setShowGrid(false);
     m_remoteTable->setAlternatingRowColors(true);
 
+    // Unified file view font (local + remote)
+    QFont fileFont = font();
+    fileFont.setPointSize(11);
+
+    m_localView->setFont(fileFont);
+    m_remoteTable->setFont(fileFont);
+
+    // Optional: slightly tighter rows
+    m_localView->setUniformRowHeights(true);
+    m_remoteTable->verticalHeader()->setDefaultSectionSize(22);
+
+    m_remoteTable->horizontalHeader()->setFont(fileFont);
+
+
     // Remote context menu
     m_remoteTable->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_remoteTable, &QWidget::customContextMenuRequested,
@@ -283,11 +309,22 @@ void FilesTab::refreshRemote()
     auto *watcher = new QFutureWatcher<QVector<SshClient::RemoteEntry>>(this);
 
     connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
-        const QVector<SshClient::RemoteEntry> items = watcher->result();
+        QVector<SshClient::RemoteEntry> items = watcher->result();
         watcher->deleteLater();
+
+        // Sort: DIRs first, then FILEs; within group by name (case-insensitive)
+        std::sort(items.begin(), items.end(),
+                  [](const SshClient::RemoteEntry& a, const SshClient::RemoteEntry& b) {
+                      if (a.isDir != b.isDir) return a.isDir > b.isDir; // dirs first
+                      return QString::compare(a.name, b.name, Qt::CaseInsensitive) < 0;
+                  });
 
         m_remoteTable->setRowCount(0);
         m_remoteTable->setRowCount(items.size());
+
+        // Pick icons from current theme/style
+        const QIcon dirIcon  = style()->standardIcon(QStyle::SP_DirIcon);
+        const QIcon fileIcon = style()->standardIcon(QStyle::SP_FileIcon);
 
         for (int i = 0; i < items.size(); ++i) {
             const auto &e = items[i];
@@ -296,13 +333,16 @@ void FilesTab::refreshRemote()
             nameItem->setData(Qt::UserRole, e.fullPath);
             nameItem->setData(Qt::UserRole + 1, e.isDir ? 1 : 0);
 
+            // Icon in Name column
+            nameItem->setIcon(e.isDir ? dirIcon : fileIcon);
+
             auto *typeItem = new QTableWidgetItem(e.isDir ? "DIR" : "FILE");
             auto *sizeItem = new QTableWidgetItem(e.isDir ? "" : prettySize(e.size));
 
             QString mtimeStr;
-            if (e.mtime > 0)
+            if (e.mtime > 0) {
                 mtimeStr = QDateTime::fromSecsSinceEpoch(e.mtime).toString("yyyy-MM-dd HH:mm");
-
+            }
             auto *mtItem = new QTableWidgetItem(mtimeStr);
 
             m_remoteTable->setItem(i, 0, nameItem);
@@ -319,6 +359,7 @@ void FilesTab::refreshRemote()
         return out;
     }));
 }
+
 
 void FilesTab::goRemoteUp()
 {
@@ -377,6 +418,11 @@ void FilesTab::onTransferProgress(quint64 done, quint64 total)
 void FilesTab::runTransfer(const QString& title,
                            const std::function<bool(QString *err)> &fn)
 {
+    struct TransferResult {
+        bool ok = false;
+        QString err;
+    };
+
     if (m_progressDlg) {
         m_progressDlg->deleteLater();
         m_progressDlg = nullptr;
@@ -393,10 +439,10 @@ void FilesTab::runTransfer(const QString& title,
         if (m_ssh) m_ssh->requestCancelTransfer();
     });
 
-    auto *watcher = new QFutureWatcher<bool>(this);
+    auto *watcher = new QFutureWatcher<TransferResult>(this);
 
     connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
-        const bool ok = watcher->result();
+        const TransferResult r = watcher->result();
         watcher->deleteLater();
 
         if (m_progressDlg) {
@@ -405,18 +451,29 @@ void FilesTab::runTransfer(const QString& title,
             m_progressDlg = nullptr;
         }
 
-        if (!ok) {
-            QMessageBox::warning(this, "Transfer", "Transfer failed or cancelled.");
+        if (!r.ok) {
+            const QString msg = r.err.trimmed().isEmpty()
+                ? QStringLiteral("Transfer failed or cancelled.")
+                : r.err.trimmed();
+
+            qWarning().noquote() << QString("[FILES][TRANSFER] FAILED: %1").arg(msg);
+
+            QMessageBox::warning(this, "Transfer", msg);
         } else {
+            qInfo().noquote() << "[FILES][TRANSFER] OK";
             refreshRemote();
         }
     });
 
-    watcher->setFuture(QtConcurrent::run([fn]() -> bool {
+    watcher->setFuture(QtConcurrent::run([fn]() -> TransferResult {
+        TransferResult r;
         QString err;
-        return fn(&err);
+        r.ok = fn(&err);
+        r.err = err;
+        return r;
     }));
 }
+
 
 void FilesTab::uploadSelected()
 {
@@ -453,6 +510,11 @@ void FilesTab::startUploadPaths(const QStringList& paths)
     }
     if (paths.isEmpty()) return;
 
+    qInfo().noquote() << QString("[XFER][UPLOAD] request paths=%1 remoteCwd='%2'")
+                         .arg(paths.size())
+                         .arg(m_remoteCwd);
+    qInfo().noquote() << QString("[XFER][UPLOAD] paths: %1").arg(joinListPreview(paths));
+
     QVector<UploadTask> tasks;
     tasks.reserve(256);
 
@@ -473,12 +535,17 @@ void FilesTab::startUploadPaths(const QStringList& paths)
     }
 
     if (tasks.isEmpty()) {
+        qWarning().noquote() << "[XFER][UPLOAD] no tasks after scanning selection";
         QMessageBox::information(this, "Upload", "No files found to upload.");
         return;
     }
 
     quint64 totalBytes = 0;
     for (const auto& t : tasks) totalBytes += t.size;
+
+    qInfo().noquote() << QString("[XFER][UPLOAD] planned files=%1 total=%2")
+                         .arg(tasks.size())
+                         .arg(prettySize(totalBytes));
 
     QSet<QString> dirs;
     dirs.reserve(tasks.size());
@@ -488,10 +555,16 @@ void FilesTab::startUploadPaths(const QStringList& paths)
     runTransfer(QString("Uploading %1 item(s)…").arg(tasks.size()),
                 [this, tasks, totalBytes, dirs](QString *err) -> bool {
 
+        qInfo().noquote() << QString("[XFER][UPLOAD] batch start files=%1 total=%2 dirs=%3")
+                             .arg(tasks.size())
+                             .arg(prettySize(totalBytes))
+                             .arg(dirs.size());
+
         // 1) ensure dirs
         for (const QString& d : dirs) {
             QString e;
             if (!m_ssh->ensureRemoteDir(d, 0755, &e)) {
+                qWarning().noquote() << QString("[XFER][UPLOAD] ensureRemoteDir FAIL '%1' : %2").arg(d, e);
                 if (err) *err = "Failed to create remote dir:\n" + d + "\n" + e;
                 return false;
             }
@@ -503,6 +576,9 @@ void FilesTab::startUploadPaths(const QStringList& paths)
         for (const auto& t : tasks) {
             quint64 lastFileDone = 0;
             QString e;
+
+            qInfo().noquote() << QString("[XFER][UPLOAD] start %1 -> %2 (%3)")
+                                 .arg(t.localPath, t.remotePath, prettySize(t.size));
 
             const bool ok = m_ssh->uploadFile(
                 t.localPath,
@@ -520,6 +596,8 @@ void FilesTab::startUploadPaths(const QStringList& paths)
                 });
 
             if (!ok) {
+                qWarning().noquote() << QString("[XFER][UPLOAD] FAIL %1 -> %2 : %3")
+                                        .arg(t.localPath, t.remotePath, e);
                 if (err) *err = e;
                 return false;
             }
@@ -530,18 +608,26 @@ void FilesTab::startUploadPaths(const QStringList& paths)
             {
                 QString verr;
                 if (!m_ssh->verifyLocalVsRemoteSha256(t.localPath, t.remotePath, &verr)) {
+                    qWarning().noquote() << QString("[XFER][UPLOAD] verify FAIL %1 : %2")
+                                            .arg(t.remotePath, verr);
                     if (err) {
                         *err = QString("Integrity check failed for upload:\n%1\n\n%2")
                                    .arg(t.remotePath, verr);
                     }
                     return false;
                 }
+                qInfo().noquote() << QString("[XFER][UPLOAD] verify OK %1").arg(t.remotePath);
             }
         }
+
+        qInfo().noquote() << QString("[XFER][UPLOAD] batch OK files=%1 total=%2")
+                             .arg(tasks.size())
+                             .arg(prettySize(totalBytes));
 
         return true;
     });
 }
+
 
 bool FilesTab::collectRemoteRecursive(const QString& remoteRoot,
                                       const QString& localRoot,
@@ -590,6 +676,11 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
     }
     if (remotePaths.isEmpty()) return;
 
+    qInfo().noquote() << QString("[XFER][DOWNLOAD] request paths=%1 destDir='%2'")
+                         .arg(remotePaths.size())
+                         .arg(destDir);
+    qInfo().noquote() << QString("[XFER][DOWNLOAD] paths: %1").arg(joinListPreview(remotePaths));
+
     QVector<QString> rem;
     QVector<QString> loc;
     QVector<quint64> sizes;
@@ -599,10 +690,12 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
 
     quint64 totalBytes = 0;
 
+    // Expand selection (files + folders) into flat file list
     for (const QString& rp : remotePaths) {
         SshClient::RemoteEntry info;
         QString stErr;
         if (!m_ssh->statRemotePath(rp, &info, &stErr)) {
+            qWarning().noquote() << QString("[XFER][DOWNLOAD] stat FAIL '%1' : %2").arg(rp, stErr);
             QMessageBox::warning(this, "Download", "Cannot stat remote path:\n" + rp + "\n" + stErr);
             return;
         }
@@ -611,9 +704,13 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
         const QString localRoot = joinLocal(destDir, name);
 
         if (info.isDir) {
+            qInfo().noquote() << QString("[XFER][DOWNLOAD] expand dir '%1' -> '%2'").arg(rp, localRoot);
+
             QDir().mkpath(localRoot);
+
             QString e;
             if (!collectRemoteRecursive(rp, localRoot, rem, loc, sizes, &totalBytes, &e)) {
+                qWarning().noquote() << QString("[XFER][DOWNLOAD] expand FAIL '%1' : %2").arg(rp, e);
                 QMessageBox::warning(this, "Download", e);
                 return;
             }
@@ -624,21 +721,36 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
             totalBytes += info.size;
 
             QDir().mkpath(QFileInfo(localRoot).absolutePath());
+
+            qInfo().noquote() << QString("[XFER][DOWNLOAD] plan file '%1' -> '%2' (%3)")
+                                 .arg(rp, localRoot, prettySize(info.size));
         }
     }
 
+    qInfo().noquote() << QString("[XFER][DOWNLOAD] planned files=%1 total=%2")
+                         .arg(rem.size())
+                         .arg(prettySize(totalBytes));
+
     runTransfer(QString("Downloading %1 file(s)…").arg(rem.size()),
                 [this, rem, loc, sizes, totalBytes](QString *err) -> bool {
+
+        qInfo().noquote() << QString("[XFER][DOWNLOAD] batch start files=%1 total=%2")
+                             .arg(rem.size())
+                             .arg(prettySize(totalBytes));
 
         quint64 completedBytes = 0;
 
         for (int i = 0; i < rem.size(); ++i) {
             quint64 last = 0;
 
+            qInfo().noquote() << QString("[XFER][DOWNLOAD] start %1 -> %2 (%3)")
+                                 .arg(rem[i], loc[i], prettySize(sizes[i]));
+
+            QString e;
             const bool ok = m_ssh->downloadFile(
                 rem[i],
                 loc[i],
-                err,
+                &e,
                 [this, &completedBytes, &last, totalBytes](quint64 d, quint64 /*t*/) {
 
                     const quint64 delta = (d >= last) ? (d - last) : 0;
@@ -650,8 +762,12 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
                         Q_ARG(quint64, totalBytes));
                 });
 
-            if (!ok)
+            if (!ok) {
+                qWarning().noquote() << QString("[XFER][DOWNLOAD] FAIL %1 -> %2 : %3")
+                                        .arg(rem[i], loc[i], e);
+                if (err) *err = e;
                 return false;
+            }
 
             completedBytes += sizes[i];
 
@@ -659,18 +775,26 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
             {
                 QString verr;
                 if (!m_ssh->verifyRemoteVsLocalSha256(rem[i], loc[i], &verr)) {
+                    qWarning().noquote() << QString("[XFER][DOWNLOAD] verify FAIL %1 : %2")
+                                            .arg(loc[i], verr);
                     if (err) {
                         *err = QString("Integrity check failed for download:\n%1\n\n%2")
                                    .arg(loc[i], verr);
                     }
                     return false;
                 }
+                qInfo().noquote() << QString("[XFER][DOWNLOAD] verify OK %1").arg(loc[i]);
             }
         }
+
+        qInfo().noquote() << QString("[XFER][DOWNLOAD] batch OK files=%1 total=%2")
+                             .arg(rem.size())
+                             .arg(prettySize(totalBytes));
 
         return true;
     });
 }
+
 
 void FilesTab::downloadSelected()
 {
