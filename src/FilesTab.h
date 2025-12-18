@@ -72,8 +72,16 @@ private:
 
     void startDownloadPaths(const QStringList& remotePaths, const QString& destDir);
 
+    // Context-menu actions
     void deleteLocalSelection();
     void deleteRemoteSelection();
+    void renameLocalSelection();
+    void renameRemoteSelection();
+    void newLocalFolder();
+    void newRemoteFolder();
+    void copyLocalPath();
+    void copyRemotePath();
+
 
 private:
     SshClient *m_ssh = nullptr;

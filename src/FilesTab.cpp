@@ -27,7 +27,9 @@
 #include <QEvent>
 #include <QStyle>
 #include <algorithm>
-
+#include <QGuiApplication>
+#include <QClipboard>
+#include <QInputDialog>
 
 
 static QString joinListPreview(const QStringList& xs, int maxN = 6)
@@ -851,26 +853,63 @@ void FilesTab::showLocalContextMenu(const QPoint& pos)
     if (!m_localView || !m_localModel) return;
 
     QMenu menu(this);
-    QAction* del = menu.addAction("Delete");
+
+    QAction* actRename   = menu.addAction("Rename…");
+    QAction* actNewFolder = menu.addAction("New folder…");
+    menu.addSeparator();
+    QAction* actCopyPath = menu.addAction("Copy path");
+    menu.addSeparator();
+    QAction* actDelete   = menu.addAction("Delete");
+
+    const QModelIndexList rows = m_localView->selectionModel()
+                                    ? m_localView->selectionModel()->selectedRows()
+                                    : QModelIndexList();
+
+    // Enable/disable based on selection
+    actRename->setEnabled(rows.size() == 1);
+    actCopyPath->setEnabled(rows.size() >= 1);
+    actDelete->setEnabled(rows.size() >= 1);
 
     const QAction* chosen = menu.exec(m_localView->viewport()->mapToGlobal(pos));
-    if (chosen == del) {
-        deleteLocalSelection();
-    }
+    if (!chosen) return;
+
+    if (chosen == actRename)      renameLocalSelection();
+    else if (chosen == actNewFolder) newLocalFolder();
+    else if (chosen == actCopyPath)  copyLocalPath();
+    else if (chosen == actDelete)    deleteLocalSelection();
 }
+
 
 void FilesTab::showRemoteContextMenu(const QPoint& pos)
 {
     if (!m_remoteTable) return;
 
     QMenu menu(this);
-    QAction* del = menu.addAction("Delete");
+
+    QAction* actRename    = menu.addAction("Rename…");
+    QAction* actNewFolder = menu.addAction("New folder…");
+    menu.addSeparator();
+    QAction* actCopyPath  = menu.addAction("Copy path");
+    menu.addSeparator();
+    QAction* actDelete    = menu.addAction("Delete");
+
+    const auto rows = m_remoteTable->selectionModel()
+                        ? m_remoteTable->selectionModel()->selectedRows()
+                        : QModelIndexList();
+
+    actRename->setEnabled(rows.size() == 1);
+    actCopyPath->setEnabled(rows.size() >= 1);
+    actDelete->setEnabled(rows.size() >= 1);
 
     const QAction* chosen = menu.exec(m_remoteTable->viewport()->mapToGlobal(pos));
-    if (chosen == del) {
-        deleteRemoteSelection();
-    }
+    if (!chosen) return;
+
+    if (chosen == actRename)        renameRemoteSelection();
+    else if (chosen == actNewFolder) newRemoteFolder();
+    else if (chosen == actCopyPath)  copyRemotePath();
+    else if (chosen == actDelete)    deleteRemoteSelection();
 }
+
 
 void FilesTab::deleteLocalSelection()
 {
@@ -978,3 +1017,183 @@ void FilesTab::deleteRemoteSelection()
         return true;
     });
 }
+
+void FilesTab::renameLocalSelection()
+{
+    if (!m_localView || !m_localModel) return;
+
+    const QModelIndexList rows = m_localView->selectionModel()->selectedRows();
+    if (rows.size() != 1) {
+        QMessageBox::information(this, "Rename", "Select exactly one local item.");
+        return;
+    }
+
+    const QFileInfo fi = m_localModel->fileInfo(rows.first());
+    if (!fi.exists()) return;
+
+    bool ok = false;
+    const QString oldName = fi.fileName();
+    const QString newName = QInputDialog::getText(
+        this, "Rename", "New name:", QLineEdit::Normal, oldName, &ok);
+
+    if (!ok) return;
+    const QString nn = newName.trimmed();
+    if (nn.isEmpty() || nn == oldName) return;
+
+    const QString oldPath = fi.absoluteFilePath();
+    const QString newPath = QDir(fi.absolutePath()).filePath(nn);
+
+    if (QFileInfo::exists(newPath)) {
+        QMessageBox::warning(this, "Rename", "Target name already exists.");
+        return;
+    }
+
+    bool success = false;
+    if (fi.isDir()) {
+        QDir parent(fi.absolutePath());
+        success = parent.rename(oldName, nn);
+    } else {
+        success = QFile::rename(oldPath, newPath);
+    }
+
+    if (!success) {
+        QMessageBox::warning(this, "Rename", "Rename failed.");
+        return;
+    }
+
+    // Refresh local view (keep cwd)
+    m_localView->setRootIndex(m_localModel->index(m_localCwd));
+}
+
+void FilesTab::renameRemoteSelection()
+{
+    if (!m_ssh || !m_ssh->isConnected() || !m_remoteTable) {
+        QMessageBox::information(this, "Rename", "Not connected.");
+        return;
+    }
+
+    const auto rows = m_remoteTable->selectionModel()->selectedRows();
+    if (rows.size() != 1) {
+        QMessageBox::information(this, "Rename", "Select exactly one remote item.");
+        return;
+    }
+
+    auto* it = m_remoteTable->item(rows.first().row(), 0);
+    if (!it) return;
+
+    const QString oldPath = it->data(Qt::UserRole).toString();
+    const QString oldName = QFileInfo(oldPath).fileName();
+
+    bool ok = false;
+    const QString newName = QInputDialog::getText(
+        this, "Rename", "New name:", QLineEdit::Normal, oldName, &ok);
+
+    if (!ok) return;
+    const QString nn = newName.trimmed();
+    if (nn.isEmpty() || nn == oldName) return;
+
+    const QString parentDir = QFileInfo(oldPath).path();
+    const QString newPath = joinRemote(parentDir, nn);
+
+    runTransfer(QString("Renaming %1…").arg(oldName),
+                [this, oldPath, newPath](QString* err) -> bool {
+                    QString out, e;
+                    const QString cmd = QString("mv -- %1 %2")
+                                            .arg(shQuote(oldPath), shQuote(newPath));
+                    if (!m_ssh->exec(cmd, &out, &e)) {
+                        if (err) *err = e;
+                        return false;
+                    }
+                    return true;
+                });
+}
+
+void FilesTab::newLocalFolder()
+{
+    if (!m_localModel || !m_localView) return;
+
+    const QString base = m_localCwd.isEmpty()
+        ? m_localModel->filePath(m_localView->rootIndex())
+        : m_localCwd;
+
+    bool ok = false;
+    const QString name = QInputDialog::getText(
+        this, "New folder", "Folder name:", QLineEdit::Normal, "NewFolder", &ok);
+
+    if (!ok) return;
+    const QString n = name.trimmed();
+    if (n.isEmpty()) return;
+
+    const QString path = QDir(base).filePath(n);
+    if (QFileInfo::exists(path)) {
+        QMessageBox::warning(this, "New folder", "That name already exists.");
+        return;
+    }
+
+    if (!QDir(base).mkdir(n)) {
+        QMessageBox::warning(this, "New folder", "Failed to create folder.");
+        return;
+    }
+
+    m_localView->setRootIndex(m_localModel->index(base));
+}
+
+void FilesTab::newRemoteFolder()
+{
+    if (!m_ssh || !m_ssh->isConnected()) {
+        QMessageBox::information(this, "New folder", "Not connected.");
+        return;
+    }
+
+    bool ok = false;
+    const QString name = QInputDialog::getText(
+        this, "New folder", "Folder name:", QLineEdit::Normal, "NewFolder", &ok);
+
+    if (!ok) return;
+    const QString n = name.trimmed();
+    if (n.isEmpty()) return;
+
+    const QString remotePath = joinRemote(m_remoteCwd, n);
+
+    runTransfer(QString("Creating folder %1…").arg(n),
+                [this, remotePath](QString* err) -> bool {
+                    QString out, e;
+                    const QString cmd = QString("mkdir -p -- %1").arg(shQuote(remotePath));
+                    if (!m_ssh->exec(cmd, &out, &e)) {
+                        if (err) *err = e;
+                        return false;
+                    }
+                    return true;
+                });
+}
+
+void FilesTab::copyLocalPath()
+{
+    if (!m_localView || !m_localModel) return;
+
+    const QModelIndexList rows = m_localView->selectionModel()->selectedRows();
+    if (rows.isEmpty()) return;
+
+    const QFileInfo fi = m_localModel->fileInfo(rows.first());
+    const QString path = fi.absoluteFilePath();
+    if (path.isEmpty()) return;
+
+    QGuiApplication::clipboard()->setText(path);
+}
+
+void FilesTab::copyRemotePath()
+{
+    if (!m_remoteTable) return;
+
+    const auto rows = m_remoteTable->selectionModel()->selectedRows();
+    if (rows.isEmpty()) return;
+
+    auto* it = m_remoteTable->item(rows.first().row(), 0);
+    if (!it) return;
+
+    const QString path = it->data(Qt::UserRole).toString();
+    if (path.isEmpty()) return;
+
+    QGuiApplication::clipboard()->setText(path);
+}
+
