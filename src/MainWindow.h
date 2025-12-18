@@ -5,13 +5,13 @@
 #include <QVector>
 #include <QString>
 #include <QByteArray>
-
-#include "SshProfile.h"
-#include "SshClient.h"
 #include <QUuid>
 #include <QAction>
 
-// Forward declarations (Qt)
+#include "SshProfile.h"
+#include "SshClient.h"
+
+// Forward declarations (Qt / app)
 class QListWidget;
 class QListWidgetItem;
 class QPlainTextEdit;
@@ -19,12 +19,15 @@ class QPushButton;
 class QLineEdit;
 class QLabel;
 class QCheckBox;
-
 class QTabWidget;
-class CpunkTermWidget;
-class FilesTab;   // add this near other forward declarations
 class QToolButton;
 class QMenu;
+
+class CpunkTermWidget;
+class FilesTab;
+class ProfilesEditorDialog;   // ✅ needed for modeless editor pointer
+class KeyGeneratorDialog;     // ✅ needed for modeless editor pointer
+class SettingsDialog;         // ✅ needed for modeless editor pointer
 
 class MainWindow : public QMainWindow
 {
@@ -43,7 +46,6 @@ private slots:
     void onProfileSelectionChanged(int row);
     void onEditProfilesClicked();
 
-    // (Will be wired once ShellManager exists)
     void onFileDropped(const QString &path, const QByteArray &data);
 
     void downloadSelectionTriggered();
@@ -72,16 +74,14 @@ private:
     void uiDebug(const QString& msg);
     bool uiVerbose() const;
 
-    void applySavedSettings();   // load/apply theme + log level on startup
+    void applySavedSettings();
     void onOpenSettings();
     void applyCurrentTheme();
 
-    // =====================================================
     // Profile list grouping (Group headers + sorting)
-    // =====================================================
     void rebuildProfileList();
-    int  currentProfileIndex() const;   // returns index into m_profiles, or -1
-    void ensureProfileItemSelected();   // if header selected, moves to nearest profile row
+    int  currentProfileIndex() const;
+    void ensureProfileItemSelected();
 
     // UI
     QListWidget    *m_profileList    = nullptr;
@@ -100,9 +100,14 @@ private:
 
     QPushButton    *m_editProfilesBtn = nullptr;
 
+    // ✅ Modeless windows
+    ProfilesEditorDialog *m_profilesEditor = nullptr;
+    KeyGeneratorDialog   *m_keyGenerator   = nullptr;
+    SettingsDialog *m_settingsDlg = nullptr;
+
     // State
     QVector<SshProfile> m_profiles;
-    bool                m_pqActive = false; // optional; currently not used in cleaned cpp
+    bool                m_pqActive = false;
 
     // Modules
     SshClient m_ssh;
@@ -115,7 +120,7 @@ private:
     CpunkTermWidget* createTerm(const SshProfile &p, QWidget *parent);
     void applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p);
 
-    // ✅ ADD THIS (used by openShellForProfile() in MainWindow.cpp)
+    // Hotkey macro wiring
     void installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScope, const SshProfile& p);
 
     QMainWindow *m_tabbedShellWindow = nullptr;

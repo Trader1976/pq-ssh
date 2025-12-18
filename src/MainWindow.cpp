@@ -640,7 +640,38 @@ void MainWindow::setupMenus()
     auto *fileMenu = menuBar()->addMenu("&File");
 
     QAction *settingsAct = fileMenu->addAction("Settings…");
-    connect(settingsAct, &QAction::triggered, this, &MainWindow::onOpenSettingsDialog);
+    connect(settingsAct, &QAction::triggered, this, [this]() {
+
+    // If already open, bring to front
+    if (m_settingsDlg) {
+        m_settingsDlg->raise();
+        m_settingsDlg->activateWindow();
+        return;
+    }
+
+    // IMPORTANT: parent = nullptr so it’s freely movable and not “attached”
+    m_settingsDlg = new SettingsDialog(nullptr);
+    m_settingsDlg->setAttribute(Qt::WA_DeleteOnClose, true);
+    m_settingsDlg->setWindowTitle("CPUNK PQ-SSH — Settings");
+
+    // When closed, clear pointer
+    connect(m_settingsDlg, &QObject::destroyed, this, [this]() {
+        m_settingsDlg = nullptr;
+    });
+
+    // Apply settings when user presses OK/Apply (assuming Accepted exists)
+    connect(m_settingsDlg, &QDialog::accepted, this, [this]() {
+        applySavedSettings();
+        rebuildProfileList();
+        appendTerminalLine("[INFO] Settings updated.");
+        if (m_statusLabel) m_statusLabel->setText("Settings updated.");
+    });
+
+    m_settingsDlg->show();
+    m_settingsDlg->raise();
+    m_settingsDlg->activateWindow();
+});
+
 
     // Keys menu
     auto *keysMenu = menuBar()->addMenu("&Keys");
@@ -648,24 +679,38 @@ void MainWindow::setupMenus()
     keysMenu->addAction(keyGenAct);
 
     connect(keyGenAct, &QAction::triggered, this, [this]() {
-        // ARCHITECTURE:
-        // Profile names are built at trigger-time (not cached) so the dialog
-        // always reflects edits made via ProfilesEditorDialog.
 
+        // If already open, bring to front
+        if (m_keyGenerator) {
+            m_keyGenerator->raise();
+            m_keyGenerator->activateWindow();
+            return;
+        }
+
+        // Build fresh profile name list (always up-to-date)
         QStringList names;
-        for (const auto& p : m_profiles) names << p.name;
+        for (const auto& p : m_profiles)
+            names << p.name;
 
-        // KeyGeneratorDialog owns the key inventory UI and generation.
-        // It signals “installPublicKeyRequested” back to MainWindow so that:
-        //   - MainWindow can select the target profile
-        //   - MainWindow can show confirmations (host/user/port/key preview)
-        //   - SshClient can perform the remote work
-        KeyGeneratorDialog dlg(names, this);
-        connect(&dlg, &KeyGeneratorDialog::installPublicKeyRequested,
+        // IMPORTANT: parent = nullptr so it’s freely movable and not “attached”
+        m_keyGenerator = new KeyGeneratorDialog(names, nullptr);
+        m_keyGenerator->setAttribute(Qt::WA_DeleteOnClose, true);
+        m_keyGenerator->setWindowTitle("CPUNK PQ-SSH — Key Generator");
+
+        // Keep existing workflow wiring
+        connect(m_keyGenerator, &KeyGeneratorDialog::installPublicKeyRequested,
                 this, &MainWindow::onInstallPublicKeyRequested);
 
-        dlg.exec();
+        // When closed, clear pointer
+        connect(m_keyGenerator, &QObject::destroyed, this, [this]() {
+            m_keyGenerator = nullptr;
+        });
+
+        m_keyGenerator->show();
+        m_keyGenerator->raise();
+        m_keyGenerator->activateWindow();
     });
+
 
     // Menu-based installer (manual .pub selection).
     // ARCHITECTURE:
@@ -909,22 +954,46 @@ void MainWindow::saveProfilesToDisk()
 
 void MainWindow::onEditProfilesClicked()
 {
-    // ARCHITECTURE:
-    // ProfilesEditorDialog edits a copy and returns results only on Accepted,
-    // so cancellation never mutates state.
+    // If already open, just bring it to front.
+    if (m_profilesEditor) {
+        m_profilesEditor->raise();
+        m_profilesEditor->activateWindow();
+        return;
+    }
+
     ensureProfileItemSelected();
     const int selected = currentProfileIndex();
-    ProfilesEditorDialog dlg(m_profiles, (selected >= 0 ? selected : 0), this);
-    if (dlg.exec() != QDialog::Accepted)
-        return;
 
-    m_profiles = dlg.resultProfiles();
-    saveProfilesToDisk();
-    rebuildProfileList();
+    // Create modeless dialog (floating window, main window still usable)
+    m_profilesEditor = new ProfilesEditorDialog(m_profiles, (selected >= 0 ? selected : 0), nullptr);
+    m_profilesEditor->setAttribute(Qt::WA_DeleteOnClose, true);
+    m_profilesEditor->setModal(false);
+    m_profilesEditor->setWindowModality(Qt::NonModal);
 
-    if (m_statusLabel)
-        m_statusLabel->setText("Profiles updated.");
-    appendTerminalLine("[INFO] Profiles updated.");
+    // Optional: keep it as a real top-level window even if Qt tries to parent it
+    m_profilesEditor->setWindowFlag(Qt::Window, true);
+
+    // When user clicks Save (Accepted), apply and persist
+    connect(m_profilesEditor, &QDialog::accepted, this, [this]() {
+        if (!m_profilesEditor) return;
+
+        m_profiles = m_profilesEditor->resultProfiles();
+        saveProfilesToDisk();
+        rebuildProfileList();
+
+        if (m_statusLabel)
+            m_statusLabel->setText("Profiles updated.");
+        appendTerminalLine("[INFO] Profiles updated.");
+    });
+
+    // When it closes (Save or Cancel), clear pointer
+    connect(m_profilesEditor, &QObject::destroyed, this, [this]() {
+        m_profilesEditor = nullptr;
+    });
+
+    m_profilesEditor->show();
+    m_profilesEditor->raise();
+    m_profilesEditor->activateWindow();
 }
 
 
