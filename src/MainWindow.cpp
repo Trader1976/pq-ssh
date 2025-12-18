@@ -221,7 +221,9 @@ void MainWindow::rebuildProfileList()
             hdr->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
             hdr->setSizeHint(QSize(hdr->sizeHint().width(), 26));
             // Optional visual emphasis; keep it subtle so AppTheme can still style
-            hdr->setForeground(QBrush(QColor("#00FF99")));
+            QSettings s;
+            const QString themeId = s.value("ui/theme", "cpunk-dark").toString();
+            hdr->setForeground(QBrush(AppTheme::accent(themeId)));
         }
 
         auto* it = new QListWidgetItem("    " + p.name, m_profileList);
@@ -287,6 +289,27 @@ void MainWindow::ensureProfileItemSelected()
             return;
         }
     }
+}
+
+void MainWindow::applyCurrentTheme()
+{
+    QSettings s;
+    const QString themeId = s.value("ui/theme", "cpunk-dark").toString();
+
+    qApp->setStyleSheet("");
+    qApp->setPalette(QApplication::style()->standardPalette());
+
+    if (themeId == "cpunk-orange") {
+        qApp->setStyleSheet(AppTheme::orange());
+    } else if (themeId == "windows-basic") {
+        qApp->setStyleSheet(AppTheme::windowsBasic());
+    } else if (themeId == "cpunk-neo") {                 // NEW
+        qApp->setStyleSheet(AppTheme::neo());            // NEW
+    } else {
+        qApp->setStyleSheet(AppTheme::dark());
+    }
+
+    rebuildProfileList();  // refresh header brushes
 }
 
 
@@ -828,9 +851,18 @@ void MainWindow::updatePqStatusLabel(const QString &text, const QString &colorHe
     // PQ status is a best-effort indicator derived from an OpenSSH probe,
     // not from the libssh session. It is intentionally lightweight and non-blocking.
     if (!m_pqStatusLabel) return;
+
     m_pqStatusLabel->setText(text);
-    m_pqStatusLabel->setStyleSheet(QString("color: %1; font-weight: bold;").arg(colorHex));
+
+    QString col = colorHex.trimmed();
+    if (col.isEmpty()) {
+        // Theme accent (so CPUNK Dark/Orange/Windows Basic can control it)
+        col = qApp->palette().color(QPalette::Highlight).name();
+    }
+
+    m_pqStatusLabel->setStyleSheet(QString("color:%1; font-weight:bold;").arg(col));
 }
+
 
 // ========================
 // Profiles
@@ -1140,8 +1172,14 @@ void MainWindow::onConnectClicked()
                       err.contains("no matching key exchange method", Qt::CaseInsensitive));
 
                 // UI-only indicator: does not change security behavior, just informs the user.
-                updatePqStatusLabel(pqOk ? "PQ: ACTIVE" : "PQ: OFF",
-                                    pqOk ? "#4caf50" : "#ff5252");
+                QSettings s;
+                const QString themeId = s.value("ui/theme", "cpunk-dark").toString();
+
+                updatePqStatusLabel(
+                    pqOk ? "PQ: ACTIVE" : "PQ: OFF",
+                    pqOk ? AppTheme::accent(themeId).name()
+                         : QString("#ff5252")
+                );
 
                 pqProc->deleteLater();
             });
@@ -2054,17 +2092,11 @@ void MainWindow::applySavedSettings()
 {
     QSettings s;
 
-    // Theme (future-proof, only one option for now)
-    const QString theme = s.value("ui/theme", "cpunk-dark").toString();
-    if (theme == "cpunk-dark") {
-        qApp->setStyleSheet(AppTheme::dark());
-    } else {
-        // fallback
-        qApp->setStyleSheet(AppTheme::dark());
-    }
+    // Theme (apply from settings)
+    applyCurrentTheme();
 
     // Logging level (0..2)
-    const int lvl = s.value("logging/level", 1).toInt(); // default: Normal
+    const int lvl = s.value("logging/level", 1).toInt();
     Logger::setLogLevel(lvl);
 }
 
@@ -2076,6 +2108,7 @@ void MainWindow::onOpenSettingsDialog()
 
     // Apply immediately (theme + log level)
     applySavedSettings();
+    rebuildProfileList();
 
     appendTerminalLine("[INFO] Settings updated.");
     if (m_statusLabel) m_statusLabel->setText("Settings updated.");
@@ -2083,6 +2116,6 @@ void MainWindow::onOpenSettingsDialog()
 
 void MainWindow::onOpenSettings()
 {
-    // TODO: open SettingsDialog here
     QMessageBox::information(this, "Settings", "Settings dialog (coming next).");
 }
+

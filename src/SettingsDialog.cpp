@@ -1,10 +1,12 @@
 #include "SettingsDialog.h"
-
+#include "Logger.h"
+#include "AppTheme.h"
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QVBoxLayout>
 #include <QSettings>
+#include <QApplication>
 
 SettingsDialog::SettingsDialog(QWidget *parent)
     : QDialog(parent)
@@ -25,6 +27,10 @@ void SettingsDialog::buildUi()
     m_themeCombo = new QComboBox(this);
     // Future-proof: value is an internal id, label is user-facing
     m_themeCombo->addItem("CPUNK Dark", "cpunk-dark");
+    m_themeCombo->addItem("CPUNK Orange", "cpunk-orange");
+    m_themeCombo->addItem("CPUNK Neo", "cpunk-neo");
+    m_themeCombo->addItem("Windows Basic", "windows-basic");
+
 
     m_logLevelCombo = new QComboBox(this);
     // 0..2, matches Logger::setLogLevel(int)

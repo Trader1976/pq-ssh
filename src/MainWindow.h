@@ -75,6 +75,7 @@ private:
 
     void applySavedSettings();   // load/apply theme + log level on startup
     void onOpenSettings();
+    void applyCurrentTheme();
 
     // =====================================================
     // Profile list grouping (Group headers + sorting)
