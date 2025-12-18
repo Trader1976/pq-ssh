@@ -335,7 +335,7 @@ MainWindow::MainWindow(QWidget *parent)
     applySavedSettings();
 
     setWindowTitle("CPUNK PQ-SSH");
-    resize(1100, 700);
+    resize(1200, 700);
 
     // UI-first: build widgets, then load profiles, then wire menus/actions.
     // Profiles may affect initial UI state (host field, debug checkbox).

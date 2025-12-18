@@ -18,7 +18,7 @@
         {
             "group": "Production",
             "history_lines": 2000,
-            "host": "192.168.1.221",
+            "host": "83.146.239.12",
             "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
             "key_type": "auto",
             "macro_command": "ls -lh",

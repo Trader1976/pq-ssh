@@ -229,9 +229,7 @@ void ProfilesEditorDialog::buildUi()
     outer->setContentsMargins(0, 0, 0, 0);
     outer->addWidget(split);
 
-    // ============================================================
-    // Column 1: profile list + Add/Delete
-    // ============================================================
+    // ---------- Column 1: profile list + Add/Delete ----------
     auto *leftWidget = new QWidget(split);
     auto *leftLayout = new QVBoxLayout(leftWidget);
     leftLayout->setContentsMargins(0, 0, 0, 0);
@@ -262,9 +260,7 @@ void ProfilesEditorDialog::buildUi()
     leftLayout->addWidget(m_list, 1);
     leftLayout->addWidget(buttonsRow, 0);
 
-    // ============================================================
-    // Column 2: profile details form
-    // ============================================================
+    // ---------- Column 2: profile details form ----------
     auto *detailsWidget = new QWidget(split);
     auto *detailsLayout = new QVBoxLayout(detailsWidget);
     detailsLayout->setContentsMargins(0, 0, 0, 0);
@@ -283,19 +279,15 @@ void ProfilesEditorDialog::buildUi()
     m_portSpin->setRange(1, 65535);
     m_portSpin->setValue(22);
 
-    // Group selector
     m_groupCombo = new QComboBox(detailsWidget);
     m_groupCombo->setEditable(true);
     m_groupCombo->setInsertPolicy(QComboBox::NoInsert);
     m_groupCombo->setToolTip("Group name for sorting in main window (empty = Ungrouped)");
-    if (m_groupCombo->lineEdit())
-        m_groupCombo->lineEdit()->setPlaceholderText("Ungrouped");
+    m_groupCombo->lineEdit()->setPlaceholderText("Ungrouped");
     populateGroupCombo(m_groupCombo, m_working);
 
-    // PQ debug
     m_pqDebugCheck = new QCheckBox("Enable PQ debug (-vv)", detailsWidget);
 
-    // Terminal appearance
     m_colorSchemeCombo = new QComboBox(detailsWidget);
     fillSchemeCombo(m_colorSchemeCombo);
 
@@ -317,7 +309,6 @@ void ProfilesEditorDialog::buildUi()
     m_historySpin->setValue(2000);
     m_historySpin->setToolTip("Terminal scrollback buffer lines (0 = unlimited)");
 
-    // Key-based auth fields
     m_keyTypeCombo = new QComboBox(detailsWidget);
     m_keyTypeCombo->addItem("auto");
     m_keyTypeCombo->addItem("openssh");
@@ -348,7 +339,6 @@ void ProfilesEditorDialog::buildUi()
             m_keyFileEdit->setText(path);
     });
 
-    // Form rows
     form->addRow("Name:", m_nameEdit);
     form->addRow("Group:", m_groupCombo);
     form->addRow("User:", m_userEdit);
@@ -365,13 +355,11 @@ void ProfilesEditorDialog::buildUi()
 
     detailsLayout->addLayout(form);
 
-    // Save/Cancel under details column
+    // Save/Cancel stays under details column
     m_buttonsBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, detailsWidget);
     detailsLayout->addWidget(m_buttonsBox);
 
-    // ============================================================
-    // Column 3: Hotkey macro (optional) ONLY
-    // ============================================================
+    // ---------- Column 3: Hotkey macro (optional) ----------
     auto *extraOuter = new QWidget(split);
     auto *extraOuterL = new QHBoxLayout(extraOuter);
     extraOuterL->setContentsMargins(0, 0, 0, 0);
@@ -393,31 +381,55 @@ void ProfilesEditorDialog::buildUi()
     auto *macroTitle = new QLabel("Hotkey macro (optional)", extraPanel);
     macroTitle->setStyleSheet("font-weight: bold;");
 
-    auto *macroShortcutLbl = new QLabel("Shortcut:", extraPanel);
+    // --- NEW layout: Shortcut (small) + Clear + Command on the same row ---
+    auto *macroRowLabels = new QWidget(extraPanel);
+    auto *macroRowLabelsL = new QHBoxLayout(macroRowLabels);
+    macroRowLabelsL->setContentsMargins(0, 0, 0, 0);
+    macroRowLabelsL->setSpacing(6);
+
+    auto *shortcutLbl = new QLabel("Shortcut:", extraPanel);
+    auto *cmdLbl      = new QLabel("Command:",  extraPanel);
+
+    // We align the labels with their controls (shortcut label over the small edit,
+    // command label over the command edit).
+    shortcutLbl->setMinimumWidth(70);
+    macroRowLabelsL->addWidget(shortcutLbl, 1);
+
+    // spacer matching shortcut edit width + clear button width so "Command:" sits above command edit
+    auto *labelsSpacer = new QWidget(extraPanel);
+    labelsSpacer->setFixedWidth(160 + 56); // shortcut edit (~160) + clear btn (~56)
+    macroRowLabelsL->addWidget(labelsSpacer, 0);
+
+    macroRowLabelsL->addWidget(cmdLbl, 1);
 
     m_macroShortcutEdit = new QKeySequenceEdit(extraPanel);
-    m_macroShortcutEdit->setToolTip("Click and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R");
+    m_macroShortcutEdit->setToolTip("Click here and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R");
+    m_macroShortcutEdit->setMinimumWidth(90);
+    m_macroShortcutEdit->setMaximumWidth(100);
+    m_macroShortcutEdit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
 
     auto *macroClearBtn = new QPushButton("Clear", extraPanel);
     macroClearBtn->setToolTip("Clear the shortcut");
+    macroClearBtn->setFixedWidth(56);
 
-    auto *macroShortcutRow = new QWidget(extraPanel);
-    auto *macroShortcutRowL = new QHBoxLayout(macroShortcutRow);
-    macroShortcutRowL->setContentsMargins(0, 0, 0, 0);
-    macroShortcutRowL->setSpacing(6);
-    macroShortcutRowL->addWidget(m_macroShortcutEdit, 1);
-    macroShortcutRowL->addWidget(macroClearBtn, 0);
+    m_macroCmdEdit = new QLineEdit(extraPanel);
+    m_macroCmdEdit->setPlaceholderText(R"(e.g. cd stats && cp stats.txt stats_backup.txt)");
+    m_macroCmdEdit->setToolTip("Command to send when the shortcut is pressed (optional)");
+    m_macroCmdEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    auto *macroRow = new QWidget(extraPanel);
+    auto *macroRowL = new QHBoxLayout(macroRow);
+    macroRowL->setContentsMargins(0, 0, 0, 0);
+    macroRowL->setSpacing(6);
+
+    macroRowL->addWidget(m_macroShortcutEdit, 0);
+    macroRowL->addWidget(macroClearBtn, 0);
+    macroRowL->addWidget(m_macroCmdEdit, 1);
 
     connect(macroClearBtn, &QPushButton::clicked, this, [this]() {
         if (m_macroShortcutEdit)
             m_macroShortcutEdit->setKeySequence(QKeySequence());
     });
-
-    auto *macroCmdLbl = new QLabel("Command:", extraPanel);
-
-    m_macroCmdEdit = new QLineEdit(extraPanel);
-    m_macroCmdEdit->setPlaceholderText(R"(e.g. cd stats && cp stats.txt stats_backup.txt)");
-    m_macroCmdEdit->setToolTip("Command to send when the shortcut is pressed (optional)");
 
     m_macroEnterCheck = new QCheckBox("Send [Enter] automatically after command", extraPanel);
     m_macroEnterCheck->setChecked(true);
@@ -430,33 +442,25 @@ void ProfilesEditorDialog::buildUi()
     macroHint->setStyleSheet("color: #9aa0a6; font-size: 12px;");
 
     extraL->addWidget(macroTitle);
-    extraL->addWidget(macroShortcutLbl);
-    extraL->addWidget(macroShortcutRow);
-    extraL->addSpacing(8);
-    extraL->addWidget(macroCmdLbl);
-    extraL->addWidget(m_macroCmdEdit);
+    extraL->addWidget(macroRowLabels);
+    extraL->addWidget(macroRow);
     extraL->addWidget(m_macroEnterCheck);
     extraL->addWidget(macroHint);
     extraL->addStretch(1);
 
-    // “Air” spacer to the right
-    auto *air = new QWidget(extraOuter);
-    air->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    // Make the panel use all available width
+    extraPanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
-    extraOuterL->addWidget(extraPanel);
-    extraOuterL->addWidget(air, 1);
+    // No "air" spacer anymore — panel gets everything
+    extraOuterL->addWidget(extraPanel, 1);
 
-    // ============================================================
-    // Split sizing / stretch
-    // ============================================================
+    // Stretch / initial sizes
     split->setStretchFactor(0, 2);
     split->setStretchFactor(1, 3);
     split->setStretchFactor(2, 5);
     split->setSizes({260, 360, 520});
 
-    // ============================================================
     // Wiring
-    // ============================================================
     connect(m_list, &QListWidget::currentRowChanged,
             this, &ProfilesEditorDialog::onListRowChanged);
 
