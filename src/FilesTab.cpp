@@ -32,6 +32,7 @@
 #include <QInputDialog>
 
 
+
 static QString joinListPreview(const QStringList& xs, int maxN = 6)
 {
     QStringList out;
@@ -67,6 +68,52 @@ static QString shQuote(const QString& s)
     out.replace("'", "'\"'\"'");
     return "'" + out + "'";
 }
+
+static constexpr int RoleIsParent  = Qt::UserRole + 100;
+static constexpr int RoleSortGroup = Qt::UserRole + 101; // -1 parent, 0 dir, 1 file
+static constexpr int RoleSortName  = Qt::UserRole + 102; // lowercase name
+static constexpr int RoleSortSize  = Qt::UserRole + 103; // quint64
+static constexpr int RoleSortMtime = Qt::UserRole + 104; // qint64
+
+
+
+
+
+class RemoteSortItem : public QTableWidgetItem
+{
+public:
+    using QTableWidgetItem::QTableWidgetItem;
+
+    bool operator<(const QTableWidgetItem& other) const override
+    {
+        const int col = column();
+
+        // Always keep ".." first, then dirs, then files (for ALL columns)
+        const int g1 = data(RoleSortGroup).toInt();
+        const int g2 = other.data(RoleSortGroup).toInt();
+        if (g1 != g2) return g1 < g2; // -1 < 0 < 1
+
+        // Column-specific compare
+        if (col == 2) { // Size
+            const quint64 s1 = data(RoleSortSize).toULongLong();
+            const quint64 s2 = other.data(RoleSortSize).toULongLong();
+            if (s1 != s2) return s1 < s2;
+        } else if (col == 3) { // Modified
+            const qint64 t1 = data(RoleSortMtime).toLongLong();
+            const qint64 t2 = other.data(RoleSortMtime).toLongLong();
+            if (t1 != t2) return t1 < t2;
+        } else {
+            // Name / Type: compare by lowercase name for stability
+            const QString n1 = data(RoleSortName).toString();
+            const QString n2 = other.data(RoleSortName).toString();
+            if (n1 != n2) return n1 < n2;
+        }
+
+        // Final fallback: Qt default text compare
+        return QTableWidgetItem::operator<(other);
+    }
+};
+
 
 // localRoot: /home/user/stuff
 // remoteRoot: /remote/path/stuff
@@ -111,18 +158,20 @@ void FilesTab::buildUi()
     outer->setContentsMargins(0, 0, 0, 0);
     outer->setSpacing(6);
 
+    // =========================
     // Top bar
+    // =========================
     auto *top = new QWidget(this);
     auto *topL = new QHBoxLayout(top);
     topL->setContentsMargins(0, 0, 0, 0);
     topL->setSpacing(6);
 
-    m_localUpBtn = new QPushButton("Local Up", top);
-    m_remoteUpBtn = new QPushButton("Remote Up", top);
-    m_refreshBtn = new QPushButton("Refresh", top);
-    m_uploadBtn = new QPushButton("Upload…", top);
-    m_uploadFolderBtn = new QPushButton("Upload folder…", top);
-    m_downloadBtn = new QPushButton("Download…", top);
+    m_localUpBtn        = new QPushButton("Local Up", top);
+    m_remoteUpBtn       = new QPushButton("Remote Up", top);
+    m_refreshBtn        = new QPushButton("Refresh", top);
+    m_uploadBtn         = new QPushButton("Upload…", top);
+    m_uploadFolderBtn   = new QPushButton("Upload folder…", top);
+    m_downloadBtn       = new QPushButton("Download…", top);
 
     m_remotePathLabel = new QLabel("Remote: ~", top);
     m_remotePathLabel->setStyleSheet("color:#888;");
@@ -135,12 +184,16 @@ void FilesTab::buildUi()
     topL->addWidget(m_downloadBtn);
     topL->addWidget(m_remotePathLabel, 1);
 
+    // =========================
     // Splitter
+    // =========================
     auto *split = new QSplitter(Qt::Horizontal, this);
     split->setChildrenCollapsible(false);
     split->setHandleWidth(1);
 
-    // Local
+    // =========================
+    // Local side
+    // =========================
     m_localModel = new QFileSystemModel(this);
     m_localModel->setRootPath(QDir::homePath());
 
@@ -148,11 +201,22 @@ void FilesTab::buildUi()
     m_localView->setModel(m_localModel);
     m_localView->setRootIndex(m_localModel->index(m_localCwd));
     m_localView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    m_localView->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_localView->setSortingEnabled(true);
     m_localView->sortByColumn(0, Qt::AscendingOrder);
-    m_localView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    connect(m_localView, &QTreeView::doubleClicked, this, [this](const QModelIndex& idx) {
+    // 🔹 Make local "Name" column wider
+    m_localView->setColumnWidth(0, 110);
+
+    // Local: swap Type and Size columns (Name=0, Size=1, Type=2, Modified=3)
+    auto *lh = m_localView->header();
+    lh->setSectionsMovable(true);
+
+    // Move "Type" (2) to where "Size" (1) is
+    lh->moveSection(2, 1);
+
+    connect(m_localView, &QTreeView::doubleClicked, this,
+            [this](const QModelIndex& idx) {
         if (!m_localModel) return;
         const QFileInfo fi = m_localModel->fileInfo(idx);
         if (!fi.isDir()) return;
@@ -160,13 +224,13 @@ void FilesTab::buildUi()
         m_localView->setRootIndex(m_localModel->index(m_localCwd));
     });
 
-    // Drag from local -> remote
+    // Drag from local → remote
     m_localView->setDragEnabled(true);
     m_localView->setDragDropMode(QAbstractItemView::DragOnly);
     m_localView->setDefaultDropAction(Qt::CopyAction);
     m_localView->setAutoScroll(true);
 
-    // Accept drops from remote table -> download
+    // Accept drops from remote
     m_localView->viewport()->setAcceptDrops(true);
     m_localView->viewport()->installEventFilter(this);
 
@@ -175,54 +239,55 @@ void FilesTab::buildUi()
     connect(m_localView, &QWidget::customContextMenuRequested,
             this, &FilesTab::showLocalContextMenu);
 
-    // Remote
+    // =========================
+    // Remote side
+    // =========================
     m_remoteTable = new RemoteDropTable(split);
+
     m_remoteTable->setColumnCount(4);
-    m_remoteTable->setHorizontalHeaderLabels({"Name", "Type", "Size", "Modified"});
-    m_remoteTable->horizontalHeader()->setStretchLastSection(true);
-    m_remoteTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
-    m_remoteTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-    m_remoteTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-    m_remoteTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+    m_remoteTable->setHorizontalHeaderLabels(
+        {"Name", "Type", "Size", "Modified"});
+
+    auto *hdr = m_remoteTable->horizontalHeader();
+    hdr->setSectionResizeMode(QHeaderView::Interactive); // 🔹 user-resizable
+    hdr->setStretchLastSection(true);
+    hdr->setSectionsClickable(true);
+    hdr->setSortIndicatorShown(true);
+
+    // Initial widths (user can resize)
+    m_remoteTable->setColumnWidth(0, 140); // Name
+    m_remoteTable->setColumnWidth(1, 80);  // Type
+    m_remoteTable->setColumnWidth(2, 90);  // Size
+    m_remoteTable->setColumnWidth(3, 150); // Modified
+
     m_remoteTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_remoteTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_remoteTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_remoteTable->setShowGrid(false);
     m_remoteTable->setAlternatingRowColors(true);
 
-    // Enable sortable columns (click header to sort)
+    // Enable sorting (DIR-first handled in refreshRemote)
     m_remoteTable->setSortingEnabled(true);
-    m_remoteTable->horizontalHeader()->setSectionsClickable(true);
-    m_remoteTable->horizontalHeader()->setSortIndicatorShown(true);
 
-    // Optional: default sort by Name ascending
-    m_remoteTable->sortByColumn(2, Qt::AscendingOrder);
-
-    // Unified file view font (local + remote)
+    // Unified file font
     QFont fileFont = font();
     fileFont.setPointSize(11);
-
     m_localView->setFont(fileFont);
     m_remoteTable->setFont(fileFont);
-
-    // Optional: slightly tighter rows
-    m_localView->setUniformRowHeights(true);
-    m_remoteTable->verticalHeader()->setDefaultSectionSize(22);
-
     m_remoteTable->horizontalHeader()->setFont(fileFont);
 
-    m_remoteTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    m_remoteTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-
-    // Enable fast drag selection via row header
-    m_remoteTable->verticalHeader()->setSectionsClickable(true);
-    m_remoteTable->verticalHeader()->setHighlightSections(true);
+    // Tighter rows
+    m_localView->setUniformRowHeights(true);
+    m_remoteTable->verticalHeader()->setDefaultSectionSize(22);
 
     // Remote context menu
     m_remoteTable->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_remoteTable, &QWidget::customContextMenuRequested,
             this, &FilesTab::showRemoteContextMenu);
 
+    // =========================
+    // Layout + wiring
+    // =========================
     split->setStretchFactor(0, 1);
     split->setStretchFactor(1, 1);
 
@@ -236,9 +301,13 @@ void FilesTab::buildUi()
     connect(m_uploadFolderBtn, &QPushButton::clicked, this, &FilesTab::uploadFolder);
     connect(m_downloadBtn, &QPushButton::clicked, this, &FilesTab::downloadSelected);
 
-    connect(m_remoteTable, &QTableWidget::cellDoubleClicked, this, &FilesTab::remoteItemActivated);
-    connect(m_remoteTable, &RemoteDropTable::filesDropped, this, &FilesTab::onRemoteFilesDropped);
+    connect(m_remoteTable, &QTableWidget::cellDoubleClicked,
+            this, &FilesTab::remoteItemActivated);
+
+    connect(m_remoteTable, &RemoteDropTable::filesDropped,
+            this, &FilesTab::onRemoteFilesDropped);
 }
+
 
 bool FilesTab::eventFilter(QObject *obj, QEvent *event)
 {
@@ -320,65 +389,96 @@ void FilesTab::refreshRemote()
         QMessageBox::information(this, "Files", "Not connected.");
         return;
     }
-    if (!m_remoteTable) return;
 
     QVector<SshClient::RemoteEntry> items;
     QString err;
-
     if (!m_ssh->listRemoteDir(m_remoteCwd, &items, &err)) {
         QMessageBox::warning(this, "Remote", err);
         return;
-    }
+    }m_remoteTable->setSortingEnabled(false);
+m_remoteTable->clearContents();
+m_remoteTable->setRowCount(0);
 
-    // Sort model data (DIR first, then name)
-    std::sort(items.begin(), items.end(),
-              [](const SshClient::RemoteEntry& a, const SshClient::RemoteEntry& b) {
-                  if (a.isDir != b.isDir) return a.isDir > b.isDir; // dirs first
-                  return QString::compare(a.name, b.name, Qt::CaseInsensitive) < 0;
-              });
+// Icons
+const QIcon dirIcon  = style()->standardIcon(QStyle::SP_DirIcon);
+const QIcon fileIcon = style()->standardIcon(QStyle::SP_FileIcon);
+const QIcon upIcon   = style()->standardIcon(QStyle::SP_FileDialogToParent);
 
-    // IMPORTANT: disable sorting while we rebuild the table
-    const bool wasSorting = m_remoteTable->isSortingEnabled();
-    m_remoteTable->setSortingEnabled(false);
+// Optional: add parent row (..)
+const bool showParent = !(m_remoteCwd == "/" || m_remoteCwd == "~");
+int row = 0;
 
-    // Clear + rebuild rows
-    m_remoteTable->clearContents();
-    m_remoteTable->setRowCount(items.size());
+if (showParent) {
+    m_remoteTable->insertRow(row);
 
-    const QIcon dirIcon  = style()->standardIcon(QStyle::SP_DirIcon);
-    const QIcon fileIcon = style()->standardIcon(QStyle::SP_FileIcon);
+    auto *nameItem = new RemoteSortItem("..");
+    nameItem->setIcon(upIcon);
+    nameItem->setData(RoleIsParent, true);
+    nameItem->setData(Qt::UserRole, QString());          // no fullPath needed
+    nameItem->setData(Qt::UserRole + 1, 1);              // treat like dir for UI logic
+    nameItem->setData(RoleSortGroup, -1);
+    nameItem->setData(RoleSortName, QString(""));        // always first anyway
 
-    for (int row = 0; row < items.size(); ++row) {
-        const auto& e = items[row];
+    auto *typeItem = new RemoteSortItem("DIR");
+    typeItem->setData(RoleSortGroup, -1);
 
-        auto* nameItem = new QTableWidgetItem(e.name);
-        nameItem->setData(Qt::UserRole, e.fullPath);
-        nameItem->setData(Qt::UserRole + 1, e.isDir ? 1 : 0); // used by double-click
-        nameItem->setIcon(e.isDir ? dirIcon : fileIcon);
+    auto *sizeItem = new RemoteSortItem("");
+    sizeItem->setData(RoleSortGroup, -1);
+    sizeItem->setData(RoleSortSize, (qulonglong)0);
 
-        auto* typeItem = new QTableWidgetItem(e.isDir ? "DIR" : "FILE");
-        auto* sizeItem = new QTableWidgetItem(e.isDir ? "" : prettySize(e.size));
+    auto *mtItem = new RemoteSortItem("");
+    mtItem->setData(RoleSortGroup, -1);
+    mtItem->setData(RoleSortMtime, (qlonglong)0);
 
-        const QString mtimeStr =
-            (e.mtime > 0)
-                ? QDateTime::fromSecsSinceEpoch(e.mtime).toString("yyyy-MM-dd HH:mm")
-                : QString();
+    m_remoteTable->setItem(row, 0, nameItem);
+    m_remoteTable->setItem(row, 1, typeItem);
+    m_remoteTable->setItem(row, 2, sizeItem);
+    m_remoteTable->setItem(row, 3, mtItem);
 
-        auto* mtItem = new QTableWidgetItem(mtimeStr);
-
-        m_remoteTable->setItem(row, 0, nameItem);
-        m_remoteTable->setItem(row, 1, typeItem);
-        m_remoteTable->setItem(row, 2, sizeItem);
-        m_remoteTable->setItem(row, 3, mtItem);
-    }
-
-    // Re-enable sorting AFTER population
-    m_remoteTable->setSortingEnabled(wasSorting);
-
-    // Optional: if you want header arrows AND default sort:
-    // m_remoteTable->setSortingEnabled(true);
-    // m_remoteTable->sortByColumn(0, Qt::AscendingOrder);
+    row++;
 }
+
+// Normal rows
+for (const auto& e : items) {
+    m_remoteTable->insertRow(row);
+
+    auto *nameItem = new RemoteSortItem(e.name);
+    nameItem->setData(Qt::UserRole, e.fullPath);
+    nameItem->setData(Qt::UserRole + 1, e.isDir ? 1 : 0);
+    nameItem->setIcon(e.isDir ? dirIcon : fileIcon);
+
+    const int group = e.isDir ? 0 : 1;
+    nameItem->setData(RoleSortGroup, group);
+    nameItem->setData(RoleSortName, e.name.toLower());
+
+    auto *typeItem = new RemoteSortItem(e.isDir ? "DIR" : "FILE");
+    typeItem->setData(RoleSortGroup, group);
+
+    auto *sizeItem = new RemoteSortItem(e.isDir ? "" : prettySize(e.size));
+    sizeItem->setData(RoleSortGroup, group);
+    sizeItem->setData(RoleSortSize, (qulonglong)e.size);
+
+    QString mtimeStr;
+    if (e.mtime > 0)
+        mtimeStr = QDateTime::fromSecsSinceEpoch(e.mtime).toString("yyyy-MM-dd HH:mm");
+
+    auto *mtItem = new RemoteSortItem(mtimeStr);
+    mtItem->setData(RoleSortGroup, group);
+    mtItem->setData(RoleSortMtime, (qlonglong)e.mtime);
+
+    m_remoteTable->setItem(row, 0, nameItem);
+    m_remoteTable->setItem(row, 1, typeItem);
+    m_remoteTable->setItem(row, 2, sizeItem);
+    m_remoteTable->setItem(row, 3, mtItem);
+
+    row++;
+}
+
+m_remoteTable->setSortingEnabled(true);
+m_remoteTable->sortByColumn(0, Qt::AscendingOrder);
+
+}
+
 
 
 
@@ -410,18 +510,22 @@ void FilesTab::goLocalUp()
 
 void FilesTab::remoteItemActivated(int row, int /*col*/)
 {
-    if (!m_remoteTable) return;
-
     auto *it = m_remoteTable->item(row, 0);
     if (!it) return;
 
+    // Special parent row ("..") -> go up
+    if (it->data(RoleIsParent).toBool()) {
+        goRemoteUp();
+        return;
+    }
+
     const QString full = it->data(Qt::UserRole).toString();
-    const bool isDir   = (it->data(Qt::UserRole + 1).toInt() == 1);
+    const bool isDir = it->data(Qt::UserRole + 1).toInt() == 1;
 
-    if (!isDir) return;
-
-    setRemoteCwd(full);
-    refreshRemote();
+    if (isDir) {
+        setRemoteCwd(full);
+        refreshRemote();
+    }
 }
 
 void FilesTab::onTransferProgress(quint64 done, quint64 total)
