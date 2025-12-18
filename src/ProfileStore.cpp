@@ -1,3 +1,5 @@
+// ProfileStore.cpp
+
 #include "ProfileStore.h"
 
 #include <QCoreApplication>
@@ -73,6 +75,9 @@ QVector<SshProfile> ProfileStore::defaults()
     p.host    = "localhost";
     p.port    = 22;
 
+    // NEW: group (empty => treated as "Ungrouped" in UI)
+    p.group   = "";
+
     // Debug defaults: currently enabled for localhost so dev logs are visible
     p.pqDebug = true;
 
@@ -103,6 +108,7 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
           "profiles": [
             {
               "name": "...",
+              "group": "...",           // optional; empty/omitted means "Ungrouped"
               "user": "...",
               "host": "...",
               "port": 22,
@@ -129,6 +135,10 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
         obj["user"]     = prof.user;
         obj["host"]     = prof.host;
         obj["port"]     = prof.port;
+
+        // NEW: group (store only if explicitly set; empty => "Ungrouped")
+        if (!prof.group.trimmed().isEmpty())
+            obj["group"] = prof.group.trimmed();
 
         // UI / diagnostics flags
         obj["pq_debug"] = prof.pqDebug;
@@ -221,6 +231,9 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         p.user    = obj.value("user").toString();
         p.host    = obj.value("host").toString();
         p.port    = obj.value("port").toInt(22);
+
+        // NEW: group (missing/empty => treated as "Ungrouped" by UI)
+        p.group   = obj.value("group").toString().trimmed();
 
         // Diagnostics / UI flags
         p.pqDebug = obj.value("pq_debug").toBool(true);

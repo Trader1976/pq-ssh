@@ -9,6 +9,11 @@
 // - No direct disk I/O here; saving happens after validation when accepted.
 // - Provide terminal scheme selection from qtermwidget’s installed schemes.
 // - Persist key auth fields (key_type + key_file) but gate unsupported types elsewhere.
+//
+// Added (Dec 2025):
+// - Group field (empty => "Ungrouped").
+// - Group selector is an editable dropdown populated from existing groups.
+// - Dialog made wider.
 
 #include "ProfilesEditorDialog.h"
 
@@ -35,45 +40,8 @@
 #include "CpunkTermWidget.h"
 
 // -----------------------------
-// Constructor
-// -----------------------------
-//
-// profiles: full list from caller (MainWindow / ProfileStore)
-// initialRow: which row should be selected when opening
-ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles,
-                                          int initialRow,
-                                          QWidget *parent)
-    : QDialog(parent),
-      m_working(profiles) // local working copy: edits do not touch caller until accepted
-{
-    setWindowTitle("Manage SSH Profiles");
-    resize(750, 500);
-
-    buildUi();
-
-    // Select the same profile the user had selected in MainWindow.
-    int row = initialRow;
-
-    if (row < 0 || row >= m_working.size()) {
-        row = m_working.isEmpty() ? -1 : 0;
-    }
-
-    if (row >= 0) {
-        m_list->setCurrentRow(row);
-        onListRowChanged(row);
-    } else {
-        // No profiles at all -> show empty form
-        loadProfileToForm(-1);
-    }
-}
-
-// -----------------------------
 // Terminal scheme discovery helpers
 // -----------------------------
-//
-// We “probe” qtermwidget by constructing a temporary CpunkTermWidget and querying
-// availableColorSchemes(). That list depends on what color schemes are installed
-// (including our bundled/installed themes).
 static QStringList allTermSchemes()
 {
     CpunkTermWidget probe(0, nullptr);
@@ -199,6 +167,93 @@ static void populateSchemeCombo(QComboBox *combo)
 }
 
 // -----------------------------
+// Group helpers
+// -----------------------------
+static QString normalizedGroup(const QString &g)
+{
+    const QString s = g.trimmed();
+    return s.isEmpty() ? QStringLiteral("Ungrouped") : s;
+}
+
+static QStringList collectGroups(const QVector<SshProfile> &profiles)
+{
+    QSet<QString> set;
+    for (const auto &p : profiles) {
+        set.insert(normalizedGroup(p.group));
+    }
+    QStringList out = QStringList(set.begin(), set.end());
+    out.sort(Qt::CaseInsensitive);
+    return out;
+}
+
+static void populateGroupCombo(QComboBox *combo,
+                               const QVector<SshProfile> &profiles,
+                               const QString &currentText = QString())
+{
+    if (!combo) return;
+
+    const QString keep = currentText.isEmpty() ? combo->currentText() : currentText;
+
+    combo->blockSignals(true);
+    combo->clear();
+
+    // Always include Ungrouped first
+    combo->addItem(QStringLiteral("Ungrouped"));
+
+    const QStringList groups = collectGroups(profiles);
+    for (const QString &g : groups) {
+        if (g.compare("Ungrouped", Qt::CaseInsensitive) == 0) continue;
+        combo->addItem(g);
+    }
+
+    combo->setEditable(true);
+    combo->setInsertPolicy(QComboBox::NoInsert);
+    combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+
+    // Restore selection / text
+    const QString want = normalizedGroup(keep);
+    const int idx = combo->findText(want, Qt::MatchFixedString);
+    if (idx >= 0) combo->setCurrentIndex(idx);
+    else combo->setCurrentText(want);
+
+    combo->blockSignals(false);
+}
+
+// -----------------------------
+// Constructor
+// -----------------------------
+//
+// profiles: full list from caller (MainWindow / ProfileStore)
+// initialRow: which row should be selected when opening
+ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles,
+                                          int initialRow,
+                                          QWidget *parent)
+    : QDialog(parent),
+      m_working(profiles) // local working copy: edits do not touch caller until accepted
+{
+    setWindowTitle("Manage SSH Profiles");
+    resize(980, 560);
+    setMinimumWidth(900);
+
+    buildUi();
+
+    // Select the same profile the user had selected in MainWindow.
+    int row = initialRow;
+
+    if (row < 0 || row >= m_working.size()) {
+        row = m_working.isEmpty() ? -1 : 0;
+    }
+
+    if (row >= 0) {
+        m_list->setCurrentRow(row);
+        onListRowChanged(row);
+    } else {
+        // No profiles at all -> show empty form
+        loadProfileToForm(-1);
+    }
+}
+
+// -----------------------------
 // UI Construction
 // -----------------------------
 //
@@ -257,6 +312,15 @@ void ProfilesEditorDialog::buildUi()
     m_portSpin = new QSpinBox(rightWidget);
     m_portSpin->setRange(1, 65535);
     m_portSpin->setValue(22);
+
+    // NEW: group selector (editable dropdown)
+    m_groupCombo = new QComboBox(rightWidget);
+    m_groupCombo->setEditable(true);
+    m_groupCombo->setInsertPolicy(QComboBox::NoInsert);
+    m_groupCombo->setToolTip("Group name for sorting in main window (empty = Ungrouped)");
+    m_groupCombo->lineEdit()->setPlaceholderText("Ungrouped");
+
+    populateGroupCombo(m_groupCombo, m_working);
 
     // This currently toggles extra verbosity in the app; it should not expose secrets.
     m_pqDebugCheck = new QCheckBox("Enable PQ debug (-vv)", rightWidget);
@@ -320,6 +384,7 @@ void ProfilesEditorDialog::buildUi()
 
     // Form rows
     form->addRow("Name:", m_nameEdit);
+    form->addRow("Group:", m_groupCombo); // NEW
     form->addRow("User:", m_userEdit);
     form->addRow("Host:", m_hostEdit);
     form->addRow("Port:", m_portSpin);
@@ -381,9 +446,14 @@ void ProfilesEditorDialog::onListRowChanged(int row)
 // -----------------------------
 void ProfilesEditorDialog::loadProfileToForm(int row)
 {
+    // Keep group dropdown populated from current working set
+    if (m_groupCombo)
+        populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
+
     if (row < 0 || row >= m_working.size()) {
         // Clear form for “no selection”
         m_nameEdit->clear();
+        if (m_groupCombo) m_groupCombo->setCurrentText("Ungrouped");
         m_userEdit->clear();
         m_hostEdit->clear();
         m_portSpin->setValue(22);
@@ -402,6 +472,14 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
     const SshProfile &p = m_working[row];
 
     m_nameEdit->setText(p.name);
+
+    if (m_groupCombo) {
+        const QString g = normalizedGroup(p.group);
+        const int gidx = m_groupCombo->findText(g, Qt::MatchFixedString);
+        if (gidx >= 0) m_groupCombo->setCurrentIndex(gidx);
+        else m_groupCombo->setCurrentText(g);
+    }
+
     m_userEdit->setText(p.user);
     m_hostEdit->setText(p.host);
     m_portSpin->setValue(p.port);
@@ -453,6 +531,12 @@ void ProfilesEditorDialog::syncFormToCurrent()
     p.port    = m_portSpin->value();
     p.pqDebug = m_pqDebugCheck->isChecked();
 
+    if (m_groupCombo) {
+        const QString g = m_groupCombo->currentText().trimmed();
+        // Store empty as empty (so JSON stays clean), but treat empty as Ungrouped in UI/main list.
+        p.group = g; // empty allowed
+    }
+
     p.termColorScheme = m_colorSchemeCombo->currentText();
     p.termFontSize    = m_fontSizeSpin->value();
 
@@ -477,6 +561,10 @@ void ProfilesEditorDialog::syncFormToCurrent()
     // Keep list item in sync with current profile name
     if (QListWidgetItem *it = m_list->item(m_currentRow))
         it->setText(p.name);
+
+    // Keep group combo updated as user creates new groups
+    if (m_groupCombo)
+        populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
 }
 
 // Live update list label when user edits Name: field.
@@ -510,6 +598,8 @@ void ProfilesEditorDialog::addProfile()
     p.port = 22;
     p.pqDebug = true;
 
+    p.group = ""; // empty => Ungrouped
+
     p.termColorScheme = "WhiteOnBlack";
     p.termFontSize = 11;
     p.termWidth = 900;
@@ -525,6 +615,10 @@ void ProfilesEditorDialog::addProfile()
     m_working.push_back(p);
     m_list->addItem(p.name);
 
+    // Refresh group list (includes Ungrouped)
+    if (m_groupCombo)
+        populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
+
     // Select the new profile so user can edit immediately
     const int row = m_working.size() - 1;
     m_list->setCurrentRow(row);
@@ -538,6 +632,10 @@ void ProfilesEditorDialog::deleteProfile()
 
     m_working.remove(row);
     delete m_list->takeItem(row);
+
+    // Refresh group list after deletion
+    if (m_groupCombo)
+        populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
 
     if (m_working.isEmpty()) {
         m_currentRow = -1;

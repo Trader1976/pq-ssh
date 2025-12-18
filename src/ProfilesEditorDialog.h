@@ -119,6 +119,9 @@ private:
     QLineEdit *m_hostEdit = nullptr;
     QSpinBox  *m_portSpin = nullptr;
 
+    // NEW: group selector (editable dropdown; empty => treated as "Ungrouped")
+    QComboBox *m_groupCombo = nullptr;
+
     // Debug toggle (e.g. verbose logging / -vv style behavior)
     QCheckBox *m_pqDebugCheck = nullptr;
 

@@ -9,12 +9,16 @@ struct SshProfile {
     int     port    = 22;
     bool    pqDebug = true;
 
+    // Grouping (empty => treated as "Ungrouped" in UI)
+    QString group;
+
     // Terminal
     QString termColorScheme;   // e.g. "WhiteOnBlack"
     int     termFontSize = 11;
     int     termWidth  = 900;
     int     termHeight = 500;
-    int historyLines = 2000;
+    int     historyLines = 2000;
+
     // Key-based authentication (optional, future PQ-ready)
     // keyType values (suggested):
     //  - "auto"    (default)

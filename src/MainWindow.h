@@ -11,7 +11,6 @@
 #include <QUuid>
 #include <QAction>
 
-
 // Forward declarations (Qt)
 class QListWidget;
 class QListWidgetItem;
@@ -51,7 +50,6 @@ private slots:
     void onTestUnlockDilithiumKey();
     void onInstallPublicKeyRequested(const QString& pubKeyLine, int profileIndex);
 
-
 private:
     void setupUi();
     void setupMenus();
@@ -71,6 +69,12 @@ private:
     void uiDebug(const QString& msg);
     bool uiVerbose() const;
 
+    // =====================================================
+    // Profile list grouping (Group headers + sorting)
+    // =====================================================
+    void rebuildProfileList();
+    int  currentProfileIndex() const;   // returns index into m_profiles, or -1
+    void ensureProfileItemSelected();   // if header selected, moves to nearest profile row
 
     // UI
     QListWidget    *m_profileList    = nullptr;
@@ -99,7 +103,6 @@ private:
     QTabWidget *m_mainTabs = nullptr;
     FilesTab   *m_filesTab = nullptr;
 
-
     // Terminal UI (QTermWidget-based)
     void openShellForProfile(const SshProfile &p, const QString &target, bool newWindow);
     CpunkTermWidget* createTerm(const SshProfile &p, QWidget *parent);
@@ -107,8 +110,7 @@ private:
 
     QMainWindow *m_tabbedShellWindow = nullptr;
     QTabWidget  *m_tabWidget = nullptr;
-    QAction *m_devTestUnlockAct = nullptr;
-
+    QAction     *m_devTestUnlockAct = nullptr;
 };
 
 #endif // MAINWINDOW_H

@@ -2,7 +2,6 @@
 #include "KeyGeneratorDialog.h"
 #include "KeyMetadataUtils.h"
 #include "FilesTab.h"
-#include "FilesTab.h"
 #include <QTextBrowser>
 #include <QInputDialog>
 #include <QApplication>
@@ -165,6 +164,128 @@ static void syncTerminalSurroundingsToTerm(CpunkTermWidget* term)
 }
 
 // =====================================================
+// Profile list grouping helpers
+// =====================================================
+
+static QString normalizedGroupName(const QString& g)
+{
+    const QString s = g.trimmed();
+    return s.isEmpty() ? QStringLiteral("Ungrouped") : s;
+}
+
+static bool isGroupHeaderItem(const QListWidgetItem* it)
+{
+    if (!it) return false;
+    return (it->data(Qt::UserRole).toInt() == -1);
+}
+
+void MainWindow::rebuildProfileList()
+{
+    if (!m_profileList) return;
+
+    m_profileList->clear();
+
+    // Build sorted order of indices (so we don't reorder m_profiles storage)
+    QVector<int> order;
+    order.reserve(m_profiles.size());
+    for (int i = 0; i < m_profiles.size(); ++i) order.push_back(i);
+
+    std::sort(order.begin(), order.end(), [this](int ia, int ib) {
+        const SshProfile& a = m_profiles[ia];
+        const SshProfile& b = m_profiles[ib];
+
+        const QString ga = normalizedGroupName(a.group).toLower();
+        const QString gb = normalizedGroupName(b.group).toLower();
+        if (ga != gb) return ga < gb;
+
+        return a.name.toLower() < b.name.toLower();
+    });
+
+    QString currentGroup;
+    for (int idx : order) {
+        const SshProfile& p = m_profiles[idx];
+        const QString g = normalizedGroupName(p.group);
+
+        if (g != currentGroup) {
+            currentGroup = g;
+
+            auto* hdr = new QListWidgetItem(currentGroup.toUpper(), m_profileList);
+            hdr->setFlags(Qt::NoItemFlags);              // non-selectable
+            hdr->setData(Qt::UserRole, -1);              // header marker
+            hdr->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+            hdr->setSizeHint(QSize(hdr->sizeHint().width(), 26));
+            // Optional visual emphasis; keep it subtle so AppTheme can still style
+            hdr->setForeground(QBrush(QColor("#00FF99")));
+        }
+
+        auto* it = new QListWidgetItem("    " + p.name, m_profileList);
+        it->setData(Qt::UserRole, idx); // <-- REAL index into m_profiles
+        it->setToolTip(QString("%1@%2:%3  [%4]")
+                           .arg(p.user, p.host)
+                           .arg(p.port > 0 ? p.port : 22)
+                           .arg(normalizedGroupName(p.group)));
+    }
+
+    // Select first real profile item
+    for (int r = 0; r < m_profileList->count(); ++r) {
+        QListWidgetItem* it = m_profileList->item(r);
+        if (it && !isGroupHeaderItem(it)) {
+            m_profileList->setCurrentRow(r);
+            ensureProfileItemSelected();
+            const int pidx = currentProfileIndex();
+            if (pidx >= 0) onProfileSelectionChanged(pidx); // see updated handler below
+            break;
+        }
+    }
+}
+
+
+
+// Returns the selected profile index in m_profiles, or -1 if none / header selected.
+int MainWindow::currentProfileIndex() const
+{
+    if (!m_profileList) return -1;
+    QListWidgetItem* it = m_profileList->currentItem();
+    if (!it) return -1;
+
+    const int idx = it->data(Qt::UserRole).toInt();
+    if (idx < 0 || idx >= m_profiles.size()) return -1;
+    return idx;
+}
+
+// If user clicks a header, move selection to nearest real profile item.
+void MainWindow::ensureProfileItemSelected()
+{
+    if (!m_profileList) return;
+
+    QListWidgetItem* it = m_profileList->currentItem();
+    if (!it) return;
+
+    if (!isGroupHeaderItem(it)) return;
+
+    const int row = m_profileList->currentRow();
+
+    // try next items
+    for (int r = row + 1; r < m_profileList->count(); ++r) {
+        QListWidgetItem* cand = m_profileList->item(r);
+        if (cand && !isGroupHeaderItem(cand)) {
+            m_profileList->setCurrentRow(r);
+            return;
+        }
+    }
+    // try previous items
+    for (int r = row - 1; r >= 0; --r) {
+        QListWidgetItem* cand = m_profileList->item(r);
+        if (cand && !isGroupHeaderItem(cand)) {
+            m_profileList->setCurrentRow(r);
+            return;
+        }
+    }
+}
+
+
+
+// =====================================================
 // MainWindow lifecycle
 // =====================================================
 
@@ -189,7 +310,7 @@ MainWindow::MainWindow(QWidget *parent)
     // UI-first: build widgets, then load profiles, then wire menus/actions.
     // Profiles may affect initial UI state (host field, debug checkbox).
     setupUi();
-    loadProfiles();
+    loadProfiles();      // loadProfiles() calls rebuildProfileList()
     setupMenus();
 
     // Passphrase prompt provider for libssh when an OpenSSH private key is encrypted.
@@ -524,7 +645,8 @@ void MainWindow::setupMenus()
     keysMenu->addAction(installPubAct);
 
     connect(installPubAct, &QAction::triggered, this, [this]() {
-        const int row = m_profileList ? m_profileList->currentRow() : -1;
+        ensureProfileItemSelected();
+        const int row = currentProfileIndex();
         if (row < 0 || row >= m_profiles.size()) {
             QMessageBox::warning(this, "Key install", "No profile selected.");
             return;
@@ -724,17 +846,7 @@ void MainWindow::loadProfiles()
             appendTerminalLine("[WARN] Could not save default profiles: " + saveErr);
     }
 
-    // UI update: populate list widget, select first row.
-    if (m_profileList) {
-        m_profileList->clear();
-        for (const auto &p : m_profiles)
-            m_profileList->addItem(p.name);
-
-        if (!m_profiles.isEmpty()) {
-            m_profileList->setCurrentRow(0);
-            onProfileSelectionChanged(0);
-        }
-    }
+    rebuildProfileList();
 
     // Non-fatal load warning goes to UI log.
     if (!err.isEmpty())
@@ -758,14 +870,15 @@ void MainWindow::onEditProfilesClicked()
     // ARCHITECTURE:
     // ProfilesEditorDialog edits a copy and returns results only on Accepted,
     // so cancellation never mutates state.
-    const int selectedRow = m_profileList ? m_profileList->currentRow() : 0;
-    ProfilesEditorDialog dlg(m_profiles, selectedRow, this);
+    ensureProfileItemSelected();
+    const int selected = currentProfileIndex();
+    ProfilesEditorDialog dlg(m_profiles, (selected >= 0 ? selected : 0), this);
     if (dlg.exec() != QDialog::Accepted)
         return;
 
     m_profiles = dlg.resultProfiles();
     saveProfilesToDisk();
-    loadProfiles();
+    rebuildProfileList();
 
     if (m_statusLabel)
         m_statusLabel->setText("Profiles updated.");
@@ -887,16 +1000,16 @@ void MainWindow::onInstallPublicKeyRequested(const QString& pubKeyLine, int prof
 // while libssh gives us programmatic control for file operations and workflows.
 //
 
-void MainWindow::onProfileSelectionChanged(int row)
+void MainWindow::onProfileSelectionChanged(int /*row*/)
 {
-    // UI responsibility only: reflect selected profile settings into widgets.
-    if (row < 0 || row >= m_profiles.size())
+    ensureProfileItemSelected();
+
+    const int idx = currentProfileIndex();
+    if (idx < 0 || idx >= m_profiles.size())
         return;
 
-    const SshProfile &p = m_profiles[row];
+    const SshProfile &p = m_profiles[idx];
 
-    // Show the user-friendly “user@host[:port]” string in the host field.
-    // Note: this is display/UX; the real connection uses the stored profile fields.
     if (m_hostField) {
         QString shown = QString("%1@%2").arg(p.user, p.host);
         if (p.port > 0 && p.port != 22)
@@ -904,7 +1017,6 @@ void MainWindow::onProfileSelectionChanged(int row)
         m_hostField->setText(shown);
     }
 
-    // PQ debug is a profile preference; UI check drives verbosity + dev-only actions.
     if (m_pqDebugCheck)
         m_pqDebugCheck->setChecked(p.pqDebug);
 }
@@ -917,7 +1029,8 @@ void MainWindow::onConnectClicked()
     m_sessionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
 
     const QString rawHost = m_hostField ? m_hostField->text().trimmed() : QString();
-    const int row = m_profileList ? m_profileList->currentRow() : -1;
+    ensureProfileItemSelected();
+    const int row = currentProfileIndex();
 
     // File log gets more context than the UI (UI is intentionally concise).
     logSessionInfo(QString("Connect clicked; profileRow=%1 rawHost='%2'")
@@ -1099,7 +1212,8 @@ void MainWindow::onConnectClicked()
 
 void MainWindow::onProfileDoubleClicked()
 {
-    // UX shortcut: double click profile = connect.
+    ensureProfileItemSelected();
+    if (currentProfileIndex() < 0) return;
     onConnectClicked();
 }
 

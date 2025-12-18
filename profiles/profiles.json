@@ -1,6 +1,8 @@
 {
     "profiles": [
         {
+            "group": "Ungrouped",
+            "history_lines": 2000,
             "host": "localhost",
             "key_type": "auto",
             "name": "Localhost",
@@ -13,6 +15,8 @@
             "user": "timo"
         },
         {
+            "group": "Production",
+            "history_lines": 2000,
             "host": "192.168.1.221",
             "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
             "key_type": "auto",

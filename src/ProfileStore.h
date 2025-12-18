@@ -53,6 +53,7 @@ public:
         - One "Localhost" profile
         - Reasonable terminal defaults
         - key_type = "auto"
+        - group empty => treated as "Ungrouped" by UI
     */
     static QVector<SshProfile> defaults();
 
@@ -70,6 +71,7 @@ public:
 
         NOTE:
         - Always writes key_type, even if "auto", to keep schema stable.
+        - Writes group only when non-empty (empty => "Ungrouped" in UI).
     */
     static bool save(const QVector<SshProfile>& profiles, QString* err = nullptr);
 
