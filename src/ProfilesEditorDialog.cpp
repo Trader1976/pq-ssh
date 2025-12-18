@@ -39,6 +39,8 @@
 #include <QSplitter>
 #include <QKeySequenceEdit>
 #include <QKeySequence>
+#include <QSignalBlocker>
+#include <QSplitter>
 
 
 #include "CpunkTermWidget.h"
@@ -176,6 +178,133 @@ static void populateGroupCombo(QComboBox *combo,
     combo->blockSignals(false);
 }
 
+bool ProfilesEditorDialog::isMacroEmpty(const ProfileMacro& m) const
+{
+    return m.shortcut.trimmed().isEmpty() && m.command.trimmed().isEmpty();
+}
+
+QString ProfilesEditorDialog::macroDisplayName(const ProfileMacro& m, int idx) const
+{
+    const QString nm = m.name.trimmed();
+    if (!nm.isEmpty())
+        return nm;
+
+    const QString sc = m.shortcut.trimmed();
+    if (!sc.isEmpty())
+        return QString("%1 — %2").arg(idx + 1).arg(sc);
+
+    const QString cmd = m.command.trimmed();
+    if (!cmd.isEmpty()) {
+        QString shortCmd = cmd;
+        if (shortCmd.size() > 28) shortCmd = shortCmd.left(28) + "…";
+        return QString("%1 — %2").arg(idx + 1).arg(shortCmd);
+    }
+
+    return QString("Macro %1").arg(idx + 1);
+}
+
+void ProfilesEditorDialog::rebuildMacroList()
+{
+    if (!m_macroList) return;
+
+    QSignalBlocker b(m_macroList);
+    m_macroList->clear();
+
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return;
+
+    const auto &macros = m_working[m_currentRow].macros;
+    for (int i = 0; i < macros.size(); ++i) {
+        m_macroList->addItem(macroDisplayName(macros[i], i));
+    }
+}
+
+
+void ProfilesEditorDialog::ensureMacroSelectionValid()
+{
+    if (!m_macroList) return;
+
+    if (m_currentRow < 0 || m_currentRow >= m_working.size()) {
+        m_macroList->setCurrentRow(-1);
+        return;
+    }
+
+    const int count = m_macroList->count();
+    if (count <= 0) {
+        m_macroList->setCurrentRow(-1);
+        return;
+    }
+
+    int r = m_macroList->currentRow();
+    if (r < 0) r = 0;
+    if (r >= count) r = count - 1;
+    m_macroList->setCurrentRow(r);
+}
+void ProfilesEditorDialog::loadMacroToEditor(int macroRow)
+{
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return;
+
+    const auto &macros = m_working[m_currentRow].macros;
+    if (macroRow < 0 || macroRow >= macros.size())
+        return;
+
+    m_currentMacroRow = macroRow;
+    const ProfileMacro &m = macros[macroRow];
+
+    // Block signals so we don't re-trigger updates while loading
+    QSignalBlocker b1(m_macroNameEdit);
+    QSignalBlocker b2(m_macroShortcutEdit);
+    QSignalBlocker b3(m_macroCmdEdit);
+    QSignalBlocker b4(m_macroEnterCheck);
+
+    if (m_macroNameEdit) m_macroNameEdit->setText(m.name);
+    if (m_macroShortcutEdit) {
+        const QString sc = m.shortcut.trimmed();
+        m_macroShortcutEdit->setKeySequence(sc.isEmpty() ? QKeySequence() : QKeySequence(sc));
+    }
+    if (m_macroCmdEdit) m_macroCmdEdit->setText(m.command);
+    if (m_macroEnterCheck) m_macroEnterCheck->setChecked(m.sendEnter);
+}
+
+// Writes the currently visible macro editor fields -> m_working[m_currentRow].macros[m_currentMacroRow]
+void ProfilesEditorDialog::syncMacroEditorToCurrent()
+{
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return;
+
+    SshProfile &p = m_working[m_currentRow];
+
+    if (m_currentMacroRow < 0 || m_currentMacroRow >= p.macros.size())
+        return;
+
+    ProfileMacro &m = p.macros[m_currentMacroRow];
+
+    // Name
+    if (m_macroNameEdit)
+        m.name = m_macroNameEdit->text().trimmed();
+
+    // Shortcut
+    if (m_macroShortcutEdit)
+        m.shortcut = m_macroShortcutEdit->keySequence().toString().trimmed();
+
+    // Command
+    if (m_macroCmdEdit)
+        m.command = m_macroCmdEdit->text();
+
+    // Enter behavior
+    if (m_macroEnterCheck)
+        m.sendEnter = m_macroEnterCheck->isChecked();
+
+    // Update list item label live (no full rebuild needed)
+    if (m_macroList && m_currentMacroRow >= 0 && m_currentMacroRow < m_macroList->count()) {
+        if (QListWidgetItem *it = m_macroList->item(m_currentMacroRow)) {
+            it->setText(macroDisplayName(m, m_currentMacroRow));
+        }
+    }
+}
+
+
 // -----------------------------
 // Constructor
 // -----------------------------
@@ -229,7 +358,9 @@ void ProfilesEditorDialog::buildUi()
     outer->setContentsMargins(0, 0, 0, 0);
     outer->addWidget(split);
 
-    // ---------- Column 1: profile list + Add/Delete ----------
+    // =========================================================
+    // Column 1: profile list + Add/Delete
+    // =========================================================
     auto *leftWidget = new QWidget(split);
     auto *leftLayout = new QVBoxLayout(leftWidget);
     leftLayout->setContentsMargins(0, 0, 0, 0);
@@ -260,7 +391,9 @@ void ProfilesEditorDialog::buildUi()
     leftLayout->addWidget(m_list, 1);
     leftLayout->addWidget(buttonsRow, 0);
 
-    // ---------- Column 2: profile details form ----------
+    // =========================================================
+    // Column 2: profile details form
+    // =========================================================
     auto *detailsWidget = new QWidget(split);
     auto *detailsLayout = new QVBoxLayout(detailsWidget);
     detailsLayout->setContentsMargins(0, 0, 0, 0);
@@ -283,7 +416,8 @@ void ProfilesEditorDialog::buildUi()
     m_groupCombo->setEditable(true);
     m_groupCombo->setInsertPolicy(QComboBox::NoInsert);
     m_groupCombo->setToolTip("Group name for sorting in main window (empty = Ungrouped)");
-    m_groupCombo->lineEdit()->setPlaceholderText("Ungrouped");
+    if (m_groupCombo->lineEdit())
+        m_groupCombo->lineEdit()->setPlaceholderText("Ungrouped");
     populateGroupCombo(m_groupCombo, m_working);
 
     m_pqDebugCheck = new QCheckBox("Enable PQ debug (-vv)", detailsWidget);
@@ -335,7 +469,7 @@ void ProfilesEditorDialog::buildUi()
             startDir,
             "Key files (*)"
         );
-        if (!path.isEmpty())
+        if (!path.isEmpty() && m_keyFileEdit)
             m_keyFileEdit->setText(path);
     });
 
@@ -355,112 +489,145 @@ void ProfilesEditorDialog::buildUi()
 
     detailsLayout->addLayout(form);
 
-    // Save/Cancel stays under details column
     m_buttonsBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, detailsWidget);
     detailsLayout->addWidget(m_buttonsBox);
 
-    // ---------- Column 3: Hotkey macro (optional) ----------
-    auto *extraOuter = new QWidget(split);
-    auto *extraOuterL = new QHBoxLayout(extraOuter);
-    extraOuterL->setContentsMargins(0, 0, 0, 0);
-    extraOuterL->setSpacing(10);
+    // =========================================================
+    // Column 3: Macros (multi)
+    // =========================================================
+    auto *macroOuter = new QWidget(split);
+    auto *macroOuterL = new QVBoxLayout(macroOuter);
+    macroOuterL->setContentsMargins(0, 0, 0, 0);
+    macroOuterL->setSpacing(8);
 
-    auto *extraPanel = new QWidget(extraOuter);
-    extraPanel->setObjectName("profileExtraPanel");
-    extraPanel->setStyleSheet(
-        "#profileExtraPanel {"
+    auto *macroPanel = new QWidget(macroOuter);
+    macroPanel->setObjectName("profileMacroPanel");
+    macroPanel->setStyleSheet(
+        "#profileMacroPanel {"
         "  border: 1px solid #2a2a2a;"
         "  border-radius: 8px;"
         "}"
     );
+    macroPanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
-    auto *extraL = new QVBoxLayout(extraPanel);
-    extraL->setContentsMargins(10, 10, 10, 10);
-    extraL->setSpacing(8);
+    auto *macroL = new QVBoxLayout(macroPanel);
+    macroL->setContentsMargins(10, 10, 10, 10);
+    macroL->setSpacing(8);
 
-    auto *macroTitle = new QLabel("Hotkey macro (optional)", extraPanel);
+    auto *macroTitle = new QLabel("Hotkey macros", macroPanel);
     macroTitle->setStyleSheet("font-weight: bold;");
 
-    // --- NEW layout: Shortcut (small) + Clear + Command on the same row ---
-    auto *macroRowLabels = new QWidget(extraPanel);
-    auto *macroRowLabelsL = new QHBoxLayout(macroRowLabels);
-    macroRowLabelsL->setContentsMargins(0, 0, 0, 0);
-    macroRowLabelsL->setSpacing(6);
+    // list + buttons row
+    auto *macroListRow = new QWidget(macroPanel);
+    auto *macroListRowL = new QHBoxLayout(macroListRow);
+    macroListRowL->setContentsMargins(0, 0, 0, 0);
+    macroListRowL->setSpacing(6);
 
-    auto *shortcutLbl = new QLabel("Shortcut:", extraPanel);
-    auto *cmdLbl      = new QLabel("Command:",  extraPanel);
+    m_macroList = new QListWidget(macroPanel);
+    m_macroList->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_macroList->setMinimumHeight(160);
 
-    // We align the labels with their controls (shortcut label over the small edit,
-    // command label over the command edit).
+    auto *macroBtnsCol = new QWidget(macroPanel);
+    auto *macroBtnsColL = new QVBoxLayout(macroBtnsCol);
+    macroBtnsColL->setContentsMargins(0, 0, 0, 0);
+    macroBtnsColL->setSpacing(6);
+
+    m_macroAddBtn = new QPushButton("+", macroBtnsCol);
+    m_macroAddBtn->setToolTip("Add macro");
+
+    m_macroDelBtn = new QPushButton("-", macroBtnsCol);
+    m_macroDelBtn->setToolTip("Delete selected macro");
+
+    macroBtnsColL->addWidget(m_macroAddBtn);
+    macroBtnsColL->addWidget(m_macroDelBtn);
+    macroBtnsColL->addStretch(1);
+
+    macroListRowL->addWidget(m_macroList, 1);
+    macroListRowL->addWidget(macroBtnsCol, 0);
+
+    // Macro editor: Name
+    auto *nameLbl = new QLabel("Name:", macroPanel);
+    m_macroNameEdit = new QLineEdit(macroPanel);
+    m_macroNameEdit->setPlaceholderText("e.g. Backup stats");
+
+    // Macro editor: Shortcut + Clear + Command in one row
+    auto *rowLbls = new QWidget(macroPanel);
+    auto *rowLblsL = new QHBoxLayout(rowLbls);
+    rowLblsL->setContentsMargins(0, 0, 0, 0);
+    rowLblsL->setSpacing(6);
+
+    auto *shortcutLbl = new QLabel("Shortcut:", macroPanel);
+    auto *cmdLbl      = new QLabel("Command:",  macroPanel);
+
     shortcutLbl->setMinimumWidth(70);
-    macroRowLabelsL->addWidget(shortcutLbl, 1);
+    rowLblsL->addWidget(shortcutLbl, 0);
 
-    // spacer matching shortcut edit width + clear button width so "Command:" sits above command edit
-    auto *labelsSpacer = new QWidget(extraPanel);
-    labelsSpacer->setFixedWidth(160 + 56); // shortcut edit (~160) + clear btn (~56)
-    macroRowLabelsL->addWidget(labelsSpacer, 0);
+    // spacer that matches shortcut + clear widths so "Command" label aligns
+    auto *lblSpacer = new QWidget(macroPanel);
+    lblSpacer->setFixedWidth(100 + 56 + 6); // shortcut(100) + clear(56) + spacing
+    rowLblsL->addWidget(lblSpacer, 0);
 
-    macroRowLabelsL->addWidget(cmdLbl, 1);
+    rowLblsL->addWidget(cmdLbl, 1);
 
-    m_macroShortcutEdit = new QKeySequenceEdit(extraPanel);
-    m_macroShortcutEdit->setToolTip("Click here and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R");
-    m_macroShortcutEdit->setMinimumWidth(90);
-    m_macroShortcutEdit->setMaximumWidth(100);
-    m_macroShortcutEdit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-
-    auto *macroClearBtn = new QPushButton("Clear", extraPanel);
-    macroClearBtn->setToolTip("Clear the shortcut");
-    macroClearBtn->setFixedWidth(56);
-
-    m_macroCmdEdit = new QLineEdit(extraPanel);
-    m_macroCmdEdit->setPlaceholderText(R"(e.g. cd stats && cp stats.txt stats_backup.txt)");
-    m_macroCmdEdit->setToolTip("Command to send when the shortcut is pressed (optional)");
-    m_macroCmdEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-
-    auto *macroRow = new QWidget(extraPanel);
+    auto *macroRow = new QWidget(macroPanel);
     auto *macroRowL = new QHBoxLayout(macroRow);
     macroRowL->setContentsMargins(0, 0, 0, 0);
     macroRowL->setSpacing(6);
 
+    m_macroShortcutEdit = new QKeySequenceEdit(macroPanel);
+    m_macroShortcutEdit->setToolTip("Click and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R");
+    m_macroShortcutEdit->setMinimumWidth(90);
+    m_macroShortcutEdit->setMaximumWidth(120);
+    m_macroShortcutEdit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+
+    m_macroClearBtn = new QPushButton("Clear", macroPanel);
+    m_macroClearBtn->setToolTip("Clear the shortcut");
+    m_macroClearBtn->setFixedWidth(56);
+
+    m_macroCmdEdit = new QLineEdit(macroPanel);
+    m_macroCmdEdit->setPlaceholderText(R"(e.g. cd stats && cp stats.txt stats_backup.txt)");
+    m_macroCmdEdit->setToolTip("Command to send when the shortcut is pressed");
+    m_macroCmdEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
     macroRowL->addWidget(m_macroShortcutEdit, 0);
-    macroRowL->addWidget(macroClearBtn, 0);
-    macroRowL->addWidget(m_macroCmdEdit, 1);
+    macroRowL->addWidget(m_macroClearBtn, 0);
+    macroRowL->addWidget(m_macroCmdEdit, 1); // <-- stretches full width
 
-    connect(macroClearBtn, &QPushButton::clicked, this, [this]() {
-        if (m_macroShortcutEdit)
-            m_macroShortcutEdit->setKeySequence(QKeySequence());
-    });
-
-    m_macroEnterCheck = new QCheckBox("Send [Enter] automatically after command", extraPanel);
+    m_macroEnterCheck = new QCheckBox("Send [Enter] automatically after command", macroPanel);
     m_macroEnterCheck->setChecked(true);
 
     auto *macroHint = new QLabel(
         "Tip: If [Enter] is enabled, PQ-SSH appends a newline so the command runs immediately.",
-        extraPanel
+        macroPanel
     );
     macroHint->setWordWrap(true);
     macroHint->setStyleSheet("color: #9aa0a6; font-size: 12px;");
 
-    extraL->addWidget(macroTitle);
-    extraL->addWidget(macroRowLabels);
-    extraL->addWidget(macroRow);
-    extraL->addWidget(m_macroEnterCheck);
-    extraL->addWidget(macroHint);
-    extraL->addStretch(1);
+    // assemble macro panel
+    macroL->addWidget(macroTitle);
+    macroL->addWidget(macroListRow, 0);
+    macroL->addSpacing(6);
+    macroL->addWidget(nameLbl);
+    macroL->addWidget(m_macroNameEdit);
+    macroL->addWidget(rowLbls);
+    macroL->addWidget(macroRow);
+    macroL->addWidget(m_macroEnterCheck);
+    macroL->addWidget(macroHint);
+    macroL->addStretch(1);
 
-    // Make the panel use all available width
-    extraPanel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    macroOuterL->addWidget(macroPanel, 1);
 
-    // No "air" spacer anymore — panel gets everything
-    extraOuterL->addWidget(extraPanel, 1);
-
-    // Stretch / initial sizes
+    // =========================================================
+    // Splitter sizes
+    // =========================================================
     split->setStretchFactor(0, 2);
     split->setStretchFactor(1, 3);
     split->setStretchFactor(2, 5);
-    split->setSizes({260, 360, 520});
+    split->setSizes({260, 380, 620});
 
+    // =========================================================
     // Wiring
+    // =========================================================
     connect(m_list, &QListWidget::currentRowChanged,
             this, &ProfilesEditorDialog::onListRowChanged);
 
@@ -479,6 +646,32 @@ void ProfilesEditorDialog::buildUi()
     connect(m_buttonsBox, &QDialogButtonBox::accepted,
             this, &ProfilesEditorDialog::onAccepted);
 
+    // Macros wiring
+    connect(m_macroList, &QListWidget::currentRowChanged,
+            this, &ProfilesEditorDialog::onMacroRowChanged);
+
+    connect(m_macroAddBtn, &QPushButton::clicked,
+            this, &ProfilesEditorDialog::addMacro);
+
+    connect(m_macroDelBtn, &QPushButton::clicked,
+            this, &ProfilesEditorDialog::deleteMacro);
+
+    connect(m_macroClearBtn, &QPushButton::clicked,
+            this, &ProfilesEditorDialog::clearMacroShortcut);
+
+    connect(m_macroNameEdit, &QLineEdit::textChanged,
+            this, &ProfilesEditorDialog::onMacroNameEdited);
+
+    // If profile has no macros, start with an empty one so UI is usable immediately
+    if (!m_working.isEmpty() && m_working[0].macros.isEmpty()) {
+        ProfileMacro m;
+        m.name = "";
+        m.shortcut = "";
+        m.command = "";
+        m.sendEnter = true;
+        m_working[0].macros.push_back(m);
+    }
+
     if (m_list->count() > 0 && m_list->currentRow() < 0)
         m_list->setCurrentRow(0);
 }
@@ -495,9 +688,11 @@ void ProfilesEditorDialog::buildUi()
 // switching to another row. That way you don’t lose edits when clicking around.
 void ProfilesEditorDialog::onListRowChanged(int row)
 {
-    syncFormToCurrent();   // commit UI -> m_working[m_currentRow]
-    m_currentRow = row;
-    loadProfileToForm(row); // load m_working[row] -> UI
+    // 1) Save current UI -> current profile (including currently selected macro)
+    syncFormToCurrent();
+
+    // 2) Load newly selected profile -> UI
+    loadProfileToForm(row);
 }
 
 // -----------------------------
@@ -521,14 +716,10 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
 
     // Group
     if (m_groupCombo) {
-        // Keep combo populated and try to select current group text
         populateGroupCombo(m_groupCombo, m_working, p.group);
         const QString g = p.group.trimmed();
-        if (g.isEmpty()) {
-            m_groupCombo->setCurrentText("");
-        } else {
-            m_groupCombo->setCurrentText(g);
-        }
+        if (g.isEmpty()) m_groupCombo->setCurrentText("");
+        else             m_groupCombo->setCurrentText(g);
     }
 
     // Debug
@@ -543,7 +734,7 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
             : p.termColorScheme.trimmed();
         const int idx = m_colorSchemeCombo->findText(scheme);
         if (idx >= 0) m_colorSchemeCombo->setCurrentIndex(idx);
-        else m_colorSchemeCombo->setCurrentText(scheme);
+        else          m_colorSchemeCombo->setCurrentText(scheme);
     }
 
     if (m_fontSizeSpin) m_fontSizeSpin->setValue(p.termFontSize > 0 ? p.termFontSize : 11);
@@ -562,7 +753,6 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         const int idx = m_keyTypeCombo->findText(kt);
         if (idx >= 0) m_keyTypeCombo->setCurrentIndex(idx);
         else {
-            // Keep it visible even if combo didn't contain it
             m_keyTypeCombo->addItem(kt);
             m_keyTypeCombo->setCurrentIndex(m_keyTypeCombo->count() - 1);
         }
@@ -571,19 +761,42 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
     if (m_keyFileEdit) m_keyFileEdit->setText(p.keyFile);
 
     // -------------------------
-    // Hotkey macro (single)
+    // Hotkey macros (multi)
     // -------------------------
-    if (m_macroShortcutEdit) {
-        const QString sc = p.macroShortcut.trimmed();
-        m_macroShortcutEdit->setKeySequence(sc.isEmpty() ? QKeySequence()
-                                                         : QKeySequence(sc));
+    // Ensure profile always has at least one macro row so the editor is usable.
+    if (m_working[row].macros.isEmpty()) {
+        ProfileMacro m;
+        m.name = "";
+        m.shortcut = "";
+        m.command = "";
+        m.sendEnter = true;
+        m_working[row].macros.push_back(m);
     }
 
-    if (m_macroCmdEdit)
-        m_macroCmdEdit->setText(p.macroCommand);
+    // Rebuild list and select a macro (prefer previous selection if valid).
+    rebuildMacroList();
 
-    if (m_macroEnterCheck)
-        m_macroEnterCheck->setChecked(p.macroEnter);
+    int wantRow = m_currentMacroRow;
+    if (wantRow < 0) wantRow = 0;
+    if (m_macroList && wantRow >= m_macroList->count())
+        wantRow = m_macroList->count() - 1;
+
+    if (m_macroList) {
+        QSignalBlocker b(m_macroList);
+        m_macroList->setCurrentRow(wantRow);
+    }
+
+    // Load selected macro into editor (blocks signals inside loadMacroToEditor()).
+    loadMacroToEditor(wantRow);
+
+    // If for some reason list is missing, still clear editor safely.
+    if (!m_macroList) {
+        if (m_macroNameEdit) m_macroNameEdit->clear();
+        if (m_macroShortcutEdit) m_macroShortcutEdit->setKeySequence(QKeySequence());
+        if (m_macroCmdEdit) m_macroCmdEdit->clear();
+        if (m_macroEnterCheck) m_macroEnterCheck->setChecked(true);
+        m_currentMacroRow = -1;
+    }
 }
 
 // -----------------------------
@@ -594,11 +807,12 @@ void ProfilesEditorDialog::syncFormToCurrent()
     if (m_currentRow < 0 || m_currentRow >= m_working.size())
         return;
 
+    // Save macro editor -> current macro
+    syncMacroEditorToCurrent();
+
     SshProfile &p = m_working[m_currentRow];
 
-    // -------------------------
-    // Core connection settings
-    // -------------------------
+    // Core connection
     if (m_nameEdit) p.name = m_nameEdit->text().trimmed();
     if (m_userEdit) p.user = m_userEdit->text().trimmed();
     if (m_hostEdit) p.host = m_hostEdit->text().trimmed();
@@ -612,55 +826,33 @@ void ProfilesEditorDialog::syncFormToCurrent()
     if (m_pqDebugCheck)
         p.pqDebug = m_pqDebugCheck->isChecked();
 
-    // -------------------------
     // Terminal appearance
-    // -------------------------
     if (m_colorSchemeCombo)
         p.termColorScheme = m_colorSchemeCombo->currentText().trimmed();
-
     if (m_fontSizeSpin) p.termFontSize = m_fontSizeSpin->value();
     if (m_widthSpin)    p.termWidth    = m_widthSpin->value();
     if (m_heightSpin)   p.termHeight   = m_heightSpin->value();
     if (m_historySpin)  p.historyLines = m_historySpin->value();
 
-    // -------------------------
     // Auth
-    // -------------------------
     if (m_keyTypeCombo) p.keyType = m_keyTypeCombo->currentText().trimmed();
     if (p.keyType.isEmpty()) p.keyType = "auto";
-
     if (m_keyFileEdit) p.keyFile = m_keyFileEdit->text().trimmed();
 
-    // -------------------------
-    // Hotkey macro (single)
-    // -------------------------
-    if (m_macroShortcutEdit) {
-        const QString sc = m_macroShortcutEdit->keySequence().toString().trimmed();
-        p.macroShortcut = sc;
-    }
-
-    if (m_macroCmdEdit)
-        p.macroCommand = m_macroCmdEdit->text();
-
-    if (m_macroEnterCheck)
-        p.macroEnter = m_macroEnterCheck->isChecked();
-
-    // -------------------------
-    // Keep list label in sync (human readable)
-    // -------------------------
+    // Keep list label in sync
     const QString shownName =
         p.name.trimmed().isEmpty()
             ? QString("%1@%2").arg(p.user, p.host)
             : p.name.trimmed();
 
     if (m_list && m_currentRow >= 0 && m_currentRow < m_list->count()) {
-        QListWidgetItem *it = m_list->item(m_currentRow);
-        if (it) it->setText(shownName);
+        if (QListWidgetItem *it = m_list->item(m_currentRow))
+            it->setText(shownName);
     }
 
-    // Also store back normalized display name
     p.name = shownName;
 }
+
 
 
 // Live update list label when user edits Name: field.
@@ -706,7 +898,19 @@ void ProfilesEditorDialog::addProfile()
     p.keyFile = "";
     p.keyType = "auto";
 
-    // Hotkey macro (single) defaults
+    // Hotkey macros (multi) defaults: ensure UI is usable immediately
+    p.macros.clear();
+    {
+        ProfileMacro m;
+        m.name      = "";
+        m.shortcut  = "";
+        m.command   = "";
+        m.sendEnter = true;
+        p.macros.push_back(m);
+    }
+
+    // (Optional) if you still have legacy single-macro fields in SshProfile,
+    // keep them consistent (harmless, but not used by the new UI).
     p.macroShortcut = "";
     p.macroCommand  = "";
     p.macroEnter    = true;
@@ -714,14 +918,17 @@ void ProfilesEditorDialog::addProfile()
     // Display label fallback
     p.name = QString("%1@%2").arg(p.user, p.host);
 
+    // Commit new profile
     m_working.push_back(p);
-    m_list->addItem(p.name);
+    if (m_list) m_list->addItem(p.name);
 
+    // Refresh group list after addition
     if (m_groupCombo)
         populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
 
+    // Select the new profile row (this will load the UI via onListRowChanged)
     const int row = m_working.size() - 1;
-    m_list->setCurrentRow(row);
+    if (m_list) m_list->setCurrentRow(row);
 }
 
 void ProfilesEditorDialog::deleteProfile()
@@ -790,4 +997,90 @@ void ProfilesEditorDialog::onAccepted()
     // Commit working set to result and close dialog.
     m_result = m_working;
     accept();
+}
+
+
+void ProfilesEditorDialog::onMacroRowChanged(int row)
+{
+    // Save edits to previous macro first
+    syncMacroEditorToCurrent();
+
+    m_currentMacroRow = row;
+    loadMacroToEditor(row);
+}
+void ProfilesEditorDialog::onMacroNameEdited(const QString & /*text*/)
+{
+    // Live list label update
+    syncMacroEditorToCurrent();
+}
+
+
+void ProfilesEditorDialog::addMacro()
+{
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return;
+
+    // Save current macro edits first
+    syncMacroEditorToCurrent();
+
+    ProfileMacro m;
+    m.name = "";
+    m.shortcut = "";
+    m.command = "";
+    m.sendEnter = true;
+
+    m_working[m_currentRow].macros.push_back(m);
+
+    rebuildMacroList();
+    ensureMacroSelectionValid();
+    m_macroList->setCurrentRow(m_working[m_currentRow].macros.size() - 1);
+}
+
+void ProfilesEditorDialog::deleteMacro()
+{
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return;
+
+    const int mi = currentMacroIndex();
+    if (mi < 0) return;
+
+    auto &macros = m_working[m_currentRow].macros;
+    if (mi >= macros.size()) return;
+
+    macros.remove(mi);
+
+    // Keep at least one macro row so UI stays usable (optional choice)
+    if (macros.isEmpty()) {
+        ProfileMacro m;
+        m.sendEnter = true;
+        macros.push_back(m);
+    }
+
+    rebuildMacroList();
+    ensureMacroSelectionValid();
+}
+
+void ProfilesEditorDialog::clearMacroShortcut()
+{
+    if (!m_macroShortcutEdit) return;
+    m_macroShortcutEdit->setKeySequence(QKeySequence());
+    syncMacroEditorToCurrent();
+}
+
+int ProfilesEditorDialog::currentMacroIndex() const
+{
+    if (!m_macroList) return -1;
+
+    const int row = m_macroList->currentRow();
+    if (row < 0) return -1;
+
+    // Ensure we have a valid profile selected
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return -1;
+
+    const auto &macros = m_working[m_currentRow].macros;
+    if (row >= macros.size())
+        return -1;
+
+    return row;
 }

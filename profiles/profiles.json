@@ -24,6 +24,20 @@
             "macro_command": "ls -lh",
             "macro_enter": false,
             "macro_shortcut": "F2",
+            "macros": [
+                {
+                    "command": "ls -lh",
+                    "name": "Check directory",
+                    "send_enter": false,
+                    "shortcut": "F2"
+                },
+                {
+                    "command": "pwd",
+                    "name": "Where am I?",
+                    "send_enter": true,
+                    "shortcut": "F3"
+                }
+            ],
             "name": "DHT Server",
             "port": 1060,
             "pq_debug": false,

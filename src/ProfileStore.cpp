@@ -10,15 +10,98 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-/*
-    ProfileStore
-    ------------
-    Responsible for loading/saving SSH profiles (JSON-backed).
+// -----------------------------
+// Helpers: macros <-> JSON
+// -----------------------------
+static bool isMacroEmpty(const ProfileMacro &m)
+{
+    return m.name.trimmed().isEmpty()
+        && m.shortcut.trimmed().isEmpty()
+        && m.command.trimmed().isEmpty();
+}
 
-    Current design (dev-friendly):
-    - profiles.json lives inside the *project* folder:
-        pq-ssh/profiles/profiles.json
-*/
+static QJsonObject macroToJson(const ProfileMacro &m)
+{
+    QJsonObject o;
+
+    const QString nm = m.name.trimmed();
+    const QString sc = m.shortcut.trimmed();
+
+    if (!nm.isEmpty()) o["name"] = nm;
+    if (!sc.isEmpty()) o["shortcut"] = sc;
+    if (!m.command.trimmed().isEmpty()) o["command"] = m.command;
+
+    // Always store for stability (default true)
+    o["send_enter"] = m.sendEnter;
+
+    return o;
+}
+
+static ProfileMacro macroFromJson(const QJsonObject &o)
+{
+    ProfileMacro m;
+    m.name      = o.value("name").toString();
+    m.shortcut  = o.value("shortcut").toString().trimmed();
+    m.command   = o.value("command").toString();
+    m.sendEnter = o.value("send_enter").toBool(true);
+    return m;
+}
+
+static QJsonArray macrosToJsonArray(const QVector<ProfileMacro> &macros)
+{
+    QJsonArray a;
+    for (const auto &m : macros) {
+        if (isMacroEmpty(m)) continue; // don't persist blank rows
+        a.append(macroToJson(m));
+    }
+    return a;
+}
+
+static QVector<ProfileMacro> macrosFromJsonArray(const QJsonArray &a)
+{
+    QVector<ProfileMacro> out;
+    out.reserve(a.size());
+    for (const auto &v : a) {
+        if (!v.isObject()) continue;
+        ProfileMacro m = macroFromJson(v.toObject());
+        if (isMacroEmpty(m)) continue;
+        out.push_back(m);
+    }
+    return out;
+}
+
+// If macros[] is empty, try migrating legacy single macro fields into macros[0].
+static void migrateLegacyMacroToListIfNeeded(SshProfile &p)
+{
+    if (!p.macros.isEmpty())
+        return;
+
+    const QString sc  = p.macroShortcut.trimmed();
+    const QString cmd = p.macroCommand.trimmed();
+
+    if (sc.isEmpty() && cmd.isEmpty())
+        return;
+
+    ProfileMacro m;
+    m.name = "";
+    m.shortcut = sc;
+    m.command = p.macroCommand;
+    m.sendEnter = p.macroEnter;
+
+    p.macros.push_back(m);
+}
+
+// Keep backward-compat fields filled from first macro (if present).
+static void syncLegacyMacroFromList(SshProfile &p)
+{
+    if (p.macros.isEmpty())
+        return;
+
+    const ProfileMacro &m = p.macros.first();
+    p.macroShortcut = m.shortcut.trimmed();
+    p.macroCommand  = m.command;
+    p.macroEnter    = m.sendEnter;
+}
 
 QString ProfileStore::configPath()
 {
@@ -66,7 +149,10 @@ QVector<SshProfile> ProfileStore::defaults()
     p.keyFile = "";
     p.keyType = "auto";
 
-    // Hotkey macro (single)
+    // NEW: macros list (start empty; UI can create first row automatically)
+    p.macros.clear();
+
+    // Backward-compat defaults (keep consistent)
     p.macroShortcut = "";
     p.macroCommand  = "";
     p.macroEnter    = true;
@@ -96,7 +182,12 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
               "key_file": "...",             // optional
               "key_type": "auto",            // always stored
 
-              // Hotkey macro (single):
+              // NEW: Hotkey macros (multi)
+              "macros": [
+                { "name": "...", "shortcut": "F2", "command": "cd ...", "send_enter": true }
+              ],
+
+              // Backward-compat (OLD: single) - written from macros[0] if present
               "macro_shortcut": "F2",        // optional
               "macro_command":  "cd ...",    // optional
               "macro_enter": true            // always stored (default true)
@@ -106,7 +197,10 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
     */
 
     QJsonArray arr;
-    for (const auto &prof : profiles) {
+    for (auto prof : profiles) {
+        // Ensure legacy single is in sync with macros[0] (if macros exist)
+        syncLegacyMacroFromList(prof);
+
         QJsonObject obj;
 
         // Connection identity
@@ -136,7 +230,14 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
         obj["key_type"] = prof.keyType.trimmed().isEmpty() ? QString("auto")
                                                            : prof.keyType.trimmed();
 
-        // ---- Hotkey macro (single) ----
+        // ---- NEW: Hotkey macros (multi) ----
+        // Store only non-empty macros
+        const QJsonArray macrosArr = macrosToJsonArray(prof.macros);
+        if (!macrosArr.isEmpty())
+            obj["macros"] = macrosArr;
+
+        // ---- Backward-compat (OLD: single) ----
+        // Write first macro also into legacy keys so older versions still see something.
         const QString sc = prof.macroShortcut.trimmed();
         if (!sc.isEmpty())
             obj["macro_shortcut"] = sc;
@@ -229,12 +330,23 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         if (p.keyType.isEmpty())
             p.keyType = "auto";
 
-        // ---- Hotkey macro (single) ----
+        // ---- NEW: macros (multi) ----
+        if (obj.contains("macros") && obj.value("macros").isArray()) {
+            p.macros = macrosFromJsonArray(obj.value("macros").toArray());
+        } else {
+            p.macros.clear();
+        }
+
+        // ---- Legacy: single macro (backward compat) ----
         p.macroShortcut = obj.value("macro_shortcut").toString().trimmed();
         p.macroCommand  = obj.value("macro_command").toString();
+        p.macroEnter    = obj.value("macro_enter").toBool(true);
 
-        // default = true if missing (keeps older configs working)
-        p.macroEnter = obj.value("macro_enter").toBool(true);
+        // Migration: if no macros[] present, but legacy single macro exists -> macros[0]
+        migrateLegacyMacroToListIfNeeded(p);
+
+        // Also keep legacy fields consistent with macros[0] (if macros exist)
+        syncLegacyMacroFromList(p);
 
         // Skip incomplete profiles
         if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty())

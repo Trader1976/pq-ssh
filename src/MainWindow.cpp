@@ -35,6 +35,7 @@
 #include <QSysInfo>
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QPointer>
 
 #include "AppTheme.h"
 #include "ProfileStore.h"
@@ -57,7 +58,6 @@
 #include <QCryptographicHash>
 #include "DilithiumKeyCrypto.h"
 #include <sodium.h>
-#include <QFileInfo>
 #include <QUuid>
 #include <QFrame>
 
@@ -2014,7 +2014,7 @@ void MainWindow::onOpenUserManual()
         "  border:1px solid rgba(0,255,153,.28);"
         "  text-decoration:none;"
         "}"
-        "}" // <-- likely unintended extra brace; consider removing
+
     );
 
     // Let user click docs links and open them externally.
@@ -2192,44 +2192,68 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
 {
     if (!term || !shortcutScope) return;
 
-    const QString shortcutText = p.macroShortcut.trimmed();
-    const QString cmd          = p.macroCommand; // keep as-is
-    const bool sendEnter       = p.macroEnter;
-
-    // Only enable if BOTH shortcut + command are set
-    if (shortcutText.isEmpty() || cmd.trimmed().isEmpty())
-        return;
-
-    const QKeySequence seq(shortcutText);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-    if (seq.isEmpty()) {
-        uiWarn(QString("[MACRO] Invalid shortcut '%1' (profile '%2')").arg(shortcutText, p.name));
-        return;
+    // If no new macros exist, fall back to legacy single macro (backward-compat)
+    QVector<ProfileMacro> macros = p.macros;
+    if (macros.isEmpty()) {
+        ProfileMacro m;
+        m.name      = "";
+        m.shortcut  = p.macroShortcut.trimmed();
+        m.command   = p.macroCommand;
+        m.sendEnter = p.macroEnter;
+        if (!m.shortcut.isEmpty() && !m.command.trimmed().isEmpty())
+            macros.push_back(m);
     }
+
+    if (macros.isEmpty())
+        return;
+
+    // Protect against term being destroyed while shortcutScope still lives
+    QPointer<CpunkTermWidget> termPtr(term);
+
+    for (int i = 0; i < macros.size(); ++i) {
+        const ProfileMacro& m = macros[i];
+
+        const QString shortcutText = m.shortcut.trimmed();
+        const QString cmd          = m.command; // keep as-is
+        const bool sendEnter       = m.sendEnter;
+
+        // Only enable if BOTH shortcut + command are set
+        if (shortcutText.isEmpty() || cmd.trimmed().isEmpty())
+            continue;
+
+        const QKeySequence seq(shortcutText);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+        if (seq.isEmpty()) {
+            uiWarn(QString("[MACRO] Invalid shortcut '%1' (profile '%2')").arg(shortcutText, p.name));
+            continue;
+        }
 #endif
 
-    // Parent to the scope so it dies with the window/tabs container
-    auto* sc = new QShortcut(seq, shortcutScope);
+        // Parent to the scope so it dies with the window/tabs container
+        auto* sc = new QShortcut(seq, shortcutScope);
+        sc->setContext(Qt::WidgetWithChildrenShortcut);
 
-    // Works even when focus is inside terminal widget
-    sc->setContext(Qt::WidgetWithChildrenShortcut);
+        const QString shownName = m.name.trimmed().isEmpty()
+            ? QString("Macro %1").arg(i + 1)
+            : m.name.trimmed();
 
-    uiDebug(QString("[MACRO] Bound %1 → \"%2\" (enter=%3) for profile '%4'")
-                .arg(seq.toString(),
-                     cmd.trimmed(),
-                     sendEnter ? "yes" : "no",
-                     p.name));
+        uiDebug(QString("[MACRO] Bound %1 → \"%2\" (enter=%3) [%4] profile '%5'")
+                    .arg(seq.toString(),
+                         cmd.trimmed(),
+                         sendEnter ? "yes" : "no",
+                         shownName,
+                         p.name));
 
-    connect(sc, &QShortcut::activated, this, [this, term, cmd, sendEnter]() {
-        if (!term) return;
+        connect(sc, &QShortcut::activated, this, [this, termPtr, cmd, sendEnter, shownName]() {
+            if (!termPtr) return;
 
-        QString out = cmd;
-        if (sendEnter)
-            out += "\n";
+            QString out = cmd;
+            if (sendEnter)
+                out += "\n";
 
-        // CpunkTermWidget inherits QTermWidget => sendText exists
-        term->sendText(out);
-
-        uiDebug(QString("[MACRO] Sent: %1").arg(cmd.trimmed()));
-    });
+            termPtr->sendText(out);
+            uiDebug(QString("[MACRO] Sent (%1): %2").arg(shownName, cmd.trimmed()));
+        });
+    }
 }
+
