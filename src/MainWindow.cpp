@@ -64,6 +64,7 @@
 #include <QToolButton>
 #include <QMenu>
 #include <QSettings>
+#include <QShortcut>
 
 #include "SettingsDialog.h"
 
@@ -1692,7 +1693,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
 
     if (newWindow) {
         // Mode A: each connection gets its own top-level window.
-        // This is good for multi-monitor workflows and "one terminal per host" mental model.
         auto *w = new QMainWindow();
         w->setAttribute(Qt::WA_DeleteOnClose, true);
         w->setWindowTitle(windowTitle);
@@ -1703,9 +1703,11 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         auto *term = createTerm(p, w);
         w->setCentralWidget(term);
 
+        // ✅ Install per-profile macro hotkey scoped to THIS window
+        installHotkeyMacro(term, w, p);
+
         // LIFECYCLE NOTE:
         // When the window is destroyed, we also disconnect libssh.
-        // This keeps SFTP/workflow state aligned with visible terminal state.
         connect(w, &QObject::destroyed, this, [this]() {
             onDisconnectClicked();
         });
@@ -1719,7 +1721,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     }
 
     // Mode B: shared tabs window.
-    // We lazily create the tabs window once and then reuse it.
     if (!m_tabbedShellWindow) {
         m_tabbedShellWindow = new QMainWindow();
         m_tabbedShellWindow->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -1729,8 +1730,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         m_tabWidget->setTabsClosable(true);
         m_tabbedShellWindow->setCentralWidget(m_tabWidget);
 
-        // User closes a tab: remove widget, delete later, and if it was last tab -> close window.
-        // We also trigger disconnect to keep libssh state consistent.
         connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, [this](int idx) {
             if (!m_tabWidget) return;
 
@@ -1745,8 +1744,6 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
             }
         });
 
-        // If the tabbed window is closed (e.g., via window close button),
-        // reset pointers to avoid dangling access.
         connect(m_tabbedShellWindow, &QObject::destroyed, this, [this]() {
             m_tabbedShellWindow = nullptr;
             m_tabWidget = nullptr;
@@ -1760,6 +1757,9 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     auto *term = createTerm(p, m_tabWidget);
     const int idx = m_tabWidget->addTab(term, tabTitle);
     m_tabWidget->setCurrentIndex(idx);
+
+    // ✅ Install per-profile macro hotkey scoped to the TABBED window
+    installHotkeyMacro(term, m_tabbedShellWindow, p);
 
     // Give the tabbed window a contextual title so user sees which host is “current”.
     m_tabbedShellWindow->setWindowTitle(QString("PQ-SSH Tabs — %1").arg(connLabel));
@@ -2119,3 +2119,48 @@ void MainWindow::onOpenSettings()
     QMessageBox::information(this, "Settings", "Settings dialog (coming next).");
 }
 
+void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScope, const SshProfile& p)
+{
+    if (!term || !shortcutScope) return;
+
+    const QString shortcutText = p.macroShortcut.trimmed();
+    const QString cmd          = p.macroCommand; // keep as-is
+    const bool sendEnter       = p.macroEnter;
+
+    // Only enable if BOTH shortcut + command are set
+    if (shortcutText.isEmpty() || cmd.trimmed().isEmpty())
+        return;
+
+    const QKeySequence seq(shortcutText);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    if (seq.isEmpty()) {
+        uiWarn(QString("[MACRO] Invalid shortcut '%1' (profile '%2')").arg(shortcutText, p.name));
+        return;
+    }
+#endif
+
+    // Parent to the scope so it dies with the window/tabs container
+    auto* sc = new QShortcut(seq, shortcutScope);
+
+    // Works even when focus is inside terminal widget
+    sc->setContext(Qt::WidgetWithChildrenShortcut);
+
+    uiDebug(QString("[MACRO] Bound %1 → \"%2\" (enter=%3) for profile '%4'")
+                .arg(seq.toString(),
+                     cmd.trimmed(),
+                     sendEnter ? "yes" : "no",
+                     p.name));
+
+    connect(sc, &QShortcut::activated, this, [this, term, cmd, sendEnter]() {
+        if (!term) return;
+
+        QString out = cmd;
+        if (sendEnter)
+            out += "\n";
+
+        // CpunkTermWidget inherits QTermWidget => sendText exists
+        term->sendText(out);
+
+        uiDebug(QString("[MACRO] Sent: %1").arg(cmd.trimmed()));
+    });
+}

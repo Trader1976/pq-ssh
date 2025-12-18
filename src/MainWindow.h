@@ -72,7 +72,6 @@ private:
     void uiDebug(const QString& msg);
     bool uiVerbose() const;
 
-
     void applySavedSettings();   // load/apply theme + log level on startup
     void onOpenSettings();
     void applyCurrentTheme();
@@ -115,6 +114,9 @@ private:
     void openShellForProfile(const SshProfile &p, const QString &target, bool newWindow);
     CpunkTermWidget* createTerm(const SshProfile &p, QWidget *parent);
     void applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p);
+
+    // ✅ ADD THIS (used by openShellForProfile() in MainWindow.cpp)
+    void installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScope, const SshProfile& p);
 
     QMainWindow *m_tabbedShellWindow = nullptr;
     QTabWidget  *m_tabWidget = nullptr;

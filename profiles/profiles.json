@@ -22,7 +22,7 @@
             "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
             "key_type": "auto",
             "macro_command": "ls -lh",
-            "macro_enter": true,
+            "macro_enter": false,
             "macro_shortcut": "F2",
             "name": "DHT Server",
             "port": 1060,

@@ -132,11 +132,14 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
         // Auth
         if (!prof.keyFile.trimmed().isEmpty())
             obj["key_file"] = prof.keyFile;
-        obj["key_type"] = prof.keyType.trimmed().isEmpty() ? QString("auto") : prof.keyType;
+
+        obj["key_type"] = prof.keyType.trimmed().isEmpty() ? QString("auto")
+                                                           : prof.keyType.trimmed();
 
         // ---- Hotkey macro (single) ----
-        if (!prof.macroShortcut.trimmed().isEmpty())
-            obj["macro_shortcut"] = prof.macroShortcut.trimmed();
+        const QString sc = prof.macroShortcut.trimmed();
+        if (!sc.isEmpty())
+            obj["macro_shortcut"] = sc;
 
         if (!prof.macroCommand.trimmed().isEmpty())
             obj["macro_command"] = prof.macroCommand;
@@ -231,10 +234,7 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         p.macroCommand  = obj.value("macro_command").toString();
 
         // default = true if missing (keeps older configs working)
-        if (obj.contains("macro_enter"))
-            p.macroEnter = obj.value("macro_enter").toBool(true);
-        else
-            p.macroEnter = true;
+        p.macroEnter = obj.value("macro_enter").toBool(true);
 
         // Skip incomplete profiles
         if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty())

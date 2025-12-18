@@ -501,89 +501,87 @@ void ProfilesEditorDialog::onListRowChanged(int row)
 // -----------------------------
 void ProfilesEditorDialog::loadProfileToForm(int row)
 {
-    // Keep group dropdown populated from current working set
-    if (m_groupCombo)
-        populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
-
-    if (row < 0 || row >= m_working.size()) {
-        // Clear form for “no selection”
-        m_nameEdit->clear();
-        if (m_groupCombo) m_groupCombo->setCurrentText("Ungrouped");
-        m_userEdit->clear();
-        m_hostEdit->clear();
-        m_portSpin->setValue(22);
-        m_pqDebugCheck->setChecked(true);
-
-        m_colorSchemeCombo->setCurrentText("WhiteOnBlack");
-        m_fontSizeSpin->setValue(11);
-        m_widthSpin->setValue(900);
-        m_heightSpin->setValue(500);
-        if (m_historySpin) m_historySpin->setValue(2000);
-
-        if (m_keyTypeCombo) m_keyTypeCombo->setCurrentText("auto");
-        if (m_keyFileEdit)  m_keyFileEdit->clear();
-
-        // Hotkey macro (optional)
-        if (m_macroShortcutEdit) m_macroShortcutEdit->setKeySequence(QKeySequence());
-        if (m_macroCmdEdit)      m_macroCmdEdit->clear();
-        if (m_macroEnterCheck)   m_macroEnterCheck->setChecked(true);
-
+    if (row < 0 || row >= m_working.size())
         return;
-    }
 
+    m_currentRow = row;
     const SshProfile &p = m_working[row];
 
-    m_nameEdit->setText(p.name);
+    // -------------------------
+    // Core connection settings
+    // -------------------------
+    if (m_nameEdit) m_nameEdit->setText(p.name);
+    if (m_userEdit) m_userEdit->setText(p.user);
+    if (m_hostEdit) m_hostEdit->setText(p.host);
+    if (m_portSpin) m_portSpin->setValue(p.port > 0 ? p.port : 22);
 
+    // Group
     if (m_groupCombo) {
-        const QString g = normalizedGroup(p.group);
-        const int gidx = m_groupCombo->findText(g, Qt::MatchFixedString);
-        if (gidx >= 0) m_groupCombo->setCurrentIndex(gidx);
-        else m_groupCombo->setCurrentText(g);
+        // Keep combo populated and try to select current group text
+        populateGroupCombo(m_groupCombo, m_working, p.group);
+        const QString g = p.group.trimmed();
+        if (g.isEmpty()) {
+            m_groupCombo->setCurrentText("");
+        } else {
+            m_groupCombo->setCurrentText(g);
+        }
     }
 
-    m_userEdit->setText(p.user);
-    m_hostEdit->setText(p.host);
-    m_portSpin->setValue(p.port);
-    m_pqDebugCheck->setChecked(p.pqDebug);
+    // Debug
+    if (m_pqDebugCheck) m_pqDebugCheck->setChecked(p.pqDebug);
 
-    const QString wantedScheme = p.termColorScheme.isEmpty()
-        ? QStringLiteral("WhiteOnBlack")
-        : p.termColorScheme;
+    // -------------------------
+    // Terminal appearance
+    // -------------------------
+    if (m_colorSchemeCombo) {
+        const QString scheme = p.termColorScheme.trimmed().isEmpty()
+            ? QStringLiteral("WhiteOnBlack")
+            : p.termColorScheme.trimmed();
+        const int idx = m_colorSchemeCombo->findText(scheme);
+        if (idx >= 0) m_colorSchemeCombo->setCurrentIndex(idx);
+        else m_colorSchemeCombo->setCurrentText(scheme);
+    }
 
-    int sidx = m_colorSchemeCombo->findText(wantedScheme);
-    if (sidx >= 0) m_colorSchemeCombo->setCurrentIndex(sidx);
-    else m_colorSchemeCombo->setCurrentText(wantedScheme);
+    if (m_fontSizeSpin) m_fontSizeSpin->setValue(p.termFontSize > 0 ? p.termFontSize : 11);
+    if (m_widthSpin)    m_widthSpin->setValue(p.termWidth > 0 ? p.termWidth : 900);
+    if (m_heightSpin)   m_heightSpin->setValue(p.termHeight > 0 ? p.termHeight : 500);
+    if (m_historySpin)  m_historySpin->setValue(p.historyLines >= 0 ? p.historyLines : 2000);
 
-    m_fontSizeSpin->setValue(p.termFontSize > 0 ? p.termFontSize : 11);
-    m_widthSpin->setValue(p.termWidth > 0 ? p.termWidth : 900);
-    m_heightSpin->setValue(p.termHeight > 0 ? p.termHeight : 500);
-
-    if (m_historySpin)
-        m_historySpin->setValue(p.historyLines >= 0 ? p.historyLines : 2000);
-
-    // Key auth fields
+    // -------------------------
+    // Auth
+    // -------------------------
     if (m_keyTypeCombo) {
-        const QString kt = p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
-        const int kidx = m_keyTypeCombo->findText(kt);
-        if (kidx >= 0) m_keyTypeCombo->setCurrentIndex(kidx);
-        else m_keyTypeCombo->setCurrentText(kt);
-    }
-    if (m_keyFileEdit)
-        m_keyFileEdit->setText(p.keyFile);
+        const QString kt = p.keyType.trimmed().isEmpty()
+            ? QStringLiteral("auto")
+            : p.keyType.trimmed();
 
-    // Hotkey macro (optional)
+        const int idx = m_keyTypeCombo->findText(kt);
+        if (idx >= 0) m_keyTypeCombo->setCurrentIndex(idx);
+        else {
+            // Keep it visible even if combo didn't contain it
+            m_keyTypeCombo->addItem(kt);
+            m_keyTypeCombo->setCurrentIndex(m_keyTypeCombo->count() - 1);
+        }
+    }
+
+    if (m_keyFileEdit) m_keyFileEdit->setText(p.keyFile);
+
+    // -------------------------
+    // Hotkey macro (single)
+    // -------------------------
     if (m_macroShortcutEdit) {
         const QString sc = p.macroShortcut.trimmed();
-        m_macroShortcutEdit->setKeySequence(sc.isEmpty() ? QKeySequence() : QKeySequence(sc));
+        m_macroShortcutEdit->setKeySequence(sc.isEmpty() ? QKeySequence()
+                                                         : QKeySequence(sc));
     }
-    if (m_macroCmdEdit) {
+
+    if (m_macroCmdEdit)
         m_macroCmdEdit->setText(p.macroCommand);
-    }
-    if (m_macroEnterCheck) {
+
+    if (m_macroEnterCheck)
         m_macroEnterCheck->setChecked(p.macroEnter);
-    }
 }
+
 // -----------------------------
 // Sync current form fields -> current profile in m_working
 // -----------------------------
@@ -594,55 +592,70 @@ void ProfilesEditorDialog::syncFormToCurrent()
 
     SshProfile &p = m_working[m_currentRow];
 
-    p.name    = m_nameEdit->text().trimmed();
-    p.user    = m_userEdit->text().trimmed();
-    p.host    = m_hostEdit->text().trimmed();
-    p.port    = m_portSpin->value();
-    p.pqDebug = m_pqDebugCheck->isChecked();
+    // -------------------------
+    // Core connection settings
+    // -------------------------
+    if (m_nameEdit) p.name = m_nameEdit->text().trimmed();
+    if (m_userEdit) p.user = m_userEdit->text().trimmed();
+    if (m_hostEdit) p.host = m_hostEdit->text().trimmed();
+    if (m_portSpin) p.port = m_portSpin->value();
 
-    if (m_groupCombo) {
-        // empty allowed (keeps JSON clean)
-        p.group = m_groupCombo->currentText().trimmed();
-    }
-
-    p.termColorScheme = m_colorSchemeCombo->currentText();
-    p.termFontSize    = m_fontSizeSpin->value();
-    p.termWidth       = m_widthSpin->value();
-    p.termHeight      = m_heightSpin->value();
-
-    if (m_historySpin)
-        p.historyLines = m_historySpin->value();
-
-    if (m_keyTypeCombo) {
-        const QString kt = m_keyTypeCombo->currentText().trimmed();
-        p.keyType = kt.isEmpty() ? QStringLiteral("auto") : kt;
-    }
-    if (m_keyFileEdit)
-        p.keyFile = m_keyFileEdit->text().trimmed();
-
-    // Hotkey macro (optional)
-    if (m_macroShortcutEdit) {
-        // Save as portable string like "Alt+X" / "F2"
-        p.macroShortcut = m_macroShortcutEdit->keySequence().toString(QKeySequence::PortableText).trimmed();
-    }
-    if (m_macroCmdEdit) {
-        p.macroCommand = m_macroCmdEdit->text();
-    }
-    if (m_macroEnterCheck) {
-        p.macroEnter = m_macroEnterCheck->isChecked();
-    }
-
-    // If name is blank, auto-generate a stable label
-    if (p.name.isEmpty())
-        p.name = QString("%1@%2").arg(p.user, p.host);
-
-    // Keep list item in sync
-    if (QListWidgetItem *it = m_list->item(m_currentRow))
-        it->setText(p.name);
-
-    // Keep group combo updated as user creates new groups
+    // Group
     if (m_groupCombo)
-        populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
+        p.group = m_groupCombo->currentText().trimmed();
+
+    // Debug
+    if (m_pqDebugCheck)
+        p.pqDebug = m_pqDebugCheck->isChecked();
+
+    // -------------------------
+    // Terminal appearance
+    // -------------------------
+    if (m_colorSchemeCombo)
+        p.termColorScheme = m_colorSchemeCombo->currentText().trimmed();
+
+    if (m_fontSizeSpin) p.termFontSize = m_fontSizeSpin->value();
+    if (m_widthSpin)    p.termWidth    = m_widthSpin->value();
+    if (m_heightSpin)   p.termHeight   = m_heightSpin->value();
+    if (m_historySpin)  p.historyLines = m_historySpin->value();
+
+    // -------------------------
+    // Auth
+    // -------------------------
+    if (m_keyTypeCombo) p.keyType = m_keyTypeCombo->currentText().trimmed();
+    if (p.keyType.isEmpty()) p.keyType = "auto";
+
+    if (m_keyFileEdit) p.keyFile = m_keyFileEdit->text().trimmed();
+
+    // -------------------------
+    // Hotkey macro (single)
+    // -------------------------
+    if (m_macroShortcutEdit) {
+        const QString sc = m_macroShortcutEdit->keySequence().toString().trimmed();
+        p.macroShortcut = sc;
+    }
+
+    if (m_macroCmdEdit)
+        p.macroCommand = m_macroCmdEdit->text();
+
+    if (m_macroEnterCheck)
+        p.macroEnter = m_macroEnterCheck->isChecked();
+
+    // -------------------------
+    // Keep list label in sync (human readable)
+    // -------------------------
+    const QString shownName =
+        p.name.trimmed().isEmpty()
+            ? QString("%1@%2").arg(p.user, p.host)
+            : p.name.trimmed();
+
+    if (m_list && m_currentRow >= 0 && m_currentRow < m_list->count()) {
+        QListWidgetItem *it = m_list->item(m_currentRow);
+        if (it) it->setText(shownName);
+    }
+
+    // Also store back normalized display name
+    p.name = shownName;
 }
 
 
@@ -673,9 +686,9 @@ void ProfilesEditorDialog::addProfile()
     // Keep in sync with ProfileStore::defaults() as much as possible.
     SshProfile p;
 
-    p.user   = qEnvironmentVariable("USER", "user");
-    p.host   = "localhost";
-    p.port   = 22;
+    p.user    = qEnvironmentVariable("USER", "user");
+    p.host    = "localhost";
+    p.port    = 22;
     p.pqDebug = true;
 
     p.group = ""; // empty => Ungrouped
@@ -690,21 +703,19 @@ void ProfilesEditorDialog::addProfile()
     p.keyType = "auto";
 
     // Hotkey macro (single) defaults
-    p.macroShortcut = "";      // none by default
-    p.macroCommand  = "";      // none by default
-    p.macroEnter    = true;    // sensible default if they set a command later
+    p.macroShortcut = "";
+    p.macroCommand  = "";
+    p.macroEnter    = true;
 
-    // If name is empty, we display user@host
+    // Display label fallback
     p.name = QString("%1@%2").arg(p.user, p.host);
 
     m_working.push_back(p);
     m_list->addItem(p.name);
 
-    // Refresh group list (includes Ungrouped)
     if (m_groupCombo)
         populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
 
-    // Select the new profile so user can edit immediately
     const int row = m_working.size() - 1;
     m_list->setCurrentRow(row);
 }
