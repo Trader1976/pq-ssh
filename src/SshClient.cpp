@@ -191,161 +191,228 @@
         return true;
     }
 
+
+
     // ------------------------------------------------------------
     // connectProfile(): establish libssh session suitable for SFTP + exec
     // ------------------------------------------------------------
-    bool SshClient::connectProfile(const SshProfile& profile, QString* err)
-    {
-        if (err) err->clear();
+bool SshClient::connectProfile(const SshProfile& profile, QString* err)
+{
+    if (err) err->clear();
 
-        const QString host = profile.host.trimmed();
-        const QString user = profile.user.trimmed();
+    const QString host = profile.host.trimmed();
+    const QString user = profile.user.trimmed();
 
-        if (host.isEmpty()) {
-            if (err) *err = QStringLiteral("No host specified.");
-            qWarning().noquote() << QString("[SSH] connectProfile FAILED: %1").arg(err ? *err : "No host");
-            return false;
-        }
-        if (user.isEmpty()) {
-            if (err) *err = QStringLiteral("No user specified.");
-            qWarning().noquote() << QString("[SSH] connectProfile FAILED host='%1': %2")
-                                    .arg(host, err ? *err : "No user");
-            return false;
-        }
-
-        // Key-type gate:
-        const QString kt = profile.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : profile.keyType.trimmed();
-        if (kt != "auto" && kt != "openssh") {
-            if (err) *err = QStringLiteral("Unsupported key_type '%1' (PQ keys not implemented yet).").arg(kt);
-            qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
-                                    .arg(user, host, err ? *err : "Unsupported key_type");
-            return false;
-        }
-
-        const int port = (profile.port > 0) ? profile.port : 22;
-        const bool hasIdentity = !profile.keyFile.trimmed().isEmpty();
-
-        qInfo().noquote() << QString("[SSH] connectProfile start user='%1' host='%2' port=%3 keyType='%4'%5")
-                             .arg(user, host)
-                             .arg(port)
-                             .arg(kt)
-                             .arg(hasIdentity ? " identity=explicit" : "");
-
-        // Always clean up any previous libssh session before reconnecting.
-        if (m_session) {
-            qInfo().noquote() << "[SSH] existing session present -> disconnecting before reconnect";
-        }
-        disconnect();
-
-        ssh_session s = ssh_new();
-        if (!s) {
-            if (err) *err = QStringLiteral("ssh_new() failed.");
-            qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
-                                    .arg(user, host, err ? *err : "ssh_new failed");
-            return false;
-        }
-
-        ssh_options_set(s, SSH_OPTIONS_HOST, host.toUtf8().constData());
-        ssh_options_set(s, SSH_OPTIONS_USER, user.toUtf8().constData());
-        ssh_options_set(s, SSH_OPTIONS_PORT, &port);
-
-        int timeoutSec = 8;
-        ssh_options_set(s, SSH_OPTIONS_TIMEOUT, &timeoutSec);
-
-        if (hasIdentity) {
-            const QByteArray p = QFile::encodeName(profile.keyFile.trimmed());
-            ssh_options_set(s, SSH_OPTIONS_IDENTITY, p.constData());
-        }
-
-        // Passphrase callback (UI supplies passphrase)
-        static ssh_callbacks_struct cb;
-        std::memset(&cb, 0, sizeof(cb));
-        cb.userdata = this;
-
-        cb.auth_function = [](const char *prompt,
-                              char *buf,
-                              size_t len,
-                              int echo,
-                              int verify,
-                              void *userdata) -> int
-        {
-            Q_UNUSED(prompt);
-            Q_UNUSED(echo);
-            Q_UNUSED(verify);
-
-            auto *self = static_cast<SshClient*>(userdata);
-            if (!self) return SSH_AUTH_DENIED;
-            if (!self->m_passphraseProvider) return SSH_AUTH_DENIED;
-
-            bool ok = false;
-            const QString pass = self->m_passphraseProvider(QString(), &ok);
-            if (!ok) return SSH_AUTH_DENIED;
-
-            const QByteArray utf8 = pass.toUtf8();
-            if (len == 0) return SSH_AUTH_DENIED;
-
-            const size_t n = std::min(len - 1, static_cast<size_t>(utf8.size()));
-            std::memcpy(buf, utf8.constData(), n);
-            buf[n] = '\0';
-
-            return SSH_AUTH_SUCCESS;
-        };
-
-        ssh_set_callbacks(s, &cb);
-
-        // Network connect
-        int rc = ssh_connect(s);
-        if (rc != SSH_OK) {
-            const QString e = libsshError(s);
-            if (err) *err = QStringLiteral("ssh_connect failed: %1").arg(e);
-
-            qWarning().noquote() << QString("[SSH] ssh_connect FAILED user='%1' host='%2' port=%3 err='%4'")
-                                    .arg(user, host)
-                                    .arg(port)
-                                    .arg(e);
-
-            ssh_free(s);
-            return false;
-        }
-
-        qInfo().noquote() << QString("[SSH] ssh_connect OK host='%1' port=%2").arg(host).arg(port);
-
-        // Authentication strategy:
-        rc = ssh_userauth_agent(s, nullptr);
-        if (rc == SSH_AUTH_SUCCESS) {
-            qInfo().noquote() << QString("[SSH] auth OK via agent user='%1' host='%2'").arg(user, host);
-        }
-
-        if (rc != SSH_AUTH_SUCCESS) {
-            qInfo().noquote() << QString("[SSH] auth via agent failed -> trying publickey_auto user='%1' host='%2'")
-                                 .arg(user, host);
-
-            rc = ssh_userauth_publickey_auto(s, nullptr, nullptr);
-            if (rc == SSH_AUTH_SUCCESS) {
-                qInfo().noquote() << QString("[SSH] auth OK via publickey_auto user='%1' host='%2'").arg(user, host);
-            }
-        }
-
-        if (rc != SSH_AUTH_SUCCESS) {
-            const QString e = libsshError(s);
-            if (err) *err = QStringLiteral("Public-key auth failed: %1").arg(e);
-
-            qWarning().noquote() << QString("[SSH] auth FAILED user='%1' host='%2' err='%3'")
-                                    .arg(user, host, e);
-
-            ssh_disconnect(s);
-            ssh_free(s);
-            return false;
-        }
-
-        m_session = s;
-
-        qInfo().noquote() << QString("[SSH] connectProfile OK user='%1' host='%2' port=%3")
-                             .arg(user, host)
-                             .arg(port);
-
-        return true;
+    if (host.isEmpty()) {
+        if (err) *err = QStringLiteral("No host specified.");
+        qWarning().noquote() << QString("[SSH] connectProfile FAILED: %1").arg(err ? *err : "No host");
+        return false;
     }
+    if (user.isEmpty()) {
+        if (err) *err = QStringLiteral("No user specified.");
+        qWarning().noquote() << QString("[SSH] connectProfile FAILED host='%1': %2")
+                                .arg(host, err ? *err : "No user");
+        return false;
+    }
+
+    // Key-type gate:
+    const QString kt = profile.keyType.trimmed().isEmpty()
+                           ? QStringLiteral("auto")
+                           : profile.keyType.trimmed();
+    if (kt != "auto" && kt != "openssh") {
+        if (err) *err = QStringLiteral("Unsupported key_type '%1' (PQ keys not implemented yet).").arg(kt);
+        qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
+                                .arg(user, host, err ? *err : "Unsupported key_type");
+        return false;
+    }
+
+    const int port = (profile.port > 0) ? profile.port : 22;
+    const bool hasIdentity = !profile.keyFile.trimmed().isEmpty();
+
+    qInfo().noquote() << QString("[SSH] connectProfile start user='%1' host='%2' port=%3 keyType='%4'%5")
+                         .arg(user, host)
+                         .arg(port)
+                         .arg(kt)
+                         .arg(hasIdentity ? " identity=explicit" : "");
+
+    // Always clean up any previous libssh session before reconnecting.
+    if (m_session) {
+        qInfo().noquote() << "[SSH] existing session present -> disconnecting before reconnect";
+    }
+    disconnect();
+
+    ssh_session s = ssh_new();
+    if (!s) {
+        if (err) *err = QStringLiteral("ssh_new() failed.");
+        qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
+                                .arg(user, host, err ? *err : "ssh_new failed");
+        return false;
+    }
+
+    auto failAndFree = [&](const QString &msg) -> bool {
+        if (err) *err = msg;
+        qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
+                                .arg(user, host, msg);
+        ssh_free(s);
+        return false;
+    };
+
+    auto optSet = [&](enum ssh_options_e opt, const void *val, const char *what) -> bool {
+        const int r = ssh_options_set(s, opt, val);
+        if (r != SSH_OK) {
+            qWarning().noquote() << QString("[SSH] ssh_options_set(%1) failed: %2")
+                                    .arg(QString::fromLatin1(what),
+                                         libsshError(s));
+            return false;
+        }
+        return true;
+    };
+
+    // --- Small local helper: raw KEX -> pretty label for UI ---
+    auto prettyKexName = [](const QString& raw) -> QString {
+        const QString r = raw.trimmed();
+
+        // Hybrid PQ KEX (OpenSSH naming)
+        if (r.contains("mlkem768x25519", Qt::CaseInsensitive))
+            return QStringLiteral("ML-KEM-768 + X25519 (Hybrid PQ)");
+        if (r.contains("sntrup761x25519", Qt::CaseInsensitive))
+            return QStringLiteral("sntrup761 + X25519 (Hybrid PQ)");
+
+        // Classical/common ones
+        if (r.contains("curve25519", Qt::CaseInsensitive))
+            return QStringLiteral("X25519 (Curve25519)");
+
+        // Fallback: return raw if we don't know it
+        return r.isEmpty() ? QStringLiteral("unknown") : r;
+    };
+
+    // Options
+    optSet(SSH_OPTIONS_HOST, host.toUtf8().constData(), "HOST");
+    optSet(SSH_OPTIONS_USER, user.toUtf8().constData(), "USER");
+    optSet(SSH_OPTIONS_PORT, &port, "PORT");
+
+    int timeoutSec = 8;
+    optSet(SSH_OPTIONS_TIMEOUT, &timeoutSec, "TIMEOUT");
+
+    if (hasIdentity) {
+        const QByteArray p = QFile::encodeName(profile.keyFile.trimmed());
+        optSet(SSH_OPTIONS_IDENTITY, p.constData(), "IDENTITY");
+    }
+
+    // --- Prefer PQ hybrid KEX when available (libssh 0.11.x+) ---
+    const char *kexPref =
+        "mlkem768x25519-sha256,"
+        "sntrup761x25519-sha512,"
+        "curve25519-sha256";
+
+    const int kexRc = ssh_options_set(s, SSH_OPTIONS_KEY_EXCHANGE, kexPref);
+    if (kexRc == SSH_OK) {
+        qInfo().noquote() << QString("[SSH] KEX preference set: %1").arg(kexPref);
+    } else {
+        qInfo().noquote() << QString("[SSH] KEX preference not applied: %1").arg(libsshError(s));
+    }
+
+    // Passphrase callback (UI supplies passphrase)
+    static ssh_callbacks_struct cb;
+    std::memset(&cb, 0, sizeof(cb));
+    cb.userdata = this;
+
+    cb.auth_function = [](const char *prompt,
+                          char *buf,
+                          size_t len,
+                          int echo,
+                          int verify,
+                          void *userdata) -> int
+    {
+        Q_UNUSED(prompt);
+        Q_UNUSED(echo);
+        Q_UNUSED(verify);
+
+        auto *self = static_cast<SshClient*>(userdata);
+        if (!self) return SSH_AUTH_DENIED;
+        if (!self->m_passphraseProvider) return SSH_AUTH_DENIED;
+
+        bool ok = false;
+        const QString pass = self->m_passphraseProvider(QString(), &ok);
+        if (!ok) return SSH_AUTH_DENIED;
+
+        const QByteArray utf8 = pass.toUtf8();
+        if (len == 0) return SSH_AUTH_DENIED;
+
+        const size_t n = std::min(len - 1, static_cast<size_t>(utf8.size()));
+        std::memcpy(buf, utf8.constData(), n);
+        buf[n] = '\0';
+        return SSH_AUTH_SUCCESS;
+    };
+
+    ssh_set_callbacks(s, &cb);
+
+    // Network connect
+    int rc = ssh_connect(s);
+    if (rc != SSH_OK) {
+        const QString e = libsshError(s);
+        return failAndFree(QStringLiteral("ssh_connect failed: %1").arg(e));
+    }
+
+    qInfo().noquote() << QString("[SSH] ssh_connect OK host='%1' port=%2").arg(host).arg(port);
+
+    // Negotiated algorithms (now valid)
+    const char *kexAlgoC = ssh_get_kex_algo(s);
+    const char *cipherInC  = ssh_get_cipher_in(s);   // server->client
+    const char *cipherOutC = ssh_get_cipher_out(s);  // client->server
+
+    const QString rawKex = kexAlgoC ? QString::fromLatin1(kexAlgoC) : QString();
+    const QString pretty = prettyKexName(rawKex);
+
+    qInfo().noquote() << QString("[SSH] negotiated kex='%1' cipher in='%2' out='%3'")
+                         .arg(rawKex.isEmpty() ? "?" : rawKex,
+                              cipherInC ? cipherInC : "?",
+                              cipherOutC ? cipherOutC : "?");
+
+    // Emit to UI (MainWindow can print something cool)
+    emit kexNegotiated(pretty, rawKex);
+
+    const bool pq = rawKex.contains("mlkem", Qt::CaseInsensitive) ||
+                    rawKex.contains("sntrup", Qt::CaseInsensitive);
+    qInfo().noquote() << QString("[SSH] PQ KEX: %1").arg(pq ? "YES" : "NO");
+
+    // Authentication strategy:
+    rc = ssh_userauth_agent(s, nullptr);
+    if (rc == SSH_AUTH_SUCCESS) {
+        qInfo().noquote() << QString("[SSH] auth OK via agent user='%1' host='%2'").arg(user, host);
+    }
+
+    if (rc != SSH_AUTH_SUCCESS) {
+        qInfo().noquote() << QString("[SSH] auth via agent failed -> trying publickey_auto user='%1' host='%2'")
+                             .arg(user, host);
+
+        rc = ssh_userauth_publickey_auto(s, nullptr, nullptr);
+        if (rc == SSH_AUTH_SUCCESS) {
+            qInfo().noquote() << QString("[SSH] auth OK via publickey_auto user='%1' host='%2'").arg(user, host);
+        }
+    }
+
+    if (rc != SSH_AUTH_SUCCESS) {
+        const QString e = libsshError(s);
+        if (err) *err = QStringLiteral("Public-key auth failed: %1").arg(e);
+
+        qWarning().noquote() << QString("[SSH] auth FAILED user='%1' host='%2' err='%3'")
+                                .arg(user, host, e);
+
+        ssh_disconnect(s);
+        ssh_free(s);
+        return false;
+    }
+
+    // Success: keep session
+    m_session = s;
+
+    qInfo().noquote() << QString("[SSH] connectProfile OK user='%1' host='%2' port=%3")
+                         .arg(user, host)
+                         .arg(port);
+
+    return true;
+}
 
     // ------------------------------------------------------------
     // Disconnect and free session (safe to call multiple times).
@@ -1311,3 +1378,18 @@ bool SshClient::verifyRemoteVsLocalSha256(const QString& remotePath,
 
         return true;
     }
+    static QString prettyKexName(const QString& kex)
+        {
+            const QString s = kex.trimmed();
+
+            if (s.startsWith("mlkem768x25519", Qt::CaseInsensitive)) {
+                return "ML-KEM-768 + X25519 (Kyber-768 class) — " + s;
+            }
+            if (s.startsWith("sntrup761x25519", Qt::CaseInsensitive)) {
+                return "sntrup761 + X25519 (NTRU Prime) — " + s;
+            }
+            if (s.startsWith("curve25519", Qt::CaseInsensitive)) {
+                return "Classical ECDH: X25519 — " + s;
+            }
+            return s;
+        }

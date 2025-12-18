@@ -13,21 +13,18 @@
 
 // Forward declarations (Qt / app)
 class QListWidget;
-class QListWidgetItem;
 class QPlainTextEdit;
 class QPushButton;
 class QLineEdit;
 class QLabel;
 class QCheckBox;
 class QTabWidget;
-class QToolButton;
-class QMenu;
 
 class CpunkTermWidget;
 class FilesTab;
-class ProfilesEditorDialog;   // ✅ needed for modeless editor pointer
-class KeyGeneratorDialog;     // ✅ needed for modeless editor pointer
-class SettingsDialog;         // ✅ needed for modeless editor pointer
+class ProfilesEditorDialog;
+class KeyGeneratorDialog;
+class SettingsDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -54,6 +51,9 @@ private slots:
     void onTestUnlockDilithiumKey();
     void onInstallPublicKeyRequested(const QString& pubKeyLine, int profileIndex);
     void onOpenSettingsDialog();
+
+    // ✅ NEW: receives negotiated KEX info from SshClient
+    void onKexNegotiated(const QString& prettyText, const QString& rawKex);
 
 private:
     void setupUi();
@@ -100,10 +100,10 @@ private:
 
     QPushButton    *m_editProfilesBtn = nullptr;
 
-    // ✅ Modeless windows
+    // Modeless windows
     ProfilesEditorDialog *m_profilesEditor = nullptr;
     KeyGeneratorDialog   *m_keyGenerator   = nullptr;
-    SettingsDialog *m_settingsDlg = nullptr;
+    SettingsDialog       *m_settingsDlg    = nullptr;
 
     // State
     QVector<SshProfile> m_profiles;
@@ -124,8 +124,8 @@ private:
     void installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScope, const SshProfile& p);
 
     QMainWindow *m_tabbedShellWindow = nullptr;
-    QTabWidget  *m_tabWidget = nullptr;
-    QAction     *m_devTestUnlockAct = nullptr;
+    QTabWidget  *m_tabWidget         = nullptr;
+    QAction     *m_devTestUnlockAct  = nullptr;
 };
 
 #endif // MAINWINDOW_H

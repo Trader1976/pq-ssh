@@ -623,6 +623,37 @@ void MainWindow::setupUi()
 
     connect(m_editProfilesBtn, &QPushButton::clicked,
             this, &MainWindow::onEditProfilesClicked);
+
+    connect(&m_ssh, &SshClient::kexNegotiated, this,
+            [this](const QString& pretty, const QString& raw) {
+
+                const bool pq =
+                    raw.contains("mlkem", Qt::CaseInsensitive) ||
+                    raw.contains("sntrup", Qt::CaseInsensitive);
+
+                // ✅ THIS is the exact place for the conditional message
+                if (pq) {
+                    appendTerminalLine(
+                        QString("[PQ] 🧬 Post-Quantum key exchange established → %1")
+                            .arg(pretty)
+                    );
+                } else {
+                    appendTerminalLine(
+                        QString("[KEX] Classical key exchange negotiated → %1")
+                            .arg(pretty)
+                    );
+                }
+
+                // Bottom/status bar (short & neutral)
+                updatePqStatusLabel(
+                    pq ? ("Post-Quantum KEX: " + pretty) : ("KEX: " + pretty),
+                    pq ? "#00FF99" : "#9AA0A6"
+                );
+
+                // Tooltip with raw negotiated algorithm
+                if (m_pqStatusLabel)
+                    m_pqStatusLabel->setToolTip("Negotiated KEX: " + raw);
+            });
 }
 
 void MainWindow::setupMenus()
@@ -2257,3 +2288,17 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
     }
 }
 
+void MainWindow::onKexNegotiated(const QString& prettyText, const QString& rawKex)
+{
+    const bool pq =
+        rawKex.contains("mlkem", Qt::CaseInsensitive) ||
+        rawKex.contains("sntrup", Qt::CaseInsensitive);
+
+    updatePqStatusLabel(
+        pq ? ("PQ KEX: " + prettyText) : ("KEX: " + prettyText),
+        pq ? "#00FF99" : "#9AA0A6"
+    );
+
+    if (m_pqStatusLabel)
+        m_pqStatusLabel->setToolTip("Negotiated KEX: " + rawKex);
+}
