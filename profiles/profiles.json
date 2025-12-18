@@ -21,21 +21,39 @@
             "host": "83.146.239.12",
             "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
             "key_type": "auto",
-            "macro_command": "ls -lh",
+            "macro_command": "clear",
             "macro_enter": false,
-            "macro_shortcut": "F2",
+            "macro_shortcut": "Ctrl+L",
             "macros": [
                 {
-                    "command": "ls -lh",
-                    "name": "Check directory",
+                    "command": "clear",
+                    "name": "Clear screen",
                     "send_enter": false,
-                    "shortcut": "F2"
+                    "shortcut": "Ctrl+L"
                 },
                 {
-                    "command": "pwd",
-                    "name": "Where am I?",
+                    "command": "df -h",
+                    "name": "Disk usage",
                     "send_enter": true,
-                    "shortcut": "F3"
+                    "shortcut": "F6"
+                },
+                {
+                    "command": "sudo systemctl restart myservice",
+                    "name": "Restart service",
+                    "send_enter": true,
+                    "shortcut": "Ctrl+Alt+R"
+                },
+                {
+                    "command": "cat ~/.ssh/authorized_keys",
+                    "name": "Show authorized_keys",
+                    "send_enter": true,
+                    "shortcut": "Ctrl+Alt+K"
+                },
+                {
+                    "command": "journalctl -u myservice -f",
+                    "name": "Journal follow",
+                    "send_enter": true,
+                    "shortcut": "Ctrl+Alt+J"
                 }
             ],
             "name": "DHT Server",

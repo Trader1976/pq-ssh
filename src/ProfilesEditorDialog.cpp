@@ -41,6 +41,12 @@
 #include <QKeySequence>
 #include <QSignalBlocker>
 #include <QSplitter>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonValue>
+#include <QJsonParseError>
+#include <QDateTime>
 
 
 #include "CpunkTermWidget.h"
@@ -538,6 +544,19 @@ void ProfilesEditorDialog::buildUi()
     m_macroDelBtn = new QPushButton("-", macroBtnsCol);
     m_macroDelBtn->setToolTip("Delete selected macro");
 
+    m_macroImportBtn = new QPushButton("Import…", macroPanel);
+    m_macroExportBtn = new QPushButton("Export…", macroPanel);
+
+    auto* ieRow = new QWidget(macroPanel);
+    auto* ieRowL = new QHBoxLayout(ieRow);
+    ieRowL->setContentsMargins(0,0,0,0);
+    ieRowL->setSpacing(6);
+
+    ieRowL->addWidget(m_macroImportBtn);
+    ieRowL->addWidget(m_macroExportBtn);
+    ieRowL->addStretch(1);
+
+    macroL->addWidget(ieRow);
     macroBtnsColL->addWidget(m_macroAddBtn);
     macroBtnsColL->addWidget(m_macroDelBtn);
     macroBtnsColL->addStretch(1);
@@ -662,6 +681,11 @@ void ProfilesEditorDialog::buildUi()
     connect(m_macroNameEdit, &QLineEdit::textChanged,
             this, &ProfilesEditorDialog::onMacroNameEdited);
 
+    connect(m_macroImportBtn, &QPushButton::clicked,
+            this, &ProfilesEditorDialog::importMacros);
+
+    connect(m_macroExportBtn, &QPushButton::clicked,
+            this, &ProfilesEditorDialog::exportMacros);
     // If profile has no macros, start with an empty one so UI is usable immediately
     if (!m_working.isEmpty() && m_working[0].macros.isEmpty()) {
         ProfileMacro m;
@@ -1083,4 +1107,115 @@ int ProfilesEditorDialog::currentMacroIndex() const
         return -1;
 
     return row;
+}
+
+void ProfilesEditorDialog::exportMacros()
+{
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return;
+
+    const auto& macros = m_working[m_currentRow].macros;
+    if (macros.isEmpty())
+        return;
+
+    const QString path = QFileDialog::getSaveFileName(
+        this,
+        "Export macros",
+        QDir::homePath() + "/macros.pqssh-macros.json",
+        "PQ-SSH Macros (*.pqssh-macros.json)"
+    );
+    if (path.isEmpty())
+        return;
+
+    QJsonObject root;
+    root["format"] = 1;
+    root["exported_at"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+
+    QJsonArray arr;
+    for (const auto& m : macros) {
+        QJsonObject o;
+        o["name"] = m.name;
+        o["shortcut"] = m.shortcut;
+        o["command"] = m.command;
+        o["send_enter"] = m.sendEnter;
+        arr.append(o);
+    }
+    root["macros"] = arr;
+
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QMessageBox::warning(this, "Export failed", f.errorString());
+        return;
+    }
+
+    f.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
+    f.close();
+}
+
+void ProfilesEditorDialog::importMacros()
+{
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return;
+
+    const QString path = QFileDialog::getOpenFileName(
+        this,
+        "Import macros",
+        QDir::homePath(),
+        "PQ-SSH Macros (*.pqssh-macros.json)"
+    );
+    if (path.isEmpty())
+        return;
+
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "Import failed", f.errorString());
+        return;
+    }
+
+    QJsonParseError perr;
+    QJsonDocument doc = QJsonDocument::fromJson(f.readAll(), &perr);
+    f.close();
+
+    if (perr.error != QJsonParseError::NoError || !doc.isObject()) {
+        QMessageBox::warning(this, "Import failed", "Invalid JSON file.");
+        return;
+    }
+
+    const QJsonObject root = doc.object();
+    const QJsonArray arr = root.value("macros").toArray();
+
+    if (arr.isEmpty())
+        return;
+
+    // Save current edits first
+    syncMacroEditorToCurrent();
+
+    auto& target = m_working[m_currentRow].macros;
+    int added = 0;
+
+    for (const auto& v : arr) {
+        if (!v.isObject()) continue;
+        const QJsonObject o = v.toObject();
+
+        ProfileMacro m;
+        m.name = o.value("name").toString();
+        m.shortcut = o.value("shortcut").toString();
+        m.command = o.value("command").toString();
+        m.sendEnter = o.value("send_enter").toBool(true);
+
+        if (m.shortcut.trimmed().isEmpty() && m.command.trimmed().isEmpty())
+            continue;
+
+        target.push_back(m);
+        ++added;
+    }
+
+    rebuildMacroList();
+    ensureMacroSelectionValid();
+
+    QMessageBox::information(
+        this,
+        "Macros imported",
+        QString("Imported %1 macros.").arg(added)
+    );
 }

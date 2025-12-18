@@ -60,6 +60,8 @@ private slots:
     // Macros
     void onMacroRowChanged(int row);
     void onMacroNameEdited(const QString &text);
+    void importMacros();
+    void exportMacros();
 
 private:
     QVector<SshProfile> m_working;
@@ -106,4 +108,9 @@ private:
 
     // Save / Cancel
     QDialogButtonBox *m_buttonsBox = nullptr;
+    // import / export macros
+    QJsonObject macrosToJson(const QVector<ProfileMacro>& macros) const;
+    QVector<ProfileMacro> macrosFromJson(const QJsonObject& obj, QString* err) const;
+    QPushButton* m_macroImportBtn = nullptr;
+    QPushButton* m_macroExportBtn = nullptr;
 };
