@@ -21,9 +21,19 @@ class FilesTab : public QWidget
 public:
     explicit FilesTab(SshClient *ssh, QWidget *parent = nullptr);
 
+    // Needs to be accessible by free helper functions in FilesTab.cpp
+    struct UploadTask {
+        QString localPath;
+        QString remotePath;
+        quint64 size = 0;
+    };
+
 public slots:
     void onSshConnected();
     void onSshDisconnected();
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private slots:
     void refreshRemote();
@@ -38,11 +48,9 @@ private slots:
     void onRemoteFilesDropped(const QStringList& localPaths);
 
     void onTransferProgress(quint64 done, quint64 total);
+
     void showLocalContextMenu(const QPoint& pos);
     void showRemoteContextMenu(const QPoint& pos);
-
-    void deleteLocalSelection();
-    void deleteRemoteSelection();
 
 private:
     void buildUi();
@@ -54,8 +62,6 @@ private:
 
     void startUploadPaths(const QStringList& paths);
 
-    // Recursive download support (folders + files)
-    void startDownloadPaths(const QStringList& remotePaths, const QString& destDir);
     bool collectRemoteRecursive(const QString& remoteRoot,
                                 const QString& localRoot,
                                 QVector<QString>& outRemoteFiles,
@@ -64,8 +70,10 @@ private:
                                 quint64* totalBytes,
                                 QString* err);
 
-protected:
-    bool eventFilter(QObject *obj, QEvent *event) override;
+    void startDownloadPaths(const QStringList& remotePaths, const QString& destDir);
+
+    void deleteLocalSelection();
+    void deleteRemoteSelection();
 
 private:
     SshClient *m_ssh = nullptr;
@@ -73,10 +81,10 @@ private:
     QString m_remoteCwd;
     QString m_localCwd;
 
-    // UI
     QLabel *m_remotePathLabel = nullptr;
-    QPushButton *m_remoteUpBtn = nullptr;
+
     QPushButton *m_localUpBtn = nullptr;
+    QPushButton *m_remoteUpBtn = nullptr;
     QPushButton *m_refreshBtn = nullptr;
     QPushButton *m_uploadBtn = nullptr;
     QPushButton *m_uploadFolderBtn = nullptr;

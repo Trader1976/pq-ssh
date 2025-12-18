@@ -37,6 +37,7 @@
     #include <algorithm> // std::min, std::fill
 
     #include "DilithiumKeyCrypto.h"
+    #include <QCryptographicHash>
 
     // ------------------------------------------------------------
     // Small helper to turn libssh's last error into QString
@@ -848,6 +849,162 @@
 
         return true;
     }
+
+
+QByteArray SshClient::sha256LocalFile(const QString& localPath, QString* err) const
+{
+    if (err) err->clear();
+
+    QFile f(localPath);
+    if (!f.open(QIODevice::ReadOnly)) {
+        if (err) *err = QString("Cannot open local file for hashing: %1").arg(f.errorString());
+        return {};
+    }
+
+    QCryptographicHash h(QCryptographicHash::Sha256);
+
+    QByteArray buf(64 * 1024, Qt::Uninitialized);
+    while (!f.atEnd()) {
+
+        // Allow cancel to abort verification too
+        if (m_cancelRequested.load()) {
+            if (err) *err = "Cancelled by user";
+            return {};
+        }
+
+        const qint64 n = f.read(buf.data(), buf.size());
+        if (n < 0) {
+            if (err) *err = QString("Local read failed while hashing: %1").arg(f.errorString());
+            return {};
+        }
+        if (n == 0) break;
+
+        h.addData(buf.constData(), (int)n);
+    }
+
+    return h.result(); // 32 bytes
+}
+
+QByteArray SshClient::sha256RemoteFile(const QString& remotePath, QString* err)
+{
+    if (err) err->clear();
+
+    if (!m_session) {
+        if (err) *err = "Not connected.";
+        return {};
+    }
+
+    sftp_session sftp = nullptr;
+    if (!openSftp(m_session, &sftp, err)) return {};
+
+    sftp_file f = sftp_open(
+        sftp,
+        remotePath.toUtf8().constData(),
+        O_RDONLY,
+        0
+    );
+
+    if (!f) {
+        if (err) *err = "Cannot open remote file for hashing";
+        sftp_free(sftp);
+        return {};
+    }
+
+    QCryptographicHash h(QCryptographicHash::Sha256);
+
+    QByteArray buf(64 * 1024, Qt::Uninitialized);
+
+    while (true) {
+
+        if (m_cancelRequested.load()) {
+            sftp_close(f);
+            sftp_free(sftp);
+            if (err) *err = "Cancelled by user";
+            return {};
+        }
+
+        const ssize_t n = sftp_read(f, buf.data(), buf.size());
+        if (n == 0) break;     // EOF
+        if (n < 0) {
+            if (err) *err = "SFTP read failed while hashing remote file";
+            sftp_close(f);
+            sftp_free(sftp);
+            return {};
+        }
+
+        h.addData(buf.constData(), (int)n);
+    }
+
+    sftp_close(f);
+    sftp_free(sftp);
+
+    return h.result(); // 32 bytes
+}
+
+bool SshClient::verifyLocalVsRemoteSha256(const QString& localPath,
+                                         const QString& remotePath,
+                                         QString* err)
+{
+    if (err) err->clear();
+
+    QString e1, e2;
+    const QByteArray l = sha256LocalFile(localPath, &e1);
+    if (l.isEmpty()) {
+        if (err) *err = "Local SHA-256 failed: " + e1;
+        return false;
+    }
+
+    const QByteArray r = sha256RemoteFile(remotePath, &e2);
+    if (r.isEmpty()) {
+        if (err) *err = "Remote SHA-256 failed: " + e2;
+        return false;
+    }
+
+    if (l != r) {
+        if (err) {
+            *err = QString("Checksum mismatch (SHA-256)\nLocal : %1\nRemote: %2")
+                .arg(QString::fromLatin1(l.toHex()))
+                .arg(QString::fromLatin1(r.toHex()));
+        }
+        return false;
+    }
+
+    return true;
+}
+
+bool SshClient::verifyRemoteVsLocalSha256(const QString& remotePath,
+                                         const QString& localPath,
+                                         QString* err)
+{
+    if (err) err->clear();
+
+    QString e1, e2;
+    const QByteArray r = sha256RemoteFile(remotePath, &e1);
+    if (r.isEmpty()) {
+        if (err) *err = "Remote SHA-256 failed: " + e1;
+        return false;
+    }
+
+    const QByteArray l = sha256LocalFile(localPath, &e2);
+    if (l.isEmpty()) {
+        if (err) *err = "Local SHA-256 failed: " + e2;
+        return false;
+    }
+
+    if (l != r) {
+        if (err) {
+            *err = QString("Checksum mismatch (SHA-256)\nRemote: %1\nLocal : %2")
+                .arg(QString::fromLatin1(r.toHex()))
+                .arg(QString::fromLatin1(l.toHex()));
+        }
+        return false;
+    }
+
+    return true;
+}
+
+
+
 
     // ------------------------------------------------------------
     // Execute a remote command and capture stdout/stderr.

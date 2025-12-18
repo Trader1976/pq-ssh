@@ -105,6 +105,24 @@
                         QString* err = nullptr,
                         ProgressCb progress = nullptr);
 
+
+        // --- Integrity / checksum (SHA-256) ---
+        // Returns raw 32-byte SHA-256. Empty QByteArray on failure.
+        QByteArray sha256LocalFile(const QString& localPath, QString* err = nullptr) const;
+        QByteArray sha256RemoteFile(const QString& remotePath, QString* err = nullptr);
+
+        // Compare SHA-256 of local vs remote. Returns false on mismatch or any error.
+        bool verifyLocalVsRemoteSha256(const QString& localPath,
+                                       const QString& remotePath,
+                                       QString* err = nullptr);
+
+        // Compare SHA-256 of remote vs local (download verification).
+        bool verifyRemoteVsLocalSha256(const QString& remotePath,
+                                       const QString& localPath,
+                                       QString* err = nullptr);
+
+
+
         // Streaming download remote file -> local file (creates local dirs if needed).
         // Progress callback is optional.
     bool downloadFile(const QString& remotePath,

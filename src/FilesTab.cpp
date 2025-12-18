@@ -24,27 +24,26 @@
 #include <QFutureWatcher>
 #include <QMenu>
 #include <QAction>
-#include <QInputDialog>
+#include <QEvent>
 
 static QString prettySize(quint64 bytes)
 {
     const double b = (double)bytes;
     if (b < 1024.0) return QString("%1 B").arg(bytes);
-    if (b < 1024.0*1024.0) return QString::number(b/1024.0, 'f', 1) + " KB";
-    if (b < 1024.0*1024.0*1024.0) return QString::number(b/(1024.0*1024.0), 'f', 1) + " MB";
-    return QString::number(b/(1024.0*1024.0*1024.0), 'f', 1) + " GB";
+    if (b < 1024.0 * 1024.0) return QString::number(b / 1024.0, 'f', 1) + " KB";
+    if (b < 1024.0 * 1024.0 * 1024.0) return QString::number(b / (1024.0 * 1024.0), 'f', 1) + " MB";
+    return QString::number(b / (1024.0 * 1024.0 * 1024.0), 'f', 1) + " GB";
 }
-
-struct UploadTask {
-    QString localPath;
-    QString remotePath;
-    quint64 size = 0;
-};
 
 static QString joinRemote(const QString& base, const QString& rel)
 {
     if (base.endsWith('/')) return base + rel;
     return base + "/" + rel;
+}
+
+static QString joinLocal(const QString& base, const QString& rel)
+{
+    return QDir(base).filePath(rel);
 }
 
 static QString shQuote(const QString& s)
@@ -54,14 +53,11 @@ static QString shQuote(const QString& s)
     return "'" + out + "'";
 }
 
-static QString joinLocal(const QString& base, const QString& rel)
-{
-    return QDir(base).filePath(rel);
-}
-
+// localRoot: /home/user/stuff
+// remoteRoot: /remote/path/stuff
 static void collectDirRecursive(const QString& localRoot,
                                 const QString& remoteRoot,
-                                QVector<UploadTask>& out)
+                                QVector<FilesTab::UploadTask>& out)
 {
     QDirIterator it(localRoot,
                     QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot,
@@ -76,7 +72,8 @@ static void collectDirRecursive(const QString& localRoot,
 
         if (fi.isFile()) {
             const QString rel = QDir(localRoot).relativeFilePath(fi.absoluteFilePath());
-            UploadTask t;
+
+            FilesTab::UploadTask t;
             t.localPath  = fi.absoluteFilePath();
             t.remotePath = joinRemote(remoteRoot, rel);
             t.size       = (quint64)fi.size();
@@ -89,7 +86,8 @@ FilesTab::FilesTab(SshClient *ssh, QWidget *parent)
     : QWidget(parent), m_ssh(ssh)
 {
     buildUi();
-    setRemoteCwd(QStringLiteral("~")); // placeholder until connected
+    setRemoteCwd(QStringLiteral("~"));
+    m_localCwd = QDir::homePath();
 }
 
 void FilesTab::buildUi()
@@ -130,7 +128,6 @@ void FilesTab::buildUi()
     // Local
     m_localModel = new QFileSystemModel(this);
     m_localModel->setRootPath(QDir::homePath());
-    m_localCwd = QDir::homePath();
 
     m_localView = new QTreeView(split);
     m_localView->setModel(m_localModel);
@@ -140,7 +137,6 @@ void FilesTab::buildUi()
     m_localView->sortByColumn(0, Qt::AscendingOrder);
     m_localView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    // Double-click folders to navigate local
     connect(m_localView, &QTreeView::doubleClicked, this, [this](const QModelIndex& idx) {
         if (!m_localModel) return;
         const QFileInfo fi = m_localModel->fileInfo(idx);
@@ -149,16 +145,17 @@ void FilesTab::buildUi()
         m_localView->setRootIndex(m_localModel->index(m_localCwd));
     });
 
-    // Drag files from local tree
+    // Drag from local -> remote
     m_localView->setDragEnabled(true);
     m_localView->setDragDropMode(QAbstractItemView::DragOnly);
     m_localView->setDefaultDropAction(Qt::CopyAction);
     m_localView->setAutoScroll(true);
 
-    // ALSO accept drops from remote table (custom mime) -> triggers download
+    // Accept drops from remote table -> download
     m_localView->viewport()->setAcceptDrops(true);
     m_localView->viewport()->installEventFilter(this);
 
+    // Local context menu
     m_localView->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_localView, &QWidget::customContextMenuRequested,
             this, &FilesTab::showLocalContextMenu);
@@ -178,6 +175,7 @@ void FilesTab::buildUi()
     m_remoteTable->setShowGrid(false);
     m_remoteTable->setAlternatingRowColors(true);
 
+    // Remote context menu
     m_remoteTable->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(m_remoteTable, &QWidget::customContextMenuRequested,
             this, &FilesTab::showRemoteContextMenu);
@@ -194,6 +192,7 @@ void FilesTab::buildUi()
     connect(m_uploadBtn, &QPushButton::clicked, this, &FilesTab::uploadSelected);
     connect(m_uploadFolderBtn, &QPushButton::clicked, this, &FilesTab::uploadFolder);
     connect(m_downloadBtn, &QPushButton::clicked, this, &FilesTab::downloadSelected);
+
     connect(m_remoteTable, &QTableWidget::cellDoubleClicked, this, &FilesTab::remoteItemActivated);
     connect(m_remoteTable, &RemoteDropTable::filesDropped, this, &FilesTab::onRemoteFilesDropped);
 }
@@ -202,6 +201,7 @@ bool FilesTab::eventFilter(QObject *obj, QEvent *event)
 {
     // Catch remote->local drops onto local tree viewport
     if (m_localView && obj == m_localView->viewport()) {
+
         if (event->type() == QEvent::DragEnter || event->type() == QEvent::DragMove) {
             auto *e = static_cast<QDragMoveEvent*>(event);
             const QMimeData *md = e->mimeData();
@@ -210,6 +210,7 @@ bool FilesTab::eventFilter(QObject *obj, QEvent *event)
                 return true;
             }
         }
+
         if (event->type() == QEvent::Drop) {
             auto *e = static_cast<QDropEvent*>(event);
             const QMimeData *md = e->mimeData();
@@ -218,7 +219,6 @@ bool FilesTab::eventFilter(QObject *obj, QEvent *event)
                 const QStringList remotePaths = payload.split('\n', Qt::SkipEmptyParts);
 
                 if (!remotePaths.isEmpty()) {
-                    // Download into current local cwd (root of view)
                     startDownloadPaths(remotePaths, m_localCwd);
                     e->acceptProposedAction();
                     return true;
@@ -226,6 +226,7 @@ bool FilesTab::eventFilter(QObject *obj, QEvent *event)
             }
         }
     }
+
     return QWidget::eventFilter(obj, event);
 }
 
@@ -370,7 +371,7 @@ void FilesTab::onTransferProgress(quint64 done, quint64 total)
     }
 
     m_progressDlg->setMaximum((int)std::min<quint64>(total, (quint64)INT_MAX));
-    m_progressDlg->setValue((int)std::min<quint64>(done,  (quint64)INT_MAX));
+    m_progressDlg->setValue((int)std::min<quint64>(done, (quint64)INT_MAX));
 }
 
 void FilesTab::runTransfer(const QString& title,
@@ -420,7 +421,10 @@ void FilesTab::runTransfer(const QString& title,
 void FilesTab::uploadSelected()
 {
     const QStringList files = QFileDialog::getOpenFileNames(
-        this, "Select local files to upload", m_localCwd.isEmpty() ? QDir::homePath() : m_localCwd, "All files (*)");
+        this,
+        "Select local files to upload",
+        m_localCwd.isEmpty() ? QDir::homePath() : m_localCwd,
+        "All files (*)");
 
     startUploadPaths(files);
 }
@@ -428,7 +432,9 @@ void FilesTab::uploadSelected()
 void FilesTab::uploadFolder()
 {
     const QString dir = QFileDialog::getExistingDirectory(
-        this, "Select folder to upload", m_localCwd.isEmpty() ? QDir::homePath() : m_localCwd);
+        this,
+        "Select folder to upload",
+        m_localCwd.isEmpty() ? QDir::homePath() : m_localCwd);
 
     if (dir.isEmpty()) return;
     startUploadPaths(QStringList{dir});
@@ -451,7 +457,7 @@ void FilesTab::startUploadPaths(const QStringList& paths)
     tasks.reserve(256);
 
     for (const QString& p : paths) {
-        QFileInfo fi(p);
+        const QFileInfo fi(p);
         if (!fi.exists()) continue;
 
         if (fi.isDir()) {
@@ -476,9 +482,8 @@ void FilesTab::startUploadPaths(const QStringList& paths)
 
     QSet<QString> dirs;
     dirs.reserve(tasks.size());
-    for (const auto& t : tasks) {
+    for (const auto& t : tasks)
         dirs.insert(QFileInfo(t.remotePath).path());
-    }
 
     runTransfer(QString("Uploading %1 item(s)…").arg(tasks.size()),
                 [this, tasks, totalBytes, dirs](QString *err) -> bool {
@@ -520,6 +525,18 @@ void FilesTab::startUploadPaths(const QStringList& paths)
             }
 
             completedBytes += t.size;
+
+            // Integrity check (for now always on; later gate by settings)
+            {
+                QString verr;
+                if (!m_ssh->verifyLocalVsRemoteSha256(t.localPath, t.remotePath, &verr)) {
+                    if (err) {
+                        *err = QString("Integrity check failed for upload:\n%1\n\n%2")
+                                   .arg(t.remotePath, verr);
+                    }
+                    return false;
+                }
+            }
         }
 
         return true;
@@ -557,6 +574,8 @@ bool FilesTab::collectRemoteRecursive(const QString& remoteRoot,
             outLocalFiles.push_back(localFull);
             outSizes.push_back(it.size);
             if (totalBytes) *totalBytes += it.size;
+
+            QDir().mkpath(QFileInfo(localFull).absolutePath());
         }
     }
 
@@ -588,7 +607,7 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
             return;
         }
 
-        const QString name = info.name.isEmpty() ? QFileInfo(rp).fileName() : info.name;
+        const QString name = !info.name.isEmpty() ? info.name : QFileInfo(rp).fileName();
         const QString localRoot = joinLocal(destDir, name);
 
         if (info.isDir) {
@@ -604,7 +623,6 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
             sizes.push_back(info.size);
             totalBytes += info.size;
 
-            // Ensure local dir exists
             QDir().mkpath(QFileInfo(localRoot).absolutePath());
         }
     }
@@ -636,6 +654,18 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
                 return false;
 
             completedBytes += sizes[i];
+
+            // Integrity check (for now always on; later gate by settings)
+            {
+                QString verr;
+                if (!m_ssh->verifyRemoteVsLocalSha256(rem[i], loc[i], &verr)) {
+                    if (err) {
+                        *err = QString("Integrity check failed for download:\n%1\n\n%2")
+                                   .arg(loc[i], verr);
+                    }
+                    return false;
+                }
+            }
         }
 
         return true;
@@ -656,7 +686,10 @@ void FilesTab::downloadSelected()
     }
 
     const QString destDir = QFileDialog::getExistingDirectory(
-        this, "Select local destination folder", m_localCwd.isEmpty() ? QDir::homePath() : m_localCwd);
+        this,
+        "Select local destination folder",
+        m_localCwd.isEmpty() ? QDir::homePath() : m_localCwd);
+
     if (destDir.isEmpty()) return;
 
     QStringList remotePaths;
@@ -719,11 +752,10 @@ void FilesTab::deleteLocalSelection()
                             .arg(paths.size());
 
     if (QMessageBox::question(this, "Delete", msg,
-                             QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) {
+                              QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) {
         return;
-                             }
+    }
 
-    // Delete (files + folders)
     for (const QString& p : paths) {
         QFileInfo fi(p);
         if (!fi.exists()) continue;
@@ -731,20 +763,17 @@ void FilesTab::deleteLocalSelection()
         if (fi.isDir()) {
             QDir dir(p);
             if (!dir.removeRecursively()) {
-                QMessageBox::warning(this, "Delete",
-                                     "Failed to delete folder:\n" + p);
+                QMessageBox::warning(this, "Delete", "Failed to delete folder:\n" + p);
                 return;
             }
         } else {
             if (!QFile::remove(p)) {
-                QMessageBox::warning(this, "Delete",
-                                     "Failed to delete file:\n" + p);
+                QMessageBox::warning(this, "Delete", "Failed to delete file:\n" + p);
                 return;
             }
         }
     }
 
-    // Refresh local view (keep same cwd)
     m_localView->setRootIndex(m_localModel->index(m_localCwd));
 }
 
@@ -783,15 +812,14 @@ void FilesTab::deleteRemoteSelection()
             .arg(items.size());
 
     if (QMessageBox::question(this, "Delete", msg,
-                             QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) {
+                              QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) {
         return;
-                             }
+    }
 
     runTransfer(QString("Deleting %1 item(s)…").arg(items.size()),
                 [this, items](QString* err) -> bool {
 
         for (const auto& x : items) {
-            // Use "--" to avoid option injection. Quote everything.
             const QString cmd = x.isDir
                 ? QString("rm -rf -- %1").arg(shQuote(x.path))
                 : QString("rm -f  -- %1").arg(shQuote(x.path));
