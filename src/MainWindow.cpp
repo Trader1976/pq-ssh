@@ -61,6 +61,12 @@
 #include <QUuid>
 #include <QFrame>
 
+#include <QToolButton>
+#include <QMenu>
+#include <QSettings>
+
+#include "SettingsDialog.h"
+
 //
 // ARCHITECTURE NOTES (MainWindow.cpp)
 //
@@ -302,7 +308,7 @@ MainWindow::MainWindow(QWidget *parent)
             << "Platform:" << QGuiApplication::platformName();
 
     // Global widget theme. Terminal colors are handled separately.
-    qApp->setStyleSheet(AppTheme::dark());
+    applySavedSettings();
 
     setWindowTitle("CPUNK PQ-SSH");
     resize(1100, 700);
@@ -456,6 +462,7 @@ void MainWindow::setupUi()
     m_disconnectBtn = new QPushButton("Disconnect", topBar);
     m_disconnectBtn->setEnabled(false);
 
+
     topLayout->addWidget(hostLabel);
     topLayout->addWidget(m_hostField, 1);
     topLayout->addWidget(m_connectBtn);
@@ -607,7 +614,9 @@ void MainWindow::setupMenus()
     // then call a single workflow function (e.g. onInstallPublicKeyRequested).
 
     auto *fileMenu = menuBar()->addMenu("&File");
-    // (no File actions yet)
+
+    QAction *settingsAct = fileMenu->addAction("Settings…");
+    connect(settingsAct, &QAction::triggered, this, &MainWindow::onOpenSettingsDialog);
 
     // Keys menu
     auto *keysMenu = menuBar()->addMenu("&Keys");
@@ -2039,4 +2048,41 @@ void MainWindow::onTestUnlockDilithiumKey()
                              "Decrypt OK.\n\n"
                              "Validated format + passphrase unlock.\n"
                              "Details written to the terminal/log.");
+}
+
+void MainWindow::applySavedSettings()
+{
+    QSettings s;
+
+    // Theme (future-proof, only one option for now)
+    const QString theme = s.value("ui/theme", "cpunk-dark").toString();
+    if (theme == "cpunk-dark") {
+        qApp->setStyleSheet(AppTheme::dark());
+    } else {
+        // fallback
+        qApp->setStyleSheet(AppTheme::dark());
+    }
+
+    // Logging level (0..2)
+    const int lvl = s.value("logging/level", 1).toInt(); // default: Normal
+    Logger::setLogLevel(lvl);
+}
+
+void MainWindow::onOpenSettingsDialog()
+{
+    SettingsDialog dlg(this);
+    if (dlg.exec() != QDialog::Accepted)
+        return;
+
+    // Apply immediately (theme + log level)
+    applySavedSettings();
+
+    appendTerminalLine("[INFO] Settings updated.");
+    if (m_statusLabel) m_statusLabel->setText("Settings updated.");
+}
+
+void MainWindow::onOpenSettings()
+{
+    // TODO: open SettingsDialog here
+    QMessageBox::information(this, "Settings", "Settings dialog (coming next).");
 }

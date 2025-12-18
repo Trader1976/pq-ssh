@@ -61,6 +61,7 @@ add_executable(pq-ssh
         src/FilesTab.cpp
         src/RemoteDropTable.h
         src/RemoteDropTable.cpp
+        src/SettingsDialog.cpp
 )
 
 target_include_directories(pq-ssh

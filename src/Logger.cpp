@@ -1,4 +1,6 @@
+// Logger.cpp
 #include "Logger.h"
+
 #include <QDir>
 #include <QDateTime>
 #include <QFile>
@@ -6,30 +8,30 @@
 #include <QStandardPaths>
 #include <QTextStream>
 #include <QMutex>
+#include <QMutexLocker>
+#include <QAtomicInt>
+#include <cstdio>     // fprintf
+#include <cstdlib>    // abort
 #include <QDebug>
 
 // =====================================================
 // Global logger state (process-wide)
 // =====================================================
-//
-// We deliberately use a single global log file and mutex.
-// Qt's message handler is global by design, so this is
-// the correct scope for these objects.
-//
 
-static QFile*  g_file  = nullptr;  // Open log file handle
-static QMutex  g_mutex;             // Guards concurrent writes
-static QString g_path;              // Absolute path to log file
+static QFile*   g_file  = nullptr;   // Open log file handle
+static QMutex   g_mutex;             // Guards concurrent writes
+static QString  g_path;              // Absolute path to log file
+static QAtomicInt g_level(1);         // 0=Errors only, 1=Normal, 2=Debug
+
+// Prevent recursion if something inside handler triggers Qt logging again
+static thread_local bool g_inHandler = false;
 
 // =====================================================
 // Log level mapping
 // =====================================================
-//
-// Converts Qt message types into stable, human-readable
-// strings suitable for long-term logs.
-//
 
-static QString levelToString(QtMsgType t) {
+static QString levelToString(QtMsgType t)
+{
     switch (t) {
         case QtDebugMsg:    return "DEBUG";
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
@@ -43,74 +45,98 @@ static QString levelToString(QtMsgType t) {
 }
 
 // =====================================================
-// Qt message handler
+// Filtering by runtime logging level
 // =====================================================
 //
-// This function is installed via qInstallMessageHandler()
-// and receives *all* Qt logging output (qDebug/qInfo/etc).
+// 0 = Errors only: WARN/ERROR/FATAL
+// 1 = Normal:      INFO/WARN/ERROR/FATAL
+// 2 = Debug:       DEBUG/INFO/WARN/ERROR/FATAL
 //
-// Design goals:
-// - Thread-safe
-// - Append-only
-// - Human-readable
-// - Safe to call from any thread
-//
+static bool allowMessage(QtMsgType type)
+{
+    const int lvl = g_level.loadAcquire();
+
+    if (lvl <= 0) {
+        return (type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg);
+    }
+
+    if (lvl == 1) {
+        return (type == QtInfoMsg || type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg);
+    }
+
+    // lvl >= 2
+    return true;
+}
+
+// =====================================================
+// Qt message handler
+// =====================================================
 
 static void handler(QtMsgType type,
                     const QMessageLogContext& ctx,
                     const QString& msg)
 {
-    QMutexLocker lock(&g_mutex);
-
-    // If logging is not initialized yet, silently drop messages.
-    // (Early startup logging is intentionally minimal.)
-    if (!g_file || !g_file->isOpen())
+    if (!allowMessage(type)) {
+        if (type == QtFatalMsg) abort(); // never suppress fatal
         return;
+    }
 
-    QTextStream out(g_file);
-    out.setCodec("UTF-8");
+    if (g_inHandler) {
+        // If recursion happens, do the safest thing: avoid re-entering Qt.
+        if (type == QtFatalMsg) abort();
+        return;
+    }
+    g_inHandler = true;
 
-    // Timestamp with millisecond precision for debugging races
-    const QString ts =
-        QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
+    {
+        QMutexLocker lock(&g_mutex);
 
-    const QString lvl = levelToString(type);
+        // If logging isn't initialized or file isn't open, fallback to stderr.
+        if (!g_file || !g_file->isOpen()) {
+            const QByteArray utf8 = msg.toUtf8();
+            std::fprintf(stderr, "%s\n", utf8.constData());
+            std::fflush(stderr);
 
-    // Optional source context (only if Qt provides it)
-    const QString where =
-        (ctx.file && ctx.function)
-            ? QString("%1:%2 %3")
-                  .arg(QFileInfo(ctx.file).fileName())
-                  .arg(ctx.line)
-                  .arg(ctx.function)
-            : QString();
+            if (type == QtFatalMsg) abort();
+            g_inHandler = false;
+            return;
+        }
 
-    // Log line format:
-    // 2025-01-01 12:34:56.789 [INFO] MainWindow.cpp:123 func() - message
-    out << ts << " [" << lvl << "] ";
-    if (!where.isEmpty())
-        out << where << " - ";
-    out << msg << "\n";
-    out.flush();
+        QTextStream out(g_file);
 
-    // Fatal errors must terminate the process
-    if (type == QtFatalMsg)
-        abort();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        out.setEncoding(QStringConverter::Utf8);
+#else
+        out.setCodec("UTF-8");
+#endif
+
+        const QString ts = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
+        const QString lvl = levelToString(type);
+
+        const QString where =
+            (ctx.file && ctx.function)
+                ? QString("%1:%2 %3")
+                      .arg(QFileInfo(QString::fromUtf8(ctx.file)).fileName())
+                      .arg(ctx.line)
+                      .arg(ctx.function)
+                : QString();
+
+        out << ts << " [" << lvl << "] ";
+        if (!where.isEmpty())
+            out << where << " - ";
+        out << msg << "\n";
+        out.flush();
+
+        if (type == QtFatalMsg)
+            abort();
+    }
+
+    g_inHandler = false;
 }
 
 // =====================================================
-// Log rotation
+// Log rotation (size-based)
 // =====================================================
-//
-// Simple size-based rotation:
-//
-//   app.log        (current)
-//   app.log.1      (most recent old)
-//   app.log.2
-//   app.log.3
-//
-// Rotation happens *once* at startup.
-//
 
 static void rotateIfNeeded(const QString& path,
                            qint64 maxBytes = 2 * 1024 * 1024,
@@ -120,10 +146,11 @@ static void rotateIfNeeded(const QString& path,
     if (!fi.exists() || fi.size() < maxBytes)
         return;
 
-    // Rotate from highest index down to avoid overwriting
+    // Rotate: .3 -> .4, .2 -> .3, .1 -> .2, log -> .1
     for (int i = keep; i >= 1; --i) {
         const QString older = path + "." + QString::number(i);
         const QString newer = path + "." + QString::number(i + 1);
+
         if (QFileInfo::exists(newer))
             QFile::remove(newer);
         if (QFileInfo::exists(older))
@@ -139,60 +166,57 @@ static void rotateIfNeeded(const QString& path,
 
 namespace Logger {
 
-// -----------------------------------------------------
-// install()
-// -----------------------------------------------------
-//
-// Initializes logging for the application.
-// Must be called ONCE during application startup.
-//
-// Responsibilities:
-// - Resolve platform-appropriate log directory
-// - Rotate existing logs
-// - Open log file
-// - Install Qt global message handler
-//
-
 void install(const QString& appName)
 {
-    // Platform-correct writable location:
-    //  Linux: ~/.local/share/<app>/logs
-    //  Windows: AppData/Local/<app>/logs
-    //  macOS: ~/Library/Application Support/<app>/logs
     const QString dir =
         QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
         + "/logs";
 
     QDir().mkpath(dir);
-
     g_path = dir + "/" + appName + ".log";
 
-    // Rotate old logs before opening
     rotateIfNeeded(g_path);
 
-    g_file = new QFile(g_path);
-    g_file->open(QIODevice::WriteOnly |
-                 QIODevice::Append |
-                 QIODevice::Text);
+    // Close old file if reinstall happens (shouldn't, but defensive)
+    {
+        QMutexLocker lock(&g_mutex);
+        if (g_file) {
+            if (g_file->isOpen()) g_file->close();
+            delete g_file;
+            g_file = nullptr;
+        }
 
-    // Install global handler
+        g_file = new QFile(g_path);
+        if (!g_file->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+            // Can't rely on qWarning here (handler not installed yet or recursion risk)
+            std::fprintf(stderr, "Logger: failed to open log file: %s\n",
+                         g_path.toUtf8().constData());
+            std::fflush(stderr);
+        }
+    }
+
     qInstallMessageHandler(handler);
 
-    // First line in the log
-    qInfo() << "Logger initialized:" << g_path;
+    // First line in the log (goes through handler)
+    qInfo().noquote() << QString("Logger initialized: %1").arg(g_path);
 }
-
-// -----------------------------------------------------
-// logFilePath()
-// -----------------------------------------------------
-//
-// Returns the absolute path of the active log file.
-// Used by UI actions (Help → Open log file).
-//
 
 QString logFilePath()
 {
     return g_path;
+}
+
+// 0=Errors only, 1=Normal, 2=Debug
+void setLogLevel(int level)
+{
+    if (level < 0) level = 0;
+    if (level > 2) level = 2;
+    g_level.storeRelease(level);
+}
+
+int logLevel()
+{
+    return g_level.loadAcquire();
 }
 
 } // namespace Logger

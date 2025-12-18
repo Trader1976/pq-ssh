@@ -23,6 +23,8 @@ class QCheckBox;
 class QTabWidget;
 class CpunkTermWidget;
 class FilesTab;   // add this near other forward declarations
+class QToolButton;
+class QMenu;
 
 class MainWindow : public QMainWindow
 {
@@ -49,6 +51,7 @@ private slots:
     void onOpenUserManual();
     void onTestUnlockDilithiumKey();
     void onInstallPublicKeyRequested(const QString& pubKeyLine, int profileIndex);
+    void onOpenSettingsDialog();
 
 private:
     void setupUi();
@@ -68,6 +71,10 @@ private:
     void uiWarn(const QString& msg);
     void uiDebug(const QString& msg);
     bool uiVerbose() const;
+
+
+    void applySavedSettings();   // load/apply theme + log level on startup
+    void onOpenSettings();
 
     // =====================================================
     // Profile list grouping (Group headers + sorting)
