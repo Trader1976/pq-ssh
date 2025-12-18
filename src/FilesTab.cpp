@@ -29,6 +29,7 @@
 #include <algorithm>
 
 
+
 static QString joinListPreview(const QStringList& xs, int maxN = 6)
 {
     QStringList out;
@@ -187,6 +188,14 @@ void FilesTab::buildUi()
     m_remoteTable->setShowGrid(false);
     m_remoteTable->setAlternatingRowColors(true);
 
+    // Enable sortable columns (click header to sort)
+    m_remoteTable->setSortingEnabled(true);
+    m_remoteTable->horizontalHeader()->setSectionsClickable(true);
+    m_remoteTable->horizontalHeader()->setSortIndicatorShown(true);
+
+    // Optional: default sort by Name ascending
+    m_remoteTable->sortByColumn(2, Qt::AscendingOrder);
+
     // Unified file view font (local + remote)
     QFont fileFont = font();
     fileFont.setPointSize(11);
@@ -200,6 +209,12 @@ void FilesTab::buildUi()
 
     m_remoteTable->horizontalHeader()->setFont(fileFont);
 
+    m_remoteTable->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    m_remoteTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    // Enable fast drag selection via row header
+    m_remoteTable->verticalHeader()->setSectionsClickable(true);
+    m_remoteTable->verticalHeader()->setHighlightSections(true);
 
     // Remote context menu
     m_remoteTable->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -303,62 +318,66 @@ void FilesTab::refreshRemote()
         QMessageBox::information(this, "Files", "Not connected.");
         return;
     }
+    if (!m_remoteTable) return;
 
-    const QString path = m_remoteCwd;
+    QVector<SshClient::RemoteEntry> items;
+    QString err;
 
-    auto *watcher = new QFutureWatcher<QVector<SshClient::RemoteEntry>>(this);
+    if (!m_ssh->listRemoteDir(m_remoteCwd, &items, &err)) {
+        QMessageBox::warning(this, "Remote", err);
+        return;
+    }
 
-    connect(watcher, &QFutureWatcherBase::finished, this, [this, watcher]() {
-        QVector<SshClient::RemoteEntry> items = watcher->result();
-        watcher->deleteLater();
+    // Sort model data (DIR first, then name)
+    std::sort(items.begin(), items.end(),
+              [](const SshClient::RemoteEntry& a, const SshClient::RemoteEntry& b) {
+                  if (a.isDir != b.isDir) return a.isDir > b.isDir; // dirs first
+                  return QString::compare(a.name, b.name, Qt::CaseInsensitive) < 0;
+              });
 
-        // Sort: DIRs first, then FILEs; within group by name (case-insensitive)
-        std::sort(items.begin(), items.end(),
-                  [](const SshClient::RemoteEntry& a, const SshClient::RemoteEntry& b) {
-                      if (a.isDir != b.isDir) return a.isDir > b.isDir; // dirs first
-                      return QString::compare(a.name, b.name, Qt::CaseInsensitive) < 0;
-                  });
+    // IMPORTANT: disable sorting while we rebuild the table
+    const bool wasSorting = m_remoteTable->isSortingEnabled();
+    m_remoteTable->setSortingEnabled(false);
 
-        m_remoteTable->setRowCount(0);
-        m_remoteTable->setRowCount(items.size());
+    // Clear + rebuild rows
+    m_remoteTable->clearContents();
+    m_remoteTable->setRowCount(items.size());
 
-        // Pick icons from current theme/style
-        const QIcon dirIcon  = style()->standardIcon(QStyle::SP_DirIcon);
-        const QIcon fileIcon = style()->standardIcon(QStyle::SP_FileIcon);
+    const QIcon dirIcon  = style()->standardIcon(QStyle::SP_DirIcon);
+    const QIcon fileIcon = style()->standardIcon(QStyle::SP_FileIcon);
 
-        for (int i = 0; i < items.size(); ++i) {
-            const auto &e = items[i];
+    for (int row = 0; row < items.size(); ++row) {
+        const auto& e = items[row];
 
-            auto *nameItem = new QTableWidgetItem(e.name);
-            nameItem->setData(Qt::UserRole, e.fullPath);
-            nameItem->setData(Qt::UserRole + 1, e.isDir ? 1 : 0);
+        auto* nameItem = new QTableWidgetItem(e.name);
+        nameItem->setData(Qt::UserRole, e.fullPath);
+        nameItem->setData(Qt::UserRole + 1, e.isDir ? 1 : 0); // used by double-click
+        nameItem->setIcon(e.isDir ? dirIcon : fileIcon);
 
-            // Icon in Name column
-            nameItem->setIcon(e.isDir ? dirIcon : fileIcon);
+        auto* typeItem = new QTableWidgetItem(e.isDir ? "DIR" : "FILE");
+        auto* sizeItem = new QTableWidgetItem(e.isDir ? "" : prettySize(e.size));
 
-            auto *typeItem = new QTableWidgetItem(e.isDir ? "DIR" : "FILE");
-            auto *sizeItem = new QTableWidgetItem(e.isDir ? "" : prettySize(e.size));
+        const QString mtimeStr =
+            (e.mtime > 0)
+                ? QDateTime::fromSecsSinceEpoch(e.mtime).toString("yyyy-MM-dd HH:mm")
+                : QString();
 
-            QString mtimeStr;
-            if (e.mtime > 0) {
-                mtimeStr = QDateTime::fromSecsSinceEpoch(e.mtime).toString("yyyy-MM-dd HH:mm");
-            }
-            auto *mtItem = new QTableWidgetItem(mtimeStr);
+        auto* mtItem = new QTableWidgetItem(mtimeStr);
 
-            m_remoteTable->setItem(i, 0, nameItem);
-            m_remoteTable->setItem(i, 1, typeItem);
-            m_remoteTable->setItem(i, 2, sizeItem);
-            m_remoteTable->setItem(i, 3, mtItem);
-        }
-    });
+        m_remoteTable->setItem(row, 0, nameItem);
+        m_remoteTable->setItem(row, 1, typeItem);
+        m_remoteTable->setItem(row, 2, sizeItem);
+        m_remoteTable->setItem(row, 3, mtItem);
+    }
 
-    watcher->setFuture(QtConcurrent::run([this, path]() -> QVector<SshClient::RemoteEntry> {
-        QVector<SshClient::RemoteEntry> out;
-        QString e;
-        if (!m_ssh->listRemoteDir(path, &out, &e)) out.clear();
-        return out;
-    }));
+    // Re-enable sorting AFTER population
+    m_remoteTable->setSortingEnabled(wasSorting);
+
+    // Optional: if you want header arrows AND default sort:
+    // m_remoteTable->setSortingEnabled(true);
+    // m_remoteTable->sortByColumn(0, Qt::AscendingOrder);
 }
+
 
 
 void FilesTab::goRemoteUp()
@@ -389,16 +408,18 @@ void FilesTab::goLocalUp()
 
 void FilesTab::remoteItemActivated(int row, int /*col*/)
 {
+    if (!m_remoteTable) return;
+
     auto *it = m_remoteTable->item(row, 0);
     if (!it) return;
 
     const QString full = it->data(Qt::UserRole).toString();
-    const bool isDir = it->data(Qt::UserRole + 1).toInt() == 1;
+    const bool isDir   = (it->data(Qt::UserRole + 1).toInt() == 1);
 
-    if (isDir) {
-        setRemoteCwd(full);
-        refreshRemote();
-    }
+    if (!isDir) return;
+
+    setRemoteCwd(full);
+    refreshRemote();
 }
 
 void FilesTab::onTransferProgress(quint64 done, quint64 total)
