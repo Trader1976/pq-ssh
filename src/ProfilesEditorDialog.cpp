@@ -36,6 +36,10 @@
 #include <QFileDialog>
 #include <QToolButton>
 #include <QDir>
+#include <QSplitter>
+#include <QKeySequenceEdit>
+#include <QKeySequence>
+
 
 #include "CpunkTermWidget.h"
 
@@ -118,53 +122,6 @@ static QStringList installedSchemes()
     return schemes;
 }
 
-static void populateSchemeCombo(QComboBox *combo)
-{
-    if (!combo) return;
-
-    // Pinned favourites first (only if installed)
-    const QStringList pinned = {
-        "CPUNK-DNA",
-        "CPUNK-Aurora",
-        "WhiteOnBlack",
-        "Ubuntu",
-        "DarkPastels",
-        "Tango",
-        "Linux",
-        "Solarized",
-        "SolarizedLight",
-        "BlackOnLightYellow",
-        "BlackOnWhite",
-        "GreenOnBlack"
-    };
-
-    const QString current = combo->currentText();
-    QStringList schemes = installedSchemes();
-
-    combo->clear();
-
-    QSet<QString> used;
-
-    for (const QString &s : pinned) {
-        if (schemes.contains(s) && !used.contains(s)) {
-            combo->addItem(s);
-            used.insert(s);
-        }
-    }
-
-    if (!used.isEmpty() && schemes.size() > used.size())
-        combo->insertSeparator(combo->count());
-
-    for (const QString &s : schemes) {
-        if (!used.contains(s))
-            combo->addItem(s);
-    }
-
-    if (!current.isEmpty()) {
-        int idx = combo->findText(current);
-        if (idx >= 0) combo->setCurrentIndex(idx);
-    }
-}
 
 // -----------------------------
 // Group helpers
@@ -257,15 +214,25 @@ ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles,
 // UI Construction
 // -----------------------------
 //
-// Layout is a simple 2-column split:
+// Layout is a simple 3-column version:
 // - Left: list of profiles + Add/Delete
-// - Right: form editing fields for selected profile
+// - Middle: form editing fields for selected profile
+// - Righ: macros
 void ProfilesEditorDialog::buildUi()
 {
-    auto *mainLayout = new QHBoxLayout(this);
+    // Use a splitter so we can have 3 columns + adjustable spacing
+    auto *split = new QSplitter(Qt::Horizontal, this);
+    split->setChildrenCollapsible(false);
+    split->setHandleWidth(1);
 
-    // ---------- Left: profile list + Add/Delete ----------
-    auto *leftWidget = new QWidget(this);
+    auto *outer = new QHBoxLayout(this);
+    outer->setContentsMargins(0, 0, 0, 0);
+    outer->addWidget(split);
+
+    // ============================================================
+    // Column 1: profile list + Add/Delete
+    // ============================================================
+    auto *leftWidget = new QWidget(split);
     auto *leftLayout = new QVBoxLayout(leftWidget);
     leftLayout->setContentsMargins(0, 0, 0, 0);
     leftLayout->setSpacing(6);
@@ -276,7 +243,6 @@ void ProfilesEditorDialog::buildUi()
     m_list = new QListWidget(leftWidget);
     m_list->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    // Populate list entries from working copy
     for (const auto &p : m_working)
         m_list->addItem(p.name);
 
@@ -290,80 +256,80 @@ void ProfilesEditorDialog::buildUi()
 
     buttonsLayout->addWidget(addBtn);
     buttonsLayout->addWidget(delBtn);
+    buttonsLayout->addStretch(1);
 
     leftLayout->addWidget(listLabel);
     leftLayout->addWidget(m_list, 1);
     leftLayout->addWidget(buttonsRow, 0);
 
-    // ---------- Right: profile details form ----------
-    auto *rightWidget = new QWidget(this);
-    auto *rightLayout = new QVBoxLayout(rightWidget);
-    rightLayout->setContentsMargins(0, 0, 0, 0);
-    rightLayout->setSpacing(6);
+    // ============================================================
+    // Column 2: profile details form
+    // ============================================================
+    auto *detailsWidget = new QWidget(split);
+    auto *detailsLayout = new QVBoxLayout(detailsWidget);
+    detailsLayout->setContentsMargins(0, 0, 0, 0);
+    detailsLayout->setSpacing(6);
 
     auto *form = new QFormLayout();
     form->setLabelAlignment(Qt::AlignRight);
+    form->setHorizontalSpacing(10);
+    form->setVerticalSpacing(8);
 
-    // Basic connection fields
-    m_nameEdit = new QLineEdit(rightWidget);
-    m_userEdit = new QLineEdit(rightWidget);
-    m_hostEdit = new QLineEdit(rightWidget);
+    m_nameEdit = new QLineEdit(detailsWidget);
+    m_userEdit = new QLineEdit(detailsWidget);
+    m_hostEdit = new QLineEdit(detailsWidget);
 
-    m_portSpin = new QSpinBox(rightWidget);
+    m_portSpin = new QSpinBox(detailsWidget);
     m_portSpin->setRange(1, 65535);
     m_portSpin->setValue(22);
 
-    // NEW: group selector (editable dropdown)
-    m_groupCombo = new QComboBox(rightWidget);
+    // Group selector
+    m_groupCombo = new QComboBox(detailsWidget);
     m_groupCombo->setEditable(true);
     m_groupCombo->setInsertPolicy(QComboBox::NoInsert);
     m_groupCombo->setToolTip("Group name for sorting in main window (empty = Ungrouped)");
-    m_groupCombo->lineEdit()->setPlaceholderText("Ungrouped");
-
+    if (m_groupCombo->lineEdit())
+        m_groupCombo->lineEdit()->setPlaceholderText("Ungrouped");
     populateGroupCombo(m_groupCombo, m_working);
 
-    // This currently toggles extra verbosity in the app; it should not expose secrets.
-    m_pqDebugCheck = new QCheckBox("Enable PQ debug (-vv)", rightWidget);
+    // PQ debug
+    m_pqDebugCheck = new QCheckBox("Enable PQ debug (-vv)", detailsWidget);
 
     // Terminal appearance
-    m_colorSchemeCombo = new QComboBox(rightWidget);
+    m_colorSchemeCombo = new QComboBox(detailsWidget);
     fillSchemeCombo(m_colorSchemeCombo);
 
-    m_fontSizeSpin = new QSpinBox(rightWidget);
+    m_fontSizeSpin = new QSpinBox(detailsWidget);
     m_fontSizeSpin->setRange(6, 32);
     m_fontSizeSpin->setValue(11);
 
-    m_widthSpin = new QSpinBox(rightWidget);
+    m_widthSpin = new QSpinBox(detailsWidget);
     m_widthSpin->setRange(400, 4000);
     m_widthSpin->setValue(900);
 
-    m_heightSpin = new QSpinBox(rightWidget);
+    m_heightSpin = new QSpinBox(detailsWidget);
     m_heightSpin->setRange(300, 3000);
     m_heightSpin->setValue(500);
 
-    // Scrollback lines: 0 = unlimited, otherwise bounded buffer
-    m_historySpin = new QSpinBox(rightWidget);
+    m_historySpin = new QSpinBox(detailsWidget);
     m_historySpin->setRange(0, 50000);
     m_historySpin->setSingleStep(500);
     m_historySpin->setValue(2000);
     m_historySpin->setToolTip("Terminal scrollback buffer lines (0 = unlimited)");
 
-    // --- Key-based auth fields ---
-    // Note: we store key_type "pq" as a placeholder; SshClient currently only accepts
-    // "auto" or "openssh" (it rejects others). This dialog just edits data.
-    m_keyTypeCombo = new QComboBox(rightWidget);
+    // Key-based auth fields
+    m_keyTypeCombo = new QComboBox(detailsWidget);
     m_keyTypeCombo->addItem("auto");
     m_keyTypeCombo->addItem("openssh");
-    m_keyTypeCombo->addItem("pq"); // placeholder for later (dilithium5/mldsa87/etc)
+    m_keyTypeCombo->addItem("pq"); // placeholder
 
-    m_keyFileEdit = new QLineEdit(rightWidget);
+    m_keyFileEdit = new QLineEdit(detailsWidget);
     m_keyFileEdit->setPlaceholderText("e.g. /home/timo/.ssh/id_ed25519 (optional)");
 
-    auto *browseBtn = new QToolButton(rightWidget);
+    auto *browseBtn = new QToolButton(detailsWidget);
     browseBtn->setText("...");
 
-    // Key file row: line edit + browse button
-    auto *keyRow = new QWidget(rightWidget);
+    auto *keyRow = new QWidget(detailsWidget);
     auto *keyRowLayout = new QHBoxLayout(keyRow);
     keyRowLayout->setContentsMargins(0, 0, 0, 0);
     keyRowLayout->setSpacing(6);
@@ -384,7 +350,7 @@ void ProfilesEditorDialog::buildUi()
 
     // Form rows
     form->addRow("Name:", m_nameEdit);
-    form->addRow("Group:", m_groupCombo); // NEW
+    form->addRow("Group:", m_groupCombo);
     form->addRow("User:", m_userEdit);
     form->addRow("Host:", m_hostEdit);
     form->addRow("Port:", m_portSpin);
@@ -397,21 +363,103 @@ void ProfilesEditorDialog::buildUi()
     form->addRow("Key type:", m_keyTypeCombo);
     form->addRow("Key file:", keyRow);
 
-    rightLayout->addLayout(form);
+    detailsLayout->addLayout(form);
 
-    // Save/Cancel
-    m_buttonsBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, rightWidget);
-    rightLayout->addWidget(m_buttonsBox);
+    // Save/Cancel under details column
+    m_buttonsBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, detailsWidget);
+    detailsLayout->addWidget(m_buttonsBox);
 
-    // Put both sides into main layout
-    mainLayout->addWidget(leftWidget, 1);
-    mainLayout->addWidget(rightWidget, 2);
+    // ============================================================
+    // Column 3: Hotkey macro (optional) ONLY
+    // ============================================================
+    auto *extraOuter = new QWidget(split);
+    auto *extraOuterL = new QHBoxLayout(extraOuter);
+    extraOuterL->setContentsMargins(0, 0, 0, 0);
+    extraOuterL->setSpacing(10);
 
+    auto *extraPanel = new QWidget(extraOuter);
+    extraPanel->setObjectName("profileExtraPanel");
+    extraPanel->setStyleSheet(
+        "#profileExtraPanel {"
+        "  border: 1px solid #2a2a2a;"
+        "  border-radius: 8px;"
+        "}"
+    );
+
+    auto *extraL = new QVBoxLayout(extraPanel);
+    extraL->setContentsMargins(10, 10, 10, 10);
+    extraL->setSpacing(8);
+
+    auto *macroTitle = new QLabel("Hotkey macro (optional)", extraPanel);
+    macroTitle->setStyleSheet("font-weight: bold;");
+
+    auto *macroShortcutLbl = new QLabel("Shortcut:", extraPanel);
+
+    m_macroShortcutEdit = new QKeySequenceEdit(extraPanel);
+    m_macroShortcutEdit->setToolTip("Click and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R");
+
+    auto *macroClearBtn = new QPushButton("Clear", extraPanel);
+    macroClearBtn->setToolTip("Clear the shortcut");
+
+    auto *macroShortcutRow = new QWidget(extraPanel);
+    auto *macroShortcutRowL = new QHBoxLayout(macroShortcutRow);
+    macroShortcutRowL->setContentsMargins(0, 0, 0, 0);
+    macroShortcutRowL->setSpacing(6);
+    macroShortcutRowL->addWidget(m_macroShortcutEdit, 1);
+    macroShortcutRowL->addWidget(macroClearBtn, 0);
+
+    connect(macroClearBtn, &QPushButton::clicked, this, [this]() {
+        if (m_macroShortcutEdit)
+            m_macroShortcutEdit->setKeySequence(QKeySequence());
+    });
+
+    auto *macroCmdLbl = new QLabel("Command:", extraPanel);
+
+    m_macroCmdEdit = new QLineEdit(extraPanel);
+    m_macroCmdEdit->setPlaceholderText(R"(e.g. cd stats && cp stats.txt stats_backup.txt)");
+    m_macroCmdEdit->setToolTip("Command to send when the shortcut is pressed (optional)");
+
+    m_macroEnterCheck = new QCheckBox("Send [Enter] automatically after command", extraPanel);
+    m_macroEnterCheck->setChecked(true);
+
+    auto *macroHint = new QLabel(
+        "Tip: If [Enter] is enabled, PQ-SSH appends a newline so the command runs immediately.",
+        extraPanel
+    );
+    macroHint->setWordWrap(true);
+    macroHint->setStyleSheet("color: #9aa0a6; font-size: 12px;");
+
+    extraL->addWidget(macroTitle);
+    extraL->addWidget(macroShortcutLbl);
+    extraL->addWidget(macroShortcutRow);
+    extraL->addSpacing(8);
+    extraL->addWidget(macroCmdLbl);
+    extraL->addWidget(m_macroCmdEdit);
+    extraL->addWidget(m_macroEnterCheck);
+    extraL->addWidget(macroHint);
+    extraL->addStretch(1);
+
+    // “Air” spacer to the right
+    auto *air = new QWidget(extraOuter);
+    air->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+
+    extraOuterL->addWidget(extraPanel);
+    extraOuterL->addWidget(air, 1);
+
+    // ============================================================
+    // Split sizing / stretch
+    // ============================================================
+    split->setStretchFactor(0, 2);
+    split->setStretchFactor(1, 3);
+    split->setStretchFactor(2, 5);
+    split->setSizes({260, 360, 520});
+
+    // ============================================================
     // Wiring
+    // ============================================================
     connect(m_list, &QListWidget::currentRowChanged,
             this, &ProfilesEditorDialog::onListRowChanged);
 
-    // Name edits update list item title live
     connect(m_nameEdit, &QLineEdit::textChanged,
             this, &ProfilesEditorDialog::onNameEdited);
 
@@ -426,7 +474,14 @@ void ProfilesEditorDialog::buildUi()
 
     connect(m_buttonsBox, &QDialogButtonBox::accepted,
             this, &ProfilesEditorDialog::onAccepted);
+
+    if (m_list->count() > 0 && m_list->currentRow() < 0)
+        m_list->setCurrentRow(0);
 }
+
+
+
+
 
 // -----------------------------
 // Selection change handling
@@ -458,6 +513,7 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         m_hostEdit->clear();
         m_portSpin->setValue(22);
         m_pqDebugCheck->setChecked(true);
+
         m_colorSchemeCombo->setCurrentText("WhiteOnBlack");
         m_fontSizeSpin->setValue(11);
         m_widthSpin->setValue(900);
@@ -465,7 +521,13 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         if (m_historySpin) m_historySpin->setValue(2000);
 
         if (m_keyTypeCombo) m_keyTypeCombo->setCurrentText("auto");
-        if (m_keyFileEdit) m_keyFileEdit->clear();
+        if (m_keyFileEdit)  m_keyFileEdit->clear();
+
+        // Hotkey macro (optional)
+        if (m_macroShortcutEdit) m_macroShortcutEdit->setKeySequence(QKeySequence());
+        if (m_macroCmdEdit)      m_macroCmdEdit->clear();
+        if (m_macroEnterCheck)   m_macroEnterCheck->setChecked(true);
+
         return;
     }
 
@@ -485,16 +547,13 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
     m_portSpin->setValue(p.port);
     m_pqDebugCheck->setChecked(p.pqDebug);
 
-    // Term scheme: try to select an installed scheme; otherwise keep text as-is
-    const QString wanted = p.termColorScheme.isEmpty()
-                               ? QStringLiteral("WhiteOnBlack")
-                               : p.termColorScheme;
+    const QString wantedScheme = p.termColorScheme.isEmpty()
+        ? QStringLiteral("WhiteOnBlack")
+        : p.termColorScheme;
 
-    int idx = m_colorSchemeCombo->findText(wanted);
-    if (idx >= 0)
-        m_colorSchemeCombo->setCurrentIndex(idx);
-    else
-        m_colorSchemeCombo->setCurrentText(wanted);
+    int sidx = m_colorSchemeCombo->findText(wantedScheme);
+    if (sidx >= 0) m_colorSchemeCombo->setCurrentIndex(sidx);
+    else m_colorSchemeCombo->setCurrentText(wantedScheme);
 
     m_fontSizeSpin->setValue(p.termFontSize > 0 ? p.termFontSize : 11);
     m_widthSpin->setValue(p.termWidth > 0 ? p.termWidth : 900);
@@ -505,16 +564,26 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
 
     // Key auth fields
     if (m_keyTypeCombo) {
-        const QString kt = p.keyType.trimmed().isEmpty() ? QString("auto") : p.keyType.trimmed();
+        const QString kt = p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
         const int kidx = m_keyTypeCombo->findText(kt);
         if (kidx >= 0) m_keyTypeCombo->setCurrentIndex(kidx);
         else m_keyTypeCombo->setCurrentText(kt);
     }
-    if (m_keyFileEdit) {
+    if (m_keyFileEdit)
         m_keyFileEdit->setText(p.keyFile);
+
+    // Hotkey macro (optional)
+    if (m_macroShortcutEdit) {
+        const QString sc = p.macroShortcut.trimmed();
+        m_macroShortcutEdit->setKeySequence(sc.isEmpty() ? QKeySequence() : QKeySequence(sc));
+    }
+    if (m_macroCmdEdit) {
+        m_macroCmdEdit->setText(p.macroCommand);
+    }
+    if (m_macroEnterCheck) {
+        m_macroEnterCheck->setChecked(p.macroEnter);
     }
 }
-
 // -----------------------------
 // Sync current form fields -> current profile in m_working
 // -----------------------------
@@ -532,33 +601,42 @@ void ProfilesEditorDialog::syncFormToCurrent()
     p.pqDebug = m_pqDebugCheck->isChecked();
 
     if (m_groupCombo) {
-        const QString g = m_groupCombo->currentText().trimmed();
-        // Store empty as empty (so JSON stays clean), but treat empty as Ungrouped in UI/main list.
-        p.group = g; // empty allowed
+        // empty allowed (keeps JSON clean)
+        p.group = m_groupCombo->currentText().trimmed();
     }
 
     p.termColorScheme = m_colorSchemeCombo->currentText();
     p.termFontSize    = m_fontSizeSpin->value();
-
-    p.termWidth  = m_widthSpin->value();
-    p.termHeight = m_heightSpin->value();
+    p.termWidth       = m_widthSpin->value();
+    p.termHeight      = m_heightSpin->value();
 
     if (m_historySpin)
         p.historyLines = m_historySpin->value();
 
     if (m_keyTypeCombo) {
         const QString kt = m_keyTypeCombo->currentText().trimmed();
-        p.keyType = kt.isEmpty() ? QString("auto") : kt;
+        p.keyType = kt.isEmpty() ? QStringLiteral("auto") : kt;
     }
-    if (m_keyFileEdit) {
+    if (m_keyFileEdit)
         p.keyFile = m_keyFileEdit->text().trimmed();
+
+    // Hotkey macro (optional)
+    if (m_macroShortcutEdit) {
+        // Save as portable string like "Alt+X" / "F2"
+        p.macroShortcut = m_macroShortcutEdit->keySequence().toString(QKeySequence::PortableText).trimmed();
+    }
+    if (m_macroCmdEdit) {
+        p.macroCommand = m_macroCmdEdit->text();
+    }
+    if (m_macroEnterCheck) {
+        p.macroEnter = m_macroEnterCheck->isChecked();
     }
 
     // If name is blank, auto-generate a stable label
     if (p.name.isEmpty())
         p.name = QString("%1@%2").arg(p.user, p.host);
 
-    // Keep list item in sync with current profile name
+    // Keep list item in sync
     if (QListWidgetItem *it = m_list->item(m_currentRow))
         it->setText(p.name);
 
@@ -566,6 +644,7 @@ void ProfilesEditorDialog::syncFormToCurrent()
     if (m_groupCombo)
         populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
 }
+
 
 // Live update list label when user edits Name: field.
 // If Name is empty, show "user@host" as the visible label.
@@ -591,25 +670,31 @@ void ProfilesEditorDialog::onNameEdited(const QString &text)
 void ProfilesEditorDialog::addProfile()
 {
     // New profile default values.
-    // Note: defaults should match ProfileStore::defaults() for consistency.
+    // Keep in sync with ProfileStore::defaults() as much as possible.
     SshProfile p;
-    p.user = qEnvironmentVariable("USER", "user");
-    p.host = "localhost";
-    p.port = 22;
+
+    p.user   = qEnvironmentVariable("USER", "user");
+    p.host   = "localhost";
+    p.port   = 22;
     p.pqDebug = true;
 
     p.group = ""; // empty => Ungrouped
 
     p.termColorScheme = "WhiteOnBlack";
-    p.termFontSize = 11;
-    p.termWidth = 900;
-    p.termHeight = 500;
-
-    p.historyLines = 2000;
+    p.termFontSize    = 11;
+    p.termWidth       = 900;
+    p.termHeight      = 500;
+    p.historyLines    = 2000;
 
     p.keyFile = "";
     p.keyType = "auto";
 
+    // Hotkey macro (single) defaults
+    p.macroShortcut = "";      // none by default
+    p.macroCommand  = "";      // none by default
+    p.macroEnter    = true;    // sensible default if they set a command later
+
+    // If name is empty, we display user@host
     p.name = QString("%1@%2").arg(p.user, p.host);
 
     m_working.push_back(p);

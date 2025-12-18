@@ -18,31 +18,10 @@
     Current design (dev-friendly):
     - profiles.json lives inside the *project* folder:
         pq-ssh/profiles/profiles.json
-
-    Notes:
-    - This is not yet the typical "installed app config" approach.
-      (Installed apps usually store config under QStandardPaths.)
-    - For now, this is convenient while iterating locally.
 */
 
 QString ProfileStore::configPath()
 {
-    /*
-        We locate profiles.json relative to the built binary.
-
-        Typical dev layout:
-            pq-ssh/
-              profiles/profiles.json
-              build/
-                bin/
-                  pq-ssh   <-- applicationDirPath() points here
-
-        So:
-            applicationDirPath() = .../pq-ssh/build/bin
-            cdUp() -> .../pq-ssh/build
-            cdUp() -> .../pq-ssh
-    */
-
     QString baseDir = QCoreApplication::applicationDirPath();
 
     QDir dir(baseDir);
@@ -51,7 +30,6 @@ QString ProfileStore::configPath()
 
     const QString profilesDir = dir.absolutePath() + "/profiles";
 
-    // Ensure folder exists so save() can write successfully
     if (!QDir().exists(profilesDir)) {
         QDir().mkpath(profilesDir);
     }
@@ -61,40 +39,37 @@ QString ProfileStore::configPath()
 
 QVector<SshProfile> ProfileStore::defaults()
 {
-    /*
-        Seed profile(s) for first run / empty config.
-        Caller may use these if load() returns empty.
-    */
     QVector<SshProfile> out;
 
     const QString user = qEnvironmentVariable("USER", "user");
 
     SshProfile p;
-    p.name    = "Localhost";
-    p.user    = user;
-    p.host    = "localhost";
-    p.port    = 22;
+    p.name = "Localhost";
+    p.user = user;
+    p.host = "localhost";
+    p.port = 22;
 
-    // NEW: group (empty => treated as "Ungrouped" in UI)
-    p.group   = "";
+    // Group (empty => treated as "Ungrouped" in UI)
+    p.group = "";
 
-    // Debug defaults: currently enabled for localhost so dev logs are visible
+    // Debug defaults
     p.pqDebug = true;
 
-    // Terminal UX defaults (feel free to tune as you iterate)
+    // Terminal defaults
     p.termColorScheme = "WhiteOnBlack";
     p.termFontSize    = 11;
     p.termWidth       = 900;
     p.termHeight      = 500;
-
-    // Scrollback history (0 = unlimited). You default to 2000 lines.
     p.historyLines    = 2000;
 
-    // Key auth defaults:
-    // - keyFile empty = "not set"
-    // - keyType "auto" means "let libssh/OpenSSH defaults decide"
+    // Auth defaults
     p.keyFile = "";
     p.keyType = "auto";
+
+    // Hotkey macro (single)
+    p.macroShortcut = "";
+    p.macroCommand  = "";
+    p.macroEnter    = true;
 
     out.push_back(p);
     return out;
@@ -108,7 +83,7 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
           "profiles": [
             {
               "name": "...",
-              "group": "...",           // optional; empty/omitted means "Ungrouped"
+              "group": "...",                // optional
               "user": "...",
               "host": "...",
               "port": 22,
@@ -118,10 +93,14 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
               "term_width": 900,
               "term_height": 500,
               "history_lines": 2000,
-              "key_file": "...",        // optional
-              "key_type": "auto"        // always stored
-            },
-            ...
+              "key_file": "...",             // optional
+              "key_type": "auto",            // always stored
+
+              // Hotkey macro (single):
+              "macro_shortcut": "F2",        // optional
+              "macro_command":  "cd ...",    // optional
+              "macro_enter": true            // always stored (default true)
+            }
           ]
         }
     */
@@ -131,12 +110,12 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
         QJsonObject obj;
 
         // Connection identity
-        obj["name"]     = prof.name;
-        obj["user"]     = prof.user;
-        obj["host"]     = prof.host;
-        obj["port"]     = prof.port;
+        obj["name"] = prof.name;
+        obj["user"] = prof.user;
+        obj["host"] = prof.host;
+        obj["port"] = prof.port;
 
-        // NEW: group (store only if explicitly set; empty => "Ungrouped")
+        // Group (store only if explicitly set)
         if (!prof.group.trimmed().isEmpty())
             obj["group"] = prof.group.trimmed();
 
@@ -148,17 +127,22 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
         obj["term_font_size"]    = prof.termFontSize;
         obj["term_width"]        = prof.termWidth;
         obj["term_height"]       = prof.termHeight;
-
-        // Scrollback history lines (0 = unlimited)
         obj["history_lines"]     = prof.historyLines;
 
-        // Key-based auth: store key_file only if explicitly set
+        // Auth
         if (!prof.keyFile.trimmed().isEmpty())
             obj["key_file"] = prof.keyFile;
-
-        // Always store key_type to keep schema stable as features evolve
-        // (Even if "auto" today, future versions can interpret additional values.)
         obj["key_type"] = prof.keyType.trimmed().isEmpty() ? QString("auto") : prof.keyType;
+
+        // ---- Hotkey macro (single) ----
+        if (!prof.macroShortcut.trimmed().isEmpty())
+            obj["macro_shortcut"] = prof.macroShortcut.trimmed();
+
+        if (!prof.macroCommand.trimmed().isEmpty())
+            obj["macro_command"] = prof.macroCommand;
+
+        // Always store for schema stability (default true)
+        obj["macro_enter"] = prof.macroEnter;
 
         arr.append(obj);
     }
@@ -183,20 +167,11 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
 
 QVector<SshProfile> ProfileStore::load(QString* err)
 {
-    /*
-        Load profiles from configPath().
-
-        Behavior:
-        - If file doesn't exist -> returns empty list (not an error).
-        - If JSON invalid -> returns empty list and sets err.
-        - Invalid profiles (missing host/user) are skipped.
-    */
-
     QVector<SshProfile> out;
 
     QFile f(configPath());
     if (!f.exists()) {
-        if (err) err->clear(); // not an error; caller may seed defaults()
+        if (err) err->clear();
         return out;
     }
 
@@ -227,13 +202,13 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         SshProfile p;
 
         // Connection identity
-        p.name    = obj.value("name").toString();
-        p.user    = obj.value("user").toString();
-        p.host    = obj.value("host").toString();
-        p.port    = obj.value("port").toInt(22);
+        p.name = obj.value("name").toString();
+        p.user = obj.value("user").toString();
+        p.host = obj.value("host").toString();
+        p.port = obj.value("port").toInt(22);
 
-        // NEW: group (missing/empty => treated as "Ungrouped" by UI)
-        p.group   = obj.value("group").toString().trimmed();
+        // Group
+        p.group = obj.value("group").toString().trimmed();
 
         // Diagnostics / UI flags
         p.pqDebug = obj.value("pq_debug").toBool(true);
@@ -243,15 +218,23 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         p.termFontSize    = obj.value("term_font_size").toInt(11);
         p.termWidth       = obj.value("term_width").toInt(900);
         p.termHeight      = obj.value("term_height").toInt(500);
-
-        // Scrollback defaults if missing
         p.historyLines    = obj.value("history_lines").toInt(2000);
 
-        // Key auth fields (optional but supported)
+        // Auth
         p.keyFile = obj.value("key_file").toString();
         p.keyType = obj.value("key_type").toString("auto").trimmed();
         if (p.keyType.isEmpty())
             p.keyType = "auto";
+
+        // ---- Hotkey macro (single) ----
+        p.macroShortcut = obj.value("macro_shortcut").toString().trimmed();
+        p.macroCommand  = obj.value("macro_command").toString();
+
+        // default = true if missing (keeps older configs working)
+        if (obj.contains("macro_enter"))
+            p.macroEnter = obj.value("macro_enter").toBool(true);
+        else
+            p.macroEnter = true;
 
         // Skip incomplete profiles
         if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty())

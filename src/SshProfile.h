@@ -1,4 +1,5 @@
 #pragma once
+
 #include <QString>
 
 struct SshProfile {
@@ -9,22 +10,22 @@ struct SshProfile {
     int     port    = 22;
     bool    pqDebug = true;
 
-    // Grouping (empty => treated as "Ungrouped" in UI)
+    // Grouping
     QString group;
 
     // Terminal
-    QString termColorScheme;   // e.g. "WhiteOnBlack"
-    int     termFontSize = 11;
-    int     termWidth  = 900;
-    int     termHeight = 500;
-    int     historyLines = 2000;
+    QString termColorScheme;
+    int     termFontSize  = 11;
+    int     termWidth     = 900;
+    int     termHeight    = 500;
+    int     historyLines  = 2000;
 
-    // Key-based authentication (optional, future PQ-ready)
-    // keyType values (suggested):
-    //  - "auto"    (default)
-    //  - "openssh" (classic OpenSSH keys)
-    //  - "pq"      (future PQ keys)
-    //  - "mldsa87", "dilithium5", etc (future)
-    QString keyFile;           // e.g. /home/timo/.ssh/id_ed25519
+    // Auth
+    QString keyFile;
     QString keyType = "auto";
+
+    // Hotkey macro (single)
+    QString macroShortcut;   // e.g. "F2" or "Alt+X"
+    QString macroCommand;    // command to send
+    bool    macroEnter = true;
 };
