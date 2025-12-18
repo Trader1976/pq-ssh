@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CPUNK PQ-SSH — User Manual</title>
-    <meta name="description" content="User manual for CPUNK PQ-SSH (profile-based SSH client with PQ status and logging)." />
+    <meta name="description" content="User manual for CPUNK PQ-SSH (profile-based SSH client with PQ status, settings, file transfer and logging)." />
 
     <!-- IMPORTANT for QTextBrowser + QRC -->
     <link rel="stylesheet" href="qrc:/docs/user-manual.css" />
@@ -25,8 +25,10 @@
             <a class="btn" href="#getting-started">Getting started</a>
             <a class="btn" href="#profiles">Profiles</a>
             <a class="btn" href="#connect">Connect</a>
+            <a class="btn" href="#settings">Settings</a>
+            <a class="btn" href="#themes">Themes</a>
+            <a class="btn" href="#file-transfer">File transfer</a>
             <a class="btn" href="#pq-status">PQ status</a>
-            <a class="btn" href="#sftp">SFTP</a>
             <a class="btn" href="#key-install">Key install</a>
             <a class="btn" href="#logging">Logging</a>
             <a class="btn" href="#troubleshooting">Troubleshooting</a>
@@ -45,15 +47,15 @@
         <div class="callouts">
             <div class="callout">
                 <div class="callout-title">Terminal-first</div>
-                <p>You type commands directly in the SSH terminal. There is no separate command field.</p>
+                <p>Connections open a real SSH terminal powered by your system OpenSSH.</p>
             </div>
             <div class="callout">
                 <div class="callout-title">Profiles</div>
                 <p>Save host/user/port and preferences. Connect with one click.</p>
             </div>
             <div class="callout">
-                <div class="callout-title">Diagnostics</div>
-                <p>Clean UI by default; detailed debug output only when <b>PQ debug</b> is enabled.</p>
+                <div class="callout-title">SFTP workflows</div>
+                <p>Optional libssh session enables browsing and file transfers without breaking the terminal experience.</p>
             </div>
         </div>
     </section>
@@ -68,7 +70,7 @@
         </ol>
 
         <div class="note">
-            <b>Default behavior:</b> “Open new connection in new window” is enabled, so each connection opens separately.
+            <b>Default behavior:</b> “Open new connection in NEW window” is enabled, so each connection opens separately.
         </div>
     </section>
 
@@ -78,15 +80,16 @@
 
         <ul class="bullets">
             <li><b>Name</b> — friendly label (e.g. “Server#1”)</li>
-            <li><b>User</b> — SSH username (e.g. <code>John Smith</code>)</li>
+            <li><b>User</b> — SSH username (e.g. <code>root</code>)</li>
             <li><b>Host</b> — hostname or IP (e.g. <code>192.168.0.1</code>)</li>
             <li><b>Port</b> — default is <code>22</code></li>
+            <li><b>Group</b> — optional label used to organize profiles in the list</li>
             <li><b>Key type</b> — usually <code>auto</code> or <code>openssh</code></li>
             <li><b>Terminal scheme</b> — color scheme for the terminal</li>
         </ul>
 
         <div class="tip">
-            Tip: keep profile names short and consistent (Prod, Staging, Home, etc.).
+            Tip: keep profile names short and consistent (Prod, Staging, Home, etc.) and use Groups to keep the list readable.
         </div>
     </section>
 
@@ -99,8 +102,104 @@
         </ol>
 
         <div class="note">
-            If the terminal does not become interactive, check <a href="#logging">logs</a> or enable <b>PQ debug</b>.
+            Terminal sessions are driven by OpenSSH. In parallel, PQ-SSH may connect a libssh session for SFTP features.
         </div>
+    </section>
+
+    <section id="settings" class="card">
+        <h2>Settings menu</h2>
+        <p>
+            PQ-SSH includes a Settings dialog to control appearance and logging behavior.
+        </p>
+
+        <h3>Where to find it</h3>
+        <ul class="bullets">
+            <li>From the top menu: <b>File → Settings…</b></li>
+        </ul>
+
+        <h3>What happens when you save</h3>
+        <ul class="bullets">
+            <li>Settings are saved and applied immediately.</li>
+            <li>Theme changes take effect instantly (no restart required).</li>
+            <li>Logging level changes take effect instantly.</li>
+        </ul>
+
+        <div class="note">
+            Settings are stored using <code>QSettings</code> under the application name and organization configured by PQ-SSH.
+        </div>
+    </section>
+
+    <section id="themes" class="card">
+        <h2>Themes</h2>
+        <p>
+            Themes control the look and feel of the main UI (lists, buttons, dialogs, tabs).
+            Terminal colors are controlled separately by the selected <b>Terminal scheme</b> in each profile.
+        </p>
+
+        <h3>Available themes</h3>
+        <ul class="bullets">
+            <li><b>CPUNK Dark</b> — dark UI with CPUNK neon accents</li>
+            <li><b>CPUNK Orange</b> — dark UI with orange accents</li>
+            <li><b>Windows Basic</b> — light/neutral UI (classic desktop feel)</li>
+            <li><b>CPUNK Neo</b> — additional CPUNK-styled theme shipped with the app</li>
+        </ul>
+
+        <h3>How to change theme</h3>
+        <ol>
+            <li>Open <b>File → Settings…</b></li>
+            <li>Select an <b>App theme</b></li>
+            <li>Click <b>Save</b></li>
+        </ol>
+
+        <div class="tip">
+            If you don’t see a visible change, make sure you clicked <b>Save</b>. PQ-SSH applies the theme when settings are saved.
+        </div>
+    </section>
+
+    <section id="file-transfer" class="card">
+        <h2>File transfer</h2>
+        <p>
+            PQ-SSH includes a built-in file transfer workflow. It uses a separate <b>libssh</b> session for SFTP operations,
+            while the interactive terminal remains powered by OpenSSH.
+        </p>
+
+        <h3>Files tab</h3>
+        <p>
+            The main window includes a <b>Files</b> tab next to the <b>Log</b> tab.
+            When SFTP is connected, you can browse the remote filesystem and perform transfers.
+        </p>
+
+        <ul class="bullets">
+            <li>If libssh connects successfully, the Files tab becomes active and remote listing works.</li>
+            <li>If libssh fails, the SSH terminal still works normally, but SFTP features are disabled.</li>
+        </ul>
+
+        <h3>Drag &amp; drop uploads</h3>
+        <p>
+            PQ-SSH supports drag &amp; drop uploads into the terminal workflow:
+        </p>
+        <ul class="bullets">
+            <li>If the libssh session is connected, dropped files are uploaded to the remote current working directory (<code>$PWD</code>).</li>
+            <li>If libssh is not connected, PQ-SSH saves the dropped file locally into a safe fallback folder.</li>
+        </ul>
+
+        <h3>Local fallback folder</h3>
+        <p>
+            When the app cannot upload (no SFTP), files are saved locally to:
+        </p>
+        <pre class="codeblock"><code>~/pqssh_drops/</code></pre>
+
+        <div class="warn">
+            <b>Note:</b> The fallback exists to prevent “silent failure” when users expect a drop action to do something.
+            It is not a sync folder.
+        </div>
+
+        <h3>Common reasons SFTP is disabled</h3>
+        <ul class="bullets">
+            <li>Authentication fails for the libssh session</li>
+            <li>Network/firewall issues</li>
+            <li>Profile uses a key type not supported by libssh in PQ-SSH yet</li>
+        </ul>
     </section>
 
     <section id="pq-status" class="card">
@@ -117,25 +216,13 @@
         </div>
 
         <ul class="bullets">
-            <li><b>PQ: ACTIVE</b> — PQ-safe KEX detected.</li>
-            <li><b>PQ: OFF</b> — classical SSH key exchange only.</li>
+            <li><b>PQ: ACTIVE</b> — PQ-safe KEX detected (probe succeeded).</li>
+            <li><b>PQ: OFF</b> — server likely does not offer the probed PQ/hybrid KEX.</li>
             <li><b>PQ: checking…</b> — probe in progress.</li>
-        </ul>
-    </section>
-
-    <section id="sftp" class="card">
-        <h2>SFTP (libssh)</h2>
-        <p>
-            PQ-SSH can establish a separate <b>libssh</b> session for SFTP features (uploads/downloads).
-        </p>
-
-        <ul class="bullets">
-            <li>If libssh connects successfully, you’ll see a message like <b>SFTP Ready</b>.</li>
-            <li>If libssh fails, SFTP is disabled and the SSH terminal still works.</li>
         </ul>
 
         <div class="note">
-            If you use a key type not supported by libssh yet, SFTP will be disabled by design.
+            The indicator is a best-effort UI hint; it does not enforce PQ mode and does not modify SSH server configuration.
         </div>
     </section>
 
@@ -182,9 +269,8 @@ chmod 700 ~/.ssh</code></pre>
             <li>
                 <b>Create a timestamped backup (if the file exists)</b>
                 <p>
-                    If <code>~/.ssh/authorized_keys</code> exists, it is backed up before modification:
+                    If <code>~/.ssh/authorized_keys</code> exists, it is backed up before modification.
                 </p>
-                <pre class="codeblock"><code>~/.ssh/pqssh_backups/authorized_keys.YYYYMMDD-HHMMSS.bak</code></pre>
                 <div class="warn">
                     Backup creation is mandatory. If backup fails, key installation is aborted.
                 </div>
@@ -199,47 +285,35 @@ chmod 700 ~/.ssh</code></pre>
             </li>
         </ol>
 
-        <p>
-            For safety, writes are done <b>atomically</b> to avoid partial/corrupted files.
-            If a write fails after a backup was created, PQ-SSH attempts to restore the original file.
-        </p>
-
         <h3>Safety guarantees</h3>
         <ul class="bullets">
             <li>Existing keys are preserved</li>
-            <li>Automatic backup before modification</li>
+            <li>Backup before modification</li>
             <li>No duplicate keys</li>
             <li>Correct SSH permissions enforced</li>
             <li>No passwords or private keys are uploaded</li>
-            <li>Operation aborts safely on error</li>
         </ul>
-
-        <h3>What PQ-SSH does not do</h3>
-        <ul class="bullets">
-            <li>Does not overwrite existing keys</li>
-            <li>Does not remove or reorder keys</li>
-            <li>Does not modify SSH server configuration</li>
-            <li>Does not upload private keys</li>
-            <li>Does not require root access</li>
-        </ul>
-
-        <h3>Tip: auditing & rollback</h3>
-        <p>Backups are stored on the server under:</p>
-        <pre class="codeblock"><code>~/.ssh/pqssh_backups/</code></pre>
-        <p>You can manually restore a previous version:</p>
-        <pre class="codeblock"><code>cp ~/.ssh/pqssh_backups/authorized_keys.YYYYMMDD-HHMMSS.bak ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys</code></pre>
     </section>
 
     <section id="logging" class="card">
-        <h2>Logging & Debug</h2>
+        <h2>Logging &amp; Debug</h2>
+
+        <h3>Logging levels</h3>
+        <p>
+            Logging verbosity can be controlled from <b>File → Settings…</b>:
+        </p>
+        <ul class="bullets">
+            <li><b>Errors only</b> — minimal logs</li>
+            <li><b>Normal</b> — recommended default</li>
+            <li><b>Debug</b> — detailed logs for troubleshooting</li>
+        </ul>
 
         <h3>Open the log file</h3>
         <p>Use the menu: <b>Help → Open log file</b></p>
 
         <pre class="codeblock"><code>~/.local/share/pq-ssh/logs/pq-ssh.log</code></pre>
 
-        <h3>PQ debug mode</h3>
+        <h3>PQ debug mode (UI)</h3>
         <p>
             Enable <b>PQ debug</b> in the bottom bar to show extra diagnostics in the UI
             (SSH command details, scheme lists, low-level messages).
@@ -252,7 +326,7 @@ chmod 600 ~/.ssh/authorized_keys</code></pre>
     </section>
 
     <section class="card">
-        <h2>Keys & expiration warnings</h2>
+        <h2>Keys &amp; expiration warnings</h2>
         <p>Open <b>Keys → Key Generator…</b> to create/manage keys.</p>
 
         <ul class="bullets">
@@ -264,6 +338,14 @@ chmod 600 ~/.ssh/authorized_keys</code></pre>
 
     <section id="troubleshooting" class="card">
         <h2>Troubleshooting</h2>
+
+        <details>
+            <summary>Theme change didn’t apply</summary>
+            <ul class="bullets">
+                <li>Open <b>File → Settings…</b>, select a theme and click <b>Save</b>.</li>
+                <li>If needed, close and re-open the Settings dialog and try again.</li>
+            </ul>
+        </details>
 
         <details>
             <summary>Connection fails immediately</summary>
@@ -283,11 +365,20 @@ chmod 600 ~/.ssh/authorized_keys</code></pre>
         </details>
 
         <details>
-            <summary>SFTP disabled</summary>
+            <summary>Files tab / SFTP is disabled</summary>
             <ul class="bullets">
                 <li>libssh session may fail even if the terminal SSH works.</li>
                 <li>Some key types are not supported by libssh yet.</li>
-                <li>Check logs for <code>ssh_connect</code> or auth errors.</li>
+                <li>Check logs for auth or connect errors.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Drag &amp; drop saved locally instead of uploading</summary>
+            <ul class="bullets">
+                <li>This means SFTP/libssh was not connected at the time of the drop.</li>
+                <li>Check whether SFTP is ready and try again, or use the Files tab transfers.</li>
+                <li>Local fallback folder: <code>~/pqssh_drops/</code></li>
             </ul>
         </details>
 
