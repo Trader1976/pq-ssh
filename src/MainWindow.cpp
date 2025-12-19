@@ -2393,22 +2393,42 @@ void MainWindow::onImportOpenSshConfig()
         QFile::setPermissions(path, QFileDevice::ReadOwner | QFileDevice::WriteOwner);
     }
 
+    // Detect "only comments" -> inform user (optional but helpful)
+    {
+        QFile rf(path);
+        if (rf.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            const QString text = QString::fromUtf8(rf.readAll());
+            rf.close();
+
+            bool hasHost = false;
+            for (const QString& line : text.split('\n')) {
+                const QString t = line.trimmed();
+                if (t.startsWith("Host ", Qt::CaseInsensitive)) {
+                    hasHost = true;
+                    break;
+                }
+            }
+
+            if (!hasHost) {
+                QMessageBox::information(
+                    this,
+                    "Nothing to import yet",
+                    "Your ~/.ssh/config contains no active Host entries (only comments).\n\n"
+                    "Add a block like:\n\n"
+                    "Host myserver\n"
+                    "    HostName 192.168.1.10\n"
+                    "    User root\n"
+                    "    Port 22\n\n"
+                    "Then try Import again."
+                );
+                // You can return here if you want to avoid opening an empty dialog:
+                // return;
+            }
+        }
+    }
+
     // Parse config
     const SshConfigParseResult parsed = SshConfigParser::parseFile(path);
-
-    // NOTE:
-    // We do NOT assume parsed has a field named "error" because your struct may differ.
-    // If the parser produces no blocks, config can still be valid (GLOBAL-only or empty),
-    // so we don't hard-fail. We'll still open the plan dialog.
-    if (parsed.blocks.isEmpty()) {
-        // Optional: show a soft warning. Remove if you prefer silent.
-        QMessageBox::information(
-            this,
-            "OpenSSH config parsed",
-            "The config was parsed, but no Host blocks were found.\n\n"
-            "This can be normal (GLOBAL-only config). You can still review the import plan."
-        );
-    }
 
     // Existing profile names for diff
     QStringList existingNames;
@@ -2437,7 +2457,7 @@ void MainWindow::onImportOpenSshConfig()
 void MainWindow::onApplyImportedProfiles(const QVector<ImportedProfile>& creates,
                                         const QVector<ImportedProfile>& updates)
 {
-    Q_UNUSED(updates); // v1: implement update later
+    Q_UNUSED(updates); // v1: implement updates later
 
     int added = 0;
 
@@ -2445,13 +2465,11 @@ void MainWindow::onApplyImportedProfiles(const QVector<ImportedProfile>& creates
         SshProfile p;
         p.name = ip.name;
 
-        // Adjust to your actual SshProfile fields:
+        // Adjust these fields to match your SshProfile struct:
         p.host = ip.hostName;
         p.user = ip.user;
         p.port = ip.port;
-
-        // Optional (if you have a field for identity file):
-        // p.identityFile = ip.identityFile;
+        // p.identityFile = ip.identityFile; // only if you have it in SshProfile
 
         m_profiles.push_back(p);
         added++;
