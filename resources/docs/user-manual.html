@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CPUNK PQ-SSH — User Manual</title>
-    <meta name="description" content="User manual for CPUNK PQ-SSH (profile-based SSH client with PQ status, settings, file transfer and logging)." />
+    <meta name="description" content="User manual for CPUNK PQ-SSH (profile-based SSH client with PQ status, settings, file transfer, macros and logging)." />
 
     <!-- IMPORTANT for QTextBrowser + QRC -->
     <link rel="stylesheet" href="qrc:/docs/user-manual.css" />
@@ -25,6 +25,7 @@
             <a class="btn" href="#getting-started">Getting started</a>
             <a class="btn" href="#profiles">Profiles</a>
             <a class="btn" href="#connect">Connect</a>
+            <a class="btn" href="#macros">Macros</a>
             <a class="btn" href="#settings">Settings</a>
             <a class="btn" href="#themes">Themes</a>
             <a class="btn" href="#file-transfer">File transfer</a>
@@ -52,6 +53,10 @@
             <div class="callout">
                 <div class="callout-title">Profiles</div>
                 <p>Save host/user/port and preferences. Connect with one click.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Macros</div>
+                <p>Bind hotkeys to commands and send them to the active SSH terminal instantly.</p>
             </div>
             <div class="callout">
                 <div class="callout-title">SFTP workflows</div>
@@ -86,6 +91,7 @@
             <li><b>Group</b> — optional label used to organize profiles in the list</li>
             <li><b>Key type</b> — usually <code>auto</code> or <code>openssh</code></li>
             <li><b>Terminal scheme</b> — color scheme for the terminal</li>
+            <li><b>Hotkey macros</b> — per-profile macro list (shortcut → command)</li>
         </ul>
 
         <div class="tip">
@@ -103,6 +109,92 @@
 
         <div class="note">
             Terminal sessions are driven by OpenSSH. In parallel, PQ-SSH may connect a libssh session for SFTP features.
+        </div>
+    </section>
+
+    <section id="macros" class="card">
+        <h2>Macros (hotkeys)</h2>
+        <p>
+            PQ-SSH supports <b>per-profile hotkey macros</b>. A macro is a keyboard shortcut that sends a command into the
+            active SSH terminal instantly (optionally adding an automatic <code>[Enter]</code> so the command runs right away).
+        </p>
+
+        <h3>Where macros live</h3>
+        <ul class="bullets">
+            <li>Open <b>Edit profiles…</b></li>
+            <li>Select a profile</li>
+            <li>Use the <b>Hotkey macros</b> panel on the right</li>
+        </ul>
+
+        <h3>Creating a macro</h3>
+        <ol>
+            <li>Click <b>+</b> to add a macro.</li>
+            <li>Set a <b>Name</b> (optional, but recommended).</li>
+            <li>Click the <b>Shortcut</b> field and press a key combo (e.g. <code>F2</code>, <code>Alt+X</code>, <code>Ctrl+Shift+R</code>).</li>
+            <li>Type the <b>Command</b> to send.</li>
+            <li>Enable <b>Send [Enter] automatically</b> if you want it to run immediately.</li>
+        </ol>
+
+        <div class="note">
+            Macros are intentionally simple: PQ-SSH sends plain text to the terminal. It does not execute anything locally.
+        </div>
+
+        <h3>Using macros</h3>
+        <ul class="bullets">
+            <li>Connect using the profile that contains the macro.</li>
+            <li>Press the macro shortcut while the terminal window (or tabbed window) is active.</li>
+            <li>PQ-SSH sends the macro command into the terminal.</li>
+        </ul>
+
+        <h3>Placeholders (variables)</h3>
+        <p>
+            Macros can include <b>placeholder variables</b> that PQ-SSH expands right before sending the command.
+            This lets one macro work across multiple servers without hard-coding usernames/hosts/ports.
+        </p>
+
+        <div class="note">
+            Example:
+            <pre class="codeblock"><code>echo "Connected to {USER}@{HOST}:{PORT}"</code></pre>
+            expands to:
+            <pre class="codeblock"><code>echo "Connected to timo@example.com:2222"</code></pre>
+        </div>
+
+        <h3>Supported placeholders</h3>
+        <ul class="bullets">
+            <li><code>{PROFILE}</code> — profile name</li>
+            <li><code>{USER}</code> — SSH user</li>
+            <li><code>{HOST}</code> — hostname/IP</li>
+            <li><code>{PORT}</code> — port (defaults to 22)</li>
+            <li><code>{TARGET}</code> — <code>user@host</code> (or <code>user@host:port</code> if non-22)</li>
+            <li><code>{HOME}</code> — <code>~</code></li>
+            <li><code>{KEYFILE}</code> — configured key file path (if any)</li>
+        </ul>
+
+        <div class="warn">
+            <b>Important:</b> Unknown placeholders are left as-is. PQ-SSH does not “execute” placeholders; it only replaces known tokens with text.
+        </div>
+
+        <h3>Macro examples</h3>
+        <ul class="bullets">
+            <li><b>Quick status</b>
+                <pre class="codeblock"><code>uptime</code></pre>
+            </li>
+            <li><b>Show disk usage</b>
+                <pre class="codeblock"><code>df -h</code></pre>
+            </li>
+            <li><b>Follow a service log</b>
+                <pre class="codeblock"><code>journalctl -u nginx -f</code></pre>
+            </li>
+            <li><b>Context banner (with placeholders)</b>
+                <pre class="codeblock"><code>echo "=== {PROFILE} :: {TARGET} ==="</code></pre>
+            </li>
+            <li><b>Check host key entry</b>
+                <pre class="codeblock"><code>ssh-keygen -F {HOST}</code></pre>
+            </li>
+        </ul>
+
+        <div class="tip">
+            Tip: Prefer function keys (<code>F1…F12</code>) or <code>Alt+…</code> shortcuts that don’t conflict with terminal apps like <code>vim</code> or <code>mc</code>.
         </div>
     </section>
 
@@ -379,6 +471,24 @@ chmod 700 ~/.ssh</code></pre>
                 <li>This means SFTP/libssh was not connected at the time of the drop.</li>
                 <li>Check whether SFTP is ready and try again, or use the Files tab transfers.</li>
                 <li>Local fallback folder: <code>~/pqssh_drops/</code></li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Macro shortcut doesn’t trigger</summary>
+            <ul class="bullets">
+                <li>Make sure the macro has <b>both</b> a Shortcut and a Command.</li>
+                <li>Ensure the terminal window (or the tabbed window) is the active window.</li>
+                <li>Avoid shortcuts used by the terminal app (e.g. some <code>Ctrl+…</code> combos in <code>vim</code>).</li>
+                <li>Try a function key like <code>F2</code> or an <code>Alt+…</code> shortcut.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Placeholders didn’t expand</summary>
+            <ul class="bullets">
+                <li>Make sure you used supported tokens like <code>{HOST}</code>, <code>{USER}</code>, <code>{PORT}</code>.</li>
+                <li>Unknown placeholders are left unchanged.</li>
             </ul>
         </details>
 
