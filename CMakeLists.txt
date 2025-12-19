@@ -119,6 +119,10 @@ add_executable(pq-ssh
         src/SshConfigParser.cpp
         src/SshConfigImportDialog.h
         src/SshConfigImportDialog.cpp
+        src/SshConfigImportPlan.h
+        src/SshConfigImportPlan.cpp
+        src/SshConfigImportPlanDialog.h
+        src/SshConfigImportPlanDialog.cpp
 )
 target_link_libraries(pq-ssh PRIVATE
         Qt5::Widgets

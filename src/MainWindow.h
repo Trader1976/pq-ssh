@@ -10,6 +10,8 @@
 
 #include "SshProfile.h"
 #include "SshClient.h"
+#include "SshConfigImportPlan.h"
+#include "SshConfigParser.h"
 
 
 
@@ -29,6 +31,7 @@ class KeyGeneratorDialog;
 class SettingsDialog;
 class IdentityManagerDialog;
 class SshConfigImportDialog;
+class SshConfigImportPlanDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -88,6 +91,8 @@ private:
     void rebuildProfileList();
     int  currentProfileIndex() const;
     void ensureProfileItemSelected();
+    void onApplyImportedProfiles(const QVector<ImportedProfile>& creates,
+                                 const QVector<ImportedProfile>& updates);
 
     // UI
     QListWidget    *m_profileList    = nullptr;
@@ -134,6 +139,7 @@ private:
     QAction     *m_devTestUnlockAct  = nullptr;
     IdentityManagerDialog *m_identityDlg = nullptr;
     SshConfigImportDialog *m_sshConfigDlg = nullptr;
+    SshConfigImportPlanDialog* m_sshPlanDlg = nullptr;
 };
 
 #endif // MAINWINDOW_H

@@ -61,6 +61,9 @@
 #include <sodium.h>
 #include <QUuid>
 #include <QFrame>
+#include "SshConfigImportPlanDialog.h"
+#include "SshConfigParser.h"
+#include "SshConfigImportPlan.h"
 
 #include <QToolButton>
 #include <QMenu>
@@ -2342,16 +2345,15 @@ void MainWindow::onIdentityManagerRequested()
 void MainWindow::onImportOpenSshConfig()
 {
     // If already open, bring to front
-    if (m_sshConfigDlg) {
-        m_sshConfigDlg->raise();
-        m_sshConfigDlg->activateWindow();
+    if (m_sshPlanDlg) {
+        m_sshPlanDlg->raise();
+        m_sshPlanDlg->activateWindow();
         return;
     }
 
     const QString sshDir = QDir(QDir::homePath()).filePath(".ssh");
     const QString path   = QDir(sshDir).filePath("config");
 
-    // Ensure ~/.ssh exists (it does in your case, but keep it robust)
     QDir().mkpath(sshDir);
 
     // If config missing, offer to create it
@@ -2388,20 +2390,80 @@ void MainWindow::onImportOpenSshConfig()
         f.write(tpl);
         f.close();
 
-        // Recommended perms for config: 600 (owner read/write only)
         QFile::setPermissions(path, QFileDevice::ReadOwner | QFileDevice::WriteOwner);
     }
 
-    // Open preview window (modeless, movable)
-    m_sshConfigDlg = new SshConfigImportDialog(path, nullptr);
-    m_sshConfigDlg->setAttribute(Qt::WA_DeleteOnClose, true);
-    m_sshConfigDlg->setWindowTitle("CPUNK PQ-SSH — OpenSSH Config Preview");
+    // Parse config
+    const SshConfigParseResult parsed = SshConfigParser::parseFile(path);
 
-    connect(m_sshConfigDlg, &QObject::destroyed, this, [this]() {
-        m_sshConfigDlg = nullptr;
+    // NOTE:
+    // We do NOT assume parsed has a field named "error" because your struct may differ.
+    // If the parser produces no blocks, config can still be valid (GLOBAL-only or empty),
+    // so we don't hard-fail. We'll still open the plan dialog.
+    if (parsed.blocks.isEmpty()) {
+        // Optional: show a soft warning. Remove if you prefer silent.
+        QMessageBox::information(
+            this,
+            "OpenSSH config parsed",
+            "The config was parsed, but no Host blocks were found.\n\n"
+            "This can be normal (GLOBAL-only config). You can still review the import plan."
+        );
+    }
+
+    // Existing profile names for diff
+    QStringList existingNames;
+    existingNames.reserve(m_profiles.size());
+    for (const auto& p : m_profiles)
+        existingNames << p.name;
+
+    // Open Import Plan dialog (modeless)
+    m_sshPlanDlg = new SshConfigImportPlanDialog(path, parsed, existingNames, nullptr);
+    m_sshPlanDlg->setAttribute(Qt::WA_DeleteOnClose, true);
+    m_sshPlanDlg->setWindowTitle("CPUNK PQ-SSH — Import Plan");
+
+    connect(m_sshPlanDlg, &QObject::destroyed, this, [this]() {
+        m_sshPlanDlg = nullptr;
     });
 
-    m_sshConfigDlg->show();
-    m_sshConfigDlg->raise();
-    m_sshConfigDlg->activateWindow();
+    connect(m_sshPlanDlg, &SshConfigImportPlanDialog::applyRequested,
+            this, &MainWindow::onApplyImportedProfiles);
+
+    m_sshPlanDlg->show();
+    m_sshPlanDlg->raise();
+    m_sshPlanDlg->activateWindow();
+}
+
+
+void MainWindow::onApplyImportedProfiles(const QVector<ImportedProfile>& creates,
+                                        const QVector<ImportedProfile>& updates)
+{
+    Q_UNUSED(updates); // v1: implement update later
+
+    int added = 0;
+
+    for (const auto& ip : creates) {
+        SshProfile p;
+        p.name = ip.name;
+
+        // Adjust to your actual SshProfile fields:
+        p.host = ip.hostName;
+        p.user = ip.user;
+        p.port = ip.port;
+
+        // Optional (if you have a field for identity file):
+        // p.identityFile = ip.identityFile;
+
+        m_profiles.push_back(p);
+        added++;
+    }
+
+    if (added > 0) {
+        saveProfilesToDisk();
+        rebuildProfileList();
+        appendTerminalLine(QString("[INFO] Imported %1 profile(s) from ~/.ssh/config").arg(added));
+        if (m_statusLabel) m_statusLabel->setText(QString("Imported %1 profiles").arg(added));
+    } else {
+        appendTerminalLine("[INFO] Import plan applied: no profiles added.");
+        if (m_statusLabel) m_statusLabel->setText("Import plan applied: no changes.");
+    }
 }
