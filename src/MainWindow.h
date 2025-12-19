@@ -11,6 +11,8 @@
 #include "SshProfile.h"
 #include "SshClient.h"
 
+
+
 // Forward declarations (Qt / app)
 class QListWidget;
 class QPlainTextEdit;
@@ -25,6 +27,7 @@ class FilesTab;
 class ProfilesEditorDialog;
 class KeyGeneratorDialog;
 class SettingsDialog;
+class IdentityManagerDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -54,6 +57,7 @@ private slots:
 
     // ✅ NEW: receives negotiated KEX info from SshClient
     void onKexNegotiated(const QString& prettyText, const QString& rawKex);
+    void onIdentityManagerRequested();
 
 private:
     void setupUi();
@@ -126,6 +130,7 @@ private:
     QMainWindow *m_tabbedShellWindow = nullptr;
     QTabWidget  *m_tabWidget         = nullptr;
     QAction     *m_devTestUnlockAct  = nullptr;
+    IdentityManagerDialog *m_identityDlg = nullptr;
 };
 
 #endif // MAINWINDOW_H

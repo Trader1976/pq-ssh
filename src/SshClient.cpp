@@ -300,12 +300,19 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     }
 
     // --- Prefer PQ hybrid KEX when available (libssh 0.11.x+) ---
-    const char *kexPref =
-        "mlkem768x25519-sha256,"
-        "sntrup761x25519-sha512,"
-        "curve25519-sha256";
+        // --- Prefer PQ hybrid KEX (OpenSSH naming) ---
+        // NOTE: must be set BEFORE ssh_connect().
+        const char *kexPref =
+            "sntrup761x25519-sha512@openssh.com,"
+            "curve25519-sha256";
 
-    const int kexRc = ssh_options_set(s, SSH_OPTIONS_KEY_EXCHANGE, kexPref);
+        const int kexRc = ssh_options_set(s, SSH_OPTIONS_KEY_EXCHANGE, kexPref);
+        if (kexRc == SSH_OK) {
+            qInfo().noquote() << QString("[SSH] KEX preference set: %1").arg(kexPref);
+        } else {
+            qInfo().noquote() << QString("[SSH] KEX preference not applied: %1").arg(libsshError(s));
+        }
+
     if (kexRc == SSH_OK) {
         qInfo().noquote() << QString("[SSH] KEX preference set: %1").arg(kexPref);
     } else {

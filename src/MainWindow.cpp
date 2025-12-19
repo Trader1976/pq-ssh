@@ -2,6 +2,7 @@
 #include "KeyGeneratorDialog.h"
 #include "KeyMetadataUtils.h"
 #include "FilesTab.h"
+#include "IdentityManagerDialog.h"
 #include <QTextBrowser>
 #include <QInputDialog>
 #include <QApplication>
@@ -873,7 +874,14 @@ void MainWindow::setupMenus()
     // ARCHITECTURE:
     // View menu is reserved for toggles that affect presentation only
     // (e.g., compact mode, log visibility, terminal UI preferences).
-    menuBar()->addMenu("&View");
+    // View menu (presentation + auxiliary windows)
+    auto *viewMenu = menuBar()->addMenu("&View");
+
+    QAction *identityAct = new QAction("Identity manager…", this);
+    identityAct->setToolTip("Recover a global SSH keypair from 24 words (Ed25519).");
+    viewMenu->addAction(identityAct);
+
+    connect(identityAct, &QAction::triggered, this, &MainWindow::onIdentityManagerRequested);
 
     // Help menu
     auto *helpMenu = menuBar()->addMenu("&Help");
@@ -1277,7 +1285,7 @@ void MainWindow::onConnectClicked()
                 const QString themeId = s.value("ui/theme", "cpunk-dark").toString();
 
                 updatePqStatusLabel(
-                    pqOk ? "PQ: ACTIVE" : "PQ: OFF",
+                    pqOk ? "PQ support: YES" : "PQ support: NO",
                     pqOk ? AppTheme::accent(themeId).name()
                          : QString("#ff5252")
                 );
@@ -2301,4 +2309,28 @@ void MainWindow::onKexNegotiated(const QString& prettyText, const QString& rawKe
 
     if (m_pqStatusLabel)
         m_pqStatusLabel->setToolTip("Negotiated KEX: " + rawKex);
+}
+
+void MainWindow::onIdentityManagerRequested()
+{
+    // If already open, bring to front
+    if (m_identityDlg) {
+        m_identityDlg->raise();
+        m_identityDlg->activateWindow();
+        return;
+    }
+
+    // IMPORTANT: parent = nullptr so it’s freely movable and not “attached”
+    m_identityDlg = new IdentityManagerDialog(nullptr);
+    m_identityDlg->setAttribute(Qt::WA_DeleteOnClose, true);
+    m_identityDlg->setWindowTitle("CPUNK PQ-SSH — Identity Manager");
+
+    // When closed, clear pointer
+    connect(m_identityDlg, &QObject::destroyed, this, [this]() {
+        m_identityDlg = nullptr;
+    });
+
+    m_identityDlg->show();
+    m_identityDlg->raise();
+    m_identityDlg->activateWindow();
 }

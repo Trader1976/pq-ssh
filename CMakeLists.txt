@@ -22,6 +22,10 @@ set(PQSSH_RUNTIME_LIB_DIR "runtime-libs" CACHE STRING "Folder next to the built 
 # Qt
 # ----------------------------
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
+# ----------------------------
+# OpenSSL (for PBKDF2/HKDF/SHA3 in Identity Manager)
+# ----------------------------
+find_package(OpenSSL REQUIRED)
 
 # ----------------------------
 # pkg-config
@@ -96,8 +100,29 @@ add_executable(pq-ssh
         src/RemoteDropTable.cpp
 
         src/SettingsDialog.cpp
-)
 
+        src/IdentityManagerDialog.h
+        src/IdentityManagerDialog.cpp
+
+        src/IdentityDerivation.h
+        src/IdentityDerivation.cpp
+
+        src/OpenSshEd25519Key.h
+        src/OpenSshEd25519Key.cpp
+        src/IdentityManagerDialog.cpp
+        src/IdentityDerivation.h
+        src/IdentityDerivation.cpp
+        src/IdentityDerivation.cpp
+        src/OpenSshEd25519Key.h
+        src/OpenSshEd25519Key.cpp
+)
+target_link_libraries(pq-ssh PRIVATE
+        Qt5::Widgets
+        ${LIBSSH_LIBRARIES}
+        ${QTERM_LIBRARIES}
+        ${SODIUM_LIBRARIES}
+        OpenSSL::Crypto
+)
 target_include_directories(pq-ssh PRIVATE
         ${LIBSSH_INCLUDE_DIRS}
         ${QTERM_INCLUDE_DIRS}
