@@ -115,6 +115,10 @@ add_executable(pq-ssh
         src/IdentityDerivation.cpp
         src/OpenSshEd25519Key.h
         src/OpenSshEd25519Key.cpp
+        src/SshConfigParser.h
+        src/SshConfigParser.cpp
+        src/SshConfigImportDialog.h
+        src/SshConfigImportDialog.cpp
 )
 target_link_libraries(pq-ssh PRIVATE
         Qt5::Widgets

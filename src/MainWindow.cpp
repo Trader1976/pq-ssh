@@ -66,7 +66,8 @@
 #include <QMenu>
 #include <QSettings>
 #include <QShortcut>
-
+#include "SshConfigImportDialog.h"
+#include <QDir>
 #include "SettingsDialog.h"
 
 //
@@ -704,7 +705,10 @@ void MainWindow::setupMenus()
     m_settingsDlg->activateWindow();
 });
 
+    QAction *importSshConfigAct = fileMenu->addAction("Import OpenSSH config…");
+    importSshConfigAct->setToolTip("Read ~/.ssh/config and preview entries (no profiles are created yet).");
 
+    connect(importSshConfigAct, &QAction::triggered, this, &MainWindow::onImportOpenSshConfig);
     // Keys menu
     auto *keysMenu = menuBar()->addMenu("&Keys");
     QAction *keyGenAct = new QAction("Key Generator...", this);
@@ -2333,4 +2337,71 @@ void MainWindow::onIdentityManagerRequested()
     m_identityDlg->show();
     m_identityDlg->raise();
     m_identityDlg->activateWindow();
+}
+
+void MainWindow::onImportOpenSshConfig()
+{
+    // If already open, bring to front
+    if (m_sshConfigDlg) {
+        m_sshConfigDlg->raise();
+        m_sshConfigDlg->activateWindow();
+        return;
+    }
+
+    const QString sshDir = QDir(QDir::homePath()).filePath(".ssh");
+    const QString path   = QDir(sshDir).filePath("config");
+
+    // Ensure ~/.ssh exists (it does in your case, but keep it robust)
+    QDir().mkpath(sshDir);
+
+    // If config missing, offer to create it
+    if (!QFileInfo::exists(path)) {
+        const auto ans = QMessageBox::question(
+            this,
+            "OpenSSH config not found",
+            "No OpenSSH config file was found at:\n\n" + path +
+            "\n\nCreate a starter ~/.ssh/config now?",
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::Yes
+        );
+
+        if (ans != QMessageBox::Yes)
+            return;
+
+        QFile f(path);
+        if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
+            QMessageBox::critical(this, "Cannot create config",
+                                  "Failed to create:\n" + path + "\n\n" + f.errorString());
+            return;
+        }
+
+        const QByteArray tpl =
+            "# OpenSSH client configuration\n"
+            "#\n"
+            "# Example:\n"
+            "# Host myserver\n"
+            "#     HostName 192.168.1.10\n"
+            "#     User root\n"
+            "#     Port 22\n"
+            "#     IdentityFile ~/.ssh/id_ed25519\n"
+            "\n";
+        f.write(tpl);
+        f.close();
+
+        // Recommended perms for config: 600 (owner read/write only)
+        QFile::setPermissions(path, QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+    }
+
+    // Open preview window (modeless, movable)
+    m_sshConfigDlg = new SshConfigImportDialog(path, nullptr);
+    m_sshConfigDlg->setAttribute(Qt::WA_DeleteOnClose, true);
+    m_sshConfigDlg->setWindowTitle("CPUNK PQ-SSH — OpenSSH Config Preview");
+
+    connect(m_sshConfigDlg, &QObject::destroyed, this, [this]() {
+        m_sshConfigDlg = nullptr;
+    });
+
+    m_sshConfigDlg->show();
+    m_sshConfigDlg->raise();
+    m_sshConfigDlg->activateWindow();
 }

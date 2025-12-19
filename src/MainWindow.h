@@ -28,6 +28,7 @@ class ProfilesEditorDialog;
 class KeyGeneratorDialog;
 class SettingsDialog;
 class IdentityManagerDialog;
+class SshConfigImportDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -58,6 +59,7 @@ private slots:
     // ✅ NEW: receives negotiated KEX info from SshClient
     void onKexNegotiated(const QString& prettyText, const QString& rawKex);
     void onIdentityManagerRequested();
+    void onImportOpenSshConfig();
 
 private:
     void setupUi();
@@ -131,6 +133,7 @@ private:
     QTabWidget  *m_tabWidget         = nullptr;
     QAction     *m_devTestUnlockAct  = nullptr;
     IdentityManagerDialog *m_identityDlg = nullptr;
+    SshConfigImportDialog *m_sshConfigDlg = nullptr;
 };
 
 #endif // MAINWINDOW_H
