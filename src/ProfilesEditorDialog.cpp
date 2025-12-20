@@ -1,19 +1,31 @@
 // ProfilesEditorDialog.cpp
 //
-// UI dialog for managing SSH profiles (create/edit/delete).
-// This is a *working copy editor*: changes are made to m_working and only committed
-// to m_result when the user presses Save (accepted).
+// ARCHITECTURE NOTES (ProfilesEditorDialog.cpp)
+//
+// This dialog is the *working-copy editor* for SSH profiles.
+// It edits a local copy (m_working) and only commits to m_result when the user
+// presses Save (Accepted). This is intentionally transactional:
+//
+//   - MainWindow owns the live in-memory profiles used by the app.
+//   - ProfileStore owns disk persistence (profiles.json).
+//   - ProfilesEditorDialog owns editing UX + validation, but does not touch disk.
+//
+// Boundaries / responsibilities:
+// - UI only: build widgets, populate values, validate, and return results.
+// - No I/O: no file writes to profiles.json here.
+// - No SSH: no network operations; this is configuration only.
+// - Macro list is per-profile and is edited in the right column.
 //
 // Design goals:
-// - Keep profile data model (SshProfile) separate from MainWindow.
-// - No direct disk I/O here; saving happens after validation when accepted.
-// - Provide terminal scheme selection from qtermwidget’s installed schemes.
-// - Persist key auth fields (key_type + key_file) but gate unsupported types elsewhere.
+// - Keep form edits safe when switching selection (sync form -> model before switching).
+// - Provide terminal scheme selection via qtermwidget scheme discovery.
+// - Provide group naming (empty => "Ungrouped") for list sorting in the main UI.
+// - Provide multi-macro management (hotkeys) with import/export.
 //
-// Added (Dec 2025):
-// - Group field (empty => "Ungrouped").
-// - Group selector is an editable dropdown populated from existing groups.
-// - Dialog made wider.
+// Notes on styling:
+// - This dialog should remain largely theme-agnostic; AppTheme applies globally.
+// - Local styles are minimal and only used to visually frame the macro panel.
+//
 
 #include "ProfilesEditorDialog.h"
 
@@ -40,7 +52,6 @@
 #include <QKeySequenceEdit>
 #include <QKeySequence>
 #include <QSignalBlocker>
-#include <QSplitter>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -48,12 +59,19 @@
 #include <QJsonParseError>
 #include <QDateTime>
 
-
 #include "CpunkTermWidget.h"
 
-// -----------------------------
+// =========================================================
 // Terminal scheme discovery helpers
-// -----------------------------
+// =========================================================
+//
+// ARCHITECTURE:
+// Terminal color schemes come from qtermwidget.
+// We create a lightweight probe instance and query availableColorSchemes().
+// This stays UI-only: no disk writes, no persistence.
+// If schemes change (user installs more), reopening dialog refreshes them.
+//
+
 static QStringList allTermSchemes()
 {
     CpunkTermWidget probe(0, nullptr);
@@ -71,7 +89,7 @@ static void fillSchemeCombo(QComboBox *combo)
 
     const QString current = combo->currentText();
 
-    // Favourites pinned at the top (only if installed)
+    // UX: pin a few common favourites at top (only if installed).
     const QStringList pinned = {
         "WhiteOnBlack",
         "Ubuntu",
@@ -92,7 +110,7 @@ static void fillSchemeCombo(QComboBox *combo)
 
     QSet<QString> used;
 
-    // Add pinned (if present)
+    // Add pinned first (if present).
     for (const QString &s : pinned) {
         if (schemes.contains(s) && !used.contains(s)) {
             combo->addItem(s);
@@ -100,11 +118,11 @@ static void fillSchemeCombo(QComboBox *combo)
         }
     }
 
-    // Add separator if there are “other” schemes
+    // Separator between pinned and the rest (if any).
     if (!used.isEmpty() && schemes.size() > used.size())
         combo->insertSeparator(combo->count());
 
-    // Add the rest
+    // Add remaining schemes.
     for (const QString &s : schemes) {
         if (!used.contains(s)) {
             combo->addItem(s);
@@ -112,15 +130,15 @@ static void fillSchemeCombo(QComboBox *combo)
         }
     }
 
-    // Restore previous selection if possible
+    // Restore selection if possible.
     if (!current.isEmpty()) {
         const int idx = combo->findText(current);
         if (idx >= 0) combo->setCurrentIndex(idx);
     }
 }
 
-// These two helpers are essentially duplicates of the ones above. Keeping them is fine,
-// but long-term you can consolidate to one set to avoid drift.
+// Legacy helper kept for compatibility with earlier code paths.
+// Long-term you can consolidate scheme discovery into one helper.
 static QStringList installedSchemes()
 {
     CpunkTermWidget probe(0, nullptr);
@@ -130,10 +148,16 @@ static QStringList installedSchemes()
     return schemes;
 }
 
-
-// -----------------------------
+// =========================================================
 // Group helpers
-// -----------------------------
+// =========================================================
+//
+// ARCHITECTURE:
+// "Group" is a UI concept used for sorting/headers in MainWindow.
+// Storage is a simple string field in SshProfile.
+// Empty string is treated as "Ungrouped" for display.
+//
+
 static QString normalizedGroup(const QString &g)
 {
     const QString s = g.trimmed();
@@ -162,7 +186,7 @@ static void populateGroupCombo(QComboBox *combo,
     combo->blockSignals(true);
     combo->clear();
 
-    // Always include Ungrouped first
+    // Always include Ungrouped first.
     combo->addItem(QStringLiteral("Ungrouped"));
 
     const QStringList groups = collectGroups(profiles);
@@ -171,11 +195,12 @@ static void populateGroupCombo(QComboBox *combo,
         combo->addItem(g);
     }
 
+    // Editable so users can type new group names.
     combo->setEditable(true);
     combo->setInsertPolicy(QComboBox::NoInsert);
     combo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
-    // Restore selection / text
+    // Restore selection / text.
     const QString want = normalizedGroup(keep);
     const int idx = combo->findText(want, Qt::MatchFixedString);
     if (idx >= 0) combo->setCurrentIndex(idx);
@@ -183,6 +208,15 @@ static void populateGroupCombo(QComboBox *combo,
 
     combo->blockSignals(false);
 }
+
+// =========================================================
+// Macro helpers (UI-level)
+// =========================================================
+//
+// ARCHITECTURE:
+// Macros are edited as a list (QListWidget) + editor fields.
+// We keep the list item label derived from macro content to help navigation.
+//
 
 bool ProfilesEditorDialog::isMacroEmpty(const ProfileMacro& m) const
 {
@@ -225,7 +259,6 @@ void ProfilesEditorDialog::rebuildMacroList()
     }
 }
 
-
 void ProfilesEditorDialog::ensureMacroSelectionValid()
 {
     if (!m_macroList) return;
@@ -246,6 +279,7 @@ void ProfilesEditorDialog::ensureMacroSelectionValid()
     if (r >= count) r = count - 1;
     m_macroList->setCurrentRow(r);
 }
+
 void ProfilesEditorDialog::loadMacroToEditor(int macroRow)
 {
     if (m_currentRow < 0 || m_currentRow >= m_working.size())
@@ -258,7 +292,7 @@ void ProfilesEditorDialog::loadMacroToEditor(int macroRow)
     m_currentMacroRow = macroRow;
     const ProfileMacro &m = macros[macroRow];
 
-    // Block signals so we don't re-trigger updates while loading
+    // Prevent feedback loops: editor->model connections can fire while we populate UI.
     QSignalBlocker b1(m_macroNameEdit);
     QSignalBlocker b2(m_macroShortcutEdit);
     QSignalBlocker b3(m_macroCmdEdit);
@@ -302,7 +336,7 @@ void ProfilesEditorDialog::syncMacroEditorToCurrent()
     if (m_macroEnterCheck)
         m.sendEnter = m_macroEnterCheck->isChecked();
 
-    // Update list item label live (no full rebuild needed)
+    // Live update list item label (no full rebuild needed).
     if (m_macroList && m_currentMacroRow >= 0 && m_currentMacroRow < m_macroList->count()) {
         if (QListWidgetItem *it = m_macroList->item(m_currentMacroRow)) {
             it->setText(macroDisplayName(m, m_currentMacroRow));
@@ -310,10 +344,9 @@ void ProfilesEditorDialog::syncMacroEditorToCurrent()
     }
 }
 
-
-// -----------------------------
+// =========================================================
 // Constructor
-// -----------------------------
+// =========================================================
 //
 // profiles: full list from caller (MainWindow / ProfileStore)
 // initialRow: which row should be selected when opening
@@ -321,7 +354,7 @@ ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles,
                                           int initialRow,
                                           QWidget *parent)
     : QDialog(parent),
-      m_working(profiles) // local working copy: edits do not touch caller until accepted
+      m_working(profiles) // working copy: edits do not touch caller until accepted
 {
     setWindowTitle("Manage SSH Profiles");
     resize(980, 560);
@@ -331,7 +364,6 @@ ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles,
 
     // Select the same profile the user had selected in MainWindow.
     int row = initialRow;
-
     if (row < 0 || row >= m_working.size()) {
         row = m_working.isEmpty() ? -1 : 0;
     }
@@ -340,22 +372,28 @@ ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles,
         m_list->setCurrentRow(row);
         onListRowChanged(row);
     } else {
-        // No profiles at all -> show empty form
+        // No profiles -> show empty form state (caller may seed defaults later).
         loadProfileToForm(-1);
     }
 }
 
-// -----------------------------
+// =========================================================
 // UI Construction
-// -----------------------------
+// =========================================================
 //
-// Layout is a simple 3-column version:
-// - Left: list of profiles + Add/Delete
-// - Middle: form editing fields for selected profile
-// - Righ: macros
+// Layout uses a 3-column splitter:
+// - Left: profile list + Add/Delete
+// - Middle: profile detail form
+// - Right: macros panel (list + editor + import/export)
+//
+// Architectural note:
+// - buildUi() is view assembly only; no persistence, no SSH.
+// - It may seed "one empty macro" for usability, but that is still just model state.
+//
+
 void ProfilesEditorDialog::buildUi()
 {
-    // Use a splitter so we can have 3 columns + adjustable spacing
+    // Splitter provides resizable columns.
     auto *split = new QSplitter(Qt::Horizontal, this);
     split->setChildrenCollapsible(false);
     split->setHandleWidth(1);
@@ -418,6 +456,7 @@ void ProfilesEditorDialog::buildUi()
     m_portSpin->setRange(1, 65535);
     m_portSpin->setValue(22);
 
+    // Group: editable list of known groups + free typing.
     m_groupCombo = new QComboBox(detailsWidget);
     m_groupCombo->setEditable(true);
     m_groupCombo->setInsertPolicy(QComboBox::NoInsert);
@@ -449,6 +488,7 @@ void ProfilesEditorDialog::buildUi()
     m_historySpin->setValue(2000);
     m_historySpin->setToolTip("Terminal scrollback buffer lines (0 = unlimited)");
 
+    // Auth fields (persistence only; enforcement happens elsewhere).
     m_keyTypeCombo = new QComboBox(detailsWidget);
     m_keyTypeCombo->addItem("auto");
     m_keyTypeCombo->addItem("openssh");
@@ -462,7 +502,7 @@ void ProfilesEditorDialog::buildUi()
 
     auto *keyRow = new QWidget(detailsWidget);
     auto *keyRowLayout = new QHBoxLayout(keyRow);
-    keyRowLayout->setContentsMargins(0, 0, 0, 0);
+    keyRowLayout->setContentsMargins(0,  0,  0,  0);
     keyRowLayout->setSpacing(6);
     keyRowLayout->addWidget(m_keyFileEdit, 1);
     keyRowLayout->addWidget(browseBtn, 0);
@@ -523,6 +563,18 @@ void ProfilesEditorDialog::buildUi()
     auto *macroTitle = new QLabel("Hotkey macros", macroPanel);
     macroTitle->setStyleSheet("font-weight: bold;");
 
+    // Import/Export row
+    m_macroImportBtn = new QPushButton("Import…", macroPanel);
+    m_macroExportBtn = new QPushButton("Export…", macroPanel);
+
+    auto* ieRow = new QWidget(macroPanel);
+    auto* ieRowL = new QHBoxLayout(ieRow);
+    ieRowL->setContentsMargins(0,0,0,0);
+    ieRowL->setSpacing(6);
+    ieRowL->addWidget(m_macroImportBtn);
+    ieRowL->addWidget(m_macroExportBtn);
+    ieRowL->addStretch(1);
+
     // list + buttons row
     auto *macroListRow = new QWidget(macroPanel);
     auto *macroListRowL = new QHBoxLayout(macroListRow);
@@ -544,19 +596,6 @@ void ProfilesEditorDialog::buildUi()
     m_macroDelBtn = new QPushButton("-", macroBtnsCol);
     m_macroDelBtn->setToolTip("Delete selected macro");
 
-    m_macroImportBtn = new QPushButton("Import…", macroPanel);
-    m_macroExportBtn = new QPushButton("Export…", macroPanel);
-
-    auto* ieRow = new QWidget(macroPanel);
-    auto* ieRowL = new QHBoxLayout(ieRow);
-    ieRowL->setContentsMargins(0,0,0,0);
-    ieRowL->setSpacing(6);
-
-    ieRowL->addWidget(m_macroImportBtn);
-    ieRowL->addWidget(m_macroExportBtn);
-    ieRowL->addStretch(1);
-
-    macroL->addWidget(ieRow);
     macroBtnsColL->addWidget(m_macroAddBtn);
     macroBtnsColL->addWidget(m_macroDelBtn);
     macroBtnsColL->addStretch(1);
@@ -564,12 +603,12 @@ void ProfilesEditorDialog::buildUi()
     macroListRowL->addWidget(m_macroList, 1);
     macroListRowL->addWidget(macroBtnsCol, 0);
 
-    // Macro editor: Name
+    // Macro editor fields
     auto *nameLbl = new QLabel("Name:", macroPanel);
     m_macroNameEdit = new QLineEdit(macroPanel);
     m_macroNameEdit->setPlaceholderText("e.g. Backup stats");
 
-    // Macro editor: Shortcut + Clear + Command in one row
+    // Shortcut + Clear + Command row
     auto *rowLbls = new QWidget(macroPanel);
     auto *rowLblsL = new QHBoxLayout(rowLbls);
     rowLblsL->setContentsMargins(0, 0, 0, 0);
@@ -610,7 +649,7 @@ void ProfilesEditorDialog::buildUi()
 
     macroRowL->addWidget(m_macroShortcutEdit, 0);
     macroRowL->addWidget(m_macroClearBtn, 0);
-    macroRowL->addWidget(m_macroCmdEdit, 1); // <-- stretches full width
+    macroRowL->addWidget(m_macroCmdEdit, 1);
 
     m_macroEnterCheck = new QCheckBox("Send [Enter] automatically after command", macroPanel);
     m_macroEnterCheck->setChecked(true);
@@ -623,6 +662,7 @@ void ProfilesEditorDialog::buildUi()
     macroHint->setStyleSheet("color: #9aa0a6; font-size: 12px;");
 
     // assemble macro panel
+    macroL->addWidget(ieRow);
     macroL->addWidget(macroTitle);
     macroL->addWidget(macroListRow, 0);
     macroL->addSpacing(6);
@@ -637,7 +677,7 @@ void ProfilesEditorDialog::buildUi()
     macroOuterL->addWidget(macroPanel, 1);
 
     // =========================================================
-    // Splitter sizes
+    // Splitter sizing
     // =========================================================
     split->setStretchFactor(0, 2);
     split->setStretchFactor(1, 3);
@@ -686,7 +726,8 @@ void ProfilesEditorDialog::buildUi()
 
     connect(m_macroExportBtn, &QPushButton::clicked,
             this, &ProfilesEditorDialog::exportMacros);
-    // If profile has no macros, start with an empty one so UI is usable immediately
+
+    // UX: ensure first profile has at least one macro row so the editor doesn't look "dead".
     if (!m_working.isEmpty() && m_working[0].macros.isEmpty()) {
         ProfileMacro m;
         m.name = "";
@@ -696,32 +737,37 @@ void ProfilesEditorDialog::buildUi()
         m_working[0].macros.push_back(m);
     }
 
+    // Ensure something is selected (which triggers initial load).
     if (m_list->count() > 0 && m_list->currentRow() < 0)
         m_list->setCurrentRow(0);
 }
 
-
-
-
-
-// -----------------------------
+// =========================================================
 // Selection change handling
-// -----------------------------
+// =========================================================
 //
-// We always “sync out” current form fields into the currently-selected profile BEFORE
-// switching to another row. That way you don’t lose edits when clicking around.
+// ARCHITECTURE:
+// We always "sync out" current form fields into m_working BEFORE switching to another row.
+// This prevents silent data loss when the user clicks around.
+//
 void ProfilesEditorDialog::onListRowChanged(int row)
 {
-    // 1) Save current UI -> current profile (including currently selected macro)
+    // 1) Save current UI -> current profile (including current macro).
     syncFormToCurrent();
 
-    // 2) Load newly selected profile -> UI
+    // 2) Load newly selected profile -> UI.
     loadProfileToForm(row);
 }
 
-// -----------------------------
+// =========================================================
 // Load a profile into the form
-// -----------------------------
+// =========================================================
+//
+// ARCHITECTURE:
+// This is view-population only. We avoid triggering "changed" signals while populating.
+// (This implementation doesn't block all fields globally; it is acceptable because
+//  syncFormToCurrent() is called on selection changes and Save.)
+//
 void ProfilesEditorDialog::loadProfileToForm(int row)
 {
     if (row < 0 || row >= m_working.size())
@@ -738,7 +784,7 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
     if (m_hostEdit) m_hostEdit->setText(p.host);
     if (m_portSpin) m_portSpin->setValue(p.port > 0 ? p.port : 22);
 
-    // Group
+    // Group (empty => Ungrouped)
     if (m_groupCombo) {
         populateGroupCombo(m_groupCombo, m_working, p.group);
         const QString g = p.group.trimmed();
@@ -746,7 +792,7 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         else             m_groupCombo->setCurrentText(g);
     }
 
-    // Debug
+    // Debug flag
     if (m_pqDebugCheck) m_pqDebugCheck->setChecked(p.pqDebug);
 
     // -------------------------
@@ -777,6 +823,7 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         const int idx = m_keyTypeCombo->findText(kt);
         if (idx >= 0) m_keyTypeCombo->setCurrentIndex(idx);
         else {
+            // Tolerant read: if config contains unknown key_type, show it anyway.
             m_keyTypeCombo->addItem(kt);
             m_keyTypeCombo->setCurrentIndex(m_keyTypeCombo->count() - 1);
         }
@@ -797,9 +844,9 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         m_working[row].macros.push_back(m);
     }
 
-    // Rebuild list and select a macro (prefer previous selection if valid).
     rebuildMacroList();
 
+    // Prefer previous macro selection if still valid.
     int wantRow = m_currentMacroRow;
     if (wantRow < 0) wantRow = 0;
     if (m_macroList && wantRow >= m_macroList->count())
@@ -810,10 +857,9 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         m_macroList->setCurrentRow(wantRow);
     }
 
-    // Load selected macro into editor (blocks signals inside loadMacroToEditor()).
     loadMacroToEditor(wantRow);
 
-    // If for some reason list is missing, still clear editor safely.
+    // Defensive fallback if macro list is missing.
     if (!m_macroList) {
         if (m_macroNameEdit) m_macroNameEdit->clear();
         if (m_macroShortcutEdit) m_macroShortcutEdit->setKeySequence(QKeySequence());
@@ -823,15 +869,20 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
     }
 }
 
-// -----------------------------
+// =========================================================
 // Sync current form fields -> current profile in m_working
-// -----------------------------
+// =========================================================
+//
+// ARCHITECTURE:
+// This is the single "capture" point that translates UI state into the data model.
+// It's used on row changes and on Save.
+//
 void ProfilesEditorDialog::syncFormToCurrent()
 {
     if (m_currentRow < 0 || m_currentRow >= m_working.size())
         return;
 
-    // Save macro editor -> current macro
+    // Save macro edits first.
     syncMacroEditorToCurrent();
 
     SshProfile &p = m_working[m_currentRow];
@@ -863,7 +914,7 @@ void ProfilesEditorDialog::syncFormToCurrent()
     if (p.keyType.isEmpty()) p.keyType = "auto";
     if (m_keyFileEdit) p.keyFile = m_keyFileEdit->text().trimmed();
 
-    // Keep list label in sync
+    // Keep list label in sync (friendly display name).
     const QString shownName =
         p.name.trimmed().isEmpty()
             ? QString("%1@%2").arg(p.user, p.host)
@@ -876,8 +927,6 @@ void ProfilesEditorDialog::syncFormToCurrent()
 
     p.name = shownName;
 }
-
-
 
 // Live update list label when user edits Name: field.
 // If Name is empty, show "user@host" as the visible label.
@@ -897,13 +946,12 @@ void ProfilesEditorDialog::onNameEdited(const QString &text)
     }
 }
 
-// -----------------------------
+// =========================================================
 // Add / delete profile
-// -----------------------------
+// =========================================================
 void ProfilesEditorDialog::addProfile()
 {
-    // New profile default values.
-    // Keep in sync with ProfileStore::defaults() as much as possible.
+    // New profile defaults. Keep aligned with ProfileStore::defaults().
     SshProfile p;
 
     p.user    = qEnvironmentVariable("USER", "user");
@@ -922,7 +970,7 @@ void ProfilesEditorDialog::addProfile()
     p.keyFile = "";
     p.keyType = "auto";
 
-    // Hotkey macros (multi) defaults: ensure UI is usable immediately
+    // Ensure macro editor is usable immediately.
     p.macros.clear();
     {
         ProfileMacro m;
@@ -933,24 +981,20 @@ void ProfilesEditorDialog::addProfile()
         p.macros.push_back(m);
     }
 
-    // (Optional) if you still have legacy single-macro fields in SshProfile,
-    // keep them consistent (harmless, but not used by the new UI).
+    // Optional backward-compat fields if present in SshProfile.
     p.macroShortcut = "";
     p.macroCommand  = "";
     p.macroEnter    = true;
 
-    // Display label fallback
     p.name = QString("%1@%2").arg(p.user, p.host);
 
-    // Commit new profile
     m_working.push_back(p);
     if (m_list) m_list->addItem(p.name);
 
-    // Refresh group list after addition
+    // Update groups list (so newly added group names become available).
     if (m_groupCombo)
         populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
 
-    // Select the new profile row (this will load the UI via onListRowChanged)
     const int row = m_working.size() - 1;
     if (m_list) m_list->setCurrentRow(row);
 }
@@ -964,7 +1008,6 @@ void ProfilesEditorDialog::deleteProfile()
     m_working.remove(row);
     delete m_list->takeItem(row);
 
-    // Refresh group list after deletion
     if (m_groupCombo)
         populateGroupCombo(m_groupCombo, m_working, m_groupCombo->currentText());
 
@@ -974,16 +1017,19 @@ void ProfilesEditorDialog::deleteProfile()
         return;
     }
 
-    // After deletion, select the closest remaining row
     const int newRow = qMin(row, m_working.size() - 1);
     m_list->setCurrentRow(newRow);
 }
 
-// -----------------------------
+// =========================================================
 // Validation + accept
-// -----------------------------
+// =========================================================
 //
-// This is the “gate” that prevents corrupt profiles from being committed.
+// ARCHITECTURE:
+// This is the dialog's "commit gate": prevent invalid profiles from being accepted.
+// Persistence happens outside the dialog (MainWindow -> ProfileStore::save()).
+//
+
 bool ProfilesEditorDialog::validateProfiles(QString *errMsg) const
 {
     for (const auto &p : m_working) {
@@ -992,8 +1038,8 @@ bool ProfilesEditorDialog::validateProfiles(QString *errMsg) const
             return false;
         }
 
-        // Optional sanity: if key type != auto and key file is empty -> warn
-        // (Key type might become meaningful later. For now this just prevents a confusing config.)
+        // Optional sanity check: if user explicitly sets a non-auto key_type,
+        // they should also provide a key file path to avoid confusing behavior.
         const QString kt = p.keyType.trimmed();
         if (!kt.isEmpty() && kt != "auto") {
             if (p.keyFile.trimmed().isEmpty()) {
@@ -1009,7 +1055,7 @@ bool ProfilesEditorDialog::validateProfiles(QString *errMsg) const
 
 void ProfilesEditorDialog::onAccepted()
 {
-    // Make sure current form edits are captured before validating/saving.
+    // Capture any in-flight edits.
     syncFormToCurrent();
 
     QString err;
@@ -1018,33 +1064,33 @@ void ProfilesEditorDialog::onAccepted()
         return;
     }
 
-    // Commit working set to result and close dialog.
     m_result = m_working;
     accept();
 }
 
-
+// =========================================================
+// Macros: selection + editing
+// =========================================================
 void ProfilesEditorDialog::onMacroRowChanged(int row)
 {
-    // Save edits to previous macro first
+    // Save edits to previous macro before switching.
     syncMacroEditorToCurrent();
 
     m_currentMacroRow = row;
     loadMacroToEditor(row);
 }
+
 void ProfilesEditorDialog::onMacroNameEdited(const QString & /*text*/)
 {
-    // Live list label update
+    // Editor updates should immediately reflect in list label.
     syncMacroEditorToCurrent();
 }
-
 
 void ProfilesEditorDialog::addMacro()
 {
     if (m_currentRow < 0 || m_currentRow >= m_working.size())
         return;
 
-    // Save current macro edits first
     syncMacroEditorToCurrent();
 
     ProfileMacro m;
@@ -1057,7 +1103,8 @@ void ProfilesEditorDialog::addMacro()
 
     rebuildMacroList();
     ensureMacroSelectionValid();
-    m_macroList->setCurrentRow(m_working[m_currentRow].macros.size() - 1);
+    if (m_macroList)
+        m_macroList->setCurrentRow(m_working[m_currentRow].macros.size() - 1);
 }
 
 void ProfilesEditorDialog::deleteMacro()
@@ -1073,7 +1120,7 @@ void ProfilesEditorDialog::deleteMacro()
 
     macros.remove(mi);
 
-    // Keep at least one macro row so UI stays usable (optional choice)
+    // Keep at least one row so the editor stays usable.
     if (macros.isEmpty()) {
         ProfileMacro m;
         m.sendEnter = true;
@@ -1098,7 +1145,6 @@ int ProfilesEditorDialog::currentMacroIndex() const
     const int row = m_macroList->currentRow();
     if (row < 0) return -1;
 
-    // Ensure we have a valid profile selected
     if (m_currentRow < 0 || m_currentRow >= m_working.size())
         return -1;
 
@@ -1108,6 +1154,16 @@ int ProfilesEditorDialog::currentMacroIndex() const
 
     return row;
 }
+
+// =========================================================
+// Macros: import/export
+// =========================================================
+//
+// ARCHITECTURE:
+// Import/export is a UI convenience feature.
+// The file format is versioned and intentionally simple JSON.
+// This does not touch ProfileStore; it only updates m_working.
+//
 
 void ProfilesEditorDialog::exportMacros()
 {
@@ -1133,6 +1189,7 @@ void ProfilesEditorDialog::exportMacros()
 
     QJsonArray arr;
     for (const auto& m : macros) {
+        // Store all fields; consumers can ignore unknown ones later.
         QJsonObject o;
         o["name"] = m.name;
         o["shortcut"] = m.shortcut;
@@ -1187,7 +1244,7 @@ void ProfilesEditorDialog::importMacros()
     if (arr.isEmpty())
         return;
 
-    // Save current edits first
+    // Capture current edits before modifying macro list.
     syncMacroEditorToCurrent();
 
     auto& target = m_working[m_currentRow].macros;
@@ -1203,6 +1260,7 @@ void ProfilesEditorDialog::importMacros()
         m.command = o.value("command").toString();
         m.sendEnter = o.value("send_enter").toBool(true);
 
+        // Skip completely empty imports.
         if (m.shortcut.trimmed().isEmpty() && m.command.trimmed().isEmpty())
             continue;
 

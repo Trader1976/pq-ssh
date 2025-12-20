@@ -1,7 +1,30 @@
 #pragma once
 
+// ProfilesEditorDialog.h
+//
+// ARCHITECTURE NOTES (ProfilesEditorDialog.h)
+//
+// This dialog is the *working-copy editor* for SSH profiles.
+// It edits a local copy (m_working) and only commits to m_result on Save (Accepted).
+//
+// Responsibilities:
+// - UI construction (3-column splitter: profiles list / profile details / macros).
+// - Validation (user+host must exist; optional sanity for key fields).
+// - Macro list editing (add/delete/select + editor + import/export).
+//
+// Non-responsibilities:
+// - No disk I/O (ProfileStore owns persistence).
+// - No SSH/network operations (MainWindow/SshClient own connectivity).
+//
+// Data flow:
+//   caller provides profiles -> m_working (editable copy)
+//   user edits -> syncFormToCurrent()/syncMacroEditorToCurrent()
+//   Save -> validateProfiles() -> m_result = m_working
+//
+
 #include <QDialog>
 #include <QVector>
+#include <QString>
 
 #include "SshProfile.h"
 
@@ -15,6 +38,7 @@ class QDialogButtonBox;
 class QPushButton;
 class QKeySequenceEdit;
 class QLabel;
+class QJsonObject;
 
 class ProfilesEditorDialog : public QDialog
 {
@@ -27,29 +51,38 @@ public:
     QVector<SshProfile> resultProfiles() const { return m_result; }
 
 private:
+    // UI assembly (no persistence / no SSH)
     void buildUi();
 
-    // Profiles
+    // -------------------------
+    // Profiles (m_working)
+    // -------------------------
     void loadProfileToForm(int row);
     void syncFormToCurrent();
     void addProfile();
     void deleteProfile();
     bool validateProfiles(QString *errMsg) const;
+
+    // -------------------------
+    // Macros (multi)
+    // -------------------------
     bool isMacroEmpty(const ProfileMacro& m) const;
     QString macroDisplayName(const ProfileMacro& m, int idx) const;
 
-    // Macros (multi)
     void loadMacroToEditor(int macroRow);
     void syncMacroEditorToCurrent();
+
     int  currentMacroIndex() const;
     void rebuildMacroList();                 // refresh list UI from profile.macros
     void ensureMacroSelectionValid();        // keep selection sane after add/delete
+
     void addMacro();
     void deleteMacro();
     void clearMacroShortcut();
-    void loadMacroToForm(int row);
-    void syncMacroToCurrent();          // (macro editor -> current macro)
 
+    // Import/export helpers (UI convenience; does not touch ProfileStore)
+    QJsonObject macrosToJson(const QVector<ProfileMacro>& macros) const;
+    QVector<ProfileMacro> macrosFromJson(const QJsonObject& obj, QString* err) const;
 
 private slots:
     // Profiles
@@ -68,11 +101,12 @@ private:
     QVector<SshProfile> m_result;
 
     int m_currentRow = -1;       // selected profile row (m_working)
-    int m_currentMacroRow = -1;  // selected macro row (within m_working[m_currentRow].macros)
+    int m_currentMacroRow = -1;  // selected macro row within m_working[m_currentRow].macros
 
     // -------------------------
     // UI widgets
     // -------------------------
+
     // Left: profiles list
     QListWidget *m_list = nullptr;
 
@@ -106,11 +140,10 @@ private:
     QLineEdit        *m_macroCmdEdit = nullptr;        // ProfileMacro::command
     QCheckBox        *m_macroEnterCheck = nullptr;     // ProfileMacro::sendEnter
 
+    // Import/export macros
+    QPushButton *m_macroImportBtn = nullptr;
+    QPushButton *m_macroExportBtn = nullptr;
+
     // Save / Cancel
     QDialogButtonBox *m_buttonsBox = nullptr;
-    // import / export macros
-    QJsonObject macrosToJson(const QVector<ProfileMacro>& macros) const;
-    QVector<ProfileMacro> macrosFromJson(const QJsonObject& obj, QString* err) const;
-    QPushButton* m_macroImportBtn = nullptr;
-    QPushButton* m_macroExportBtn = nullptr;
 };
