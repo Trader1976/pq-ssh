@@ -22,6 +22,7 @@ set(PQSSH_RUNTIME_LIB_DIR "runtime-libs" CACHE STRING "Folder next to the built 
 # Qt
 # ----------------------------
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
+
 # ----------------------------
 # OpenSSL (for PBKDF2/HKDF/SHA3 in Identity Manager)
 # ----------------------------
@@ -81,57 +82,59 @@ add_executable(pq-ssh
         src/ThemeInstaller.cpp
         src/ThemeInstaller.h
 
-        src/KeyGeneratorDialog.h
         src/KeyGeneratorDialog.cpp
+        src/KeyGeneratorDialog.h
 
-        src/KeyMetadataUtils.h
         src/KeyMetadataUtils.cpp
+        src/KeyMetadataUtils.h
 
-        src/Logger.h
         src/Logger.cpp
+        src/Logger.h
 
-        src/DilithiumKeyCrypto.h
         src/DilithiumKeyCrypto.cpp
+        src/DilithiumKeyCrypto.h
 
-        src/FilesTab.h
         src/FilesTab.cpp
+        src/FilesTab.h
 
-        src/RemoteDropTable.h
         src/RemoteDropTable.cpp
+        src/RemoteDropTable.h
 
         src/SettingsDialog.cpp
+        src/SettingsDialog.h
 
+        src/IdentityManagerDialog.cpp
         src/IdentityManagerDialog.h
-        src/IdentityManagerDialog.cpp
 
-        src/IdentityDerivation.h
         src/IdentityDerivation.cpp
+        src/IdentityDerivation.h
 
-        src/OpenSshEd25519Key.h
         src/OpenSshEd25519Key.cpp
-        src/IdentityManagerDialog.cpp
-        src/IdentityDerivation.h
-        src/IdentityDerivation.cpp
-        src/IdentityDerivation.cpp
         src/OpenSshEd25519Key.h
-        src/OpenSshEd25519Key.cpp
-        src/SshConfigParser.h
+
         src/SshConfigParser.cpp
-        src/SshConfigImportDialog.h
+        src/SshConfigParser.h
+
         src/SshConfigImportDialog.cpp
-        src/SshConfigImportPlan.h
+        src/SshConfigImportDialog.h
+
         src/SshConfigImportPlan.cpp
-        src/SshConfigImportPlanDialog.h
+        src/SshConfigImportPlan.h
+
         src/SshConfigImportPlanDialog.cpp
+        src/SshConfigImportPlanDialog.h
+
+        src/Fleet/FleetTypes.h
+        src/Fleet/FleetExecutor.cpp
+        src/Fleet/FleetExecutor.h
+        src/Fleet/FleetWindow.cpp
+        src/Fleet/FleetWindow.h
 )
-target_link_libraries(pq-ssh PRIVATE
-        Qt5::Widgets
-        ${LIBSSH_LIBRARIES}
-        ${QTERM_LIBRARIES}
-        ${SODIUM_LIBRARIES}
-        OpenSSL::Crypto
-)
+
+# IMPORTANT: this fixes your error "SshClient.h: No such file or directory"
+# because Fleet headers include "SshClient.h" and the compiler must see src/ in include paths.
 target_include_directories(pq-ssh PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LIBSSH_INCLUDE_DIRS}
         ${QTERM_INCLUDE_DIRS}
         ${SODIUM_INCLUDE_DIRS}
@@ -148,9 +151,10 @@ target_link_libraries(pq-ssh PRIVATE
         ${LIBSSH_LIBRARIES}
         ${QTERM_LIBRARIES}
         ${SODIUM_LIBRARIES}
+        OpenSSL::Crypto
 )
 
-# Put binary under build/bin like you had
+# Put binary under build/bin
 set_target_properties(pq-ssh PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )

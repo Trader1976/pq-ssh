@@ -72,6 +72,9 @@
 #include "SshConfigImportDialog.h"
 #include <QDir>
 #include "SettingsDialog.h"
+#include <QPointer>
+#include "Fleet/FleetWindow.h"
+
 
 //
 // ARCHITECTURE NOTES (MainWindow.cpp)
@@ -673,48 +676,95 @@ void MainWindow::setupMenus()
     // Design principle: keep menu handlers thin; validate input in UI,
     // then call a single workflow function (e.g. onInstallPublicKeyRequested).
 
+    // ----------------------------
+    // File
+    // ----------------------------
     auto *fileMenu = menuBar()->addMenu("&File");
 
     QAction *settingsAct = fileMenu->addAction("Settings…");
+    settingsAct->setToolTip("Open PQ-SSH settings");
     connect(settingsAct, &QAction::triggered, this, [this]() {
 
-    // If already open, bring to front
-    if (m_settingsDlg) {
+        // If already open, bring to front
+        if (m_settingsDlg) {
+            m_settingsDlg->raise();
+            m_settingsDlg->activateWindow();
+            return;
+        }
+
+        // IMPORTANT: parent = nullptr so it’s freely movable and not “attached”
+        m_settingsDlg = new SettingsDialog(nullptr);
+        m_settingsDlg->setAttribute(Qt::WA_DeleteOnClose, true);
+        m_settingsDlg->setWindowTitle("CPUNK PQ-SSH — Settings");
+
+        // When closed, clear pointer
+        connect(m_settingsDlg, &QObject::destroyed, this, [this]() {
+            m_settingsDlg = nullptr;
+        });
+
+        // Apply settings when user presses OK/Apply (assuming Accepted exists)
+        connect(m_settingsDlg, &QDialog::accepted, this, [this]() {
+            applySavedSettings();
+            rebuildProfileList();
+            appendTerminalLine("[INFO] Settings updated.");
+            if (m_statusLabel) m_statusLabel->setText("Settings updated.");
+        });
+
+        m_settingsDlg->show();
         m_settingsDlg->raise();
         m_settingsDlg->activateWindow();
-        return;
-    }
-
-    // IMPORTANT: parent = nullptr so it’s freely movable and not “attached”
-    m_settingsDlg = new SettingsDialog(nullptr);
-    m_settingsDlg->setAttribute(Qt::WA_DeleteOnClose, true);
-    m_settingsDlg->setWindowTitle("CPUNK PQ-SSH — Settings");
-
-    // When closed, clear pointer
-    connect(m_settingsDlg, &QObject::destroyed, this, [this]() {
-        m_settingsDlg = nullptr;
     });
-
-    // Apply settings when user presses OK/Apply (assuming Accepted exists)
-    connect(m_settingsDlg, &QDialog::accepted, this, [this]() {
-        applySavedSettings();
-        rebuildProfileList();
-        appendTerminalLine("[INFO] Settings updated.");
-        if (m_statusLabel) m_statusLabel->setText("Settings updated.");
-    });
-
-    m_settingsDlg->show();
-    m_settingsDlg->raise();
-    m_settingsDlg->activateWindow();
-});
 
     QAction *importSshConfigAct = fileMenu->addAction("Import OpenSSH config…");
     importSshConfigAct->setToolTip("Read ~/.ssh/config and preview entries (no profiles are created yet).");
-
     connect(importSshConfigAct, &QAction::triggered, this, &MainWindow::onImportOpenSshConfig);
-    // Keys menu
+
+    fileMenu->addSeparator();
+
+    QAction *quitAct = fileMenu->addAction("Quit");
+    quitAct->setShortcut(QKeySequence::Quit);
+    connect(quitAct, &QAction::triggered, this, &QWidget::close);
+
+    // ----------------------------
+    // Tools (Fleet jobs)
+    // ----------------------------
+    auto *toolsMenu = menuBar()->addMenu("&Tools");
+
+    // If already open, bring to front (modeless window)
+    static QPointer<FleetWindow> g_fleetWin;
+
+    QAction *fleetAct = toolsMenu->addAction("Fleet jobs…");
+    fleetAct->setToolTip("Run the same job across multiple profiles/hosts (e.g., deploy to 10 servers).");
+
+    connect(fleetAct, &QAction::triggered, this, [this]() {
+        if (g_fleetWin) {
+            g_fleetWin->raise();
+            g_fleetWin->activateWindow();
+            return;
+        }
+
+        // IMPORTANT: parent = nullptr so it's freely movable and not “attached”
+        g_fleetWin = new FleetWindow(m_profiles, nullptr);
+        g_fleetWin->setAttribute(Qt::WA_DeleteOnClose, true);
+
+        // When closed, clear pointer
+        connect(g_fleetWin, &QObject::destroyed, this, [&]() {
+            g_fleetWin = nullptr;
+        });
+
+        g_fleetWin->show();
+        g_fleetWin->raise();
+        g_fleetWin->activateWindow();
+    });
+
+
+    // ----------------------------
+    // Keys
+    // ----------------------------
     auto *keysMenu = menuBar()->addMenu("&Keys");
+
     QAction *keyGenAct = new QAction("Key Generator...", this);
+    keyGenAct->setToolTip("Generate keys and optionally install the public key to a server profile");
     keysMenu->addAction(keyGenAct);
 
     connect(keyGenAct, &QAction::triggered, this, [this]() {
@@ -728,7 +778,8 @@ void MainWindow::setupMenus()
 
         // Build fresh profile name list (always up-to-date)
         QStringList names;
-        for (const auto& p : m_profiles)
+        names.reserve(m_profiles.size());
+        for (const auto &p : m_profiles)
             names << p.name;
 
         // IMPORTANT: parent = nullptr so it’s freely movable and not “attached”
@@ -749,7 +800,6 @@ void MainWindow::setupMenus()
         m_keyGenerator->raise();
         m_keyGenerator->activateWindow();
     });
-
 
     // Menu-based installer (manual .pub selection).
     // ARCHITECTURE:
@@ -877,36 +927,34 @@ void MainWindow::setupMenus()
         }
     });
 
-    // View menu (placeholder for future)
-    // ARCHITECTURE:
-    // View menu is reserved for toggles that affect presentation only
-    // (e.g., compact mode, log visibility, terminal UI preferences).
-    // View menu (presentation + auxiliary windows)
+    // ----------------------------
+    // View (presentation + auxiliary windows)
+    // ----------------------------
     auto *viewMenu = menuBar()->addMenu("&View");
 
     QAction *identityAct = new QAction("Identity manager…", this);
     identityAct->setToolTip("Recover a global SSH keypair from 24 words (Ed25519).");
     viewMenu->addAction(identityAct);
-
     connect(identityAct, &QAction::triggered, this, &MainWindow::onIdentityManagerRequested);
 
-    // Help menu
+    // ----------------------------
+    // Help
+    // ----------------------------
     auto *helpMenu = menuBar()->addMenu("&Help");
 
     QAction *manualAct = new QAction("User Manual", this);
     manualAct->setToolTip("Open PQ-SSH user manual");
-    connect(manualAct, &QAction::triggered,
-            this, &MainWindow::onOpenUserManual);
+    connect(manualAct, &QAction::triggered, this, &MainWindow::onOpenUserManual);
     helpMenu->addAction(manualAct);
 
     QAction *openLogAct = new QAction("Open log file", this);
     openLogAct->setToolTip("Open pq-ssh log file");
-    connect(openLogAct, &QAction::triggered,
-            this, &MainWindow::onOpenLogFile);
+    connect(openLogAct, &QAction::triggered, this, &MainWindow::onOpenLogFile);
     helpMenu->addAction(openLogAct);
 
     statusBar()->showMessage("CPUNK PQ-SSH prototype");
 }
+
 
 
 
