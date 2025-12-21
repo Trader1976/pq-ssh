@@ -1,15 +1,22 @@
+// FleetExecutor.cpp
 #include "FleetExecutor.h"
 
 #include <QtConcurrent/QtConcurrent>
 #include <QThreadPool>
-#include <QUuid>
-#include <functional>
-#include <QSharedPointer>
-#include <QtConcurrent/QtConcurrent>
 #include <QFutureWatcher>
+#include <QSharedPointer>
+#include <QUuid>
+#include <QDateTime>
+#include <QElapsedTimer>
+#include <QSettings>
+#include <QCryptographicHash>
+#include <QJsonObject>
+
 #include "../AuditLogger.h"
 
-
+// =====================================================
+// Helpers
+// =====================================================
 
 static QString actionToTitle(const FleetAction& a)
 {
@@ -30,7 +37,6 @@ static QString buildCommand(const FleetAction& a)
     }
 
     if (a.type == FleetActionType::CheckService) {
-        // Keep it simple and predictable
         // Output: active/inactive/failed + exit code reflects state
         return QString("systemctl is-active %1").arg(x);
     }
@@ -42,6 +48,53 @@ static QString buildCommand(const FleetAction& a)
 
     return x;
 }
+
+static QString sha256Prefix16(const QString& s)
+{
+    const QByteArray h = QCryptographicHash::hash(s.toUtf8(), QCryptographicHash::Sha256).toHex();
+    return QString::fromLatin1(h.left(16));
+}
+
+// 0 = none, 1 = safe (head+hash), 2 = full
+static QJsonObject commandAuditFields(const QString& cmd, int timeoutMs, int mode)
+{
+    QJsonObject f;
+    f.insert("timeout_ms", timeoutMs);
+
+    const QString trimmed = cmd.trimmed();
+    if (trimmed.isEmpty())
+        return f;
+
+    if (mode <= 0) {
+        // Do not log anything about the command.
+        return f;
+    }
+
+    // Safe-ish metadata
+    const QString head = trimmed.section(' ', 0, 0);
+    if (!head.isEmpty())
+        f.insert("cmd_head", head.left(64));
+
+    f.insert("cmd_hash", sha256Prefix16(trimmed));
+
+    if (mode >= 2) {
+        // Full command is risky; only when user opted in.
+        f.insert("cmd_full", trimmed);
+    }
+
+    return f;
+}
+
+static void mergeJson(QJsonObject* dst, const QJsonObject& src)
+{
+    if (!dst) return;
+    for (auto it = src.begin(); it != src.end(); ++it)
+        dst->insert(it.key(), it.value());
+}
+
+// =====================================================
+// FleetExecutor
+// =====================================================
 
 FleetExecutor::FleetExecutor(QObject* parent)
     : QObject(parent)
@@ -107,21 +160,13 @@ void FleetExecutor::start(const QVector<SshProfile>& profiles,
         return;
     }
 
-    // Strategy:
-    // - split targets into chunks of size = maxConcurrency
-    // - run each chunk in parallel (single QtConcurrent::run per chunk)
-    // - when chunk finishes, append results, emit progress, start next chunk
     const int chunkSize = qMax(1, m_maxConcurrency);
 
-    // Cursor must survive async callbacks -> heap it
     auto cursor = QSharedPointer<int>::create(0);
-
-    // Self-referential callable that survives signal callbacks safely
     auto startNextChunk = QSharedPointer<std::function<void()>>::create();
 
     *startNextChunk = [this, cursor, startNextChunk, profileIndexes, chunkSize]() mutable {
 
-        // If cancel requested before scheduling, mark remaining quickly and finish
         if (m_cancelRequested.loadAcquire() != 0) {
             while (*cursor < profileIndexes.size()) {
                 const int profileIndex = profileIndexes[*cursor];
@@ -151,14 +196,12 @@ void FleetExecutor::start(const QVector<SshProfile>& profiles,
             return;
         }
 
-        // Done?
         if (*cursor >= profileIndexes.size()) {
             m_running = false;
             emit jobFinished(m_job);
             return;
         }
 
-        // Build next chunk
         QVector<int> chunk;
         chunk.reserve(chunkSize);
 
@@ -167,34 +210,26 @@ void FleetExecutor::start(const QVector<SshProfile>& profiles,
             (*cursor)++;
         }
 
-        // Watcher per chunk (simplest + safe)
         using ChunkResult = QVector<FleetTargetResult>;
         auto *watcher = new QFutureWatcher<ChunkResult>(this);
         m_watchers.push_back(watcher);
 
-        // When chunk finishes -> collect results -> schedule next chunk
         QObject::connect(watcher, &QFutureWatcher<ChunkResult>::finished,
                          this, [this, watcher, startNextChunk]() mutable {
 
-            ChunkResult results;
-            // QFuture<QVector<T>> -> result() gives the QVector<T>
-            results = watcher->future().result();
+            const ChunkResult results = watcher->future().result();
 
-            // Append + progress
             for (const auto& r : results) {
                 m_job.results.push_back(r);
                 m_done++;
             }
             emit jobProgress(m_job, m_done, m_total);
 
-            // Cleanup watcher
             watcher->deleteLater();
 
-            // Continue
             (*startNextChunk)();
         });
 
-        // Run chunk
         watcher->setFuture(QtConcurrent::run([this, chunk]() -> ChunkResult {
             ChunkResult out;
             out.reserve(chunk.size());
@@ -202,7 +237,6 @@ void FleetExecutor::start(const QVector<SshProfile>& profiles,
             for (int profileIndex : chunk) {
 
                 if (m_cancelRequested.loadAcquire() != 0) {
-                    // Mark remaining as canceled quickly
                     FleetTargetResult r;
                     r.profileIndex = profileIndex;
 
@@ -239,10 +273,8 @@ void FleetExecutor::start(const QVector<SshProfile>& profiles,
         }));
     };
 
-    // Kick off first chunk
     (*startNextChunk)();
 }
-
 
 FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
                                              int profileIndex,
@@ -256,18 +288,31 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
     r.host         = p.host;
     r.port         = (p.port > 0) ? p.port : 22;
 
+    const int timeoutMs =
+        (m_commandTimeoutMs > 0) ? m_commandTimeoutMs : (90 * 1000);
+
+    const QString cmd = buildCommand(action);
+
+    // NEW: 0=none, 1=safe, 2=full. Default = safe.
+    const int cmdLogMode = qBound(0, QSettings().value("audit/commandLogMode", 1).toInt(), 2);
+    const QJsonObject cmdMeta = commandAuditFields(cmd, timeoutMs, cmdLogMode);
+
     // ---- Audit: target start ----
-    AuditLogger::writeEvent("fleet.target.start", {
-        {"jobId", m_job.id},
-        {"profileIndex", profileIndex},
-        {"profileName", p.name},
-        {"group", p.group},
-        {"user", p.user},
-        {"host", p.host},
-        {"port", r.port},
-        {"actionType", (int)action.type},
-        {"actionTitle", action.title},
-    });
+    {
+        QJsonObject fields{
+            {"jobId", m_job.id},
+            {"profileIndex", profileIndex},
+            {"profileName", p.name},
+            {"group", p.group},
+            {"user", p.user},
+            {"host", p.host},
+            {"port", r.port},
+            {"actionType", (int)action.type},
+            {"actionTitle", actionToTitle(action)},
+        };
+        mergeJson(&fields, cmdMeta);
+        AuditLogger::writeEvent("fleet.target.start", fields);
+    }
 
     if (m_cancelRequested.loadAcquire() != 0) {
         r.state = FleetTargetState::Canceled;
@@ -297,7 +342,6 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
         return r;
     }
 
-    const QString cmd = buildCommand(action);
     if (cmd.trimmed().isEmpty()) {
         r.state = FleetTargetState::Failed;
         r.error = "Empty command/service";
@@ -315,7 +359,6 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
     QElapsedTimer t;
     t.start();
 
-    // One client per target (critical!)
     SshClient client;
     QString err;
 
@@ -329,45 +372,38 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
             {"profileIndex", profileIndex},
             {"profileName", p.name},
             {"durationMs", (int)r.durationMs},
-            {"error", err.left(400)} // cap
+            {"error", err.left(400)}
         });
 
         return r;
     }
 
     QString out, e;
-
-    // Fleet policy: command timeout
-    const int timeoutMs =
-        (m_commandTimeoutMs > 0) ? m_commandTimeoutMs : (90 * 1000); // default 90s
-
-    // Requires:
-    // bool exec(const QString& command, QString* out, QString* err, int timeoutMs);
     const bool ok = client.exec(cmd, &out, &e, timeoutMs);
 
     client.disconnect();
 
     r.durationMs = t.elapsed();
-
-    // Store full stdout/stderr in memory (UI uses preview columns)
     r.stdoutText = out;
     r.stderrText = e;
 
-    // ---- Audit: after execution (this is your key point) ----
-    // Do NOT log full stdout/stderr (could contain secrets). Log small previews only.
     const QString outPreview = out.trimmed().left(240);
     const QString errPreview = e.trimmed().left(240);
 
-    AuditLogger::writeEvent("fleet.target.exec_done", {
-        {"jobId", m_job.id},
-        {"profileIndex", profileIndex},
-        {"profileName", p.name},
-        {"durationMs", (int)r.durationMs},
-        {"timeoutMs", timeoutMs},
-        {"ok", ok},
-        {"stdoutPreview", outPreview},
-        {"stderrPreview", errPreview}
-    });
+    {
+        QJsonObject fields{
+            {"jobId", m_job.id},
+            {"profileIndex", profileIndex},
+            {"profileName", p.name},
+            {"durationMs", (int)r.durationMs},
+            {"timeoutMs", timeoutMs},
+            {"ok", ok},
+            {"stdoutPreview", outPreview},
+            {"stderrPreview", errPreview}
+        };
+        mergeJson(&fields, cmdMeta);
+        AuditLogger::writeEvent("fleet.target.exec_done", fields);
+    }
 
     if (m_cancelRequested.loadAcquire() != 0) {
         r.state = FleetTargetState::Canceled;

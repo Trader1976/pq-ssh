@@ -123,12 +123,66 @@ void FleetWindow::buildUi()
     aTopL->addWidget(new QLabel("Timeout:", aTop));
     aTopL->addWidget(m_timeoutSpin);
 
+    // NEW: Audit command logging mode (per-user setting)
+    m_cmdAuditCombo = new QComboBox(aTop);
+    m_cmdAuditCombo->addItem("None", 0);              // log nothing about command
+    m_cmdAuditCombo->addItem("Safe (head + hash)", 1);// cmd_head + cmd_hash
+    m_cmdAuditCombo->addItem("Full (risky)", 2);      // cmd_full (opt-in)
+    m_cmdAuditCombo->setToolTip(
+        "Controls what gets written to Audit Logs for Fleet commands.\n"
+        "None: no command data\n"
+        "Safe: logs cmd_head + cmd_hash (recommended)\n"
+        "Full: logs full command text (may leak secrets!)"
+    );
+    // Load initial value from settings
+    {
+        QSettings s;
+        const int mode = qBound(0, s.value("audit/commandLogMode", 1).toInt(), 2);
+        for (int i = 0; i < m_cmdAuditCombo->count(); ++i) {
+            if (m_cmdAuditCombo->itemData(i).toInt() == mode) {
+                m_cmdAuditCombo->setCurrentIndex(i);
+                break;
+            }
+        }
+    }
+
+    // Save on change (+ warn if Full)
+    connect(m_cmdAuditCombo, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this](int idx) {
+
+        if (!m_cmdAuditCombo) return;
+
+        const int mode = qBound(0, m_cmdAuditCombo->itemData(idx).toInt(), 2);
+
+        QSettings s;
+        s.setValue("audit/commandLogMode", mode);
+
+        if (mode == 2) {
+            // One-time warning
+            if (!s.value("audit/warnedFullCmdLog", false).toBool()) {
+                s.setValue("audit/warnedFullCmdLog", true);
+                QMessageBox::warning(
+                    this,
+                    "Audit logging: Full commands",
+                    "You enabled FULL command logging in audit logs.\n\n"
+                    "This can leak secrets (tokens, passwords, private paths) into audit files.\n"
+                    "Recommended setting is: Safe (head + hash)."
+                );
+            }
+        }
+    });
+
     aTopL->addWidget(new QLabel("Action:", aTop));
     aTopL->addWidget(m_actionCombo, 1);
+
     aTopL->addWidget(new QLabel("Concurrency:", aTop));
     aTopL->addWidget(m_concurrencySpin);
+
     aTopL->addWidget(new QLabel("Timeout:", aTop));
     aTopL->addWidget(m_timeoutSpin);
+
+    aTopL->addWidget(new QLabel("Audit cmd log:", aTop));
+    aTopL->addWidget(m_cmdAuditCombo);
 
     // Action stacked pages
     m_actionStack = new QStackedWidget(actionBox);
@@ -470,11 +524,31 @@ void FleetWindow::onRunClicked()
     const int conc = m_concurrencySpin ? m_concurrencySpin->value() : 4;
     m_exec->setMaxConcurrency(conc);
 
-    // NEW: command timeout for slow services / commands
-    // If you added m_timeoutSpin in buildUi(), this becomes user-configurable.
-    // Value is in seconds in UI -> convert to ms for executor.
     const int timeoutSec = m_timeoutSpin ? m_timeoutSpin->value() : 90;
     m_exec->setCommandTimeoutMs(timeoutSec * 1000);
+
+    // Command audit logging mode from settings:
+    // 0=None, 1=Safe (head+hash), 2=Full (store full command string)
+    QSettings s;
+    int cmdLogMode = s.value("audit/commandLogMode", 1).toInt();
+    if (cmdLogMode < 0) cmdLogMode = 0;
+    if (cmdLogMode > 2) cmdLogMode = 2;
+
+    // Extra safety: confirm when Full mode is selected
+    if (cmdLogMode == 2) {
+        const auto ans = QMessageBox::warning(
+            this,
+            "Audit logging: FULL commands",
+            "You selected FULL command logging for audit logs.\n\n"
+            "This stores the entire command string into the audit log file and may include secrets "
+            "(tokens, passwords, etc.).\n\n"
+            "Continue?",
+            QMessageBox::Yes | QMessageBox::Cancel,
+            QMessageBox::Cancel
+        );
+        if (ans != QMessageBox::Yes)
+            return;
+    }
 
     FleetAction action;
     action.type = (FleetActionType)m_actionCombo->currentData().toInt();
@@ -511,34 +585,46 @@ void FleetWindow::onRunClicked()
             QMessageBox::Yes | QMessageBox::Cancel,
             QMessageBox::Cancel
         );
-        if (ans != QMessageBox::Yes) return;
+        if (ans != QMessageBox::Yes)
+            return;
     }
 
     clearResults();
-    appendLog(QString("Starting job on %1 target(s), concurrency=%2, timeout=%3s")
+
+    auto modeText = [](int m) -> QString {
+        switch (m) {
+            case 0: return "None";
+            case 1: return "Safe";
+            case 2: return "Full";
+        }
+        return "Safe";
+    };
+
+    appendLog(QString("Starting job on %1 target(s), concurrency=%2, timeout=%3s, auditCmd=%4")
                   .arg(targets.size())
                   .arg(conc)
-                  .arg(timeoutSec));
-
-    // Start engine
-    appendLog(QString("Timeout=%1s").arg(timeoutSec));
+                  .arg(timeoutSec)
+                  .arg(modeText(cmdLogMode)));
 
     m_exec->start(m_profiles, targets, action);
+
     QJsonObject f;
     f["targets"] = (int)targets.size();
     f["concurrency"] = conc;
     f["timeout_ms"] = timeoutSec * 1000;
     f["action"] = (int)action.type;
+    f["cmd_log_mode"] = cmdLogMode;
 
-    // Don’t store full payload; hash it:
     f["payload_hash"] = QString::fromLatin1(
         QCryptographicHash::hash(action.payload.toUtf8(), QCryptographicHash::Sha256).toHex().left(16)
     );
 
     AuditLogger::writeEvent("fleet.job.start", f);
+
     if (m_runBtn) m_runBtn->setEnabled(false);
     if (m_cancelBtn) m_cancelBtn->setEnabled(true);
 }
+
 
 
 void FleetWindow::onCancelClicked()

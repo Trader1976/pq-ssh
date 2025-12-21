@@ -17,7 +17,7 @@
 
 #include "FleetExecutor.h"
 #include "../ProfileStore.h" // SshProfile
-
+class QComboBox;
 class FleetWindow : public QMainWindow
 {
     Q_OBJECT
@@ -81,4 +81,5 @@ private:
     // key: profileIndex -> row
     QHash<int,int> m_rowByProfile;
     QSpinBox* m_timeoutSpin = nullptr;   // command timeout (seconds)
+    QComboBox* m_cmdAuditCombo = nullptr;
 };
