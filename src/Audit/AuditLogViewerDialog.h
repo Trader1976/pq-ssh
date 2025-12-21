@@ -9,6 +9,7 @@ class QTextBrowser;
 class QToolButton;
 class QDateEdit;
 class QSortFilterProxyModel;
+class QToolButton;
 
 #include "AuditLogModel.h"
 class QTextBrowser;
@@ -23,6 +24,7 @@ private slots:
     void onOpenAuditDir();
     void onRowChanged();
     void onSearchChanged(const QString&);
+    void onExportHtml();
 
 private:
     QString auditFileForDate(const QDate& d) const;
@@ -42,4 +44,5 @@ private:
 
     QTableView* m_table = nullptr;
     QTextBrowser* m_details = nullptr;
+    QToolButton* m_exportBtn = nullptr;
 };
