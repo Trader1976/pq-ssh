@@ -78,7 +78,7 @@ void FleetWindow::buildUi()
     // Left: target list
     auto* left = new QWidget(split);
     auto* leftL = new QVBoxLayout(left);
-    leftL->setContentsMargins(0,0,0,0);
+    leftL->setContentsMargins(0, 0, 0, 0);
     leftL->setSpacing(6);
 
     m_targetsList = new QListWidget(left);
@@ -89,7 +89,7 @@ void FleetWindow::buildUi()
     // Right: actions + results/log
     auto* right = new QWidget(split);
     auto* rightL = new QVBoxLayout(right);
-    rightL->setContentsMargins(0,0,0,0);
+    rightL->setContentsMargins(0, 0, 0, 0);
     rightL->setSpacing(8);
 
     // Action box
@@ -98,7 +98,7 @@ void FleetWindow::buildUi()
 
     auto* aTop = new QWidget(actionBox);
     auto* aTopL = new QHBoxLayout(aTop);
-    aTopL->setContentsMargins(0,0,0,0);
+    aTopL->setContentsMargins(0, 0, 0, 0);
     aTopL->setSpacing(8);
 
     m_actionCombo = new QComboBox(aTop);
@@ -111,10 +111,21 @@ void FleetWindow::buildUi()
     m_concurrencySpin->setValue(4);
     m_concurrencySpin->setToolTip("Max parallel targets");
 
+    // NEW: Timeout (seconds)
+    m_timeoutSpin = new QSpinBox(aTop);
+    m_timeoutSpin->setRange(1, 3600);
+    m_timeoutSpin->setValue(90);
+    m_timeoutSpin->setSuffix(" s");
+    m_timeoutSpin->setToolTip("Per-target command timeout (seconds).");
+    aTopL->addWidget(new QLabel("Timeout:", aTop));
+    aTopL->addWidget(m_timeoutSpin);
+
     aTopL->addWidget(new QLabel("Action:", aTop));
     aTopL->addWidget(m_actionCombo, 1);
     aTopL->addWidget(new QLabel("Concurrency:", aTop));
     aTopL->addWidget(m_concurrencySpin);
+    aTopL->addWidget(new QLabel("Timeout:", aTop));
+    aTopL->addWidget(m_timeoutSpin);
 
     // Action stacked pages
     m_actionStack = new QStackedWidget(actionBox);
@@ -123,7 +134,7 @@ void FleetWindow::buildUi()
     {
         auto* page = new QWidget(m_actionStack);
         auto* l = new QFormLayout(page);
-        l->setContentsMargins(0,0,0,0);
+        l->setContentsMargins(0, 0, 0, 0);
 
         m_cmdEdit = new QLineEdit(page);
         m_cmdEdit->setPlaceholderText("e.g. uname -a");
@@ -136,7 +147,7 @@ void FleetWindow::buildUi()
     {
         auto* page = new QWidget(m_actionStack);
         auto* l = new QFormLayout(page);
-        l->setContentsMargins(0,0,0,0);
+        l->setContentsMargins(0, 0, 0, 0);
 
         m_serviceEdit = new QLineEdit(page);
         m_serviceEdit->setPlaceholderText("e.g. nginx");
@@ -149,7 +160,7 @@ void FleetWindow::buildUi()
     {
         auto* page = new QWidget(m_actionStack);
         auto* l = new QFormLayout(page);
-        l->setContentsMargins(0,0,0,0);
+        l->setContentsMargins(0, 0, 0, 0);
 
         // Reuse same service edit instance? No (cleaner UI): create a new one
         auto* svc = new QLineEdit(page);
@@ -175,7 +186,7 @@ void FleetWindow::buildUi()
     // Run bar
     auto* runBar = new QWidget(right);
     auto* runL = new QHBoxLayout(runBar);
-    runL->setContentsMargins(0,0,0,0);
+    runL->setContentsMargins(0, 0, 0, 0);
     runL->setSpacing(8);
 
     m_runBtn = new QPushButton("Run fleet job", runBar);
@@ -240,6 +251,7 @@ void FleetWindow::buildUi()
 
     onActionChanged(m_actionCombo->currentIndex());
 }
+
 
 void FleetWindow::appendLog(const QString& line)
 {
@@ -455,6 +467,12 @@ void FleetWindow::onRunClicked()
     const int conc = m_concurrencySpin ? m_concurrencySpin->value() : 4;
     m_exec->setMaxConcurrency(conc);
 
+    // NEW: command timeout for slow services / commands
+    // If you added m_timeoutSpin in buildUi(), this becomes user-configurable.
+    // Value is in seconds in UI -> convert to ms for executor.
+    const int timeoutSec = m_timeoutSpin ? m_timeoutSpin->value() : 90;
+    m_exec->setCommandTimeoutMs(timeoutSec * 1000);
+
     FleetAction action;
     action.type = (FleetActionType)m_actionCombo->currentData().toInt();
 
@@ -494,14 +512,19 @@ void FleetWindow::onRunClicked()
     }
 
     clearResults();
-    appendLog(QString("Starting job on %1 target(s), concurrency=%2").arg(targets.size()).arg(conc));
+    appendLog(QString("Starting job on %1 target(s), concurrency=%2, timeout=%3s")
+                  .arg(targets.size())
+                  .arg(conc)
+                  .arg(timeoutSec));
 
     // Start engine
+    appendLog(QString("Timeout=%1s").arg(timeoutSec));
     m_exec->start(m_profiles, targets, action);
 
     if (m_runBtn) m_runBtn->setEnabled(false);
     if (m_cancelBtn) m_cancelBtn->setEnabled(true);
 }
+
 
 void FleetWindow::onCancelClicked()
 {

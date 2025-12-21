@@ -243,7 +243,9 @@ void FleetExecutor::start(const QVector<SshProfile>& profiles,
 }
 
 
-FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p, int profileIndex, const FleetAction& action)
+FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
+                                             int profileIndex,
+                                             const FleetAction& action)
 {
     FleetTargetResult r;
     r.profileIndex = profileIndex;
@@ -279,17 +281,6 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p, int profileIn
     SshClient client;
     QString err;
 
-    // NOTE:
-    // - Your SshClient already uses MainWindow passphrase provider there.
-    // - For fleet jobs, if you need passphrase prompts, you should extend SshClient
-    //   to allow a passphrase provider callback set on the instance.
-    //
-    // For now, this will work for:
-    // - password auth (if SshClient supports it)
-    // - unencrypted keys
-    //
-    // If connect fails due to missing passphrase UI, you’ll see it in r.error.
-
     if (!client.connectProfile(p, &err)) {
         r.state = (m_cancelRequested.loadAcquire() != 0) ? FleetTargetState::Canceled : FleetTargetState::Failed;
         r.error = err;
@@ -298,7 +289,20 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p, int profileIn
     }
 
     QString out, e;
-    const bool ok = client.exec(cmd, &out, &e);
+
+    // ------------------------------------------------------------
+    // Fleet policy: command timeout
+    //
+    // Pick one:
+    //   A) a member like m_commandTimeoutMs
+    //   B) a constant for now
+    // ------------------------------------------------------------
+    const int timeoutMs =
+        (m_commandTimeoutMs > 0) ? m_commandTimeoutMs : (90 * 1000); // default 90s
+
+    // IMPORTANT: this requires your SshClient overload:
+    // bool exec(const QString& command, QString* out, QString* err, int timeoutMs);
+    const bool ok = client.exec(cmd, &out, &e, timeoutMs);
 
     client.disconnect();
 
@@ -314,8 +318,16 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p, int profileIn
     r.stderrText = e;
 
     if (!ok) {
-        r.state = FleetTargetState::Failed;
-        r.error = e.trimmed().isEmpty() ? "Command failed" : e.trimmed();
+        // If your exec() sets a recognizable message on timeout, you can map it:
+        const QString trimmed = e.trimmed();
+        if (trimmed.contains("timed out", Qt::CaseInsensitive) ||
+            trimmed.contains("timeout", Qt::CaseInsensitive)) {
+            r.state = FleetTargetState::Failed; // or introduce FleetTargetState::Timeout later
+            r.error = QString("Timeout after %1 ms").arg(timeoutMs);
+        } else {
+            r.state = FleetTargetState::Failed;
+            r.error = trimmed.isEmpty() ? "Command failed" : trimmed;
+        }
         return r;
     }
 

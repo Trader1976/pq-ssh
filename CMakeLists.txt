@@ -21,7 +21,8 @@ set(PQSSH_RUNTIME_LIB_DIR "runtime-libs" CACHE STRING "Folder next to the built 
 # ----------------------------
 # Qt
 # ----------------------------
-find_package(Qt5 REQUIRED COMPONENTS Widgets)
+# NEW: add Concurrent so #include <QtConcurrent/...> works
+find_package(Qt5 REQUIRED COMPONENTS Widgets Concurrent)
 
 # ----------------------------
 # OpenSSL (for PBKDF2/HKDF/SHA3 in Identity Manager)
@@ -148,6 +149,7 @@ target_compile_options(pq-ssh PRIVATE
 
 target_link_libraries(pq-ssh PRIVATE
         Qt5::Widgets
+        Qt5::Concurrent   # NEW: link Concurrent
         ${LIBSSH_LIBRARIES}
         ${QTERM_LIBRARIES}
         ${SODIUM_LIBRARIES}

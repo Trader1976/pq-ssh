@@ -38,6 +38,7 @@
 
     #include "DilithiumKeyCrypto.h"
     #include <QCryptographicHash>
+    #include <QElapsedTimer>
 
     // ------------------------------------------------------------
     // Small helper to turn libssh's last error into QString
@@ -1080,61 +1081,162 @@ bool SshClient::verifyRemoteVsLocalSha256(const QString& remotePath,
 
 
 
-    // ------------------------------------------------------------
-    // Execute a remote command and capture stdout/stderr.
-    // Returns false if exit status != 0.
-    // ------------------------------------------------------------
-    bool SshClient::exec(const QString& command, QString* out, QString* err)
-    {
-        if (out) out->clear();
-        if (err) err->clear();
-        if (!m_session) { if (err) *err = "Not connected."; return false; }
 
-        ssh_channel ch = ssh_channel_new(m_session);
-        if (!ch) { if (err) *err = "ssh_channel_new failed."; return false; }
 
-        if (ssh_channel_open_session(ch) != SSH_OK) {
-            if (err) *err = "ssh_channel_open_session failed: " + libsshError(m_session);
-            ssh_channel_free(ch);
-            return false;
-        }
+// ------------------------------------------------------------
+// Execute a remote command and capture stdout/stderr.
+// Returns false if exit status != 0.
+// Overload supports timeout (ms). timeoutMs <= 0 means "no timeout".
+// ------------------------------------------------------------
+bool SshClient::exec(const QString& command, QString* out, QString* err)
+{
+    // Backward compatible: no timeout
+    return exec(command, out, err, /*timeoutMs=*/0);
+}
 
-        if (ssh_channel_request_exec(ch, command.toUtf8().constData()) != SSH_OK) {
-            if (err) *err = "ssh_channel_request_exec failed: " + libsshError(m_session);
-            ssh_channel_close(ch);
-            ssh_channel_free(ch);
-            return false;
-        }
+bool SshClient::exec(const QString& command, QString* out, QString* err, int timeoutMs)
+{
+    if (out) out->clear();
+    if (err) err->clear();
 
-        QByteArray outBuf, errBuf;
-        char buf[4096];
-        int n;
-
-        while ((n = ssh_channel_read(ch, buf, sizeof(buf), 0)) > 0) {
-            outBuf.append(buf, n);
-        }
-        while ((n = ssh_channel_read(ch, buf, sizeof(buf), 1)) > 0) {
-            errBuf.append(buf, n);
-        }
-
-        ssh_channel_send_eof(ch);
-        ssh_channel_close(ch);
-
-        const int status = ssh_channel_get_exit_status(ch);
-        ssh_channel_free(ch);
-
-        if (out) *out = QString::fromUtf8(outBuf);
-        if (status != 0) {
-            if (err) {
-                const QString e = QString::fromUtf8(errBuf).trimmed();
-                *err = e.isEmpty() ? QString("Remote command failed (exit %1).").arg(status)
-                                   : QString("Remote command failed (exit %1): %2").arg(status).arg(e);
-            }
-            return false;
-        }
-
-        return true;
+    if (!m_session) {
+        if (err) *err = "Not connected.";
+        return false;
     }
+
+    ssh_channel ch = ssh_channel_new(m_session);
+    if (!ch) {
+        if (err) *err = "ssh_channel_new failed.";
+        return false;
+    }
+
+    auto cleanup = [&]() {
+        // Be defensive: only close if it was opened
+        if (ssh_channel_is_open(ch)) {
+            ssh_channel_send_eof(ch);
+            ssh_channel_close(ch);
+        }
+        ssh_channel_free(ch);
+        ch = nullptr;
+    };
+
+    auto fail = [&](const QString& msg) -> bool {
+        if (err) *err = msg;
+        cleanup();
+        return false;
+    };
+
+    if (ssh_channel_open_session(ch) != SSH_OK)
+        return fail("ssh_channel_open_session failed: " + libsshError(m_session));
+
+    if (ssh_channel_request_exec(ch, command.toUtf8().constData()) != SSH_OK)
+        return fail("ssh_channel_request_exec failed: " + libsshError(m_session));
+
+    QByteArray outBuf, errBuf;
+    char buf[4096];
+
+    QElapsedTimer timer;
+    timer.start();
+
+    auto readAvailable = [&](int isStderr) -> bool {
+        while (true) {
+            const int n = ssh_channel_read(ch, buf, sizeof(buf), isStderr);
+            if (n == SSH_ERROR)
+                return false;
+            if (n <= 0)
+                break;
+
+            if (isStderr) errBuf.append(buf, n);
+            else          outBuf.append(buf, n);
+
+            // Keep draining quickly without waiting
+            const int avail = ssh_channel_poll_timeout(ch, 0, isStderr);
+            if (avail == SSH_ERROR)
+                return false;
+            if (avail <= 0)
+                break;
+        }
+        return true;
+    };
+
+    while (true) {
+        if (timeoutMs > 0 && timer.elapsed() > timeoutMs) {
+            if (err) *err = QString("Remote command timed out after %1 ms.").arg(timeoutMs);
+            cleanup();
+            return false;
+        }
+
+        // Wait up to 50ms for stdout activity (this is our main "tick")
+        const int availOut = ssh_channel_poll_timeout(ch, /*timeoutMs*/ 50, /*is_stderr*/ 0);
+        if (availOut == SSH_ERROR)
+            return fail("ssh_channel_poll_timeout(stdout) failed: " + libsshError(m_session));
+
+        if (availOut > 0) {
+            if (!readAvailable(/*isStderr*/0))
+                return fail("ssh_channel_read(stdout) failed: " + libsshError(m_session));
+        }
+
+        // Always drain any stderr that is available (don't block on it)
+        const int availErr = ssh_channel_poll_timeout(ch, /*timeoutMs*/ 0, /*is_stderr*/ 1);
+        if (availErr == SSH_ERROR)
+            return fail("ssh_channel_poll_timeout(stderr) failed: " + libsshError(m_session));
+
+        if (availErr > 0) {
+            if (!readAvailable(/*isStderr*/1))
+                return fail("ssh_channel_read(stderr) failed: " + libsshError(m_session));
+        }
+
+        // Stop when remote EOF and nothing more buffered
+        if (ssh_channel_is_eof(ch)) {
+            const int drainOut = ssh_channel_poll_timeout(ch, 0, 0);
+            const int drainErr = ssh_channel_poll_timeout(ch, 0, 1);
+            if (drainOut == SSH_ERROR)
+                return fail("ssh_channel_poll_timeout(stdout/drain) failed: " + libsshError(m_session));
+            if (drainErr == SSH_ERROR)
+                return fail("ssh_channel_poll_timeout(stderr/drain) failed: " + libsshError(m_session));
+
+            if (drainOut > 0) {
+                if (!readAvailable(0))
+                    return fail("ssh_channel_read(stdout/drain) failed: " + libsshError(m_session));
+            }
+            if (drainErr > 0) {
+                if (!readAvailable(1))
+                    return fail("ssh_channel_read(stderr/drain) failed: " + libsshError(m_session));
+            }
+
+            // If nothing left, we’re done
+            if (drainOut <= 0 && drainErr <= 0)
+                break;
+        }
+    }
+
+    // Close and read exit status
+    ssh_channel_send_eof(ch);
+    ssh_channel_close(ch);
+
+    const int status = ssh_channel_get_exit_status(ch); // deprecated in 0.11, but still works
+    ssh_channel_free(ch);
+    ch = nullptr;
+
+    if (out) *out = QString::fromUtf8(outBuf);
+
+    if (status != 0) {
+        if (err) {
+            const QString e = QString::fromUtf8(errBuf).trimmed();
+            *err = e.isEmpty()
+                ? QString("Remote command failed (exit %1).").arg(status)
+                : QString("Remote command failed (exit %1): %2").arg(status).arg(e);
+        }
+        return false;
+    }
+
+    // Optional: even on success, you might still want stderr text:
+    // if (err && !errBuf.isEmpty()) *err = QString::fromUtf8(errBuf);
+
+    return true;
+}
+
+
 
     // ------------------------------------------------------------
     // Ensure remote directory exists and apply permissions.

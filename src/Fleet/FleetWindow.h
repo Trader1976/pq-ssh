@@ -80,4 +80,5 @@ private:
     // For table row mapping
     // key: profileIndex -> row
     QHash<int,int> m_rowByProfile;
+    QSpinBox* m_timeoutSpin = nullptr;   // command timeout (seconds)
 };

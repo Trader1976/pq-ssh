@@ -125,6 +125,8 @@ public:
     bool downloadToFile(const QString& remotePath, const QString& localPath, QString* err = nullptr);
 
     bool exec(const QString& command, QString* out = nullptr, QString* err = nullptr);
+    // New overload
+    bool exec(const QString& command, QString* out, QString* err, int timeoutMs);
 
     bool readRemoteTextFile(const QString& remotePath, QString* textOut, QString* err = nullptr);
 
