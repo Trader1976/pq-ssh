@@ -25,6 +25,7 @@
             <a class="btn" href="#getting-started">Getting started</a>
             <a class="btn" href="#profiles">Profiles</a>
             <a class="btn" href="#connect">Connect</a>
+            <a class="btn" href="#fleet-jobs">Fleet jobs</a>
             <a class="btn" href="#macros">Macros</a>
             <a class="btn" href="#settings">Settings</a>
             <a class="btn" href="#themes">Themes</a>
@@ -110,6 +111,194 @@
         <div class="note">
             Terminal sessions are driven by OpenSSH. In parallel, PQ-SSH may connect a libssh session for SFTP features.
         </div>
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- Fleet jobs (NEW)                                       -->
+    <!-- ===================================================== -->
+
+    <section id="fleet-jobs" class="card">
+        <h2>Fleet jobs (run actions across many servers)</h2>
+
+        <p>
+            <b>Fleet jobs</b> let you run the same action across multiple saved profiles in one operation.
+            This is useful for routine admin work: health checks, service status checks, and controlled restarts.
+        </p>
+
+        <div class="callouts">
+            <div class="callout">
+                <div class="callout-title">One action → many targets</div>
+                <p>Select 5–50 profiles and execute the same job in parallel.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Concurrency control</div>
+                <p>Limit how many hosts run at once (default: 4) to avoid overload.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Timeout safety</div>
+                <p>Each target has a command timeout to prevent “hang forever” failures.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Audit trail</div>
+                <p>Fleet actions can be recorded to an audit log for accountability.</p>
+            </div>
+        </div>
+
+        <h3>Where to find Fleet jobs</h3>
+        <ul class="bullets">
+            <li>Open from the menu: <b>Tools → Fleet jobs…</b></li>
+        </ul>
+
+        <h3>Concepts</h3>
+        <ul class="bullets">
+            <li><b>Target</b> — one profile/host that the job runs against</li>
+            <li><b>Action</b> — what you want to do (Run command, Check service, Restart service)</li>
+            <li><b>Concurrency</b> — maximum number of targets running in parallel</li>
+            <li><b>Timeout</b> — how long a single target is allowed to run before it is treated as failed</li>
+        </ul>
+
+        <h3>Step-by-step: running a Fleet job</h3>
+        <ol>
+            <li>Open <b>Tools → Fleet jobs…</b></li>
+            <li>Select one or more target profiles in the list.</li>
+            <li>Choose an <b>Action</b>:
+                <ul class="bullets">
+                    <li><b>Run command</b> — executes a shell command on each host</li>
+                    <li><b>Check service</b> — checks if a systemd service is active</li>
+                    <li><b>Restart service</b> — restarts a systemd service (disruptive)</li>
+                </ul>
+            </li>
+            <li>Enter the <b>Command</b> (or <b>Service name</b>) depending on action.</li>
+            <li>Set <b>Concurrency</b> (recommended: 2–8, depending on your network and servers).</li>
+            <li>(If shown) set a <b>Timeout</b> (recommended: 60–180 seconds).</li>
+            <li>Click <b>Run</b>.</li>
+        </ol>
+
+        <div class="note">
+            Fleet jobs create a separate SSH connection per target to avoid cross-thread reuse and to keep failures isolated.
+        </div>
+
+        <h3>Action details</h3>
+
+        <h4>Run command</h4>
+        <p>
+            Runs a command on each target. PQ-SSH captures <b>stdout</b> and <b>stderr</b> for each host and shows the result.
+        </p>
+        <div class="note">
+            Examples:
+            <pre class="codeblock"><code>uptime</code></pre>
+            <pre class="codeblock"><code>df -h</code></pre>
+            <pre class="codeblock"><code>uname -a</code></pre>
+        </div>
+
+        <h4>Check service (systemd)</h4>
+        <p>
+            Checks whether a service is active (systemd). This is a non-disruptive health check.
+        </p>
+        <div class="note">
+            Example service name:
+            <pre class="codeblock"><code>nginx</code></pre>
+            The job will evaluate the service state (active/inactive/failed) and report the result per host.
+        </div>
+
+        <h4>Restart service (systemd)</h4>
+        <p>
+            Restarts a service (systemd). This can interrupt production traffic and should be used with caution.
+            PQ-SSH requires additional confirmation before running disruptive actions.
+        </p>
+
+        <div class="warn">
+            <b>Warning:</b> Restarting services can cause outages. Avoid running restarts during package upgrades,
+            database migrations, or long-running maintenance. Prefer <b>Check service</b> first.
+        </div>
+
+        <h3>Timeouts (why they exist)</h3>
+        <p>
+            Some commands can hang (network calls, waiting for locks, interactive prompts, slow package managers).
+            Fleet jobs enforce a timeout per target so one stuck server does not block the entire job.
+        </p>
+
+        <ul class="bullets">
+            <li>If a target exceeds the timeout, it is marked as <b>Failed</b> with a timeout message.</li>
+            <li>Other targets continue running.</li>
+            <li>Timeouts do not automatically “kill” remote processes on the server; they stop waiting for output.</li>
+        </ul>
+
+        <div class="tip">
+            Tip: For maintenance tasks like <code>apt upgrade</code> or long log scans, increase timeout or avoid Fleet.
+            Fleet is best for short, repeatable commands.
+        </div>
+
+        <h3>Concurrency (don’t overload your network)</h3>
+        <p>
+            Concurrency controls how many targets run at once.
+            Higher concurrency runs faster, but can overload:
+        </p>
+        <ul class="bullets">
+            <li>your own network / VPN</li>
+            <li>the remote SSH servers</li>
+            <li>your CPU if many connections authenticate at once</li>
+        </ul>
+
+        <div class="note">
+            Recommended starting point:
+            <ul class="bullets">
+                <li><b>Home/lab:</b> 2–4</li>
+                <li><b>Small fleet (10–20 servers):</b> 4–8</li>
+                <li><b>Large fleet:</b> tune carefully and consider batching by group</li>
+            </ul>
+        </div>
+
+        <h3>Canceling a job</h3>
+        <p>
+            Click <b>Cancel</b> to request cancellation. Targets that have not started yet will be skipped.
+            Targets already running may finish their current command; results will show as <b>Canceled</b> or <b>Failed</b>
+            depending on timing.
+        </p>
+
+        <div class="note">
+            Fleet jobs are designed to be safe to cancel: cancellation does not modify profile data.
+        </div>
+
+        <h3>Understanding results</h3>
+        <p>
+            After a job finishes, each target shows:
+        </p>
+        <ul class="bullets">
+            <li><b>Status</b> — Ok / Failed / Canceled</li>
+            <li><b>Duration</b> — how long the command took</li>
+            <li><b>Output</b> — captured stdout/stderr (trimmed for readability)</li>
+        </ul>
+
+        <h3>Audit logging (recommended for Fleet)</h3>
+        <p>
+            Fleet actions can be written to a dedicated <b>audit log</b>. Audit logs are intended for
+            traceability (who ran what, when, and against which targets).
+        </p>
+
+        <div class="note">
+            Audit logs typically store:
+            <ul class="bullets">
+                <li>timestamp</li>
+                <li>event name (e.g. <code>fleet.start</code>, <code>fleet.target.ok</code>)</li>
+                <li>target host/profile information (non-secret)</li>
+                <li>optional command hash (not the full command)</li>
+            </ul>
+        </div>
+
+        <div class="warn">
+            <b>Privacy:</b> Avoid storing full command payloads in audit logs if commands may contain secrets.
+            Prefer hashes and minimal metadata.
+        </div>
+
+        <h3>Best practices</h3>
+        <ul class="bullets">
+            <li><b>Start with “Check service”</b> before using “Restart service”.</li>
+            <li><b>Use Groups</b> (Prod/Staging/Home) and run Fleet per-group to reduce risk.</li>
+            <li><b>Keep commands short</b> and non-interactive.</li>
+            <li><b>Avoid long upgrades</b> (like <code>apt upgrade</code>) in Fleet unless you increase timeouts and understand the risk.</li>
+            <li><b>Verify one host first</b>: run the command on a single server, then expand to the whole fleet.</li>
+        </ul>
     </section>
 
     <section id="macros" class="card">
@@ -430,6 +619,26 @@ chmod 700 ~/.ssh</code></pre>
 
     <section id="troubleshooting" class="card">
         <h2>Troubleshooting</h2>
+
+        <details>
+            <summary>Fleet job failed on one host</summary>
+            <ul class="bullets">
+                <li>Open <b>Help → Open log file</b> for detailed errors.</li>
+                <li>Try running the same job against that single host to reproduce.</li>
+                <li>Reduce <b>Concurrency</b> if many hosts fail at once.</li>
+                <li>Increase <b>Timeout</b> if the command is slow on that host.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Fleet restart is dangerous — how to do it safely?</summary>
+            <ul class="bullets">
+                <li>Run <b>Check service</b> first to understand current state.</li>
+                <li>Restart one host first, verify behavior, then expand to the group.</li>
+                <li>Avoid restarts during OS upgrades or package installs.</li>
+                <li>Use a conservative concurrency (2–4) for production fleets.</li>
+            </ul>
+        </details>
 
         <details>
             <summary>Theme change didn’t apply</summary>
