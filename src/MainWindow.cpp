@@ -3,6 +3,7 @@
 #include "KeyMetadataUtils.h"
 #include "FilesTab.h"
 #include "IdentityManagerDialog.h"
+#include "Audit/AuditLogViewerDialog.h"
 #include <QTextBrowser>
 #include <QInputDialog>
 #include <QApplication>
@@ -942,6 +943,25 @@ void MainWindow::setupMenus()
     // Help
     // ----------------------------
     auto *helpMenu = menuBar()->addMenu("&Help");
+
+    QAction *auditViewerAct = new QAction("Audit log viewer…", this);
+    auditViewerAct->setToolTip("View audit logs in a readable, colored format");
+    connect(auditViewerAct, &QAction::triggered, this, [this]() {
+        auto* dlg = new AuditLogViewerDialog(this);
+        dlg->setAttribute(Qt::WA_DeleteOnClose, true);
+        dlg->show();
+        dlg->raise();
+        dlg->activateWindow();
+    });
+    helpMenu->addAction(auditViewerAct);
+
+    QAction *openAuditDirAct = new QAction("Open audit log folder", this);
+    openAuditDirAct->setToolTip("Open audit log directory");
+    connect(openAuditDirAct, &QAction::triggered, this, []() {
+        const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/audit";
+        QDesktopServices::openUrl(QUrl::fromLocalFile(dir));
+    });
+    helpMenu->addAction(openAuditDirAct);
 
     QAction *manualAct = new QAction("User Manual", this);
     manualAct->setToolTip("Open PQ-SSH user manual");
