@@ -1,5 +1,6 @@
 #include "FleetWindow.h"
 
+#include <QCryptographicHash>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QSplitter>
@@ -12,6 +13,8 @@
 #include <QFormLayout>
 #include <QDialogButtonBox>
 #include <QSettings>
+
+#include "AuditLogger.h"
 
 static QString normalizedGroup(const QString& g)
 {
@@ -519,8 +522,20 @@ void FleetWindow::onRunClicked()
 
     // Start engine
     appendLog(QString("Timeout=%1s").arg(timeoutSec));
-    m_exec->start(m_profiles, targets, action);
 
+    m_exec->start(m_profiles, targets, action);
+    QJsonObject f;
+    f["targets"] = (int)targets.size();
+    f["concurrency"] = conc;
+    f["timeout_ms"] = timeoutSec * 1000;
+    f["action"] = (int)action.type;
+
+    // Don’t store full payload; hash it:
+    f["payload_hash"] = QString::fromLatin1(
+        QCryptographicHash::hash(action.payload.toUtf8(), QCryptographicHash::Sha256).toHex().left(16)
+    );
+
+    AuditLogger::writeEvent("fleet.job.start", f);
     if (m_runBtn) m_runBtn->setEnabled(false);
     if (m_cancelBtn) m_cancelBtn->setEnabled(true);
 }

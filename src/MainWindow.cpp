@@ -70,11 +70,12 @@
 #include <QSettings>
 #include <QShortcut>
 #include "SshConfigImportDialog.h"
-#include <QDir>
+
 #include "SettingsDialog.h"
-#include <QPointer>
 #include "Fleet/FleetWindow.h"
 
+#include <QCloseEvent>
+#include "AuditLogger.h"
 
 //
 // ARCHITECTURE NOTES (MainWindow.cpp)
@@ -2255,13 +2256,21 @@ void MainWindow::applySavedSettings()
 {
     QSettings s;
 
-    // Theme (apply from settings)
+    // Theme
     applyCurrentTheme();
 
-    // Logging level (0..2)
-    const int lvl = s.value("logging/level", 1).toInt();
-    Logger::setLogLevel(lvl);
+    // Logging level
+    Logger::setLogLevel(s.value("logging/level", 1).toInt());
+
+    // Log file override: empty => revert to default path
+    const QString logFile = s.value("logging/filePath", "").toString().trimmed();
+    Logger::setLogFilePathOverride(logFile);
+
+    // Audit dir override: empty => revert to default dir
+    const QString auditDir = s.value("audit/dirPath", "").toString().trimmed();
+    AuditLogger::setAuditDirOverride(auditDir);
 }
+
 
 void MainWindow::onOpenSettingsDialog()
 {
@@ -2532,4 +2541,10 @@ void MainWindow::onApplyImportedProfiles(const QVector<ImportedProfile>& creates
         appendTerminalLine("[INFO] Import plan applied: no profiles added.");
         if (m_statusLabel) m_statusLabel->setText("Import plan applied: no changes.");
     }
+}
+
+void MainWindow::closeEvent(QCloseEvent* e)
+{
+    AuditLogger::writeEvent("session.end");
+    QMainWindow::closeEvent(e);
 }

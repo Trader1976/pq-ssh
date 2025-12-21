@@ -9,4 +9,8 @@ namespace Logger {
     int  logLevel();
 
     QString logFilePath();
+
+    // NEW
+    void setLogFilePathOverride(const QString& absoluteFilePath);  // empty => use default
+    QString logDirPath();  // convenience: parent directory of current log file
 }

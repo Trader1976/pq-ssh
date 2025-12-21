@@ -7,6 +7,7 @@
 #include <QSharedPointer>
 #include <QtConcurrent/QtConcurrent>
 #include <QFutureWatcher>
+#include "../AuditLogger.h"
 
 
 
@@ -255,15 +256,44 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
     r.host         = p.host;
     r.port         = (p.port > 0) ? p.port : 22;
 
+    // ---- Audit: target start ----
+    AuditLogger::writeEvent("fleet.target.start", {
+        {"jobId", m_job.id},
+        {"profileIndex", profileIndex},
+        {"profileName", p.name},
+        {"group", p.group},
+        {"user", p.user},
+        {"host", p.host},
+        {"port", r.port},
+        {"actionType", (int)action.type},
+        {"actionTitle", action.title},
+    });
+
     if (m_cancelRequested.loadAcquire() != 0) {
         r.state = FleetTargetState::Canceled;
         r.error = "Canceled";
+
+        AuditLogger::writeEvent("fleet.target.canceled", {
+            {"jobId", m_job.id},
+            {"profileIndex", profileIndex},
+            {"profileName", p.name},
+            {"reason", "cancel_requested_before_connect"}
+        });
+
         return r;
     }
 
     if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
         r.state = FleetTargetState::Failed;
         r.error = "Empty user/host";
+
+        AuditLogger::writeEvent("fleet.target.failed", {
+            {"jobId", m_job.id},
+            {"profileIndex", profileIndex},
+            {"profileName", p.name},
+            {"reason", "empty_user_or_host"}
+        });
+
         return r;
     }
 
@@ -271,6 +301,14 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
     if (cmd.trimmed().isEmpty()) {
         r.state = FleetTargetState::Failed;
         r.error = "Empty command/service";
+
+        AuditLogger::writeEvent("fleet.target.failed", {
+            {"jobId", m_job.id},
+            {"profileIndex", profileIndex},
+            {"profileName", p.name},
+            {"reason", "empty_command"}
+        });
+
         return r;
     }
 
@@ -285,22 +323,25 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
         r.state = (m_cancelRequested.loadAcquire() != 0) ? FleetTargetState::Canceled : FleetTargetState::Failed;
         r.error = err;
         r.durationMs = t.elapsed();
+
+        AuditLogger::writeEvent("fleet.target.connect_failed", {
+            {"jobId", m_job.id},
+            {"profileIndex", profileIndex},
+            {"profileName", p.name},
+            {"durationMs", (int)r.durationMs},
+            {"error", err.left(400)} // cap
+        });
+
         return r;
     }
 
     QString out, e;
 
-    // ------------------------------------------------------------
     // Fleet policy: command timeout
-    //
-    // Pick one:
-    //   A) a member like m_commandTimeoutMs
-    //   B) a constant for now
-    // ------------------------------------------------------------
     const int timeoutMs =
         (m_commandTimeoutMs > 0) ? m_commandTimeoutMs : (90 * 1000); // default 90s
 
-    // IMPORTANT: this requires your SshClient overload:
+    // Requires:
     // bool exec(const QString& command, QString* out, QString* err, int timeoutMs);
     const bool ok = client.exec(cmd, &out, &e, timeoutMs);
 
@@ -308,29 +349,73 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
 
     r.durationMs = t.elapsed();
 
-    if (m_cancelRequested.loadAcquire() != 0) {
-        r.state = FleetTargetState::Canceled;
-        r.error = "Canceled";
-        return r;
-    }
-
+    // Store full stdout/stderr in memory (UI uses preview columns)
     r.stdoutText = out;
     r.stderrText = e;
 
+    // ---- Audit: after execution (this is your key point) ----
+    // Do NOT log full stdout/stderr (could contain secrets). Log small previews only.
+    const QString outPreview = out.trimmed().left(240);
+    const QString errPreview = e.trimmed().left(240);
+
+    AuditLogger::writeEvent("fleet.target.exec_done", {
+        {"jobId", m_job.id},
+        {"profileIndex", profileIndex},
+        {"profileName", p.name},
+        {"durationMs", (int)r.durationMs},
+        {"timeoutMs", timeoutMs},
+        {"ok", ok},
+        {"stdoutPreview", outPreview},
+        {"stderrPreview", errPreview}
+    });
+
+    if (m_cancelRequested.loadAcquire() != 0) {
+        r.state = FleetTargetState::Canceled;
+        r.error = "Canceled";
+
+        AuditLogger::writeEvent("fleet.target.canceled", {
+            {"jobId", m_job.id},
+            {"profileIndex", profileIndex},
+            {"profileName", p.name},
+            {"reason", "cancel_requested_after_exec"}
+        });
+
+        return r;
+    }
+
     if (!ok) {
-        // If your exec() sets a recognizable message on timeout, you can map it:
         const QString trimmed = e.trimmed();
-        if (trimmed.contains("timed out", Qt::CaseInsensitive) ||
-            trimmed.contains("timeout", Qt::CaseInsensitive)) {
-            r.state = FleetTargetState::Failed; // or introduce FleetTargetState::Timeout later
-            r.error = QString("Timeout after %1 ms").arg(timeoutMs);
-        } else {
-            r.state = FleetTargetState::Failed;
-            r.error = trimmed.isEmpty() ? "Command failed" : trimmed;
-        }
+        const bool looksTimeout =
+            trimmed.contains("timed out", Qt::CaseInsensitive) ||
+            trimmed.contains("timeout", Qt::CaseInsensitive);
+
+        r.state = FleetTargetState::Failed;
+        r.error = looksTimeout
+                    ? QString("Timeout after %1 ms").arg(timeoutMs)
+                    : (trimmed.isEmpty() ? "Command failed" : trimmed);
+
+        AuditLogger::writeEvent("fleet.target.failed", {
+            {"jobId", m_job.id},
+            {"profileIndex", profileIndex},
+            {"profileName", p.name},
+            {"durationMs", (int)r.durationMs},
+            {"timeoutMs", timeoutMs},
+            {"reason", looksTimeout ? "timeout" : "exec_failed"},
+            {"error", r.error.left(400)}
+        });
+
         return r;
     }
 
     r.state = FleetTargetState::Ok;
+
+    AuditLogger::writeEvent("fleet.target.success", {
+        {"jobId", m_job.id},
+        {"profileIndex", profileIndex},
+        {"profileName", p.name},
+        {"durationMs", (int)r.durationMs},
+        {"timeoutMs", timeoutMs}
+    });
+
     return r;
 }

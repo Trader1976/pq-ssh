@@ -64,6 +64,9 @@ private slots:
     void onIdentityManagerRequested();
     void onImportOpenSshConfig();
 
+protected:
+    void closeEvent(QCloseEvent* e) override;
+
 private:
     void setupUi();
     void setupMenus();

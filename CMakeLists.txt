@@ -130,6 +130,8 @@ add_executable(pq-ssh
         src/Fleet/FleetExecutor.h
         src/Fleet/FleetWindow.cpp
         src/Fleet/FleetWindow.h
+        src/AuditLogger.h
+        src/AuditLogger.cpp
 )
 
 # IMPORTANT: this fixes your error "SshClient.h: No such file or directory"

@@ -14,6 +14,10 @@
 #include <cstdlib>    // abort
 #include <QDebug>
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#include <QStringConverter>
+#endif
+
 // =====================================================
 // Global logger state (process-wide)
 // =====================================================
@@ -22,6 +26,7 @@ static QFile*   g_file  = nullptr;   // Open log file handle
 static QMutex   g_mutex;             // Guards concurrent writes
 static QString  g_path;              // Absolute path to log file
 static QAtomicInt g_level(1);         // 0=Errors only, 1=Normal, 2=Debug
+static QString g_pathOverride;
 
 // Prevent recursion if something inside handler triggers Qt logging again
 static thread_local bool g_inHandler = false;
@@ -168,16 +173,22 @@ namespace Logger {
 
 void install(const QString& appName)
 {
-    const QString dir =
-        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
-        + "/logs";
+    const QString defaultDir =
+        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/logs";
+    QDir().mkpath(defaultDir);
 
-    QDir().mkpath(dir);
-    g_path = dir + "/" + appName + ".log";
+    const QString defaultPath = defaultDir + "/" + appName + ".log";
 
+    const QString chosenPath =
+        (!g_pathOverride.trimmed().isEmpty())
+            ? QDir::cleanPath(g_pathOverride.trimmed())
+            : defaultPath;
+
+    g_path = chosenPath;
+
+    QDir().mkpath(QFileInfo(g_path).absolutePath());
     rotateIfNeeded(g_path);
 
-    // Close old file if reinstall happens (shouldn't, but defensive)
     {
         QMutexLocker lock(&g_mutex);
         if (g_file) {
@@ -188,7 +199,6 @@ void install(const QString& appName)
 
         g_file = new QFile(g_path);
         if (!g_file->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
-            // Can't rely on qWarning here (handler not installed yet or recursion risk)
             std::fprintf(stderr, "Logger: failed to open log file: %s\n",
                          g_path.toUtf8().constData());
             std::fflush(stderr);
@@ -196,14 +206,43 @@ void install(const QString& appName)
     }
 
     qInstallMessageHandler(handler);
-
-    // First line in the log (goes through handler)
     qInfo().noquote() << QString("Logger initialized: %1").arg(g_path);
 }
 
 QString logFilePath()
 {
     return g_path;
+}
+
+void setLogFilePathOverride(const QString& absoluteFilePath)
+{
+    QMutexLocker lock(&g_mutex);
+
+    g_pathOverride = QDir::cleanPath(absoluteFilePath.trimmed());
+
+    // If cleared, just keep current log open; next install() will use default.
+    if (g_pathOverride.isEmpty())
+        return;
+
+    QDir().mkpath(QFileInfo(g_pathOverride).absolutePath());
+    rotateIfNeeded(g_pathOverride);
+
+    if (g_file) {
+        if (g_file->isOpen()) g_file->close();
+        delete g_file;
+        g_file = nullptr;
+    }
+
+    g_file = new QFile(g_pathOverride);
+    if (g_file->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+        g_path = g_pathOverride;
+        // optional: write a line so you can see path changes
+        // QTextStream ts(g_file); ts << "---- switched log path ----\n"; ts.flush();
+    } else {
+        std::fprintf(stderr, "Logger: failed to open override log file: %s\n",
+                     g_pathOverride.toUtf8().constData());
+        std::fflush(stderr);
+    }
 }
 
 // 0=Errors only, 1=Normal, 2=Debug
@@ -220,3 +259,10 @@ int logLevel()
 }
 
 } // namespace Logger
+
+QString Logger::logDirPath()
+{
+    const QString p = logFilePath().trimmed();
+    if (p.isEmpty()) return QString();
+    return QFileInfo(p).absolutePath();
+}

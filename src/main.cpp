@@ -18,6 +18,8 @@
 #include "AppTheme.h"
 
 #include <QSettings>
+#include "AuditLogger.h"
+#include <QUuid>
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +32,10 @@ int main(int argc, char *argv[])
 
     // Install Qt → file logger first
     Logger::install("pq-ssh");
+
+    AuditLogger::install("pq-ssh");
+    AuditLogger::setSessionId(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    AuditLogger::writeEvent("session.start");
 
     // Load saved settings early
     QSettings s;
