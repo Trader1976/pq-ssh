@@ -57,7 +57,8 @@ int main(int argc, char *argv[])
 
 
     qInfo() << "PQ-SSH starting (theme=" << themeId << ")";
-
+    QCoreApplication::setApplicationName("CPUNK PQ-SSH");
+    QCoreApplication::setApplicationVersion("0.9.0-alpha");
     MainWindow w;
     w.show();
 

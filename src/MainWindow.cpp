@@ -1059,6 +1059,10 @@ void MainWindow::setupMenus()
     helpMenu->addAction(openLogAct);
 
     statusBar()->showMessage("CPUNK PQ-SSH prototype");
+    const QString version = QCoreApplication::applicationVersion();
+    statusBar()->showMessage(
+        QString("CPUNK PQ-SSH %1").arg(version)
+    );
 }
 
 
