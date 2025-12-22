@@ -543,14 +543,14 @@ void MainWindow::setupUi()
     profilesLayout->setContentsMargins(8, 8, 8, 8);
     profilesLayout->setSpacing(6);
 
-    auto *profilesLabel = new QLabel("Profiles", profilesWidget);
+    auto *profilesLabel = new QLabel(tr("Profiles"), profilesWidget);
     profilesLabel->setStyleSheet("font-weight: bold;");
 
     m_profileList = new QListWidget(profilesWidget);
     m_profileList->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    m_editProfilesBtn = new QPushButton("Edit profiles…", profilesWidget);
-    m_editProfilesBtn->setToolTip("Manage profiles inside the app");
+    m_editProfilesBtn = new QPushButton(tr("Edit profiles…"), profilesWidget);
+    m_editProfilesBtn->setToolTip(tr("Manage profiles inside the app"));
 
     profilesLayout->addWidget(profilesLabel);
     profilesLayout->addWidget(m_profileList, 1);
@@ -573,12 +573,12 @@ void MainWindow::setupUi()
     topLayout->setContentsMargins(0, 0, 0, 0);
     topLayout->setSpacing(6);
 
-    auto *hostLabel = new QLabel("Host:", topBar);
+    auto *hostLabel = new QLabel(tr("Host:"), topBar);
     m_hostField = new QLineEdit(topBar);
-    m_hostField->setPlaceholderText("user@hostname");
+    m_hostField->setPlaceholderText(tr("user@hostname"));
 
-    m_connectBtn = new QPushButton("Connect", topBar);
-    m_disconnectBtn = new QPushButton("Disconnect", topBar);
+    m_connectBtn = new QPushButton(tr("Connect"), topBar);
+    m_disconnectBtn = new QPushButton(tr("Disconnect"), topBar);
     m_disconnectBtn->setEnabled(false);
 
 
@@ -625,8 +625,8 @@ void MainWindow::setupUi()
 
     m_filesTab = new FilesTab(&m_ssh, m_mainTabs);
 
-    m_mainTabs->addTab(logPage, "Log");
-    m_mainTabs->addTab(m_filesTab, "Files");
+    m_mainTabs->addTab(logPage, tr("Log"));
+    m_mainTabs->addTab(m_filesTab, tr("Files"));
 
     termLayout->addWidget(m_mainTabs, 1);
     termContainer->setLayout(termLayout);
@@ -642,9 +642,9 @@ void MainWindow::setupUi()
     inputLayout->setSpacing(6);
 
     m_inputField = new QLineEdit(inputBar);
-    m_inputField->setPlaceholderText("Type command (not wired yet) ...");
+    m_inputField->setPlaceholderText(tr("Type command (not wired yet) ..."));
 
-    m_sendBtn = new QPushButton("Send", inputBar);
+    m_sendBtn = new QPushButton(tr("Send"), inputBar);
     m_sendBtn->setEnabled(true);
 
     inputLayout->addWidget(m_inputField, 1);
@@ -657,11 +657,11 @@ void MainWindow::setupUi()
     bottomLayout->setContentsMargins(0, 0, 0, 0);
     bottomLayout->setSpacing(6);
 
-    m_statusLabel = new QLabel("Ready.", bottomBar);
+    m_statusLabel = new QLabel(tr("Ready."), bottomBar);
     m_statusLabel->setStyleSheet("color: gray;");
 
     // PQ status is derived from an OpenSSH probe (sntrup761 hybrid KEX check).
-    m_pqStatusLabel = new QLabel("PQ: unknown", bottomBar);
+    m_pqStatusLabel = new QLabel(tr("PQ: unknown"), bottomBar);
     m_pqStatusLabel->setStyleSheet("color: #888; font-weight: bold;");
 
     // PQ debug gates *UI verbosity* and enables dev/test actions.
@@ -670,7 +670,7 @@ void MainWindow::setupUi()
     m_pqDebugCheck->setChecked(true);
 
     // Connection UX: choose between new window per session or tabbed sessions.
-    m_openInNewWindowCheck = new QCheckBox("Open new connection in NEW window", bottomBar);
+    m_openInNewWindowCheck = new QCheckBox(tr("Open new connection in NEW window"), bottomBar);
     m_openInNewWindowCheck->setChecked(true);
 
     bottomLayout->addWidget(m_statusLabel, 1);
@@ -766,10 +766,10 @@ void MainWindow::setupMenus()
     // ----------------------------
     // File
     // ----------------------------
-    auto *fileMenu = menuBar()->addMenu("&File");
+    auto *fileMenu = menuBar()->addMenu(tr("&File"));
 
-    QAction *settingsAct = fileMenu->addAction("Settings…");
-    settingsAct->setToolTip("Open PQ-SSH settings");
+    QAction *settingsAct = fileMenu->addAction(tr("Settings…"));
+    settingsAct->setToolTip(tr("Open PQ-SSH settings"));
     connect(settingsAct, &QAction::triggered, this, [this]() {
 
         // If already open, bring to front
@@ -802,25 +802,24 @@ void MainWindow::setupMenus()
         m_settingsDlg->activateWindow();
     });
 
-    QAction *importSshConfigAct = fileMenu->addAction("Import OpenSSH config…");
+    QAction *importSshConfigAct = fileMenu->addAction(tr("Import OpenSSH config…"));
     importSshConfigAct->setToolTip("Read ~/.ssh/config and preview entries (no profiles are created yet).");
     connect(importSshConfigAct, &QAction::triggered, this, &MainWindow::onImportOpenSshConfig);
 
     fileMenu->addSeparator();
 
-    QAction *quitAct = fileMenu->addAction("Quit");
+    QAction *quitAct = fileMenu->addAction(tr("Quit"));
     quitAct->setShortcut(QKeySequence::Quit);
     connect(quitAct, &QAction::triggered, this, &QWidget::close);
 
     // ----------------------------
     // Tools (Fleet jobs)
     // ----------------------------
-    auto *toolsMenu = menuBar()->addMenu("&Tools");
-
+    auto *toolsMenu = menuBar()->addMenu(tr("&Tools"));
     // If already open, bring to front (modeless window)
     static QPointer<FleetWindow> g_fleetWin;
 
-    QAction *fleetAct = toolsMenu->addAction("Fleet jobs…");
+    QAction *fleetAct = toolsMenu->addAction(tr("Fleet jobs…"));
     fleetAct->setToolTip("Run the same job across multiple profiles/hosts (e.g., deploy to 10 servers).");
 
     connect(fleetAct, &QAction::triggered, this, [this]() {
@@ -848,9 +847,9 @@ void MainWindow::setupMenus()
     // ----------------------------
     // Keys
     // ----------------------------
-    auto *keysMenu = menuBar()->addMenu("&Keys");
+    auto *keysMenu = menuBar()->addMenu(tr("&Keys"));
 
-    QAction *keyGenAct = new QAction("Key Generator...", this);
+    QAction *keyGenAct = new QAction(tr("Key Generator…"), this);
     keyGenAct->setToolTip("Generate keys and optionally install the public key to a server profile");
     keysMenu->addAction(keyGenAct);
 
@@ -894,7 +893,7 @@ void MainWindow::setupMenus()
     // onInstallPublicKeyRequested(pubKeyLine, profileIndex)
     // Keeping the workflow centralized ensures consistent confirmations,
     // idempotence, and error handling regardless of entry point.
-    QAction *installPubAct = new QAction("Install public key to server…", this);
+    QAction *installPubAct = new QAction(tr("Install public key to server…"), this);
     installPubAct->setToolTip("Append an OpenSSH public key to ~/.ssh/authorized_keys on the selected profile host.");
     keysMenu->addAction(installPubAct);
 
@@ -902,7 +901,7 @@ void MainWindow::setupMenus()
         ensureProfileItemSelected();
         const int row = currentProfileIndex();
         if (row < 0 || row >= m_profiles.size()) {
-            QMessageBox::warning(this, "Key install", "No profile selected.");
+            QMessageBox::warning(this,tr("Key install"),tr("No profile selected."));
             return;
         }
 
@@ -1027,7 +1026,7 @@ void MainWindow::setupMenus()
     // ----------------------------
     // Help
     // ----------------------------
-    auto *helpMenu = menuBar()->addMenu("&Help");
+    auto *helpMenu = menuBar()->addMenu(tr("&Help"));
 
     QAction *auditViewerAct = new QAction("Audit log viewer…", this);
     auditViewerAct->setToolTip("View audit logs in a readable, colored format");
@@ -1048,21 +1047,29 @@ void MainWindow::setupMenus()
     });
     helpMenu->addAction(openAuditDirAct);
 
-    QAction *manualAct = new QAction("User Manual", this);
+    QAction *manualAct = new QAction(tr("User Manual"), this);
     manualAct->setToolTip("Open PQ-SSH user manual");
     connect(manualAct, &QAction::triggered, this, &MainWindow::onOpenUserManual);
     helpMenu->addAction(manualAct);
 
-    QAction *openLogAct = new QAction("Open log file", this);
+    QAction *openLogAct = new QAction(tr("Open log file"), this);
     openLogAct->setToolTip("Open pq-ssh log file");
     connect(openLogAct, &QAction::triggered, this, &MainWindow::onOpenLogFile);
     helpMenu->addAction(openLogAct);
 
-    statusBar()->showMessage("CPUNK PQ-SSH prototype");
-    const QString version = QCoreApplication::applicationVersion();
-    statusBar()->showMessage(
-        QString("CPUNK PQ-SSH %1").arg(version)
-    );
+    // Status bar: left side is transient messages, right side is permanent version.
+    statusBar()->showMessage("Ready");
+
+    if (!m_versionLabel) {
+        m_versionLabel = new QLabel(statusBar());
+        m_versionLabel->setStyleSheet("color:#888; padding:0 6px;");
+        statusBar()->addPermanentWidget(m_versionLabel);
+    }
+
+    const QString v = QCoreApplication::applicationVersion().trimmed();
+    m_versionLabel->setText(v.isEmpty() ? "v0.0.0" : ("v" + v));
+    m_versionLabel->setToolTip(QString("CPUNK PQ-SSH %1").arg(v.isEmpty() ? "v0.0.0" : ("v" + v)));
+
 }
 
 

@@ -146,7 +146,7 @@ private:
     SshConfigImportPlanDialog* m_sshPlanDlg = nullptr;
     bool showStartupUnlockDialog();
     bool verifyAppPassword(const QString& pass) const;
-
+    QLabel *m_versionLabel = nullptr;
 };
 
 #endif // MAINWINDOW_H

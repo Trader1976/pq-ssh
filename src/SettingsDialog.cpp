@@ -21,13 +21,27 @@
 #include <QInputDialog>
 #include <sodium.h>
 
-SettingsDialog::SettingsDialog(QWidget *parent)
-    : QDialog(parent)
+// SettingsDialog.cpp
+bool SettingsDialog::applySettings()
 {
-    setModal(true);
+    QSettings s;
+
+    const QString oldLang = s.value("ui/language", "en").toString().trimmed();
+
+    saveToSettings();      // write current UI values into QSettings
+    s.sync();
+
+    const QString newLang = s.value("ui/language", "en").toString().trimmed();
+    return (newLang != oldLang);
+}
+
+
+SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent)
+{
     buildUi();
     loadFromSettings();
 }
+
 
 static QToolButton* makeIconBtn(QWidget* parent, const QIcon& icon, const QString& tooltip)
 {
@@ -48,6 +62,19 @@ void SettingsDialog::buildUi()
 
     auto* form = new QFormLayout();
     form->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+    // Language
+    m_languageCombo = new QComboBox(this);
+
+    // Visible name, stored value = locale code you’ll use for qm lookup
+    m_languageCombo->addItem("English", "en");
+    m_languageCombo->addItem("Suomi",   "fi");
+    // Later: add more
+    // m_languageCombo->addItem("Deutsch", "de");
+    // m_languageCombo->addItem("Español", "es");
+
+    form->addRow("Language:", m_languageCombo);
+
 
     // Theme
     m_themeCombo = new QComboBox(this);
@@ -155,12 +182,26 @@ void SettingsDialog::buildUi()
     outer->addLayout(form);
 
     // Buttons
-    m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+    m_buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Apply | QDialogButtonBox::Cancel, this);
     outer->addWidget(m_buttons);
 
     connect(m_buttons, &QDialogButtonBox::accepted, this, &SettingsDialog::onAccepted);
     connect(m_buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-}
+
+    if (auto* applyBtn = m_buttons->button(QDialogButtonBox::Apply)) {
+        connect(applyBtn, &QPushButton::clicked, this, [this]() {
+            const bool langChanged = applySettings();
+            if (langChanged && !m_restartWarned) {
+                m_restartWarned = true;
+                QMessageBox::information(
+                    this,
+                    tr("Restart required"),
+                    tr("Language change will take effect after restarting the application.")
+                );
+            }
+        });
+    }
+} // ✅ <-- THIS ONE is missing in your file right now
 
 void SettingsDialog::loadFromSettings()
 {
@@ -183,6 +224,16 @@ void SettingsDialog::loadFromSettings()
             break;
         }
     }
+
+    // Language
+    const QString lang = s.value("ui/language", "en").toString();
+    for (int i = 0; i < m_languageCombo->count(); ++i) {
+        if (m_languageCombo->itemData(i).toString() == lang) {
+            m_languageCombo->setCurrentIndex(i);
+            break;
+        }
+    }
+
 
     // Paths
     if (m_logFileEdit)
@@ -219,6 +270,8 @@ void SettingsDialog::saveToSettings()
     s.setValue("logging/filePath", m_logFileEdit ? m_logFileEdit->text().trimmed() : QString());
     s.setValue("audit/dirPath",    m_auditDirEdit ? m_auditDirEdit->text().trimmed() : QString());
 
+    s.setValue("ui/language", m_languageCombo ? m_languageCombo->currentData().toString() : "en");
+
     // App lock enabled flag only (hash is written by Set/Disable buttons)
     const bool enabled = (m_appLockCheck && m_appLockCheck->isChecked());
     s.setValue("appLock/enabled", enabled);
@@ -227,21 +280,20 @@ void SettingsDialog::saveToSettings()
 
 void SettingsDialog::onAccepted()
 {
-    QSettings s;
-    const bool enabled = (m_appLockCheck && m_appLockCheck->isChecked());
-    const QString hash = s.value("appLock/hash", "").toString();
+    const bool langChanged = applySettings();
 
-    if (enabled && hash.trimmed().isEmpty()) {
-        QMessageBox::warning(this,
-                             "App lock not configured",
-                             "App lock is enabled, but no password is set.\n\n"
-                             "Click “Set / change…” to create a password first.");
-        return;
+    if (langChanged && !m_restartWarned) {
+        m_restartWarned = true;
+        QMessageBox::information(
+            this,
+            tr("Restart required"),
+            tr("Language change will take effect after restarting the application.")
+        );
     }
 
-    saveToSettings();
     accept();
 }
+
 
 QString SettingsDialog::dirOfPathOrEmpty(const QString& path) const
 {

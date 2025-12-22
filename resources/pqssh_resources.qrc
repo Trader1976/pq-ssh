@@ -8,4 +8,9 @@
         <file alias="user-manual.html">docs/user-manual.html</file>
         <file alias="user-manual.css">docs/user-manual.css</file>
     </qresource>
+
+    <qresource prefix="/i18n">
+        <file alias="pqssh_en.qm">i18n/pqssh_en.qm</file>
+        <file alias="pqssh_fi.qm">i18n/pqssh_fi.qm</file>
+    </qresource>
 </RCC>

@@ -1,8 +1,10 @@
 #pragma once
+
 #include <QDialog>
 #include <QCheckBox>
 #include <QLabel>
 #include <QPushButton>
+#include <QString>          // <-- add this
 
 class QComboBox;
 class QDialogButtonBox;
@@ -30,9 +32,9 @@ private slots:
 
     void onBrowseAuditDir();
     void onOpenAuditDir();
+
     void onSetAppPasswordClicked();
     void onDisableAppLockClicked();
-
 
 private:
     QComboBox* m_themeCombo = nullptr;
@@ -53,4 +55,8 @@ private:
     QPushButton* m_setAppPassBtn = nullptr;
     QPushButton* m_disableAppLockBtn = nullptr;
     QLabel*      m_appLockStatus = nullptr;
+
+    QComboBox* m_languageCombo = nullptr;
+    bool applySettings();          // <-- add this
+    bool m_restartWarned = false;  // <-- add this
 };

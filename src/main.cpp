@@ -20,47 +20,70 @@
 #include <QSettings>
 #include "AuditLogger.h"
 #include <QUuid>
+#include <QTranslator>
+#include <QLocale>
+#include <QFile>
+
+
+
+static bool installAppTranslator(QApplication& app, const QString& langCode)
+{
+    // Expect qm inside resources:
+    //   :/i18n/pqssh_en.qm
+    //   :/i18n/pqssh_fi.qm
+    //
+    // If you prefer external files, change path accordingly.
+
+    QTranslator* tr = new QTranslator(&app); // app owns it
+    const QString qmPath = QString(":/i18n/pqssh_%1.qm").arg(langCode);
+
+    if (!tr->load(qmPath)) {
+        delete tr;
+        return false;
+    }
+
+    app.installTranslator(tr);
+    return true;
+}
+
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    // (Recommended) Set org/app for QSettings so it uses stable location + keys
-    // If you already set these elsewhere, keep them consistent.
     QCoreApplication::setOrganizationName("CPUNK");
-    QCoreApplication::setApplicationName("pq-ssh");
+    QCoreApplication::setApplicationName("pq-ssh");                 // stable key for QSettings
+    QGuiApplication::setApplicationDisplayName("CPUNK PQ-SSH");
+    QCoreApplication::setApplicationVersion("0.9.0-alpha");
 
-    // Install Qt → file logger first
     Logger::install("pq-ssh");
-
     AuditLogger::install("pq-ssh");
     AuditLogger::setSessionId(QUuid::createUuid().toString(QUuid::WithoutBraces));
     AuditLogger::writeEvent("session.start");
 
-    // Load saved settings early
     QSettings s;
-    Logger::setLogLevel(s.value("logging/level", 1).toInt());
 
-    // Install bundled terminal color schemes (qtermwidget)
-    installBundledColorSchemes();
+    // --- Translator (install BEFORE creating MainWindow) ---
+    const QString lang = s.value("ui/language", "en").toString().trimmed();
 
-    // Apply saved app theme
-    const QString themeId = s.value("ui/theme", "cpunk-dark").toString();
+    qInfo() << "QM exists fi:" << QFile(":/i18n/pqssh_fi.qm").exists();
+    qInfo() << "QM exists en:" << QFile(":/i18n/pqssh_en.qm").exists();
 
-    if (themeId == "cpunk-orange") {
-        qApp->setStyleSheet(AppTheme::orange());
-    } else if (themeId == "windows-basic") {
-        qApp->setStyleSheet(AppTheme::windowsBasic());
-    } else {
-        qApp->setStyleSheet(AppTheme::dark());
+    if (!lang.isEmpty() && lang != "en") {
+        const bool ok = installAppTranslator(app, lang);
+        qInfo() << "Translator install" << (ok ? "OK" : "FAILED") << "lang=" << lang;
     }
 
+    // Theme
+    const QString themeId = s.value("ui/theme", "cpunk-dark").toString();
+    if (themeId == "cpunk-orange") qApp->setStyleSheet(AppTheme::orange());
+    else if (themeId == "windows-basic") qApp->setStyleSheet(AppTheme::windowsBasic());
+    else qApp->setStyleSheet(AppTheme::dark());
 
-    qInfo() << "PQ-SSH starting (theme=" << themeId << ")";
-    QCoreApplication::setApplicationName("CPUNK PQ-SSH");
-    QCoreApplication::setApplicationVersion("0.9.0-alpha");
+    installBundledColorSchemes();
+
     MainWindow w;
     w.show();
-
     return app.exec();
 }
+
