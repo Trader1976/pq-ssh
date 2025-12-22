@@ -14,6 +14,12 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QStandardPaths>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QLabel>
+#include <QMessageBox>
+#include <QInputDialog>
+#include <sodium.h>
 
 SettingsDialog::SettingsDialog(QWidget *parent)
     : QDialog(parent)
@@ -36,7 +42,7 @@ static QToolButton* makeIconBtn(QWidget* parent, const QIcon& icon, const QStrin
 void SettingsDialog::buildUi()
 {
     setWindowTitle("Settings");
-    resize(720, 260);
+    resize(720, 320);
 
     auto* outer = new QVBoxLayout(this);
 
@@ -59,7 +65,7 @@ void SettingsDialog::buildUi()
     form->addRow("Log level:", m_logLevelCombo);
 
     // Icons (“disk”)
-    const QIcon browseIcon = style()->standardIcon(QStyle::SP_DialogOpenButton);
+    const QIcon browseIcon  = style()->standardIcon(QStyle::SP_DialogOpenButton);
     const QIcon openDirIcon = style()->standardIcon(QStyle::SP_DirOpenIcon);
 
     // Log file path row
@@ -71,11 +77,10 @@ void SettingsDialog::buildUi()
 
         m_logFileEdit = new QLineEdit(row);
         const QString defaultLogDir =
-        QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/logs";
+            QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/logs";
         m_logFileEdit->setPlaceholderText(QString("Empty = default (%1/<app>.log)").arg(defaultLogDir));
 
-
-        m_logBrowseBtn = makeIconBtn(row, browseIcon, "Choose log file…");
+        m_logBrowseBtn  = makeIconBtn(row, browseIcon,  "Choose log file…");
         m_logOpenDirBtn = makeIconBtn(row, openDirIcon, "Open log file directory");
 
         h->addWidget(m_logFileEdit, 1);
@@ -84,7 +89,7 @@ void SettingsDialog::buildUi()
 
         form->addRow("Log file:", row);
 
-        connect(m_logBrowseBtn, &QToolButton::clicked, this, &SettingsDialog::onBrowseLogFile);
+        connect(m_logBrowseBtn,  &QToolButton::clicked, this, &SettingsDialog::onBrowseLogFile);
         connect(m_logOpenDirBtn, &QToolButton::clicked, this, &SettingsDialog::onOpenLogDir);
     }
 
@@ -98,7 +103,7 @@ void SettingsDialog::buildUi()
         m_auditDirEdit = new QLineEdit(row);
         m_auditDirEdit->setPlaceholderText("Empty = default (AppLocalDataLocation/audit)");
 
-        m_auditBrowseBtn = makeIconBtn(row, browseIcon, "Choose audit directory…");
+        m_auditBrowseBtn  = makeIconBtn(row, browseIcon,  "Choose audit directory…");
         m_auditOpenDirBtn = makeIconBtn(row, openDirIcon, "Open audit directory");
 
         h->addWidget(m_auditDirEdit, 1);
@@ -107,8 +112,44 @@ void SettingsDialog::buildUi()
 
         form->addRow("Audit dir:", row);
 
-        connect(m_auditBrowseBtn, &QToolButton::clicked, this, &SettingsDialog::onBrowseAuditDir);
+        connect(m_auditBrowseBtn,  &QToolButton::clicked, this, &SettingsDialog::onBrowseAuditDir);
         connect(m_auditOpenDirBtn, &QToolButton::clicked, this, &SettingsDialog::onOpenAuditDir);
+    }
+
+    // -------------------------
+    // App lock (startup password)
+    // -------------------------
+    {
+        auto* row = new QWidget(this);
+        auto* h = new QHBoxLayout(row);
+        h->setContentsMargins(0,0,0,0);
+        h->setSpacing(8);
+
+        m_appLockCheck = new QCheckBox("Require password on startup", row);
+
+        m_setAppPassBtn = new QPushButton("Set / change…", row);
+        m_setAppPassBtn->setToolTip("Set or change the application startup password");
+
+        m_disableAppLockBtn = new QPushButton("Disable", row);
+        m_disableAppLockBtn->setToolTip("Disable app lock and remove stored password hash");
+
+        m_appLockStatus = new QLabel(row);
+        m_appLockStatus->setStyleSheet("color:#888;");
+
+        h->addWidget(m_appLockCheck, 1);
+        h->addWidget(m_setAppPassBtn, 0);
+        h->addWidget(m_disableAppLockBtn, 0);
+        h->addWidget(m_appLockStatus, 0);
+
+        form->addRow("App lock:", row);
+
+        connect(m_setAppPassBtn, &QPushButton::clicked, this, &SettingsDialog::onSetAppPasswordClicked);
+        connect(m_disableAppLockBtn, &QPushButton::clicked, this, &SettingsDialog::onDisableAppLockClicked);
+
+        connect(m_appLockCheck, &QCheckBox::toggled, this, [this](bool on) {
+            if (m_setAppPassBtn) m_setAppPassBtn->setEnabled(true);     // always allow setting
+            if (m_disableAppLockBtn) m_disableAppLockBtn->setEnabled(on); // only makes sense if enabled
+        });
     }
 
     outer->addLayout(form);
@@ -149,6 +190,22 @@ void SettingsDialog::loadFromSettings()
 
     if (m_auditDirEdit)
         m_auditDirEdit->setText(s.value("audit/dirPath", "").toString());
+
+    // App lock
+    const bool enabled = s.value("appLock/enabled", false).toBool();
+    const QString hash = s.value("appLock/hash", "").toString();
+
+    if (m_appLockCheck) m_appLockCheck->setChecked(enabled);
+
+    const bool hasHash = !hash.trimmed().isEmpty();
+    if (m_appLockStatus) {
+        if (enabled && hasHash) m_appLockStatus->setText("Password set");
+        else if (enabled && !hasHash) m_appLockStatus->setText("Enabled, but no password set!");
+        else m_appLockStatus->setText("Off");
+    }
+
+    if (m_disableAppLockBtn)
+        m_disableAppLockBtn->setEnabled(enabled);
 }
 
 void SettingsDialog::saveToSettings()
@@ -161,10 +218,27 @@ void SettingsDialog::saveToSettings()
     // IMPORTANT: allow empty = revert to default
     s.setValue("logging/filePath", m_logFileEdit ? m_logFileEdit->text().trimmed() : QString());
     s.setValue("audit/dirPath",    m_auditDirEdit ? m_auditDirEdit->text().trimmed() : QString());
+
+    // App lock enabled flag only (hash is written by Set/Disable buttons)
+    const bool enabled = (m_appLockCheck && m_appLockCheck->isChecked());
+    s.setValue("appLock/enabled", enabled);
 }
+
 
 void SettingsDialog::onAccepted()
 {
+    QSettings s;
+    const bool enabled = (m_appLockCheck && m_appLockCheck->isChecked());
+    const QString hash = s.value("appLock/hash", "").toString();
+
+    if (enabled && hash.trimmed().isEmpty()) {
+        QMessageBox::warning(this,
+                             "App lock not configured",
+                             "App lock is enabled, but no password is set.\n\n"
+                             "Click “Set / change…” to create a password first.");
+        return;
+    }
+
     saveToSettings();
     accept();
 }
@@ -239,4 +313,80 @@ void SettingsDialog::onOpenAuditDir()
         QDesktopServices::openUrl(QUrl::fromLocalFile(
             QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/audit"
         ));
+}
+void SettingsDialog::onSetAppPasswordClicked()
+{
+    // Prompt new password twice
+    bool ok1 = false;
+    const QString pass1 = QInputDialog::getText(
+        this, "Set application password",
+        "Enter new password:",
+        QLineEdit::Password,
+        QString(), &ok1
+    );
+
+    if (!ok1 || pass1.isEmpty())
+        return;
+
+    bool ok2 = false;
+    const QString pass2 = QInputDialog::getText(
+        this, "Confirm password",
+        "Re-enter password:",
+        QLineEdit::Password,
+        QString(), &ok2
+    );
+
+    if (!ok2)
+        return;
+
+    if (pass1 != pass2) {
+        QMessageBox::warning(this, "Password mismatch", "Passwords do not match.");
+        return;
+    }
+
+    // Hash with libsodium
+    char out[crypto_pwhash_STRBYTES];
+    if (crypto_pwhash_str(
+            out,
+            pass1.toUtf8().constData(),
+            (unsigned long long)pass1.toUtf8().size(),
+            crypto_pwhash_OPSLIMIT_MODERATE,
+            crypto_pwhash_MEMLIMIT_MODERATE) != 0) {
+        QMessageBox::critical(this, "Error", "Failed to generate password hash (out of memory?).");
+        return;
+    }
+
+    QSettings s;
+    s.setValue("appLock/hash", QString::fromLatin1(out));
+    s.setValue("appLock/enabled", true);
+
+    if (m_appLockCheck) m_appLockCheck->setChecked(true);
+    if (m_appLockStatus) m_appLockStatus->setText("Password set");
+    if (m_disableAppLockBtn) m_disableAppLockBtn->setEnabled(true);
+
+    QMessageBox::information(this, "App lock enabled", "Startup password has been set.");
+}
+
+void SettingsDialog::onDisableAppLockClicked()
+{
+    const auto ans = QMessageBox::question(
+        this,
+        "Disable app lock",
+        "Disable app lock and remove the stored password hash?",
+        QMessageBox::Yes | QMessageBox::Cancel,
+        QMessageBox::Cancel
+    );
+
+    if (ans != QMessageBox::Yes)
+        return;
+
+    QSettings s;
+    s.setValue("appLock/enabled", false);
+    s.remove("appLock/hash");
+
+    if (m_appLockCheck) m_appLockCheck->setChecked(false);
+    if (m_appLockStatus) m_appLockStatus->setText("Off");
+    if (m_disableAppLockBtn) m_disableAppLockBtn->setEnabled(false);
+
+    QMessageBox::information(this, "App lock disabled", "App startup password has been removed.");
 }

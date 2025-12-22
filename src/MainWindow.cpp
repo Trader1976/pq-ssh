@@ -80,6 +80,7 @@
 #include <QEvent>
 #include <QMetaObject>
 #include <QVariant>
+#include <QDialogButtonBox>
 //
 // ARCHITECTURE NOTES (MainWindow.cpp)
 //
@@ -283,6 +284,24 @@ void MainWindow::rebuildProfileList()
     }
 }
 
+bool saveNewAppPassword(const QString& newPass, QString* errOut)
+{
+    QByteArray pw = newPass.toUtf8();
+
+    char hash[crypto_pwhash_STRBYTES];
+    if (crypto_pwhash_str(hash,
+                          pw.constData(),
+                          (unsigned long long)pw.size(),
+                          crypto_pwhash_OPSLIMIT_INTERACTIVE,
+                          crypto_pwhash_MEMLIMIT_INTERACTIVE) != 0) {
+        if (errOut) *errOut = "Out of memory while hashing password.";
+        return false;
+                          }
+
+    QSettings s;
+    s.setValue("appLock/hash", QByteArray(hash));
+    return true;
+}
 
 
 // Returns the selected profile index in m_profiles, or -1 if none / header selected.
@@ -353,7 +372,6 @@ void MainWindow::applyCurrentTheme()
 // =====================================================
 // MainWindow lifecycle
 // =====================================================
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -402,6 +420,47 @@ MainWindow::MainWindow(QWidget *parent)
     });
 
     qInfo() << "UI ready; profiles loaded";
+
+    // ---- App lock (optional) ----
+    // If enabled in settings, require user to unlock the app once at startup.
+    // NOTE: This expects you have:
+    //   - bool MainWindow::showStartupUnlockDialog();
+    //   - bool MainWindow::verifyAppPassword(const QString& pass);
+    //
+    // Settings keys:
+    //   appLock/enabled = true/false
+    //   appLock/hash    = libsodium crypto_pwhash_str() output
+    //
+    {
+        QSettings s;
+        const bool lockEnabled = s.value("appLock/enabled", false).toBool();
+        const QByteArray hash  = s.value("appLock/hash", "").toByteArray();
+
+        if (lockEnabled) {
+            // Safety: don’t brick the app if user enabled lock but no password exists.
+            if (hash.isEmpty()) {
+                QMessageBox::warning(
+                    this,
+                    "App lock",
+                    "App lock is enabled but no password is set.\n"
+                    "Disable app lock in Settings or set a password."
+                );
+            } else {
+                // Hide until unlocked (prevents UI “flash” before the dialog)
+                this->hide();
+
+                const bool ok = showStartupUnlockDialog();
+                if (!ok) {
+                    qApp->quit();
+                    return; // stop startup flow
+                }
+
+                this->show();
+                this->raise();
+                this->activateWindow();
+            }
+        }
+    }
 
     // ---- Startup security warning: expired keys ----
     // This is a user-facing safety net:
@@ -452,6 +511,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     qInfo() << "MainWindow constructed OK";
 }
+
 
 MainWindow::~MainWindow()
 {
@@ -2660,4 +2720,70 @@ static void stopTerm(CpunkTermWidget* term)
 
     // If ssh ignores it (or it's stuck), closing the widget is the fallback.
     term->close();
+}
+bool MainWindow::verifyAppPassword(const QString& pass) const
+{
+    if (pass.isEmpty())
+        return false;
+
+    QSettings s;
+    const QByteArray hash = s.value("appLock/hash").toByteArray();
+    if (hash.isEmpty())
+        return false;
+
+    return crypto_pwhash_str_verify(
+               hash.constData(),
+               pass.toUtf8().constData(),
+               pass.toUtf8().size()
+           ) == 0;
+}
+
+
+bool MainWindow::showStartupUnlockDialog()
+{
+    QDialog dlg(nullptr);
+    dlg.setWindowTitle("Unlock CPUNK PQ-SSH");
+    dlg.setModal(true);
+    dlg.resize(360, 140);
+
+    auto *layout = new QVBoxLayout(&dlg);
+
+    auto *label = new QLabel(
+        "This application is protected.\n\n"
+        "Enter your application password:",
+        &dlg
+    );
+
+    auto *edit = new QLineEdit(&dlg);
+    edit->setEchoMode(QLineEdit::Password);
+    edit->setPlaceholderText("Password");
+
+    auto *buttons = new QDialogButtonBox(
+        QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+        &dlg
+    );
+
+    layout->addWidget(label);
+    layout->addWidget(edit);
+    layout->addWidget(buttons);
+
+    connect(buttons, &QDialogButtonBox::accepted, &dlg, [&]() {
+        if (verifyAppPassword(edit->text())) {
+            dlg.accept();
+        } else {
+            QMessageBox::critical(
+                &dlg,
+                "Unlock failed",
+                "Incorrect password."
+            );
+            edit->clear();
+            edit->setFocus();
+        }
+    });
+
+    connect(buttons, &QDialogButtonBox::rejected,
+            &dlg, &QDialog::reject);
+
+    edit->setFocus();
+    return (dlg.exec() == QDialog::Accepted);
 }

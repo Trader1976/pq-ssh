@@ -144,6 +144,9 @@ private:
     IdentityManagerDialog *m_identityDlg = nullptr;
     SshConfigImportDialog *m_sshConfigDlg = nullptr;
     SshConfigImportPlanDialog* m_sshPlanDlg = nullptr;
+    bool showStartupUnlockDialog();
+    bool verifyAppPassword(const QString& pass) const;
+
 };
 
 #endif // MAINWINDOW_H
