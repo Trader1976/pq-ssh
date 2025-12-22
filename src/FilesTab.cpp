@@ -158,6 +158,7 @@ void FilesTab::buildUi()
     outer->setContentsMargins(0, 0, 0, 0);
     outer->setSpacing(6);
 
+
     // =========================
     // Top bar
     // =========================

@@ -77,7 +77,9 @@
 
 #include <QCloseEvent>
 #include "AuditLogger.h"
-
+#include <QEvent>
+#include <QMetaObject>
+#include <QVariant>
 //
 // ARCHITECTURE NOTES (MainWindow.cpp)
 //
@@ -111,6 +113,29 @@
 class CpunkTermWidget;
 static void forceBlackBackground(CpunkTermWidget *term);
 static void protectTermFromAppStyles(CpunkTermWidget *term);
+static void stopTerm(CpunkTermWidget* term);
+// =====================================================
+// Helpers for clean command logging
+// =====================================================
+static QString shellQuote(const QString &s)
+{
+    if (s.isEmpty())
+        return "''";
+
+    QString out = s;
+    out.replace('\'', "'\"'\"'");
+    return "'" + out + "'";
+}
+
+static QString prettyCommandLine(const QString &exe, const QStringList &args)
+{
+    QStringList parts;
+    parts << shellQuote(exe);
+    for (const auto &a : args)
+        parts << shellQuote(a);
+    return parts.join(" ");
+}
+
 
 // Focus quirks: terminals sometimes need delayed focus to become type-ready.
 // Using two singleShots is a pragmatic workaround for window manager timing.
@@ -1336,7 +1361,7 @@ void MainWindow::onConnectClicked()
 
     // PQ debug gating: command line is noisy, so UI shows it only in verbose mode.
     // File log always receives it.
-    uiDebug(QString("[PQ-PROBE] ssh %1").arg(pqArgs.join(" ")));
+    uiDebug(QString("[PQ-PROBE] %1").arg(prettyCommandLine("ssh", pqArgs)));
 
     connect(pqProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [this, pqProc](int exitCode, QProcess::ExitStatus st) {
@@ -1348,7 +1373,18 @@ void MainWindow::onConnectClicked()
                                .arg(exitCode)
                                .arg(st == QProcess::NormalExit ? "normal" : "crash")
                                .arg(err.size()));
-                uiDebug(QString("[PQ-PROBE] stderr: %1").arg(err.trimmed()));
+                                QString e = err;
+                e.replace("\r\n", "\n");
+                e.replace('\r', '\n');
+                e = e.trimmed();
+
+                if (e.isEmpty()) {
+                    uiDebug("[PQ-PROBE] stderr: <empty>");
+                } else {
+                    // Log first line + length, and keep full stderr in file log via logSessionInfo.
+                    const QString firstLine = e.section('\n', 0, 0);
+                    uiDebug(QString("[PQ-PROBE] stderr(first): %1").arg(firstLine));
+}
 
                 // Heuristic: if ssh reports “no matching key exchange”, server didn’t accept the PQ KEX.
                 // If it fails for other reasons, we still treat KEX as “supported” unless it explicitly says otherwise.
@@ -1859,15 +1895,13 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
 // createTerm() owns the *terminal instance*.
 // openShellForProfile() owns the *hosting surface* (window/tab), focus, and cleanup wiring.
 //
+
 void MainWindow::openShellForProfile(const SshProfile &p, const QString &target, bool newWindow)
 {
-    // target currently unused because we always use p.user/p.host/p.port for actual connection.
-    // Keeping parameter allows future call sites to pass custom targets.
     Q_UNUSED(target);
 
     const int port = (p.port > 0) ? p.port : 22;
 
-    // Used for window/tab titles only (UX), not for the actual ssh cmd construction.
     const QString connLabel = (port != 22)
         ? QString("%1@%2:%3").arg(p.user, p.host).arg(port)
         : QString("%1@%2").arg(p.user, p.host);
@@ -1887,16 +1921,21 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         auto *term = createTerm(p, w);
         w->setCentralWidget(term);
 
+        // Store terminal on the window (safe QObject*), used by eventFilter on Close
+        w->setProperty("pqssh_term", QVariant::fromValue(static_cast<QObject*>(term)));
+
+        // Ensure we see the Close event
+        w->installEventFilter(this);
+
         // ✅ Install per-profile macro hotkey scoped to THIS window
         installHotkeyMacro(term, w, p);
 
-        // LIFECYCLE NOTE:
-        // When the window is destroyed, we also disconnect libssh.
+        // When the window is destroyed, also disconnect libssh (SFTP side)
         connect(w, &QObject::destroyed, this, [this]() {
             onDisconnectClicked();
         });
 
-        // Focus management: terminals should accept typing immediately after connect.
+        // Focus management
         w->show();
         w->raise();
         w->activateWindow();
@@ -1910,6 +1949,9 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         m_tabbedShellWindow->setAttribute(Qt::WA_DeleteOnClose, true);
         m_tabbedShellWindow->setWindowTitle("PQ-SSH Tabs");
 
+        // Stop all tabs when the tabs window is closing (eventFilter does it)
+        m_tabbedShellWindow->installEventFilter(this);
+
         m_tabWidget = new QTabWidget(m_tabbedShellWindow);
         m_tabWidget->setTabsClosable(true);
         m_tabbedShellWindow->setCentralWidget(m_tabWidget);
@@ -1919,6 +1961,10 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
 
             QWidget *w = m_tabWidget->widget(idx);
             m_tabWidget->removeTab(idx);
+
+            if (auto *term = qobject_cast<CpunkTermWidget*>(w))
+                stopTerm(term);
+
             if (w) w->deleteLater();
 
             if (m_tabWidget->count() == 0) {
@@ -1945,15 +1991,14 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     // ✅ Install per-profile macro hotkey scoped to the TABBED window
     installHotkeyMacro(term, m_tabbedShellWindow, p);
 
-    // Give the tabbed window a contextual title so user sees which host is “current”.
     m_tabbedShellWindow->setWindowTitle(QString("PQ-SSH Tabs — %1").arg(connLabel));
 
-    // Show + focus so typing works immediately.
     m_tabbedShellWindow->show();
     m_tabbedShellWindow->raise();
     m_tabbedShellWindow->activateWindow();
     focusTerminalWindow(m_tabbedShellWindow, term);
 }
+
 
 
 // -----------------------------------------------------
@@ -2565,6 +2610,54 @@ void MainWindow::onApplyImportedProfiles(const QVector<ImportedProfile>& creates
 
 void MainWindow::closeEvent(QCloseEvent* e)
 {
+    // Stop tabbed terminals if any
+    if (m_tabWidget) {
+        for (int i = 0; i < m_tabWidget->count(); ++i) {
+            if (auto *term = qobject_cast<CpunkTermWidget*>(m_tabWidget->widget(i))) {
+                stopTerm(term);
+            }
+        }
+    }
+
     AuditLogger::writeEvent("session.end");
     QMainWindow::closeEvent(e);
+}
+
+
+
+bool MainWindow::eventFilter(QObject* obj, QEvent* ev)
+{
+    if (ev->type() == QEvent::Close) {
+
+        // Per-connection window: stop the terminal stored on that window
+        if (auto *w = qobject_cast<QWidget*>(obj)) {
+            const QVariant v = w->property("pqssh_term");
+            if (v.isValid()) {
+                auto *term = qobject_cast<CpunkTermWidget*>(v.value<QObject*>());
+                if (term) stopTerm(term);
+            }
+        }
+
+        // Tabbed window: stop all terminals once (window is closing)
+        if (obj == m_tabbedShellWindow && m_tabWidget) {
+            for (int i = 0; i < m_tabWidget->count(); ++i) {
+                if (auto *term = qobject_cast<CpunkTermWidget*>(m_tabWidget->widget(i))) {
+                    stopTerm(term);
+                }
+            }
+        }
+    }
+
+    return QMainWindow::eventFilter(obj, ev);
+}
+
+static void stopTerm(CpunkTermWidget* term)
+{
+    if (!term) return;
+
+    // Ask the running shell/ssh to exit gracefully.
+    term->sendText("exit\n");
+
+    // If ssh ignores it (or it's stuck), closing the widget is the fallback.
+    term->close();
 }

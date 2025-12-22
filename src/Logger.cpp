@@ -10,9 +10,10 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QAtomicInt>
+#include <QDebug>
+
 #include <cstdio>     // fprintf
 #include <cstdlib>    // abort
-#include <QDebug>
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QStringConverter>
@@ -22,11 +23,11 @@
 // Global logger state (process-wide)
 // =====================================================
 
-static QFile*   g_file  = nullptr;   // Open log file handle
-static QMutex   g_mutex;             // Guards concurrent writes
-static QString  g_path;              // Absolute path to log file
-static QAtomicInt g_level(1);         // 0=Errors only, 1=Normal, 2=Debug
-static QString g_pathOverride;
+static QFile*     g_file  = nullptr;   // Open log file handle
+static QMutex     g_mutex;             // Guards concurrent writes
+static QString    g_path;              // Absolute path to log file
+static QAtomicInt g_level(1);          // 0=Errors only, 1=Normal, 2=Debug
+static QString    g_pathOverride;
 
 // Prevent recursion if something inside handler triggers Qt logging again
 static thread_local bool g_inHandler = false;
@@ -66,7 +67,12 @@ static bool allowMessage(QtMsgType type)
     }
 
     if (lvl == 1) {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
         return (type == QtInfoMsg || type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg);
+#else
+        // Qt < 5.5 has no QtInfoMsg
+        return (type == QtWarningMsg || type == QtCriticalMsg || type == QtFatalMsg);
+#endif
     }
 
     // lvl >= 2
@@ -74,9 +80,27 @@ static bool allowMessage(QtMsgType type)
 }
 
 // =====================================================
+// Message normalization (one record = one physical line)
+// =====================================================
+static QString normalizeMessage(QString s)
+{
+    // Normalize CRLF/CR to LF
+    s.replace("\r\n", "\n");
+    s.replace('\r', '\n');
+
+    // Enforce one-line-per-record
+    s.replace('\n', ' ');
+    s.replace('\t', ' ');
+
+    // Collapse repeated whitespace
+    s = s.simplified();
+
+    return s;
+}
+
+// =====================================================
 // Qt message handler
 // =====================================================
-
 static void handler(QtMsgType type,
                     const QMessageLogContext& ctx,
                     const QString& msg)
@@ -87,7 +111,6 @@ static void handler(QtMsgType type,
     }
 
     if (g_inHandler) {
-        // If recursion happens, do the safest thing: avoid re-entering Qt.
         if (type == QtFatalMsg) abort();
         return;
     }
@@ -96,26 +119,7 @@ static void handler(QtMsgType type,
     {
         QMutexLocker lock(&g_mutex);
 
-        // If logging isn't initialized or file isn't open, fallback to stderr.
-        if (!g_file || !g_file->isOpen()) {
-            const QByteArray utf8 = msg.toUtf8();
-            std::fprintf(stderr, "%s\n", utf8.constData());
-            std::fflush(stderr);
-
-            if (type == QtFatalMsg) abort();
-            g_inHandler = false;
-            return;
-        }
-
-        QTextStream out(g_file);
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-        out.setEncoding(QStringConverter::Utf8);
-#else
-        out.setCodec("UTF-8");
-#endif
-
-        const QString ts = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
+        const QString ts  = QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
         const QString lvl = levelToString(type);
 
         const QString where =
@@ -126,10 +130,35 @@ static void handler(QtMsgType type,
                       .arg(ctx.function)
                 : QString();
 
+        const QString cleanMsg = normalizeMessage(msg);
+
+        // If logging isn't initialized or file isn't open, fallback to stderr.
+        if (!g_file || !g_file->isOpen()) {
+            QByteArray utf8;
+            if (where.isEmpty())
+                utf8 = QString("%1 [%2] %3").arg(ts, lvl, cleanMsg).toUtf8();
+            else
+                utf8 = QString("%1 [%2] %3 - %4").arg(ts, lvl, where, cleanMsg).toUtf8();
+
+            std::fprintf(stderr, "%s\n", utf8.constData());
+            std::fflush(stderr);
+
+            if (type == QtFatalMsg) abort();
+            g_inHandler = false;
+            return;
+        }
+
+        QTextStream out(g_file);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        out.setEncoding(QStringConverter::Utf8);
+#else
+        out.setCodec("UTF-8");
+#endif
+
         out << ts << " [" << lvl << "] ";
         if (!where.isEmpty())
             out << where << " - ";
-        out << msg << "\n";
+        out << cleanMsg << "\n";
         out.flush();
 
         if (type == QtFatalMsg)
@@ -138,6 +167,8 @@ static void handler(QtMsgType type,
 
     g_inHandler = false;
 }
+
+
 
 // =====================================================
 // Log rotation (size-based)
@@ -236,8 +267,6 @@ void setLogFilePathOverride(const QString& absoluteFilePath)
     g_file = new QFile(g_pathOverride);
     if (g_file->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
         g_path = g_pathOverride;
-        // optional: write a line so you can see path changes
-        // QTextStream ts(g_file); ts << "---- switched log path ----\n"; ts.flush();
     } else {
         std::fprintf(stderr, "Logger: failed to open override log file: %s\n",
                      g_pathOverride.toUtf8().constData());

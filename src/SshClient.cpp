@@ -292,16 +292,23 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     optSet(SSH_OPTIONS_USER, user.toUtf8().constData(), "USER");
     optSet(SSH_OPTIONS_PORT, &port, "PORT");
 
-    int timeoutSec = 8;
-    optSet(SSH_OPTIONS_TIMEOUT, &timeoutSec, "TIMEOUT");
+        // Timeout (libssh expects long for SSH_OPTIONS_TIMEOUT on many builds)
+        {
+        const long timeoutSec = 8;
+        optSet(SSH_OPTIONS_TIMEOUT, &timeoutSec, "TIMEOUT");
+
+        #ifdef SSH_OPTIONS_TIMEOUT_USEC
+                const long timeoutUsec = 0; // 0 additional microseconds
+                optSet(SSH_OPTIONS_TIMEOUT_USEC, &timeoutUsec, "TIMEOUT_USEC");
+        #endif
+        }
 
     if (hasIdentity) {
         const QByteArray p = QFile::encodeName(profile.keyFile.trimmed());
         optSet(SSH_OPTIONS_IDENTITY, p.constData(), "IDENTITY");
     }
 
-    // --- Prefer PQ hybrid KEX when available (libssh 0.11.x+) ---
-        // --- Prefer PQ hybrid KEX (OpenSSH naming) ---
+        // --- Prefer PQ hybrid KEX when available (libssh 0.11.x+) ---
         // NOTE: must be set BEFORE ssh_connect().
         const char *kexPref =
             "sntrup761x25519-sha512@openssh.com,"
@@ -313,12 +320,6 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
         } else {
             qInfo().noquote() << QString("[SSH] KEX preference not applied: %1").arg(libsshError(s));
         }
-
-    if (kexRc == SSH_OK) {
-        qInfo().noquote() << QString("[SSH] KEX preference set: %1").arg(kexPref);
-    } else {
-        qInfo().noquote() << QString("[SSH] KEX preference not applied: %1").arg(libsshError(s));
-    }
 
     // Passphrase callback (UI supplies passphrase)
     static ssh_callbacks_struct cb;
@@ -1487,18 +1488,3 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
 
         return true;
     }
-    static QString prettyKexName(const QString& kex)
-        {
-            const QString s = kex.trimmed();
-
-            if (s.startsWith("mlkem768x25519", Qt::CaseInsensitive)) {
-                return "ML-KEM-768 + X25519 (Kyber-768 class) — " + s;
-            }
-            if (s.startsWith("sntrup761x25519", Qt::CaseInsensitive)) {
-                return "sntrup761 + X25519 (NTRU Prime) — " + s;
-            }
-            if (s.startsWith("curve25519", Qt::CaseInsensitive)) {
-                return "Classical ECDH: X25519 — " + s;
-            }
-            return s;
-        }
