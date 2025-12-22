@@ -386,6 +386,7 @@ void FleetWindow::rebuildTargetsList()
                            .arg(p.user, p.host)
                            .arg((p.port > 0) ? p.port : 22)
                            .arg(normalizedGroup(p.group)));
+        it->setSizeHint(QSize(it->sizeHint().width(), 24));
     }
 }
 

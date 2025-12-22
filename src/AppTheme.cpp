@@ -38,50 +38,48 @@ QString AppTheme::dark()
         "   color: #000000;"
         "}"
 
-        // Inputs
-        "QLineEdit, QSpinBox, QComboBox, QTextEdit, QPlainTextEdit {"
+        // Inputs (base look)
+        "QLineEdit, QComboBox, QTextEdit, QPlainTextEdit {"
         "   background-color: #1A1A1A;"
         "   border: 1px solid #333333;"
         "   padding: 4px;"
         "   border-radius: 3px;"
         "   color: #EEEEEE;"
         "}"
+
         // --------------------------------
-        // SpinBox (dark + readable arrows)
+        // SpinBox (FIX: do NOT style subcontrols, avoids missing top border)
         // --------------------------------
         "QSpinBox {"
         "   background-color: #1A1A1A;"
         "   border: 1px solid #3A3A3A;"
-        "   padding-right: 18px;"          // room for buttons
+        "   padding: 4px;"
+        "   padding-right: 22px;"   // room for native buttons
+        "   border-radius: 3px;"
+        "   color: #EEEEEE;"
         "}"
 
-        "QSpinBox::up-button, QSpinBox::down-button {"
-        "   background-color: #202020;"
-        "   border-left: 1px solid #3A3A3A;"
-        "   width: 18px;"
+        // Make item-view check indicators visible in lists (QListWidget etc.)
+        "QAbstractItemView::indicator { width: 18px; height: 18px; }"
+        "QAbstractItemView::indicator:unchecked {"
+        "   border: 1px solid #00FF99;"
+        "   background-color: #121212;"
         "}"
-
-        "QSpinBox::up-button:hover, QSpinBox::down-button:hover {"
-        "   background-color: #262626;"
+        "QAbstractItemView::indicator:checked {"
+        "   background-color: #00FF99;"
+        "   border: 1px solid #00FF99;"
         "}"
-
-        // Dark arrows (almost black, but visible)
-        "QSpinBox::up-arrow {"
-        "   image: none;"
-        "   width: 0;"
-        "   height: 0;"
-        "   border-left: 5px solid transparent;"
-        "   border-right: 5px solid transparent;"
-        "   border-bottom: 7px solid #8A8A8A;"
+        "QAbstractItemView::indicator:unchecked:hover {"
+        "   border: 1px solid #7cffc8;"
+        "   background-color: #1a1a1a;"
         "}"
-
-        "QSpinBox::down-arrow {"
-        "   image: none;"
-        "   width: 0;"
-        "   height: 0;"
-        "   border-left: 5px solid transparent;"
-        "   border-right: 5px solid transparent;"
-        "   border-top: 7px solid #8A8A8A;"
+        "QAbstractItemView::indicator:checked:hover {"
+        "   background-color: #7cffc8;"
+        "   border: 1px solid #7cffc8;"
+        "}"
+        "QAbstractItemView::indicator:disabled {"
+        "   border: 1px solid #3a3a3a;"
+        "   background-color: #161616;"
         "}"
 
         // Combo popup
@@ -118,6 +116,7 @@ QString AppTheme::dark()
         "   background-color: #00FF99;"
         "   color: black;"
         "}"
+
         // Item views (Trees/Tables) — used by Files tab
         "QTreeView, QTableView, QTableWidget {"
         "   background-color: #121212;"
@@ -143,6 +142,26 @@ QString AppTheme::dark()
         "   padding: 4px 8px;"
         "   border: 0;"
         "   border-right: 1px solid #2A2A2A;"
+        "}"
+
+        // Checkboxes (improve contrast for hover/disabled/focus)
+        "QCheckBox::indicator:unchecked:hover {"
+        "   border: 1px solid #7cffc8;"
+        "   background-color: #1a1a1a;"
+        "}"
+        "QCheckBox::indicator:checked:hover {"
+        "   background-color: #7cffc8;"
+        "   border: 1px solid #7cffc8;"
+        "}"
+        "QCheckBox::indicator:disabled {"
+        "   border: 1px solid #3a3a3a;"
+        "   background-color: #161616;"
+        "}"
+        "QCheckBox:disabled {"
+        "   color: #777777;"
+        "}"
+        "QCheckBox:focus {"
+        "   outline: none;"
         "}"
 
         // Tabs
@@ -212,7 +231,6 @@ QString AppTheme::dark()
         "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {"
         "   background: #121212;"
         "}"
-
     );
 }
 
@@ -247,8 +265,8 @@ QString AppTheme::orange()
         "   color: #000000;"
         "}"
 
-        // Inputs
-        "QLineEdit, QSpinBox, QComboBox, QTextEdit, QPlainTextEdit {"
+        // Inputs (base look)
+        "QLineEdit, QComboBox, QTextEdit, QPlainTextEdit {"
         "   background-color: #1A1A1A;"
         "   border: 1px solid #333333;"
         "   padding: 4px;"
@@ -256,37 +274,39 @@ QString AppTheme::orange()
         "   color: #EEEEEE;"
         "}"
 
+        // Item-view indicators (lists)
+        "QAbstractItemView::indicator { width: 18px; height: 18px; }"
+        "QAbstractItemView::indicator:unchecked {"
+        "   border: 1px solid #FF9800;"
+        "   background-color: #121212;"
+        "}"
+        "QAbstractItemView::indicator:checked {"
+        "   background-color: #FF9800;"
+        "   border: 1px solid #FF9800;"
+        "}"
+        "QAbstractItemView::indicator:unchecked:hover {"
+        "   border: 1px solid #ffbf66;"
+        "   background-color: #1a1a1a;"
+        "}"
+        "QAbstractItemView::indicator:checked:hover {"
+        "   background-color: #ffbf66;"
+        "   border: 1px solid #ffbf66;"
+        "}"
+        "QAbstractItemView::indicator:disabled {"
+        "   border: 1px solid #3a3a3a;"
+        "   background-color: #161616;"
+        "}"
+
         // --------------------------------
-        // SpinBox (dark + readable arrows)
+        // SpinBox (FIX: do NOT style subcontrols, avoids missing top border)
         // --------------------------------
         "QSpinBox {"
         "   background-color: #1A1A1A;"
         "   border: 1px solid #3A3A3A;"
-        "   padding-right: 18px;"
-        "}"
-        "QSpinBox::up-button, QSpinBox::down-button {"
-        "   background-color: #202020;"
-        "   border-left: 1px solid #3A3A3A;"
-        "   width: 18px;"
-        "}"
-        "QSpinBox::up-button:hover, QSpinBox::down-button:hover {"
-        "   background-color: #262626;"
-        "}"
-        "QSpinBox::up-arrow {"
-        "   image: none;"
-        "   width: 0;"
-        "   height: 0;"
-        "   border-left: 5px solid transparent;"
-        "   border-right: 5px solid transparent;"
-        "   border-bottom: 7px solid #8A8A8A;"
-        "}"
-        "QSpinBox::down-arrow {"
-        "   image: none;"
-        "   width: 0;"
-        "   height: 0;"
-        "   border-left: 5px solid transparent;"
-        "   border-right: 5px solid transparent;"
-        "   border-top: 7px solid #8A8A8A;"
+        "   padding: 4px;"
+        "   padding-right: 22px;"
+        "   border-radius: 3px;"
+        "   color: #EEEEEE;"
         "}"
 
         // Combo popup
@@ -349,6 +369,23 @@ QString AppTheme::orange()
         "   padding: 4px 8px;"
         "   border: 0;"
         "   border-right: 1px solid #2A2A2A;"
+        "}"
+
+        // Checkbox hover/disabled
+        "QCheckBox::indicator:unchecked:hover {"
+        "   border: 1px solid #ffbf66;"
+        "   background-color: #1a1a1a;"
+        "}"
+        "QCheckBox::indicator:checked:hover {"
+        "   background-color: #ffbf66;"
+        "   border: 1px solid #ffbf66;"
+        "}"
+        "QCheckBox::indicator:disabled {"
+        "   border: 1px solid #3a3a3a;"
+        "   background-color: #161616;"
+        "}"
+        "QCheckBox:disabled {"
+        "   color: #777777;"
         "}"
 
         // Tabs
@@ -537,10 +574,22 @@ QString AppTheme::neo()
         "}"
 
         // Inputs: bluish panels
-        "QLineEdit, QSpinBox, QComboBox, QTextEdit, QPlainTextEdit {"
+        "QLineEdit, QComboBox, QTextEdit, QPlainTextEdit {"
         "   background-color: #0F1730;"
         "   border: 1px solid #24305C;"
         "   padding: 5px;"
+        "   border-radius: 6px;"
+        "   color: #F4F6FF;"
+        "}"
+
+        // --------------------------------
+        // SpinBox (FIX: do NOT style subcontrols, avoids missing top border)
+        // --------------------------------
+        "QSpinBox {"
+        "   background-color: #0F1730;"
+        "   border: 1px solid #24305C;"
+        "   padding: 5px;"
+        "   padding-right: 22px;"
         "   border-radius: 6px;"
         "   color: #F4F6FF;"
         "}"
@@ -554,6 +603,7 @@ QString AppTheme::neo()
 
         // Checkboxes
         "QCheckBox::indicator { width: 18px; height: 18px; }"
+        "QCheckBox { spacing: 6px; color: #E9ECFF; }"
         "QCheckBox::indicator:unchecked {"
         "   border: 1px solid #8B5CF6;"
         "   background-color: #0B1020;"
@@ -561,6 +611,29 @@ QString AppTheme::neo()
         "QCheckBox::indicator:checked {"
         "   background-color: #8B5CF6;"
         "   border: 1px solid #8B5CF6;"
+        "}"
+
+        // Item-view indicators (lists) — use violet in Neo (NOT orange)
+        "QAbstractItemView::indicator { width: 18px; height: 18px; }"
+        "QAbstractItemView::indicator:unchecked {"
+        "   border: 1px solid #8B5CF6;"
+        "   background-color: #0B1020;"
+        "}"
+        "QAbstractItemView::indicator:checked {"
+        "   background-color: #8B5CF6;"
+        "   border: 1px solid #8B5CF6;"
+        "}"
+        "QAbstractItemView::indicator:unchecked:hover {"
+        "   border: 1px solid #a78bfa;"
+        "   background-color: #0f1730;"
+        "}"
+        "QAbstractItemView::indicator:checked:hover {"
+        "   background-color: #a78bfa;"
+        "   border: 1px solid #a78bfa;"
+        "}"
+        "QAbstractItemView::indicator:disabled {"
+        "   border: 1px solid #24305C;"
+        "   background-color: #0E1530;"
         "}"
 
         // Lists: different shade, selection violet
@@ -592,6 +665,23 @@ QString AppTheme::neo()
         "   padding: 4px 8px;"
         "   border: 0;"
         "   border-right: 1px solid #24305C;"
+        "}"
+
+        // Checkbox hover/disabled
+        "QCheckBox::indicator:unchecked:hover {"
+        "   border: 1px solid #a78bfa;"
+        "   background-color: #0f1730;"
+        "}"
+        "QCheckBox::indicator:checked:hover {"
+        "   background-color: #a78bfa;"
+        "   border: 1px solid #a78bfa;"
+        "}"
+        "QCheckBox::indicator:disabled {"
+        "   border: 1px solid #24305C;"
+        "   background-color: #0E1530;"
+        "}"
+        "QCheckBox:disabled {"
+        "   color: #6f7399;"
         "}"
 
         // Tabs
@@ -641,7 +731,6 @@ QString AppTheme::neo()
         "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: #0B1020; }"
     );
 }
-
 
 static void installBundledColorSchemes()
 {
