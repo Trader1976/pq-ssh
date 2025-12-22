@@ -240,7 +240,7 @@ QString ProfilesEditorDialog::macroDisplayName(const ProfileMacro& m, int idx) c
         return QString("%1 — %2").arg(idx + 1).arg(shortCmd);
     }
 
-    return QString("Macro %1").arg(idx + 1);
+    return tr("Macro %1").arg(idx + 1);
 }
 
 void ProfilesEditorDialog::rebuildMacroList()
@@ -356,7 +356,7 @@ ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles,
     : QDialog(parent),
       m_working(profiles) // working copy: edits do not touch caller until accepted
 {
-    setWindowTitle("Manage SSH Profiles");
+    setWindowTitle(tr("Manage SSH Profiles"));
     resize(980, 560);
     setMinimumWidth(900);
 
@@ -410,7 +410,7 @@ void ProfilesEditorDialog::buildUi()
     leftLayout->setContentsMargins(0, 0, 0, 0);
     leftLayout->setSpacing(6);
 
-    auto *listLabel = new QLabel("Profiles", leftWidget);
+    auto *listLabel = new QLabel(tr("Profiles"), leftWidget);
     listLabel->setStyleSheet("font-weight: bold;");
 
     m_list = new QListWidget(leftWidget);
@@ -424,8 +424,8 @@ void ProfilesEditorDialog::buildUi()
     buttonsLayout->setContentsMargins(0, 0, 0, 0);
     buttonsLayout->setSpacing(6);
 
-    auto *addBtn = new QPushButton("Add", buttonsRow);
-    auto *delBtn = new QPushButton("Delete", buttonsRow);
+    auto *addBtn = new QPushButton(tr("Add"), buttonsRow);
+    auto *delBtn = new QPushButton(tr("Delete"), buttonsRow);
 
     buttonsLayout->addWidget(addBtn);
     buttonsLayout->addWidget(delBtn);
@@ -460,12 +460,12 @@ void ProfilesEditorDialog::buildUi()
     m_groupCombo = new QComboBox(detailsWidget);
     m_groupCombo->setEditable(true);
     m_groupCombo->setInsertPolicy(QComboBox::NoInsert);
-    m_groupCombo->setToolTip("Group name for sorting in main window (empty = Ungrouped)");
+    m_groupCombo->setToolTip(tr("Group name for sorting in main window (empty = Ungrouped)"));
     if (m_groupCombo->lineEdit())
-        m_groupCombo->lineEdit()->setPlaceholderText("Ungrouped");
+        m_groupCombo->lineEdit()->setPlaceholderText(tr("Ungrouped"));
     populateGroupCombo(m_groupCombo, m_working);
 
-    m_pqDebugCheck = new QCheckBox("Enable PQ debug (-vv)", detailsWidget);
+    m_pqDebugCheck = new QCheckBox(tr("Enable PQ debug (-vv)"), detailsWidget);
 
     m_colorSchemeCombo = new QComboBox(detailsWidget);
     fillSchemeCombo(m_colorSchemeCombo);
@@ -486,16 +486,16 @@ void ProfilesEditorDialog::buildUi()
     m_historySpin->setRange(0, 50000);
     m_historySpin->setSingleStep(500);
     m_historySpin->setValue(2000);
-    m_historySpin->setToolTip("Terminal scrollback buffer lines (0 = unlimited)");
+    m_historySpin->setToolTip(tr("Terminal scrollback buffer lines (0 = unlimited)"));
 
     // Auth fields (persistence only; enforcement happens elsewhere).
     m_keyTypeCombo = new QComboBox(detailsWidget);
-    m_keyTypeCombo->addItem("auto");
-    m_keyTypeCombo->addItem("openssh");
-    m_keyTypeCombo->addItem("pq"); // placeholder
+    m_keyTypeCombo->addItem(QStringLiteral("auto"));
+    m_keyTypeCombo->addItem(QStringLiteral("openssh"));
+    m_keyTypeCombo->addItem(QStringLiteral("pq")); // placeholder
 
     m_keyFileEdit = new QLineEdit(detailsWidget);
-    m_keyFileEdit->setPlaceholderText("e.g. /home/timo/.ssh/id_ed25519 (optional)");
+    m_keyFileEdit->setPlaceholderText(tr("e.g. /home/timo/.ssh/id_ed25519 (optional)"));
 
     auto *browseBtn = new QToolButton(detailsWidget);
     browseBtn->setText("...");
@@ -511,27 +511,27 @@ void ProfilesEditorDialog::buildUi()
         const QString startDir = QDir::homePath() + "/.ssh";
         const QString path = QFileDialog::getOpenFileName(
             this,
-            "Select private key file",
+            tr("Select private key file"),
             startDir,
-            "Key files (*)"
+            tr("Key files (*)")
         );
         if (!path.isEmpty() && m_keyFileEdit)
             m_keyFileEdit->setText(path);
     });
 
-    form->addRow("Name:", m_nameEdit);
-    form->addRow("Group:", m_groupCombo);
-    form->addRow("User:", m_userEdit);
-    form->addRow("Host:", m_hostEdit);
-    form->addRow("Port:", m_portSpin);
-    form->addRow("", m_pqDebugCheck);
-    form->addRow("Color scheme:", m_colorSchemeCombo);
-    form->addRow("Font size:", m_fontSizeSpin);
-    form->addRow("Window width:", m_widthSpin);
-    form->addRow("Window height:", m_heightSpin);
-    form->addRow("Scrollback lines:", m_historySpin);
-    form->addRow("Key type:", m_keyTypeCombo);
-    form->addRow("Key file:", keyRow);
+    form->addRow(tr("Name:"), m_nameEdit);
+    form->addRow(tr("Group:"), m_groupCombo);
+    form->addRow(tr("User:"), m_userEdit);
+    form->addRow(tr("Host:"), m_hostEdit);
+    form->addRow(tr("Port:"), m_portSpin);
+    form->addRow(QString(), m_pqDebugCheck);
+    form->addRow(tr("Color scheme:"), m_colorSchemeCombo);
+    form->addRow(tr("Font size:"), m_fontSizeSpin);
+    form->addRow(tr("Window width:"), m_widthSpin);
+    form->addRow(tr("Window height:"), m_heightSpin);
+    form->addRow(tr("Scrollback lines:"), m_historySpin);
+    form->addRow(tr("Key type:"), m_keyTypeCombo);
+    form->addRow(tr("Key file:"), keyRow);
 
     detailsLayout->addLayout(form);
 
@@ -560,12 +560,12 @@ void ProfilesEditorDialog::buildUi()
     macroL->setContentsMargins(10, 10, 10, 10);
     macroL->setSpacing(8);
 
-    auto *macroTitle = new QLabel("Hotkey macros", macroPanel);
+    auto *macroTitle = new QLabel(tr("Hotkey macros"), macroPanel);
     macroTitle->setStyleSheet("font-weight: bold;");
 
     // Import/Export row
-    m_macroImportBtn = new QPushButton("Import…", macroPanel);
-    m_macroExportBtn = new QPushButton("Export…", macroPanel);
+    m_macroImportBtn = new QPushButton(tr("Import…"), macroPanel);
+    m_macroExportBtn = new QPushButton(tr("Export…"), macroPanel);
 
     auto* ieRow = new QWidget(macroPanel);
     auto* ieRowL = new QHBoxLayout(ieRow);
@@ -590,11 +590,11 @@ void ProfilesEditorDialog::buildUi()
     macroBtnsColL->setContentsMargins(0, 0, 0, 0);
     macroBtnsColL->setSpacing(6);
 
-    m_macroAddBtn = new QPushButton("+", macroBtnsCol);
-    m_macroAddBtn->setToolTip("Add macro");
+    m_macroAddBtn = new QPushButton(tr("+"), macroBtnsCol);
+    m_macroAddBtn->setToolTip(tr("Add macro"));
 
-    m_macroDelBtn = new QPushButton("-", macroBtnsCol);
-    m_macroDelBtn->setToolTip("Delete selected macro");
+    m_macroDelBtn = new QPushButton(tr("-"), macroBtnsCol);
+    m_macroDelBtn->setToolTip(tr("Delete selected macro"));
 
     macroBtnsColL->addWidget(m_macroAddBtn);
     macroBtnsColL->addWidget(m_macroDelBtn);
@@ -604,9 +604,9 @@ void ProfilesEditorDialog::buildUi()
     macroListRowL->addWidget(macroBtnsCol, 0);
 
     // Macro editor fields
-    auto *nameLbl = new QLabel("Name:", macroPanel);
+    auto *nameLbl = new QLabel(tr("Name:"), macroPanel);
     m_macroNameEdit = new QLineEdit(macroPanel);
-    m_macroNameEdit->setPlaceholderText("e.g. Backup stats");
+    m_macroNameEdit->setPlaceholderText(tr("e.g. Backup stats"));
 
     // Shortcut + Clear + Command row
     auto *rowLbls = new QWidget(macroPanel);
@@ -614,8 +614,8 @@ void ProfilesEditorDialog::buildUi()
     rowLblsL->setContentsMargins(0, 0, 0, 0);
     rowLblsL->setSpacing(6);
 
-    auto *shortcutLbl = new QLabel("Shortcut:", macroPanel);
-    auto *cmdLbl      = new QLabel("Command:",  macroPanel);
+    auto *shortcutLbl = new QLabel(tr("Shortcut:"), macroPanel);
+    auto *cmdLbl      = new QLabel(tr("Command:"),  macroPanel);
 
     shortcutLbl->setMinimumWidth(70);
     rowLblsL->addWidget(shortcutLbl, 0);
@@ -633,29 +633,29 @@ void ProfilesEditorDialog::buildUi()
     macroRowL->setSpacing(6);
 
     m_macroShortcutEdit = new QKeySequenceEdit(macroPanel);
-    m_macroShortcutEdit->setToolTip("Click and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R");
+    m_macroShortcutEdit->setToolTip(tr("Click and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R"));
     m_macroShortcutEdit->setMinimumWidth(90);
     m_macroShortcutEdit->setMaximumWidth(120);
     m_macroShortcutEdit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
 
-    m_macroClearBtn = new QPushButton("Clear", macroPanel);
-    m_macroClearBtn->setToolTip("Clear the shortcut");
+    m_macroClearBtn = new QPushButton(tr("Clear"), macroPanel);
+    m_macroClearBtn->setToolTip(tr("Clear the shortcut"));
     m_macroClearBtn->setFixedWidth(56);
 
     m_macroCmdEdit = new QLineEdit(macroPanel);
-    m_macroCmdEdit->setPlaceholderText(R"(e.g. cd stats && cp stats.txt stats_backup.txt)");
-    m_macroCmdEdit->setToolTip("Command to send when the shortcut is pressed");
+    m_macroCmdEdit->setPlaceholderText(tr("e.g. cd stats && cp stats.txt stats_backup.txt"));
+    m_macroCmdEdit->setToolTip(tr("Command to send when the shortcut is pressed"));
     m_macroCmdEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     macroRowL->addWidget(m_macroShortcutEdit, 0);
     macroRowL->addWidget(m_macroClearBtn, 0);
     macroRowL->addWidget(m_macroCmdEdit, 1);
 
-    m_macroEnterCheck = new QCheckBox("Send [Enter] automatically after command", macroPanel);
+    m_macroEnterCheck = new QCheckBox(tr("Send [Enter] automatically after command"), macroPanel);
     m_macroEnterCheck->setChecked(true);
 
     auto *macroHint = new QLabel(
-        "Tip: If [Enter] is enabled, PQ-SSH appends a newline so the command runs immediately.",
+        tr("Tip: If [Enter] is enabled, PQ-SSH appends a newline so the command runs immediately."),
         macroPanel
     );
     macroHint->setWordWrap(true);
@@ -1034,7 +1034,7 @@ bool ProfilesEditorDialog::validateProfiles(QString *errMsg) const
 {
     for (const auto &p : m_working) {
         if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
-            if (errMsg) *errMsg = "Each profile must have non-empty user and host.";
+            if (errMsg) *errMsg = tr("Each profile must have non-empty user and host.");
             return false;
         }
 
@@ -1044,7 +1044,7 @@ bool ProfilesEditorDialog::validateProfiles(QString *errMsg) const
         if (!kt.isEmpty() && kt != "auto") {
             if (p.keyFile.trimmed().isEmpty()) {
                 if (errMsg) *errMsg =
-                    "Key type is set but key file is empty. Either set a key file or set key type to auto.";
+                    tr("Key type is set but key file is empty. Either set a key file or set key type to auto.");
                 return false;
             }
         }
@@ -1060,7 +1060,7 @@ void ProfilesEditorDialog::onAccepted()
 
     QString err;
     if (!validateProfiles(&err)) {
-        QMessageBox::warning(this, "Invalid profile", err);
+        QMessageBox::warning(this, tr("Invalid profile"), err);
         return;
     }
 
@@ -1176,9 +1176,9 @@ void ProfilesEditorDialog::exportMacros()
 
     const QString path = QFileDialog::getSaveFileName(
         this,
-        "Export macros",
+        tr("Export macros"),
         QDir::homePath() + "/macros.pqssh-macros.json",
-        "PQ-SSH Macros (*.pqssh-macros.json)"
+        tr("PQ-SSH Macros (*.pqssh-macros.json)")
     );
     if (path.isEmpty())
         return;
@@ -1201,7 +1201,7 @@ void ProfilesEditorDialog::exportMacros()
 
     QFile f(path);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QMessageBox::warning(this, "Export failed", f.errorString());
+        QMessageBox::warning(this, tr("Export failed"), f.errorString());
         return;
     }
 
@@ -1216,16 +1216,16 @@ void ProfilesEditorDialog::importMacros()
 
     const QString path = QFileDialog::getOpenFileName(
         this,
-        "Import macros",
+        tr("Import macros"),
         QDir::homePath(),
-        "PQ-SSH Macros (*.pqssh-macros.json)"
+        tr("PQ-SSH Macros (*.pqssh-macros.json)")
     );
     if (path.isEmpty())
         return;
 
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, "Import failed", f.errorString());
+        QMessageBox::warning(this, tr("Import failed"), f.errorString());
         return;
     }
 
@@ -1234,7 +1234,7 @@ void ProfilesEditorDialog::importMacros()
     f.close();
 
     if (perr.error != QJsonParseError::NoError || !doc.isObject()) {
-        QMessageBox::warning(this, "Import failed", "Invalid JSON file.");
+        QMessageBox::warning(this, tr("Import failed"), tr("Invalid JSON file."));
         return;
     }
 
@@ -1273,7 +1273,7 @@ void ProfilesEditorDialog::importMacros()
 
     QMessageBox::information(
         this,
-        "Macros imported",
-        QString("Imported %1 macros.").arg(added)
+        tr("Macros imported"),
+        tr("Imported %1 macros.").arg(added)
     );
 }

@@ -1,9 +1,11 @@
+// MainWindow.cpp
 #include "MainWindow.h"
 #include "KeyGeneratorDialog.h"
 #include "KeyMetadataUtils.h"
 #include "FilesTab.h"
 #include "IdentityManagerDialog.h"
 #include "Audit/AuditLogViewerDialog.h"
+
 #include <QTextBrowser>
 #include <QInputDialog>
 #include <QApplication>
@@ -38,49 +40,46 @@
 #include <QCoreApplication>
 #include <QGuiApplication>
 #include <QPointer>
-
-#include "AppTheme.h"
-#include "ProfileStore.h"
-#include "ProfilesEditorDialog.h"
-#include "SshClient.h"
-
 #include <QTabWidget>
 #include <QFont>
-#include "CpunkTermWidget.h"
-#include <qtermwidget5/qtermwidget.h>
 #include <QtConcurrent/QtConcurrent>
 #include <QFutureWatcher>
 #include <QRegularExpression>
 #include <QDesktopServices>
 #include <QUrl>
-#include "Logger.h"
 #include <QFileDialog>
 #include <QStandardPaths>
 #include <QMessageBox>
 #include <QCryptographicHash>
-#include "DilithiumKeyCrypto.h"
-#include <sodium.h>
 #include <QUuid>
 #include <QFrame>
-#include "SshConfigImportPlanDialog.h"
-#include "SshConfigParser.h"
-#include "SshConfigImportPlan.h"
-
 #include <QToolButton>
 #include <QMenu>
 #include <QSettings>
 #include <QShortcut>
-#include "SshConfigImportDialog.h"
-
-#include "SettingsDialog.h"
-#include "Fleet/FleetWindow.h"
-
 #include <QCloseEvent>
-#include "AuditLogger.h"
 #include <QEvent>
 #include <QMetaObject>
 #include <QVariant>
 #include <QDialogButtonBox>
+
+#include "AppTheme.h"
+#include "ProfileStore.h"
+#include "ProfilesEditorDialog.h"
+#include "SshClient.h"
+#include "CpunkTermWidget.h"
+#include <qtermwidget5/qtermwidget.h>
+#include "Logger.h"
+#include "DilithiumKeyCrypto.h"
+#include <sodium.h>
+#include "SshConfigImportPlanDialog.h"
+#include "SshConfigParser.h"
+#include "SshConfigImportPlan.h"
+#include "SshConfigImportDialog.h"
+#include "SettingsDialog.h"
+#include "Fleet/FleetWindow.h"
+#include "AuditLogger.h"
+
 //
 // ARCHITECTURE NOTES (MainWindow.cpp)
 //
@@ -106,15 +105,12 @@
 // =====================================================
 // Forward declarations + small UI helpers
 // =====================================================
-//
-// These are file-local helpers to keep MainWindow methods focused on flow.
-// They should remain “dumb UI glue”: no SSH logic, no crypto, no persistence.
-//
 
 class CpunkTermWidget;
 static void forceBlackBackground(CpunkTermWidget *term);
 static void protectTermFromAppStyles(CpunkTermWidget *term);
 static void stopTerm(CpunkTermWidget* term);
+
 // =====================================================
 // Helpers for clean command logging
 // =====================================================
@@ -136,7 +132,6 @@ static QString prettyCommandLine(const QString &exe, const QStringList &args)
         parts << shellQuote(a);
     return parts.join(" ");
 }
-
 
 // Focus quirks: terminals sometimes need delayed focus to become type-ready.
 // Using two singleShots is a pragmatic workaround for window manager timing.
@@ -209,7 +204,6 @@ static void syncTerminalSurroundingsToTerm(CpunkTermWidget* term)
 // =====================================================
 // Profile list grouping helpers
 // =====================================================
-
 static QString normalizedGroupName(const QString& g)
 {
     const QString s = g.trimmed();
@@ -265,7 +259,7 @@ void MainWindow::rebuildProfileList()
 
         auto* it = new QListWidgetItem("    " + p.name, m_profileList);
         it->setData(Qt::UserRole, idx); // <-- REAL index into m_profiles
-        it->setToolTip(QString("%1@%2:%3  [%4]")
+        it->setToolTip(tr("%1@%2:%3  [%4]")
                            .arg(p.user, p.host)
                            .arg(p.port > 0 ? p.port : 22)
                            .arg(normalizedGroupName(p.group)));
@@ -294,15 +288,14 @@ bool saveNewAppPassword(const QString& newPass, QString* errOut)
                           (unsigned long long)pw.size(),
                           crypto_pwhash_OPSLIMIT_INTERACTIVE,
                           crypto_pwhash_MEMLIMIT_INTERACTIVE) != 0) {
-        if (errOut) *errOut = "Out of memory while hashing password.";
+        if (errOut) *errOut = QObject::tr("Out of memory while hashing password.");
         return false;
-                          }
+    }
 
     QSettings s;
     s.setValue("appLock/hash", QByteArray(hash));
     return true;
 }
-
 
 // Returns the selected profile index in m_profiles, or -1 if none / header selected.
 int MainWindow::currentProfileIndex() const
@@ -367,16 +360,12 @@ void MainWindow::applyCurrentTheme()
     rebuildProfileList();  // refresh header brushes
 }
 
-
-
 // =====================================================
 // MainWindow lifecycle
 // =====================================================
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    // ---- Startup logs (to pq-ssh.log via Logger::install in main.cpp) ----
-    // Rationale: keep a stable environment fingerprint for debugging user reports.
     qInfo() << "MainWindow constructing";
     qInfo() << "App:" << QCoreApplication::applicationName()
             << "Version:" << QCoreApplication::applicationVersion();
@@ -387,23 +376,19 @@ MainWindow::MainWindow(QWidget *parent)
     // Global widget theme. Terminal colors are handled separately.
     applySavedSettings();
 
-    setWindowTitle("CPUNK PQ-SSH");
+    setWindowTitle(tr("CPUNK PQ-SSH"));
     resize(1200, 700);
 
-    // UI-first: build widgets, then load profiles, then wire menus/actions.
-    // Profiles may affect initial UI state (host field, debug checkbox).
     setupUi();
     loadProfiles();      // loadProfiles() calls rebuildProfileList()
     setupMenus();
 
     // Passphrase prompt provider for libssh when an OpenSSH private key is encrypted.
-    // Architectural note: MainWindow supplies *UI* for passphrase prompts,
-    // while SshClient owns the actual key loading logic.
     m_ssh.setPassphraseProvider([this](const QString& keyFile, bool *ok) -> QString {
-        const QString title = "SSH Key Passphrase";
+        const QString title = tr("SSH Key Passphrase");
         const QString label = keyFile.trimmed().isEmpty()
-            ? QString("Enter passphrase for private key:")
-            : QString("Enter passphrase for key:\n%1").arg(QFileInfo(keyFile).fileName());
+            ? tr("Enter passphrase for private key:")
+            : tr("Enter passphrase for key:\n%1").arg(QFileInfo(keyFile).fileName());
 
         bool localOk = false;
         const QString pass = QInputDialog::getText(
@@ -422,37 +407,26 @@ MainWindow::MainWindow(QWidget *parent)
     qInfo() << "UI ready; profiles loaded";
 
     // ---- App lock (optional) ----
-    // If enabled in settings, require user to unlock the app once at startup.
-    // NOTE: This expects you have:
-    //   - bool MainWindow::showStartupUnlockDialog();
-    //   - bool MainWindow::verifyAppPassword(const QString& pass);
-    //
-    // Settings keys:
-    //   appLock/enabled = true/false
-    //   appLock/hash    = libsodium crypto_pwhash_str() output
-    //
     {
         QSettings s;
         const bool lockEnabled = s.value("appLock/enabled", false).toBool();
         const QByteArray hash  = s.value("appLock/hash", "").toByteArray();
 
         if (lockEnabled) {
-            // Safety: don’t brick the app if user enabled lock but no password exists.
             if (hash.isEmpty()) {
                 QMessageBox::warning(
                     this,
-                    "App lock",
-                    "App lock is enabled but no password is set.\n"
-                    "Disable app lock in Settings or set a password."
+                    tr("App lock"),
+                    tr("App lock is enabled but no password is set.\n"
+                       "Disable app lock in Settings or set a password.")
                 );
             } else {
-                // Hide until unlocked (prevents UI “flash” before the dialog)
                 this->hide();
 
                 const bool ok = showStartupUnlockDialog();
                 if (!ok) {
                     qApp->quit();
-                    return; // stop startup flow
+                    return;
                 }
 
                 this->show();
@@ -463,30 +437,23 @@ MainWindow::MainWindow(QWidget *parent)
     }
 
     // ---- Startup security warning: expired keys ----
-    // This is a user-facing safety net:
-    //   1) auto-mark expired keys (metadata repair)
-    //   2) show an explicit warning if any keys are expired
-    //
-    // This does NOT modify private keys; it only updates metadata.json.
     {
         const QString metaPath = QDir(QDir::homePath()).filePath(".pq-ssh/keys/metadata.json");
         qInfo() << "Checking key metadata:" << metaPath;
 
-        // 1) Keep metadata consistent by auto-expiring outdated entries.
         QString autoErr;
         autoExpireMetadataFile(metaPath, &autoErr);
 
         if (!autoErr.isEmpty()) {
-            appendTerminalLine("[WARN] " + autoErr);
+            appendTerminalLine(tr("[WARN] %1").arg(autoErr));
             qWarning() << "autoExpireMetadataFile:" << autoErr;
         }
 
-        // 2) Count expired keys after auto-marking.
         QString e;
         const int expired = countExpiredKeysInMetadata(&e);
 
         if (!e.isEmpty()) {
-            appendTerminalLine("[WARN] " + e);
+            appendTerminalLine(tr("[WARN] %1").arg(e));
             qWarning() << "countExpiredKeysInMetadata:" << e;
         }
 
@@ -494,17 +461,15 @@ MainWindow::MainWindow(QWidget *parent)
 
         if (expired > 0) {
             const QString msg =
-                QString("⚠ WARNING: You have %1 expired SSH key(s). Open Key Generator → Keys tab to review/rotate.")
+                tr("⚠ WARNING: You have %1 expired SSH key(s). Open Key Generator → Keys tab to review/rotate.")
                     .arg(expired);
 
-            // Status label gives persistent, visible warning in the main window.
             if (m_statusLabel) {
                 m_statusLabel->setText(msg);
                 m_statusLabel->setStyleSheet("color: #ff5252; font-weight: bold;");
             }
 
-            // Terminal log provides an audit trail (and ends up in the file log too).
-            appendTerminalLine("[SECURITY] " + msg);
+            appendTerminalLine(tr("[SECURITY] %1").arg(msg));
             qWarning() << "SECURITY:" << msg;
         }
     }
@@ -512,27 +477,19 @@ MainWindow::MainWindow(QWidget *parent)
     qInfo() << "MainWindow constructed OK";
 }
 
-
 MainWindow::~MainWindow()
 {
-    // Defensive: ensure background sessions are closed on app exit.
-    // (The terminal sessions launched via QTermWidget may also exit independently.)
     m_ssh.disconnect();
 }
 
 // ========================
 // UI construction
 // ========================
-//
-// setupUi() builds the widget tree and wires signals/slots.
-// It should not contain business logic (SSH/crypto), only view assembly.
-//
-
 void MainWindow::setupUi()
 {
     auto *splitter = new QSplitter(Qt::Horizontal, this);
     splitter->setChildrenCollapsible(false);
-    splitter->setHandleWidth(1); // thinner handle
+    splitter->setHandleWidth(1);
     setCentralWidget(splitter);
 
     // ============================
@@ -562,12 +519,11 @@ void MainWindow::setupUi()
     // ============================
     auto *rightWidget = new QWidget(splitter);
 
-    // Outer layout keeps padding for top/input/bottom bars
     auto *outer = new QVBoxLayout(rightWidget);
     outer->setContentsMargins(8, 8, 8, 8);
     outer->setSpacing(6);
 
-    // --- Top bar: connection target + buttons ---
+    // --- Top bar ---
     auto *topBar = new QWidget(rightWidget);
     auto *topLayout = new QHBoxLayout(topBar);
     topLayout->setContentsMargins(0, 0, 0, 0);
@@ -581,19 +537,13 @@ void MainWindow::setupUi()
     m_disconnectBtn = new QPushButton(tr("Disconnect"), topBar);
     m_disconnectBtn->setEnabled(false);
 
-
     topLayout->addWidget(hostLabel);
     topLayout->addWidget(m_hostField, 1);
     topLayout->addWidget(m_connectBtn);
     topLayout->addWidget(m_disconnectBtn);
     topBar->setLayout(topLayout);
 
-    // --- Terminal container ---
-    // Note: m_terminal is currently a QPlainTextEdit “log view”.
-    // Real interactive terminals are created on connect via CpunkTermWidget.
-    // Keeping a simple log view here helps debugging and provides a consistent
-    // place for status text even when terminals open in separate windows.
-    // --- Terminal container -> now a QTabWidget with Log + Files ---
+    // --- Terminal container: QTabWidget with Log + Files ---
     auto *termContainer = new QWidget(rightWidget);
     auto *termLayout = new QVBoxLayout(termContainer);
     termLayout->setContentsMargins(0, 0, 0, 0);
@@ -632,10 +582,6 @@ void MainWindow::setupUi()
     termContainer->setLayout(termLayout);
 
     // --- Input bar ---
-    // Architectural note: input bar is currently not wired to a shell.
-    // It exists as a UI placeholder and can later become:
-    //   - a quick “send command” feature (non-interactive), or
-    //   - a fallback command runner when no terminal is open.
     auto *inputBar = new QWidget(rightWidget);
     auto *inputLayout = new QHBoxLayout(inputBar);
     inputLayout->setContentsMargins(0, 0, 0, 0);
@@ -651,7 +597,7 @@ void MainWindow::setupUi()
     inputLayout->addWidget(m_sendBtn);
     inputBar->setLayout(inputLayout);
 
-    // --- Bottom bar: status + debug controls ---
+    // --- Bottom bar ---
     auto *bottomBar = new QWidget(rightWidget);
     auto *bottomLayout = new QHBoxLayout(bottomBar);
     bottomLayout->setContentsMargins(0, 0, 0, 0);
@@ -660,16 +606,12 @@ void MainWindow::setupUi()
     m_statusLabel = new QLabel(tr("Ready."), bottomBar);
     m_statusLabel->setStyleSheet("color: gray;");
 
-    // PQ status is derived from an OpenSSH probe (sntrup761 hybrid KEX check).
     m_pqStatusLabel = new QLabel(tr("PQ: unknown"), bottomBar);
     m_pqStatusLabel->setStyleSheet("color: #888; font-weight: bold;");
 
-    // PQ debug gates *UI verbosity* and enables dev/test actions.
-    // Important: debug mode should not silently alter security behavior—only visibility.
-    m_pqDebugCheck = new QCheckBox("PQ debug", bottomBar);
+    m_pqDebugCheck = new QCheckBox(tr("PQ debug"), bottomBar);
     m_pqDebugCheck->setChecked(true);
 
-    // Connection UX: choose between new window per session or tabbed sessions.
     m_openInNewWindowCheck = new QCheckBox(tr("Open new connection in NEW window"), bottomBar);
     m_openInNewWindowCheck->setChecked(true);
 
@@ -679,25 +621,19 @@ void MainWindow::setupUi()
     bottomLayout->addWidget(m_pqDebugCheck, 0);
     bottomBar->setLayout(bottomLayout);
 
-    // Assemble right side
     outer->addWidget(topBar);
     outer->addWidget(termContainer, 1);
     outer->addWidget(inputBar, 0);
     outer->addWidget(bottomBar);
 
-    // Add panes to splitter
     splitter->addWidget(profilesWidget);
     splitter->addWidget(rightWidget);
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
 
-    // Optional: ensure splitter handle isn't black in dark theme
     splitter->setStyleSheet("QSplitter::handle { background-color: #121212; }");
 
-    // ============================
-    // Wiring (signals/slots)
-    // ============================
-    // These are UI-level connections that delegate to handler methods.
+    // Wiring
     connect(m_connectBtn, &QPushButton::clicked,
             this, &MainWindow::onConnectClicked);
 
@@ -726,75 +662,56 @@ void MainWindow::setupUi()
                     raw.contains("mlkem", Qt::CaseInsensitive) ||
                     raw.contains("sntrup", Qt::CaseInsensitive);
 
-                // ✅ THIS is the exact place for the conditional message
                 if (pq) {
                     appendTerminalLine(
-                        QString("[PQ] 🧬 Post-Quantum key exchange established → %1")
+                        tr("[PQ] 🧬 Post-Quantum key exchange established → %1")
                             .arg(pretty)
                     );
                 } else {
                     appendTerminalLine(
-                        QString("[KEX] Classical key exchange negotiated → %1")
+                        tr("[KEX] Classical key exchange negotiated → %1")
                             .arg(pretty)
                     );
                 }
 
-                // Bottom/status bar (short & neutral)
                 updatePqStatusLabel(
-                    pq ? ("Post-Quantum KEX: " + pretty) : ("KEX: " + pretty),
+                    pq ? (tr("Post-Quantum KEX: %1").arg(pretty))
+                       : (tr("KEX: %1").arg(pretty)),
                     pq ? "#00FF99" : "#9AA0A6"
                 );
 
-                // Tooltip with raw negotiated algorithm
                 if (m_pqStatusLabel)
-                    m_pqStatusLabel->setToolTip("Negotiated KEX: " + raw);
+                    m_pqStatusLabel->setToolTip(tr("Negotiated KEX: %1").arg(raw));
             });
 }
 
 void MainWindow::setupMenus()
 {
-    // ARCHITECTURE:
-    // Menus are the “command surface” of the app. MainWindow wires actions to
-    // higher-level workflows, but actual work is delegated:
-    //   - Key generation UI -> KeyGeneratorDialog
-    //   - Server-side key install -> SshClient::installAuthorizedKey(...)
-    //   - DEV crypto checks -> SshClient / DilithiumKeyCrypto helpers
-    //
-    // Design principle: keep menu handlers thin; validate input in UI,
-    // then call a single workflow function (e.g. onInstallPublicKeyRequested).
-
-    // ----------------------------
-    // File
-    // ----------------------------
     auto *fileMenu = menuBar()->addMenu(tr("&File"));
 
     QAction *settingsAct = fileMenu->addAction(tr("Settings…"));
     settingsAct->setToolTip(tr("Open PQ-SSH settings"));
     connect(settingsAct, &QAction::triggered, this, [this]() {
 
-        // If already open, bring to front
         if (m_settingsDlg) {
             m_settingsDlg->raise();
             m_settingsDlg->activateWindow();
             return;
         }
 
-        // IMPORTANT: parent = nullptr so it’s freely movable and not “attached”
         m_settingsDlg = new SettingsDialog(nullptr);
         m_settingsDlg->setAttribute(Qt::WA_DeleteOnClose, true);
-        m_settingsDlg->setWindowTitle("CPUNK PQ-SSH — Settings");
+        m_settingsDlg->setWindowTitle(tr("CPUNK PQ-SSH — Settings"));
 
-        // When closed, clear pointer
         connect(m_settingsDlg, &QObject::destroyed, this, [this]() {
             m_settingsDlg = nullptr;
         });
 
-        // Apply settings when user presses OK/Apply (assuming Accepted exists)
         connect(m_settingsDlg, &QDialog::accepted, this, [this]() {
             applySavedSettings();
             rebuildProfileList();
-            appendTerminalLine("[INFO] Settings updated.");
-            if (m_statusLabel) m_statusLabel->setText("Settings updated.");
+            appendTerminalLine(tr("[INFO] Settings updated."));
+            if (m_statusLabel) m_statusLabel->setText(tr("Settings updated."));
         });
 
         m_settingsDlg->show();
@@ -803,7 +720,7 @@ void MainWindow::setupMenus()
     });
 
     QAction *importSshConfigAct = fileMenu->addAction(tr("Import OpenSSH config…"));
-    importSshConfigAct->setToolTip("Read ~/.ssh/config and preview entries (no profiles are created yet).");
+    importSshConfigAct->setToolTip(tr("Read ~/.ssh/config and preview entries (no profiles are created yet)."));
     connect(importSshConfigAct, &QAction::triggered, this, &MainWindow::onImportOpenSshConfig);
 
     fileMenu->addSeparator();
@@ -812,15 +729,12 @@ void MainWindow::setupMenus()
     quitAct->setShortcut(QKeySequence::Quit);
     connect(quitAct, &QAction::triggered, this, &QWidget::close);
 
-    // ----------------------------
-    // Tools (Fleet jobs)
-    // ----------------------------
+    // Tools
     auto *toolsMenu = menuBar()->addMenu(tr("&Tools"));
-    // If already open, bring to front (modeless window)
     static QPointer<FleetWindow> g_fleetWin;
 
     QAction *fleetAct = toolsMenu->addAction(tr("Fleet jobs…"));
-    fleetAct->setToolTip("Run the same job across multiple profiles/hosts (e.g., deploy to 10 servers).");
+    fleetAct->setToolTip(tr("Run the same job across multiple profiles/hosts (e.g., deploy to 10 servers)."));
 
     connect(fleetAct, &QAction::triggered, this, [this]() {
         if (g_fleetWin) {
@@ -829,11 +743,9 @@ void MainWindow::setupMenus()
             return;
         }
 
-        // IMPORTANT: parent = nullptr so it's freely movable and not “attached”
         g_fleetWin = new FleetWindow(m_profiles, nullptr);
         g_fleetWin->setAttribute(Qt::WA_DeleteOnClose, true);
 
-        // When closed, clear pointer
         connect(g_fleetWin, &QObject::destroyed, this, [&]() {
             g_fleetWin = nullptr;
         });
@@ -843,41 +755,33 @@ void MainWindow::setupMenus()
         g_fleetWin->activateWindow();
     });
 
-
-    // ----------------------------
     // Keys
-    // ----------------------------
     auto *keysMenu = menuBar()->addMenu(tr("&Keys"));
 
     QAction *keyGenAct = new QAction(tr("Key Generator…"), this);
-    keyGenAct->setToolTip("Generate keys and optionally install the public key to a server profile");
+    keyGenAct->setToolTip(tr("Generate keys and optionally install the public key to a server profile"));
     keysMenu->addAction(keyGenAct);
 
     connect(keyGenAct, &QAction::triggered, this, [this]() {
 
-        // If already open, bring to front
         if (m_keyGenerator) {
             m_keyGenerator->raise();
             m_keyGenerator->activateWindow();
             return;
         }
 
-        // Build fresh profile name list (always up-to-date)
         QStringList names;
         names.reserve(m_profiles.size());
         for (const auto &p : m_profiles)
             names << p.name;
 
-        // IMPORTANT: parent = nullptr so it’s freely movable and not “attached”
         m_keyGenerator = new KeyGeneratorDialog(names, nullptr);
         m_keyGenerator->setAttribute(Qt::WA_DeleteOnClose, true);
-        m_keyGenerator->setWindowTitle("CPUNK PQ-SSH — Key Generator");
+        m_keyGenerator->setWindowTitle(tr("CPUNK PQ-SSH — Key Generator"));
 
-        // Keep existing workflow wiring
         connect(m_keyGenerator, &KeyGeneratorDialog::installPublicKeyRequested,
                 this, &MainWindow::onInstallPublicKeyRequested);
 
-        // When closed, clear pointer
         connect(m_keyGenerator, &QObject::destroyed, this, [this]() {
             m_keyGenerator = nullptr;
         });
@@ -887,53 +791,40 @@ void MainWindow::setupMenus()
         m_keyGenerator->activateWindow();
     });
 
-    // Menu-based installer (manual .pub selection).
-    // ARCHITECTURE:
-    // This is a convenience entry point to the same underlying workflow:
-    // onInstallPublicKeyRequested(pubKeyLine, profileIndex)
-    // Keeping the workflow centralized ensures consistent confirmations,
-    // idempotence, and error handling regardless of entry point.
     QAction *installPubAct = new QAction(tr("Install public key to server…"), this);
-    installPubAct->setToolTip("Append an OpenSSH public key to ~/.ssh/authorized_keys on the selected profile host.");
+    installPubAct->setToolTip(tr("Append an OpenSSH public key to ~/.ssh/authorized_keys on the selected profile host."));
     keysMenu->addAction(installPubAct);
 
     connect(installPubAct, &QAction::triggered, this, [this]() {
         ensureProfileItemSelected();
         const int row = currentProfileIndex();
         if (row < 0 || row >= m_profiles.size()) {
-            QMessageBox::warning(this,tr("Key install"),tr("No profile selected."));
+            QMessageBox::warning(this, tr("Key install"), tr("No profile selected."));
             return;
         }
 
-        // UI responsibility: choose and read a public key file.
-        // No remote operations happen until the central workflow is called.
         const QString pubPath = QFileDialog::getOpenFileName(
             this,
-            "Select OpenSSH public key (.pub)",
+            tr("Select OpenSSH public key (.pub)"),
             QDir::homePath() + "/.ssh",
-            "Public keys (*.pub);;All files (*)"
+            tr("Public keys (*.pub);;All files (*)")
         );
         if (pubPath.isEmpty()) return;
 
         QFile f(pubPath);
         if (!f.open(QIODevice::ReadOnly)) {
-            QMessageBox::critical(this, "Key install failed", "Cannot read file:\n" + f.errorString());
+            QMessageBox::critical(this, tr("Key install failed"),
+                                  tr("Cannot read file:\n%1").arg(f.errorString()));
             return;
         }
         const QString pubLine = QString::fromUtf8(f.readAll()).trimmed();
         f.close();
 
-        // Centralized key install flow (confirmation + SshClient call).
         onInstallPublicKeyRequested(pubLine, row);
     });
 
-    // DEV/Tester: hidden behind PQ debug
-    // ARCHITECTURE:
-    // Debug-gated actions allow internal diagnostics without exposing them
-    // to normal users. This avoids UI clutter and reduces risk of users
-    // triggering dev-only crypto helpers.
-    QAction *testUnlockAct = new QAction("DEV: Test Dilithium key unlock…", this);
-    testUnlockAct->setToolTip("Dev tool: decrypt .enc key and validate format (only visible when PQ debug is ON).");
+    QAction *testUnlockAct = new QAction(tr("DEV: Test Dilithium key unlock…"), this);
+    testUnlockAct->setToolTip(tr("Dev tool: decrypt .enc key and validate format (only visible when PQ debug is ON)."));
     keysMenu->addAction(testUnlockAct);
 
     auto syncDevVisibility = [this, testUnlockAct]() {
@@ -944,92 +835,76 @@ void MainWindow::setupMenus()
     syncDevVisibility();
 
     if (m_pqDebugCheck) {
-        // Keep visibility consistent with the checkbox state at runtime.
         connect(m_pqDebugCheck, &QCheckBox::toggled, this, [syncDevVisibility](bool) {
             syncDevVisibility();
         });
     }
 
     connect(testUnlockAct, &QAction::triggered, this, [this]() {
-        // Safety gate (in case someone triggers it via shortcut later)
         if (!(m_pqDebugCheck && m_pqDebugCheck->isChecked())) {
-            appendTerminalLine("[DEV] PQ debug is OFF. Enable it to use the tester.");
+            appendTerminalLine(tr("[DEV] PQ debug is OFF. Enable it to use the tester."));
             return;
         }
 
-        // ARCHITECTURE:
-        // This tool intentionally avoids revealing secrets:
-        //   - it prints sizes and hashes
-        //   - it does not print decrypted plaintext
-        // It also does basic format checks before trying decryption.
         const QString path = QFileDialog::getOpenFileName(
             this,
-            "Select encrypted Dilithium key (.enc)",
+            tr("Select encrypted Dilithium key (.enc)"),
             QDir(QDir::homePath()).filePath(".pq-ssh/keys"),
-            "Encrypted keys (*.enc);;All files (*)"
+            tr("Encrypted keys (*.enc);;All files (*)")
         );
         if (path.isEmpty()) return;
 
         QFile f(path);
         if (!f.open(QIODevice::ReadOnly)) {
-            appendTerminalLine(QString("[TEST] ❌ Cannot read file: %1").arg(f.errorString()));
+            appendTerminalLine(tr("[TEST] ❌ Cannot read file: %1").arg(f.errorString()));
             return;
         }
         const QByteArray enc = f.readAll();
         f.close();
 
-        appendTerminalLine(QString("[TEST] File: %1").arg(QFileInfo(path).fileName()));
-        appendTerminalLine(QString("[TEST] Enc size: %1 bytes").arg(enc.size()));
+        appendTerminalLine(tr("[TEST] File: %1").arg(QFileInfo(path).fileName()));
+        appendTerminalLine(tr("[TEST] Enc size: %1 bytes").arg(enc.size()));
 
-        // Minimal structure check: MAGIC(6)+SALT(16)+NONCE(24)+TAG(16) at least
         const int minSize =
             6 + crypto_pwhash_SALTBYTES + crypto_aead_xchacha20poly1305_ietf_NPUBBYTES +
             crypto_aead_xchacha20poly1305_ietf_ABYTES;
 
         if (enc.size() < minSize) {
-            appendTerminalLine(QString("[TEST] ❌ Too small to be valid (need >= %1 bytes)").arg(minSize));
+            appendTerminalLine(tr("[TEST] ❌ Too small to be valid (need >= %1 bytes)").arg(minSize));
             return;
         }
 
         const QByteArray magic = enc.left(6);
-        appendTerminalLine(QString("[TEST] Magic: '%1'").arg(QString::fromLatin1(magic)));
+        appendTerminalLine(tr("[TEST] Magic: '%1'").arg(QString::fromLatin1(magic)));
         if (magic != "PQSSH1") {
-            appendTerminalLine("[TEST] ⚠ WARN: Magic mismatch (expected 'PQSSH1'). Will still try decrypt.");
+            appendTerminalLine(tr("[TEST] ⚠ WARN: Magic mismatch (expected 'PQSSH1'). Will still try decrypt."));
         }
 
-        // Delegation: decryption/test logic lives in SshClient/DilithiumKeyCrypto,
-        // not here in the UI layer.
         QString err;
         const bool ok = m_ssh.testUnlockDilithiumKey(path, &err);
         if (ok) {
-            appendTerminalLine(QString("[TEST] ✅ Unlock OK: %1").arg(QFileInfo(path).fileName()));
+            appendTerminalLine(tr("[TEST] ✅ Unlock OK: %1").arg(QFileInfo(path).fileName()));
 
-            // Optional: compute SHA256 of encrypted blob (useful to compare files).
-            // Hashing ciphertext is safe and helps with bug reports.
             const QByteArray encSha = QCryptographicHash::hash(enc, QCryptographicHash::Sha256).toHex();
-            appendTerminalLine(QString("[TEST] Enc SHA256: %1").arg(QString::fromLatin1(encSha)));
+            appendTerminalLine(tr("[TEST] Enc SHA256: %1").arg(QString::fromLatin1(encSha)));
         } else {
-            appendTerminalLine(QString("[TEST] ❌ Unlock FAILED: %1").arg(err));
+            appendTerminalLine(tr("[TEST] ❌ Unlock FAILED: %1").arg(err));
         }
     });
 
-    // ----------------------------
-    // View (presentation + auxiliary windows)
-    // ----------------------------
-    auto *viewMenu = menuBar()->addMenu("&View");
+    // View
+    auto *viewMenu = menuBar()->addMenu(tr("&View"));
 
-    QAction *identityAct = new QAction("Identity manager…", this);
-    identityAct->setToolTip("Recover a global SSH keypair from 24 words (Ed25519).");
+    QAction *identityAct = new QAction(tr("Identity manager…"), this);
+    identityAct->setToolTip(tr("Recover a global SSH keypair from 24 words (Ed25519)."));
     viewMenu->addAction(identityAct);
     connect(identityAct, &QAction::triggered, this, &MainWindow::onIdentityManagerRequested);
 
-    // ----------------------------
     // Help
-    // ----------------------------
     auto *helpMenu = menuBar()->addMenu(tr("&Help"));
 
-    QAction *auditViewerAct = new QAction("Audit log viewer…", this);
-    auditViewerAct->setToolTip("View audit logs in a readable, colored format");
+    QAction *auditViewerAct = new QAction(tr("Audit log viewer…"), this);
+    auditViewerAct->setToolTip(tr("View audit logs in a readable, colored format"));
     connect(auditViewerAct, &QAction::triggered, this, [this]() {
         auto* dlg = new AuditLogViewerDialog(this);
         dlg->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -1039,8 +914,8 @@ void MainWindow::setupMenus()
     });
     helpMenu->addAction(auditViewerAct);
 
-    QAction *openAuditDirAct = new QAction("Open audit log folder", this);
-    openAuditDirAct->setToolTip("Open audit log directory");
+    QAction *openAuditDirAct = new QAction(tr("Open audit log folder"), this);
+    openAuditDirAct->setToolTip(tr("Open audit log directory"));
     connect(openAuditDirAct, &QAction::triggered, this, []() {
         const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/audit";
         QDesktopServices::openUrl(QUrl::fromLocalFile(dir));
@@ -1048,17 +923,16 @@ void MainWindow::setupMenus()
     helpMenu->addAction(openAuditDirAct);
 
     QAction *manualAct = new QAction(tr("User Manual"), this);
-    manualAct->setToolTip("Open PQ-SSH user manual");
+    manualAct->setToolTip(tr("Open PQ-SSH user manual"));
     connect(manualAct, &QAction::triggered, this, &MainWindow::onOpenUserManual);
     helpMenu->addAction(manualAct);
 
     QAction *openLogAct = new QAction(tr("Open log file"), this);
-    openLogAct->setToolTip("Open pq-ssh log file");
+    openLogAct->setToolTip(tr("Open pq-ssh log file"));
     connect(openLogAct, &QAction::triggered, this, &MainWindow::onOpenLogFile);
     helpMenu->addAction(openLogAct);
 
-    // Status bar: left side is transient messages, right side is permanent version.
-    statusBar()->showMessage("Ready");
+    statusBar()->showMessage(tr("Ready"));
 
     if (!m_versionLabel) {
         m_versionLabel = new QLabel(statusBar());
@@ -1067,105 +941,77 @@ void MainWindow::setupMenus()
     }
 
     const QString v = QCoreApplication::applicationVersion().trimmed();
-    m_versionLabel->setText(v.isEmpty() ? "v0.0.0" : ("v" + v));
-    m_versionLabel->setToolTip(QString("CPUNK PQ-SSH %1").arg(v.isEmpty() ? "v0.0.0" : ("v" + v)));
-
+    m_versionLabel->setText(v.isEmpty() ? tr("v0.0.0") : (tr("v") + v));
+    m_versionLabel->setToolTip(tr("CPUNK PQ-SSH %1").arg(v.isEmpty() ? tr("v0.0.0") : (tr("v") + v)));
 }
-
-
-
 
 void MainWindow::appendTerminalLine(const QString &line)
 {
-    // ARCHITECTURE:
-    // appendTerminalLine() is the UI “log sink” for user-visible messages.
-    // It intentionally hides certain high-volume diagnostics unless PQ debug is enabled.
-    // Even when hidden from the UI, messages are still written to the file log via qInfo().
     const bool verbose = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
 
-    // Hide noisy diagnostics in normal mode
     if (!verbose) {
         if (line.startsWith("[SSH-CMD]") ||
             line.startsWith("[SSH-WRAP]") ||
             line.startsWith("[TERM] available schemes:") ||
             line.startsWith("[TERM] profile=") ||
             line.startsWith("[SECURITY] Local shell fallback")) {
-            // Still log to file for debugging
             qInfo().noquote() << "[UI-HIDDEN]" << line;
             return;
         }
     }
 
-    // UI side: only the main window log view is appended here.
-    // Terminals have their own output streams.
     if (m_terminal)
         m_terminal->appendPlainText(line);
 }
 
 void MainWindow::updatePqStatusLabel(const QString &text, const QString &colorHex)
 {
-    // ARCHITECTURE:
-    // PQ status is a best-effort indicator derived from an OpenSSH probe,
-    // not from the libssh session. It is intentionally lightweight and non-blocking.
     if (!m_pqStatusLabel) return;
 
     m_pqStatusLabel->setText(text);
 
     QString col = colorHex.trimmed();
     if (col.isEmpty()) {
-        // Theme accent (so CPUNK Dark/Orange/Windows Basic can control it)
         col = qApp->palette().color(QPalette::Highlight).name();
     }
 
     m_pqStatusLabel->setStyleSheet(QString("color:%1; font-weight:bold;").arg(col));
 }
 
-
 // ========================
 // Profiles
 // ========================
-//
-// Profile persistence lives in ProfileStore. MainWindow owns the in-memory list
-// and updates the UI. Any edits flow through ProfilesEditorDialog.
-//
-
 void MainWindow::loadProfiles()
 {
     QString err;
     m_profiles = ProfileStore::load(&err);
 
-    // If there are no profiles, seed defaults and persist them.
-    // This gives first-time users a usable starting point.
     if (m_profiles.isEmpty()) {
         m_profiles = ProfileStore::defaults();
         QString saveErr;
         ProfileStore::save(m_profiles, &saveErr);
         if (!saveErr.isEmpty())
-            appendTerminalLine("[WARN] Could not save default profiles: " + saveErr);
+            appendTerminalLine(tr("[WARN] Could not save default profiles: %1").arg(saveErr));
     }
 
     rebuildProfileList();
 
-    // Non-fatal load warning goes to UI log.
     if (!err.isEmpty())
-        appendTerminalLine("[WARN] ProfileStore: " + err);
+        appendTerminalLine(tr("[WARN] ProfileStore: %1").arg(err));
 }
 
 void MainWindow::saveProfilesToDisk()
 {
-    // ARCHITECTURE:
-    // Saving is centralized so all profile edits share the same failure handling.
     QString err;
     if (!ProfileStore::save(m_profiles, &err)) {
-        appendTerminalLine("[ERROR] " + err);
+        appendTerminalLine(tr("[ERROR] %1").arg(err));
         if (m_statusLabel)
-            m_statusLabel->setText("Failed to save profiles");
+            m_statusLabel->setText(tr("Failed to save profiles"));
     }
 }
 
 void MainWindow::onEditProfilesClicked()
 {
-    // If already open, just bring it to front.
     if (m_profilesEditor) {
         m_profilesEditor->raise();
         m_profilesEditor->activateWindow();
@@ -1175,16 +1021,12 @@ void MainWindow::onEditProfilesClicked()
     ensureProfileItemSelected();
     const int selected = currentProfileIndex();
 
-    // Create modeless dialog (floating window, main window still usable)
     m_profilesEditor = new ProfilesEditorDialog(m_profiles, (selected >= 0 ? selected : 0), nullptr);
     m_profilesEditor->setAttribute(Qt::WA_DeleteOnClose, true);
     m_profilesEditor->setModal(false);
     m_profilesEditor->setWindowModality(Qt::NonModal);
-
-    // Optional: keep it as a real top-level window even if Qt tries to parent it
     m_profilesEditor->setWindowFlag(Qt::Window, true);
 
-    // When user clicks Save (Accepted), apply and persist
     connect(m_profilesEditor, &QDialog::accepted, this, [this]() {
         if (!m_profilesEditor) return;
 
@@ -1193,11 +1035,10 @@ void MainWindow::onEditProfilesClicked()
         rebuildProfileList();
 
         if (m_statusLabel)
-            m_statusLabel->setText("Profiles updated.");
-        appendTerminalLine("[INFO] Profiles updated.");
+            m_statusLabel->setText(tr("Profiles updated."));
+        appendTerminalLine(tr("[INFO] Profiles updated."));
     });
 
-    // When it closes (Save or Cancel), clear pointer
     connect(m_profilesEditor, &QObject::destroyed, this, [this]() {
         m_profilesEditor = nullptr;
     });
@@ -1207,34 +1048,22 @@ void MainWindow::onEditProfilesClicked()
     m_profilesEditor->activateWindow();
 }
 
-
 void MainWindow::onInstallPublicKeyRequested(const QString& pubKeyLine, int profileIndex)
 {
-    // ARCHITECTURE:
-    // This is the single “source of truth” workflow for server-side key install.
-    // Entry points:
-    //   - KeyGeneratorDialog (install selected key)
-    //   - Menu action (select .pub file)
-    //
-    // Responsibilities:
-    //   - UI validation + confirmation (host/user/port + key preview)
-    //   - Ensure an SSH(SFTP) session exists (via SshClient)
-    //   - Delegate idempotent authorized_keys modification to SshClient
-
     if (pubKeyLine.trimmed().isEmpty()) {
-        QMessageBox::warning(this, "Key install", "Public key is empty.");
+        QMessageBox::warning(this, tr("Key install"), tr("Public key is empty."));
         return;
     }
 
     if (profileIndex < 0 || profileIndex >= m_profiles.size()) {
-        QMessageBox::warning(this, "Key install", "Invalid target profile.");
+        QMessageBox::warning(this, tr("Key install"), tr("Invalid target profile."));
         return;
     }
 
     const SshProfile &p = m_profiles[profileIndex];
 
     if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
-        QMessageBox::warning(this, "Key install", "Profile has empty user/host.");
+        QMessageBox::warning(this, tr("Key install"), tr("Profile has empty user/host."));
         return;
     }
 
@@ -1245,8 +1074,6 @@ void MainWindow::onInstallPublicKeyRequested(const QString& pubKeyLine, int prof
             ? QString("%1@%2:%3").arg(p.user, p.host).arg(port)
             : QString("%1@%2").arg(p.user, p.host);
 
-    // UX: show a safe preview (type + truncated key blob), not the whole line.
-    // This avoids accidental full-key disclosure in screenshots/logs.
     const QStringList parts =
         pubKeyLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
     const QString keyType = parts.size() >= 1 ? parts[0] : QString("unknown");
@@ -1255,17 +1082,18 @@ void MainWindow::onInstallPublicKeyRequested(const QString& pubKeyLine, int prof
         keyBlob.isEmpty() ? QString() : (keyBlob.left(18) + "…" + keyBlob.right(10));
 
     const QString confirmText =
-        "You are about to install a public key to this host:\n\n"
-        "Target profile:\n  " + p.name + "\n\n"
-        "Host:\n  " + hostLine + "\n\n"
-        "Remote path:\n  ~/.ssh/authorized_keys\n\n"
-        "Key type:\n  " + keyType + "\n\n"
-        "Key preview:\n  " + preview + "\n\n"
-        "Proceed?";
+        tr("You are about to install a public key to this host:\n\n"
+           "Target profile:\n  %1\n\n"
+           "Host:\n  %2\n\n"
+           "Remote path:\n  ~/.ssh/authorized_keys\n\n"
+           "Key type:\n  %3\n\n"
+           "Key preview:\n  %4\n\n"
+           "Proceed?")
+            .arg(p.name, hostLine, keyType, preview);
 
     auto btn = QMessageBox::question(
         this,
-        "Confirm key install",
+        tr("Confirm key install"),
         confirmText,
         QMessageBox::Yes | QMessageBox::Cancel,
         QMessageBox::Cancel
@@ -1274,54 +1102,34 @@ void MainWindow::onInstallPublicKeyRequested(const QString& pubKeyLine, int prof
     if (btn != QMessageBox::Yes)
         return;
 
-    // Ensure we have a libssh session (SFTP) to that host.
-    // Note: this may prompt for password / passphrase via provider.
     if (!m_ssh.isConnected()) {
         QString e;
         if (!m_ssh.connectProfile(p, &e)) {
-            QMessageBox::critical(this, "Key install failed",
-                                  "SSH(SFTP) connection failed:\n" + e);
+            QMessageBox::critical(this, tr("Key install failed"),
+                                  tr("SSH(SFTP) connection failed:\n%1").arg(e));
             return;
         }
     }
 
-    // Delegation: SshClient performs an idempotent install (backup + append-if-missing).
     QString err;
     bool already = false;
 
     if (!m_ssh.installAuthorizedKey(pubKeyLine, &err, &already)) {
-        QMessageBox::critical(this, "Key install failed", err);
+        QMessageBox::critical(this, tr("Key install failed"), err);
         return;
     }
 
     QMessageBox::information(
         this,
-        "Key install",
-        already ? "Key already existed in authorized_keys."
-                : "Key installed successfully."
+        tr("Key install"),
+        already ? tr("Key already existed in authorized_keys.")
+                : tr("Key installed successfully.")
     );
 }
-
 
 // ========================
 // Connect / disconnect
 // ========================
-//
-// ARCHITECTURE (high-level):
-// “Connect” in pq-ssh is intentionally two parallel tracks:
-//
-//   1) Interactive shell/terminal:
-//        - Implemented by launching the system OpenSSH client inside QTermWidget
-//        - This provides a robust interactive PTY without re-implementing a full terminal over libssh
-//
-//   2) Background libssh session:
-//        - Used for SFTP features and server-side automation (upload, authorized_keys install)
-//        - Connected asynchronously (QtConcurrent) to keep UI responsive
-//
-// This split is deliberate: OpenSSH is best-in-class for interactive sessions,
-// while libssh gives us programmatic control for file operations and workflows.
-//
-
 void MainWindow::onProfileSelectionChanged(int /*row*/)
 {
     ensureProfileItemSelected();
@@ -1345,33 +1153,26 @@ void MainWindow::onProfileSelectionChanged(int /*row*/)
 
 void MainWindow::onConnectClicked()
 {
-    // ARCHITECTURE:
-    // Every connect attempt gets a new session id so log lines can be correlated.
-    // This is extremely helpful when multiple terminals/windows exist.
     m_sessionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
 
     const QString rawHost = m_hostField ? m_hostField->text().trimmed() : QString();
     ensureProfileItemSelected();
     const int row = currentProfileIndex();
 
-    // File log gets more context than the UI (UI is intentionally concise).
     logSessionInfo(QString("Connect clicked; profileRow=%1 rawHost='%2'")
                    .arg(row).arg(rawHost));
 
-    // UI validation: ensure a profile is selected.
     if (row < 0 || row >= m_profiles.size()) {
-        if (m_statusLabel) m_statusLabel->setText("No profile selected.");
-        uiWarn("[WARN] No profile selected.");
+        if (m_statusLabel) m_statusLabel->setText(tr("No profile selected."));
+        uiWarn(tr("[WARN] No profile selected."));
         return;
     }
 
-    // Copy profile by value so changes in the editor don’t affect an in-flight connect.
     const SshProfile p = m_profiles[row];
 
-    // UI validation: basic required fields.
     if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
-        if (m_statusLabel) m_statusLabel->setText("Profile has empty user/host.");
-        uiWarn("[WARN] Profile has empty user/host.");
+        if (m_statusLabel) m_statusLabel->setText(tr("Profile has empty user/host."));
+        uiWarn(tr("[WARN] Profile has empty user/host."));
         return;
     }
 
@@ -1379,11 +1180,9 @@ void MainWindow::onConnectClicked()
     const QString shownTarget = QString("%1@%2").arg(p.user, p.host);
 
     if (m_statusLabel)
-        m_statusLabel->setText(QString("Connecting to %1 ...").arg(shownTarget));
+        m_statusLabel->setText(tr("Connecting to %1 ...").arg(shownTarget));
 
-    // UI: one compact connect line.
-    // File log: full profile details for debugging.
-    uiInfo(QString("[CONNECT] %1 → %2:%3").arg(p.name, shownTarget).arg(port));
+    uiInfo(tr("[CONNECT] %1 → %2:%3").arg(p.name, shownTarget).arg(port));
 
     logSessionInfo(QString("Using profile='%1' user='%2' host='%3' port=%4 keyType='%5' scheme='%6'")
                    .arg(p.name, p.user, p.host)
@@ -1391,27 +1190,13 @@ void MainWindow::onConnectClicked()
                    .arg(p.keyType)
                    .arg(p.termColorScheme));
 
-    // UX: sessions can open in their own window or in the shared tabbed window.
     const bool newWindow =
         (m_openInNewWindowCheck && m_openInNewWindowCheck->isChecked());
 
-    // TRACK 1: Start interactive SSH terminal immediately (OpenSSH via QTermWidget).
-    // This keeps perceived latency low: user gets a terminal right away.
     openShellForProfile(p, shownTarget, newWindow);
 
-    // PQ status indicator starts in “checking…” and is updated by the probe below.
-    updatePqStatusLabel("PQ: checking…", "#888");
+    updatePqStatusLabel(tr("PQ: checking…"), "#888");
 
-    // ----------------------------
-    // PQ KEX probe (OpenSSH)
-    // ----------------------------
-    // ARCHITECTURE:
-    // We probe PQ/hybrid KEX support using OpenSSH itself because:
-    //   - it reflects the *actual* KEX negotiation OpenSSH would do
-    //   - it’s fast, non-invasive, and does not require authentication
-    //
-    // We run this probe asynchronously using QProcess; it reports via stderr
-    // whether the algorithm is supported (or “no matching key exchange”).
     auto *pqProc = new QProcess(this);
 
     QStringList pqArgs;
@@ -1427,48 +1212,41 @@ void MainWindow::onConnectClicked()
         pqArgs << "-p" << QString::number(port);
     }
 
-    // `true` is a harmless remote command; auth is disabled so we never get that far.
     pqArgs << shownTarget << "true";
 
-    // PQ debug gating: command line is noisy, so UI shows it only in verbose mode.
-    // File log always receives it.
-    uiDebug(QString("[PQ-PROBE] %1").arg(prettyCommandLine("ssh", pqArgs)));
+    uiDebug(tr("[PQ-PROBE] %1").arg(prettyCommandLine("ssh", pqArgs)));
 
     connect(pqProc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this, [this, pqProc](int exitCode, QProcess::ExitStatus st) {
 
-                // Most of the useful signal is in stderr for ssh negotiation failures.
                 const QString err = QString::fromUtf8(pqProc->readAllStandardError());
 
                 logSessionInfo(QString("PQ probe finished exitCode=%1 status=%2 stderrLen=%3")
                                .arg(exitCode)
                                .arg(st == QProcess::NormalExit ? "normal" : "crash")
                                .arg(err.size()));
-                                QString e = err;
+
+                QString e = err;
                 e.replace("\r\n", "\n");
                 e.replace('\r', '\n');
                 e = e.trimmed();
 
                 if (e.isEmpty()) {
-                    uiDebug("[PQ-PROBE] stderr: <empty>");
+                    uiDebug(tr("[PQ-PROBE] stderr: <empty>"));
                 } else {
-                    // Log first line + length, and keep full stderr in file log via logSessionInfo.
                     const QString firstLine = e.section('\n', 0, 0);
-                    uiDebug(QString("[PQ-PROBE] stderr(first): %1").arg(firstLine));
-}
+                    uiDebug(tr("[PQ-PROBE] stderr(first): %1").arg(firstLine));
+                }
 
-                // Heuristic: if ssh reports “no matching key exchange”, server didn’t accept the PQ KEX.
-                // If it fails for other reasons, we still treat KEX as “supported” unless it explicitly says otherwise.
                 const bool pqOk =
                     !(err.contains("no matching key exchange", Qt::CaseInsensitive) ||
                       err.contains("no matching key exchange method", Qt::CaseInsensitive));
 
-                // UI-only indicator: does not change security behavior, just informs the user.
                 QSettings s;
                 const QString themeId = s.value("ui/theme", "cpunk-dark").toString();
 
                 updatePqStatusLabel(
-                    pqOk ? "PQ support: YES" : "PQ support: NO",
+                    pqOk ? tr("PQ support: YES") : tr("PQ support: NO"),
                     pqOk ? AppTheme::accent(themeId).name()
                          : QString("#ff5252")
                 );
@@ -1478,29 +1256,14 @@ void MainWindow::onConnectClicked()
 
     pqProc->start("ssh", pqArgs);
 
-    // ----------------------------
-    // libssh connect (SFTP support)
-    // ----------------------------
-    // ARCHITECTURE:
-    // libssh session is used for:
-    //   - uploadBytes()
-    //   - remotePwd()
-    //   - installAuthorizedKey()
-    //
-    // It is explicitly *not* used for the interactive terminal, to avoid re-implementing
-    // a robust terminal+PTY stack.
     const QString keyType =
         p.keyType.trimmed().isEmpty() ? QStringLiteral("auto") : p.keyType.trimmed();
 
-    // Current constraint: only “auto/openssh” key types are supported for libssh workflows.
-    // If profile says something else, we disable SFTP/workflows but still allow terminal.
     if (!(keyType == "auto" || keyType == "openssh")) {
-        uiWarn(QString("[SFTP] Disabled (key_type='%1' not supported yet)").arg(keyType));
+        uiWarn(tr("[SFTP] Disabled (key_type='%1' not supported yet)").arg(keyType));
         logSessionInfo(QString("SFTP disabled due to unsupported key_type='%1'").arg(keyType));
         if (m_filesTab) m_filesTab->onSshDisconnected();
     } else {
-        // Async connect: do not block UI thread.
-        // QFutureWatcher result is delivered back on UI thread.
         auto *watcher = new QFutureWatcher<QPair<bool, QString>>(this);
 
         connect(watcher, &QFutureWatcher<QPair<bool, QString>>::finished,
@@ -1511,23 +1274,20 @@ void MainWindow::onConnectClicked()
                     const QString err = res.second;
 
                     if (ok) {
-                        uiInfo(QString("[SFTP] Ready (%1@%2:%3)").arg(p.user, p.host).arg(port));
+                        uiInfo(tr("[SFTP] Ready (%1@%2:%3)").arg(p.user, p.host).arg(port));
                         logSessionInfo("libssh connected OK (SFTP ready)");
 
                         if (m_filesTab) {
-                            // Now remote listing/upload/download can work.
                             m_filesTab->onSshConnected();
                         }
                     } else {
-                        // Non-fatal: terminal still works, but uploads/key install will be unavailable.
-                        uiWarn(QString("[SFTP] Disabled (libssh connect failed: %1)").arg(err));
+                        uiWarn(tr("[SFTP] Disabled (libssh connect failed: %1)").arg(err));
                         logSessionInfo(QString("libssh connect FAILED: %1").arg(err));
 
                         if (m_filesTab) {
                             m_filesTab->onSshDisconnected();
                         }
                     }
-
 
                     watcher->deleteLater();
                 });
@@ -1539,15 +1299,12 @@ void MainWindow::onConnectClicked()
         }));
     }
 
-    // UI state changes: we treat “connect clicked” as entering a connected state.
-    // Note: terminal + probe + libssh connect can still fail independently; those failures are reported separately.
     if (m_connectBtn)    m_connectBtn->setEnabled(false);
     if (m_disconnectBtn) m_disconnectBtn->setEnabled(true);
 
     if (m_statusLabel)
-        m_statusLabel->setText(QString("Connected: %1").arg(shownTarget));
+        m_statusLabel->setText(tr("Connected: %1").arg(shownTarget));
 }
-
 
 void MainWindow::onProfileDoubleClicked()
 {
@@ -1558,31 +1315,22 @@ void MainWindow::onProfileDoubleClicked()
 
 void MainWindow::onDisconnectClicked()
 {
-    // ARCHITECTURE:
-    // Disconnect currently focuses on the libssh session (SFTP/workflows).
-    // The interactive terminal lifecycle is largely driven by the OpenSSH process:
-    // it will exit when the user closes the terminal or ssh ends.
     logSessionInfo("Disconnect clicked (user requested)");
     m_ssh.disconnect();
     if (m_filesTab) m_filesTab->onSshDisconnected();
     if (m_connectBtn)    m_connectBtn->setEnabled(true);
     if (m_disconnectBtn) m_disconnectBtn->setEnabled(false);
 
-    if (m_statusLabel) m_statusLabel->setText("Disconnected.");
+    if (m_statusLabel) m_statusLabel->setText(tr("Disconnected."));
 }
 
 void MainWindow::onSendInput()
 {
-    // ARCHITECTURE:
-    // Placeholder input bar. Currently not wired into QTermWidget or libssh.
-    // Future options:
-    //   - send a command over SshShellWorker/libssh (non-interactive)
-    //   - paste into the active terminal tab (interactive)
     const QString text = m_inputField ? m_inputField->text().trimmed() : QString();
     if (text.isEmpty()) return;
 
-    appendTerminalLine(QString("> %1").arg(text));
-    appendTerminalLine("[INFO] Shell not implemented yet; input not sent anywhere.");
+    appendTerminalLine(tr("> %1").arg(text));
+    appendTerminalLine(tr("[INFO] Shell not implemented yet; input not sent anywhere."));
 
     if (m_inputField) m_inputField->clear();
 }
@@ -1590,17 +1338,6 @@ void MainWindow::onSendInput()
 // ========================
 // Drag-drop upload
 // ========================
-//
-// ARCHITECTURE:
-// Drag/drop is a terminal UX feature, but upload is a programmatic action,
-// so the terminal emits the event and MainWindow delegates to SshClient.
-//
-// Behavior:
-//   - If libssh is not connected, we fall back to a safe local save location.
-//     This prevents data loss when the user expects something to happen.
-//   - If libssh is connected, we upload to remote $PWD/filename.
-//
-
 void MainWindow::onFileDropped(const QString &path, const QByteArray &data)
 {
     QFileInfo info(path);
@@ -1608,10 +1345,8 @@ void MainWindow::onFileDropped(const QString &path, const QByteArray &data)
                                  ? QStringLiteral("dropped_file")
                                  : info.fileName();
 
-    appendTerminalLine(QString("[DROP] %1 (%2 bytes)").arg(fileName).arg(data.size()));
+    appendTerminalLine(tr("[DROP] %1 (%2 bytes)").arg(fileName).arg(data.size()));
 
-    // No libssh session -> save locally to a predictable folder.
-    // This is “best effort” behavior and avoids silent failure.
     if (!m_ssh.isConnected()) {
         QDir baseDir(QDir::homePath() + "/pqssh_drops");
         if (!baseDir.exists()) baseDir.mkpath(".");
@@ -1619,51 +1354,37 @@ void MainWindow::onFileDropped(const QString &path, const QByteArray &data)
 
         QFile out(outPath);
         if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            appendTerminalLine(QString("[DROP] ERROR: %1").arg(out.errorString()));
+            appendTerminalLine(tr("[DROP] ERROR: %1").arg(out.errorString()));
             return;
         }
         out.write(data);
         out.close();
 
-        appendTerminalLine(QString("[DROP] Saved locally: %1").arg(outPath));
+        appendTerminalLine(tr("[DROP] Saved locally: %1").arg(outPath));
         return;
     }
 
-    // With libssh session: upload to remote current directory (pwd + filename).
-    // Note: remotePwd() is a convenience helper on top of libssh.
     QString err;
     const QString pwd = m_ssh.remotePwd(&err);
     if (pwd.isEmpty()) {
-        appendTerminalLine("[UPLOAD] Could not read remote pwd. " + err);
+        appendTerminalLine(tr("[UPLOAD] Could not read remote pwd. %1").arg(err));
         return;
     }
 
     const QString remotePath = pwd + "/" + fileName;
     if (!m_ssh.uploadBytes(remotePath, data, &err)) {
-        appendTerminalLine("[UPLOAD] FAILED: " + err);
+        appendTerminalLine(tr("[UPLOAD] FAILED: %1").arg(err));
         return;
     }
 
-    appendTerminalLine(QString("[UPLOAD] OK → %1").arg(remotePath));
+    appendTerminalLine(tr("[UPLOAD] OK → %1").arg(remotePath));
 }
 
-// ========================
-// Download selection
-// ========================
-//
-// Placeholder for future: requires a “selection source” (active terminal selection or remote file picker).
 void MainWindow::downloadSelectionTriggered()
 {
-    appendTerminalLine("[DOWNLOAD] Shell not implemented yet (no selection source).");
+    appendTerminalLine(tr("[DOWNLOAD] Shell not implemented yet (no selection source)."));
 }
 
-// ========================
-// PQ probe
-// ========================
-//
-// ARCHITECTURE:
-// This synchronous helper is useful for unit-like checks or alternative flows,
-// but the main UI uses an async QProcess version to avoid blocking.
 bool MainWindow::probePqSupport(const QString &target)
 {
     QProcess proc;
@@ -1694,37 +1415,21 @@ bool MainWindow::probePqSupport(const QString &target)
 // ========================
 // Terminal creation
 // ========================
-//
-// ARCHITECTURE:
-// createTerm() is responsible for:
-//   - instantiating a CpunkTermWidget
-//   - applying visual profile settings (color scheme, font, opacity)
-//   - launching OpenSSH via /bin/bash -lc "exec ssh ..."
-//   - wiring drag/drop and lifecycle hooks
-//
-// Important security note:
-//   - "exec ssh ..." prevents the terminal from staying in a local shell if ssh fails.
-//     Without exec, a failed ssh could drop the user into a local shell unexpectedly.
-//
-
 CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
 {
     auto *term = new CpunkTermWidget(0, parent);
     term->setHistorySize(qMax(0, p.historyLines));
 
-    // Apply terminal rendering preferences first to avoid flicker.
     applyProfileToTerm(term, p);
 
     QStringList sshArgs;
-    sshArgs << "-tt";                 // force TTY (interactive)
-    if (p.pqDebug) sshArgs << "-vv";  // verbose OpenSSH only when debugging
+    sshArgs << "-tt";
+    if (p.pqDebug) sshArgs << "-vv";
 
-    // Add PQ/hybrid KEX to the allowed set.
     sshArgs << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
     sshArgs << "-o" << "ConnectTimeout=5";
     sshArgs << "-o" << "ConnectionAttempts=1";
 
-    // Host key policy: accept-new reduces friction while still pinning after first connect.
     sshArgs << "-o" << "StrictHostKeyChecking=accept-new";
     sshArgs << "-o" << ("UserKnownHostsFile=" + QDir::homePath() + "/.ssh/known_hosts");
 
@@ -1732,7 +1437,6 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     const bool hasKeyFile = !p.keyFile.trimmed().isEmpty();
 
     if (kt == "auto" || kt == "openssh") {
-        // Standard OpenSSH auth stack: try keys first, then password/KI.
         sshArgs << "-o" << "PubkeyAuthentication=yes";
         sshArgs << "-o" << "IdentitiesOnly=yes";
         sshArgs << "-o" << "PreferredAuthentications=publickey,password,keyboard-interactive";
@@ -1742,7 +1446,6 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
         sshArgs << "-o" << "GSSAPIAuthentication=no";
         sshArgs << "-o" << "HostbasedAuthentication=no";
 
-        // Avoid ControlMaster/ControlPersist surprises; every tab is independent.
         sshArgs << "-o" << "ControlMaster=no";
         sshArgs << "-o" << "ControlPath=none";
         sshArgs << "-o" << "ControlPersist=no";
@@ -1750,8 +1453,7 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
         if (hasKeyFile)
             sshArgs << "-i" << p.keyFile.trimmed();
     } else {
-        // Non-standard key types: for now we explicitly fall back to password-based auth.
-        appendTerminalLine(QString("[SSH] key_type='%1' not implemented yet → falling back to password auth.")
+        appendTerminalLine(tr("[SSH] key_type='%1' not implemented yet → falling back to password auth.")
                            .arg(kt));
 
         sshArgs << "-o" << "PreferredAuthentications=password,keyboard-interactive";
@@ -1770,50 +1472,41 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
     const QString target = (p.user + "@" + p.host);
     sshArgs << target;
 
-    // Debug: show how OpenSSH is invoked (hidden from UI unless PQ debug enabled by appendTerminalLine()).
-    appendTerminalLine(QString("[SSH-CMD] ssh %1").arg(sshArgs.join(" ")));
+    appendTerminalLine(tr("[SSH-CMD] ssh %1").arg(sshArgs.join(" ")));
 
-    // Shell quoting helper to safely embed args into bash -lc.
     auto shQuote = [](const QString &s) -> QString {
         QString out = s;
         out.replace("'", "'\"'\"'");
         return "'" + out + "'";
     };
 
-    // SECURITY: use "exec ssh" so a failure cannot leave the user in a local shell.
     QString cmd = "exec ssh";
     for (const QString &a : sshArgs)
         cmd += " " + shQuote(a);
 
-    appendTerminalLine(QString("[SSH-WRAP] %1").arg(cmd));
-    appendTerminalLine("[SECURITY] Local shell fallback disabled (exec ssh)");
+    appendTerminalLine(tr("[SSH-WRAP] %1").arg(cmd));
+    appendTerminalLine(tr("[SECURITY] Local shell fallback disabled (exec ssh)"));
 
-    // qtermwidget runs the requested program; we use bash -lc to preserve quoting and environment.
     term->setShellProgram("/bin/bash");
     term->setArgs(QStringList() << "-lc" << cmd);
 
     term->setAutoClose(true);
     term->startShellProgram();
 
-    // Defensive styling: ensure global AppTheme doesn't bleed into terminal internals.
     QTimer::singleShot(0,  term, [term]() { protectTermFromAppStyles(term); });
     QTimer::singleShot(50, term, [term]() { protectTermFromAppStyles(term); });
 
-    // WhiteOnBlack is a special case because Qt palette sometimes starts gray.
     const QString scheme = p.termColorScheme.isEmpty() ? "WhiteOnBlack" : p.termColorScheme;
     if (scheme == "WhiteOnBlack") {
         QTimer::singleShot(0,  term, [term]() { forceBlackBackground(term); });
         QTimer::singleShot(50, term, [term]() { forceBlackBackground(term); });
     }
 
-    // Terminal emits fileDropped; MainWindow decides whether to upload or save locally.
     connect(term, &CpunkTermWidget::fileDropped,
             this, &MainWindow::onFileDropped);
 
-    // Lifecycle: when ssh ends, close the tab/window and disconnect libssh session.
-    // This keeps “session state” aligned with actual terminal state.
     connect(term, &QTermWidget::finished, this, [this, term]() {
-        appendTerminalLine("[TERM] ssh ended; closing terminal tab/window and disconnecting.");
+        appendTerminalLine(tr("[TERM] ssh ended; closing terminal tab/window and disconnecting."));
 
         if (m_tabWidget) {
             const int idx = m_tabWidget->indexOf(term);
@@ -1836,46 +1529,23 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
         onDisconnectClicked();
     });
 
-    appendTerminalLine("[TERM] ssh started (wrapped); terminal will close when ssh exits.");
+    appendTerminalLine(tr("[TERM] ssh started (wrapped); terminal will close when ssh exits."));
     return term;
 }
 
-
-// -----------------------------------------------------
-// Terminal hardening: force true black background
-// -----------------------------------------------------
-//
-// ARCHITECTURE / WHY THIS EXISTS:
-// QTermWidget + Qt palettes + global app styles can lead to a “gray until you type”
-// or “theme bleed-through” problem (especially with dark app stylesheets).
-//
-// This helper is a *pragmatic override* for the common "WhiteOnBlack" expectation:
-// - enforce a black base on the terminal widget and all child widgets
-// - override both palette + stylesheet (belt & suspenders)
-//
-// Downsides (acceptable for now):
-// - it is heavy-handed and may override fine-grained themes
-// - it assumes dark-on-light isn't desired when called
-//
 static void forceBlackBackground(CpunkTermWidget *term)
 {
     if (!term) return;
 
-    // Force paint background using widget palette/stylesheet
     term->setAutoFillBackground(true);
-
-    // Simple direct CSS override (works even when palette doesn’t)
     term->setStyleSheet("background: #000; color: #fff;");
 
-    // Palette override: ensures the “base” used by some Qt paint paths is black.
     QPalette pal = term->palette();
     pal.setColor(QPalette::Window, Qt::black);
     pal.setColor(QPalette::Base,   Qt::black);
     pal.setColor(QPalette::Text,   Qt::white);
     term->setPalette(pal);
 
-    // QTermWidget has internal child widgets; global styles can affect them.
-    // Apply the same black palette + CSS to every child.
     const auto kids = term->findChildren<QWidget*>();
     for (QWidget *w : kids) {
         w->setAutoFillBackground(true);
@@ -1888,84 +1558,39 @@ static void forceBlackBackground(CpunkTermWidget *term)
         w->setPalette(p2);
     }
 
-    // Trigger repaint; useful when the first frames were drawn with the wrong color.
     term->update();
 }
 
-// -----------------------------------------------------
-// Apply profile settings to terminal instance
-// -----------------------------------------------------
-//
-// ARCHITECTURE:
-// This function is the "terminal configuration boundary" between ProfileStore data
-// and the live terminal widget.
-// It is called by createTerm() before the OpenSSH process is started, so the user
-// sees the correct theme/font immediately.
-//
-// Responsibilities:
-// - choose the effective scheme
-// - apply scheme/font/opacity
-// - guard against global application styles breaking terminal colors
-// - sync the surrounding container background so there are no "gutters/borders"
-//
 void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
 {
     if (!term) return;
 
-    // Decide effective scheme: default is WhiteOnBlack.
     const QString scheme =
         p.termColorScheme.isEmpty() ? "WhiteOnBlack" : p.termColorScheme;
 
-    // Note: these are intentionally noisy; appendTerminalLine() hides them unless PQ debug is enabled.
-    appendTerminalLine(QString("[TERM] profile=%1 scheme='%2' (raw='%3')")
+    appendTerminalLine(tr("[TERM] profile=%1 scheme='%2' (raw='%3')")
                        .arg(p.name, scheme, p.termColorScheme));
-    appendTerminalLine(QString("[TERM] available schemes: %1")
+    appendTerminalLine(tr("[TERM] available schemes: %1")
                        .arg(term->availableColorSchemes().join(", ")));
 
-    // Primary theme selection via QTermWidget scheme names.
     term->setColorScheme(scheme);
 
-    // Prevent AppTheme::dark() global stylesheet from leaking into QTermWidget internals.
-    // (See protectTermFromAppStyles below.)
     protectTermFromAppStyles(term);
 
-    // Profile -> terminal font mapping.
-    // (We use Monospace + TypeWriter hint to prefer a fixed-width font on each platform.)
     QFont f("Monospace");
     f.setStyleHint(QFont::TypeWriter);
     f.setPointSize(p.termFontSize > 0 ? p.termFontSize : 11);
     term->setTerminalFont(f);
 
-    // Opacity is a "presentation concern". Keeping it at 1.0 for clarity for now.
     term->setTerminalOpacity(1.0);
 
-    // Special-case hardening:
-    // WhiteOnBlack is the most common scheme and the one most likely to suffer “gray start”.
-    // We force black explicitly, then re-apply style shielding.
     if (scheme == "WhiteOnBlack") {
         forceBlackBackground(term);
         protectTermFromAppStyles(term);
     }
 
-    // Aesthetic integration:
-    // sync terminal container backgrounds to match terminal background so the right-side pane
-    // looks like one continuous terminal surface (no visible margins or mismatched containers).
     syncTerminalSurroundingsToTerm(term);
 }
-
-
-// -----------------------------------------------------
-// Window/tab management for interactive terminals
-// -----------------------------------------------------
-//
-// ARCHITECTURE:
-// MainWindow owns the *policy*:
-//   - open each connection in its own QMainWindow (newWindow=true), OR
-//   - reuse a shared "Tabs" window with a QTabWidget
-//
-// createTerm() owns the *terminal instance*.
-// openShellForProfile() owns the *hosting surface* (window/tab), focus, and cleanup wiring.
-//
 
 void MainWindow::openShellForProfile(const SshProfile &p, const QString &target, bool newWindow)
 {
@@ -1977,36 +1602,28 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         ? QString("%1@%2:%3").arg(p.user, p.host).arg(port)
         : QString("%1@%2").arg(p.user, p.host);
 
-    const QString windowTitle = QString("PQ-SSH: %1 (%2)").arg(p.name, connLabel);
-    const QString tabTitle    = QString("%1 (%2)").arg(p.name, connLabel);
+    const QString windowTitle = tr("PQ-SSH: %1 (%2)").arg(p.name, connLabel);
+    const QString tabTitle    = tr("%1 (%2)").arg(p.name, connLabel);
 
     if (newWindow) {
-        // Mode A: each connection gets its own top-level window.
         auto *w = new QMainWindow();
         w->setAttribute(Qt::WA_DeleteOnClose, true);
         w->setWindowTitle(windowTitle);
         w->resize(p.termWidth > 0 ? p.termWidth : 900,
                   p.termHeight > 0 ? p.termHeight : 500);
 
-        // Terminal is created with this window as parent so Qt will manage widget lifetime.
         auto *term = createTerm(p, w);
         w->setCentralWidget(term);
 
-        // Store terminal on the window (safe QObject*), used by eventFilter on Close
         w->setProperty("pqssh_term", QVariant::fromValue(static_cast<QObject*>(term)));
-
-        // Ensure we see the Close event
         w->installEventFilter(this);
 
-        // ✅ Install per-profile macro hotkey scoped to THIS window
         installHotkeyMacro(term, w, p);
 
-        // When the window is destroyed, also disconnect libssh (SFTP side)
         connect(w, &QObject::destroyed, this, [this]() {
             onDisconnectClicked();
         });
 
-        // Focus management
         w->show();
         w->raise();
         w->activateWindow();
@@ -2014,13 +1631,11 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         return;
     }
 
-    // Mode B: shared tabs window.
     if (!m_tabbedShellWindow) {
         m_tabbedShellWindow = new QMainWindow();
         m_tabbedShellWindow->setAttribute(Qt::WA_DeleteOnClose, true);
-        m_tabbedShellWindow->setWindowTitle("PQ-SSH Tabs");
+        m_tabbedShellWindow->setWindowTitle(tr("PQ-SSH Tabs"));
 
-        // Stop all tabs when the tabs window is closing (eventFilter does it)
         m_tabbedShellWindow->installEventFilter(this);
 
         m_tabWidget = new QTabWidget(m_tabbedShellWindow);
@@ -2054,15 +1669,13 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
         m_tabbedShellWindow->resize(1000, 650);
     }
 
-    // Create a new terminal tab and activate it.
     auto *term = createTerm(p, m_tabWidget);
     const int idx = m_tabWidget->addTab(term, tabTitle);
     m_tabWidget->setCurrentIndex(idx);
 
-    // ✅ Install per-profile macro hotkey scoped to the TABBED window
     installHotkeyMacro(term, m_tabbedShellWindow, p);
 
-    m_tabbedShellWindow->setWindowTitle(QString("PQ-SSH Tabs — %1").arg(connLabel));
+    m_tabbedShellWindow->setWindowTitle(tr("PQ-SSH Tabs — %1").arg(connLabel));
 
     m_tabbedShellWindow->show();
     m_tabbedShellWindow->raise();
@@ -2070,31 +1683,16 @@ void MainWindow::openShellForProfile(const SshProfile &p, const QString &target,
     focusTerminalWindow(m_tabbedShellWindow, term);
 }
 
-
-
-// -----------------------------------------------------
-// Style shielding for terminal widget
-// -----------------------------------------------------
-//
-// ARCHITECTURE / WHY THIS EXISTS:
-// AppTheme::dark() applies a global stylesheet. QTermWidget contains internal widgets
-// that can inherit those styles and render with wrong colors/margins.
-//
-// This helper tries to "isolate" terminal rendering by forcing children to use palette()
-// values (Base/Text) instead of inheriting app-level QWidget rules.
-//
 static void protectTermFromAppStyles(CpunkTermWidget *term)
 {
     if (!term) return;
 
-    // Shield rule uses palette(Base/Text) to keep QTermWidget in control of its own scheme.
     const QString shield =
         "QWidget { background-color: palette(Base); color: palette(Text); }";
 
     term->setAutoFillBackground(true);
     term->setStyleSheet(shield);
 
-    // Apply to internal widgets too.
     const auto kids = term->findChildren<QWidget*>();
     for (QWidget *w : kids) {
         w->setAutoFillBackground(true);
@@ -2102,70 +1700,28 @@ static void protectTermFromAppStyles(CpunkTermWidget *term)
     }
 }
 
-
-// -----------------------------------------------------
-// Help → Open log file
-// -----------------------------------------------------
-//
-// ARCHITECTURE:
-// Logger is installed early (main.cpp) so qInfo/qWarning output goes to a stable log file.
-// This action is the “supportability hook”: users/devs can jump straight to the log without
-// hunting paths or opening ~/.pq-ssh manually.
-//
-// Design choices:
-// - We treat “no log path” as non-fatal and just warn.
-// - We open via QDesktopServices so the OS chooses the default viewer/editor.
-//
 void MainWindow::onOpenLogFile()
 {
     const QString path = Logger::logFilePath();
 
-    // Guard: Logger might be disabled/misconfigured, or path resolution failed.
     if (path.isEmpty()) {
-        // UI-visible message (subject to appendTerminalLine filters) + real qWarning for file.
-        appendTerminalLine("[LOG] Log file path not available.");
+        appendTerminalLine(tr("[LOG] Log file path not available."));
         qWarning() << "Log file path is empty";
         return;
     }
 
-    // Let OS decide how to open (text editor, file viewer, etc.)
     const QUrl url = QUrl::fromLocalFile(path);
     QDesktopServices::openUrl(url);
 
-    // Always log the action for traceability.
     qInfo() << "Opened log file:" << path;
 }
 
-
-// -----------------------------------------------------
-// Session-tagged logging helper
-// -----------------------------------------------------
-//
-// ARCHITECTURE:
-// A connection attempt gets a session ID (m_sessionId) so logs from multiple attempts
-// can be grouped together, especially when UI actions + async jobs interleave.
-//
-// This function writes *only to the log file* (via qInfo), not the UI terminal.
-//
 void MainWindow::logSessionInfo(const QString& msg)
 {
     const QString sid = m_sessionId.isEmpty() ? "-" : m_sessionId;
     qInfo().noquote() << QString("[SESSION %1] %2").arg(sid, msg);
 }
 
-
-// -----------------------------------------------------
-// UI logging helpers (UI + file log)
-// -----------------------------------------------------
-//
-// ARCHITECTURE:
-// There are two audiences for messages:
-//  1) user-facing UI terminal (clean + minimal in normal mode)
-//  2) developer/support log file (always detailed)
-//
-// uiInfo/uiWarn always echo to UI + log.
-// uiDebug always goes to log; it goes to UI only if PQ debug is enabled.
-//
 void MainWindow::uiInfo(const QString& msg)
 {
     appendTerminalLine(msg);
@@ -2180,59 +1736,34 @@ void MainWindow::uiWarn(const QString& msg)
 
 void MainWindow::uiDebug(const QString& msg)
 {
-    // PQ debug acts as the "verbosity gate" for the on-screen terminal.
-    // Even when off, debug messages still go to the file log.
     const bool verbose = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
-    qInfo().noquote() << "[UI-DEBUG]" << msg;          // always goes to file
-    if (verbose) appendTerminalLine(msg);              // UI only if enabled
+    qInfo().noquote() << "[UI-DEBUG]" << msg;
+    if (verbose) appendTerminalLine(msg);
 }
 
-// Convenience accessor so other code can check verbosity without duplicating checkbox logic.
 bool MainWindow::uiVerbose() const
 {
     return (m_pqDebugCheck && m_pqDebugCheck->isChecked());
 }
 
-
-// -----------------------------------------------------
-// Help → User Manual (embedded resource)
-// -----------------------------------------------------
-//
-// ARCHITECTURE:
-// The manual is shipped inside the binary via Qt resources (qrc:/docs/...).
-// This avoids “missing manual” issues in packaging and ensures offline availability.
-//
-// We render it in a QTextBrowser inside a QDialog:
-// - fast to implement
-// - good enough for a help page (links, anchors, basic CSS)
-// - opens external links in system browser
-//
-// NOTE: defaultStyleSheet acts as a fallback for Qt’s HTML renderer so the manual
-// stays consistent with the dark CPUNK theme even if the embedded CSS doesn't fully apply.
-//
 void MainWindow::onOpenUserManual()
 {
     const QUrl url("qrc:/docs/user-manual.html");
 
-    // Guard against packaging/qrc mistakes.
     if (!QFile::exists(":/docs/user-manual.html")) {
-        appendTerminalLine("[WARN] User manual resource missing: :/docs/user-manual.html");
+        appendTerminalLine(tr("[WARN] User manual resource missing: :/docs/user-manual.html"));
         return;
     }
 
-    // Use a dialog so it behaves like “Help” and doesn’t replace the main app window.
     auto *dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose, true);
-    dlg->setWindowTitle("PQ-SSH User Manual");
+    dlg->setWindowTitle(tr("PQ-SSH User Manual"));
     dlg->resize(980, 720);
 
     auto *layout = new QVBoxLayout(dlg);
 
     auto *browser = new QTextBrowser(dlg);
 
-    // Fallback styling for Qt HTML engine (prevents blue links / bright background)
-    // NOTE: There is an extra "}" in the original string block (see below).
-    // It doesn’t always break rendering, but you may want to clean it up.
     browser->document()->setDefaultStyleSheet(
         "body { background:#0b0b0c; color:#e7e7ea; }"
         "a, a:link, a:visited { color:#00ff99; text-decoration:none; }"
@@ -2245,13 +1776,9 @@ void MainWindow::onOpenUserManual()
         "  border:1px solid rgba(0,255,153,.28);"
         "  text-decoration:none;"
         "}"
-
     );
 
-    // Let user click docs links and open them externally.
     browser->setOpenExternalLinks(true);
-
-    // Load HTML from qrc (offline, packaged)
     browser->setSource(url);
 
     layout->addWidget(browser);
@@ -2260,87 +1787,55 @@ void MainWindow::onOpenUserManual()
     dlg->show();
 }
 
-
-// -----------------------------------------------------
-// DEV tool: validate Dilithium key decryption/unlock
-// -----------------------------------------------------
-//
-// ARCHITECTURE / INTENT:
-// This is a developer-facing sanity check for the encrypted Dilithium key format.
-// It is intentionally gated behind the PQ debug checkbox so end users don’t stumble
-// into a scary crypto flow.
-//
-// Safety properties in this implementation:
-// - It never prints plaintext key material.
-// - It logs only sizes + SHA-256 of plaintext (digest is safe for comparisons).
-// - It wipes decrypted plaintext with sodium_memzero() ASAP.
-//
-// Flow:
-//  1) choose .enc file
-//  2) validate minimal format before prompting for passphrase
-//  3) prompt passphrase (dev-only)
-//  4) decrypt using decryptDilithiumKey()
-//  5) validate basic expectations, show OK/FAIL
-//
 void MainWindow::onTestUnlockDilithiumKey()
 {
-    // Hard gate: prevents accidental exposure of this dev-only path.
     if (!(m_pqDebugCheck && m_pqDebugCheck->isChecked())) {
-        appendTerminalLine("[DEV] PQ debug is OFF. Enable it to use the tester.");
+        appendTerminalLine(tr("[DEV] PQ debug is OFF. Enable it to use the tester."));
         return;
     }
 
     const QString startDir = QDir(QDir::homePath()).filePath(".pq-ssh/keys");
     const QString path = QFileDialog::getOpenFileName(
         this,
-        "Select encrypted Dilithium private key",
+        tr("Select encrypted Dilithium private key"),
         startDir,
-        "Encrypted keys (*.enc);;All files (*)"
+        tr("Encrypted keys (*.enc);;All files (*)")
     );
     if (path.isEmpty())
         return;
 
-    // Read entire encrypted blob.
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, "DEV test failed", "Cannot read file:\n" + f.errorString());
+        QMessageBox::warning(this, tr("DEV test failed"),
+                             tr("Cannot read file:\n%1").arg(f.errorString()));
         return;
     }
     const QByteArray enc = f.readAll();
     f.close();
 
-    // Format guard BEFORE passphrase prompt:
-    // avoids asking user for a passphrase for a file that’s obviously invalid/truncated.
-    //
-    // Expected: MAGIC(6) + SALT(16) + NONCE(24) + CIPHERTEXT(tag...)
     if (enc.size() < (6 + crypto_pwhash_SALTBYTES + crypto_aead_xchacha20poly1305_ietf_NPUBBYTES + 16)) {
-        QMessageBox::warning(this, "DEV test failed",
-                             "File is too small to be a valid PQSSH encrypted key.\n"
-                             "Expected: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...).");
+        QMessageBox::warning(this, tr("DEV test failed"),
+                             tr("File is too small to be a valid PQSSH encrypted key.\n"
+                                "Expected: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...)."));
         return;
     }
 
-    // Lightweight metadata logs (safe).
     const QByteArray magic = enc.left(6);
-    appendTerminalLine(QString("[DEV] Selected: %1").arg(QFileInfo(path).fileName()));
-    appendTerminalLine(QString("[DEV] Enc size: %1 bytes").arg(enc.size()));
-    appendTerminalLine(QString("[DEV] Magic: '%1'").arg(QString::fromLatin1(magic)));
+    appendTerminalLine(tr("[DEV] Selected: %1").arg(QFileInfo(path).fileName()));
+    appendTerminalLine(tr("[DEV] Enc size: %1 bytes").arg(enc.size()));
+    appendTerminalLine(tr("[DEV] Magic: '%1'").arg(QString::fromLatin1(magic)));
 
-    // Magic mismatch isn’t fatal for dev testing, but it’s a big clue.
     if (magic != "PQSSH1") {
-        appendTerminalLine("[DEV][WARN] Magic mismatch. Expected 'PQSSH1'. Continuing anyway to test decrypt...");
+        appendTerminalLine(tr("[DEV][WARN] Magic mismatch. Expected 'PQSSH1'. Continuing anyway to test decrypt..."));
     }
 
-    // Passphrase prompt.
-    // NOTE: This currently bypasses the m_ssh passphrase provider and asks directly here.
-    // That’s fine for dev mode, but if you want consistency, you can route via SshClient.
     bool ok = false;
     QString pass;
     {
         bool localOk = false;
         pass = QInputDialog::getText(this,
-                                     "Dilithium Key Passphrase",
-                                     QString("Enter passphrase for:\n%1").arg(QFileInfo(path).fileName()),
+                                     tr("Dilithium Key Passphrase"),
+                                     tr("Enter passphrase for:\n%1").arg(QFileInfo(path).fileName()),
                                      QLineEdit::Password,
                                      QString(),
                                      &localOk);
@@ -2348,65 +1843,54 @@ void MainWindow::onTestUnlockDilithiumKey()
     }
 
     if (!ok) {
-        appendTerminalLine("[DEV] Cancelled by user.");
+        appendTerminalLine(tr("[DEV] Cancelled by user."));
         return;
     }
 
-    // Decrypt and validate without ever printing the plaintext.
     QByteArray plain;
     QString decErr;
     if (!decryptDilithiumKey(enc, pass, &plain, &decErr)) {
-        appendTerminalLine(QString("[DEV][FAIL] Decrypt failed: %1").arg(decErr));
-        QMessageBox::warning(this, "DEV test failed", "Decrypt failed:\n" + decErr);
+        appendTerminalLine(tr("[DEV][FAIL] Decrypt failed: %1").arg(decErr));
+        QMessageBox::warning(this, tr("DEV test failed"), tr("Decrypt failed:\n%1").arg(decErr));
         return;
     }
 
     if (plain.isEmpty()) {
-        appendTerminalLine("[DEV][FAIL] Decrypt returned empty plaintext.");
-        QMessageBox::warning(this, "DEV test failed", "Decrypt returned empty plaintext.");
+        appendTerminalLine(tr("[DEV][FAIL] Decrypt returned empty plaintext."));
+        QMessageBox::warning(this, tr("DEV test failed"), tr("Decrypt returned empty plaintext."));
         return;
     }
 
-    // Report only non-sensitive validation signals:
-    // - plaintext size
-    // - SHA-256 digest for comparing outputs across machines/runs
     const QByteArray digest = QCryptographicHash::hash(plain, QCryptographicHash::Sha256).toHex();
-    appendTerminalLine(QString("[DEV][OK] Decrypted plaintext size: %1 bytes").arg(plain.size()));
-    appendTerminalLine(QString("[DEV][OK] Plain SHA256: %1").arg(QString::fromLatin1(digest)));
+    appendTerminalLine(tr("[DEV][OK] Decrypted plaintext size: %1 bytes").arg(plain.size()));
+    appendTerminalLine(tr("[DEV][OK] Plain SHA256: %1").arg(QString::fromLatin1(digest)));
 
-    // Heuristic: Dilithium private key material is typically multiple KB.
     if (plain.size() < 2048) {
-        appendTerminalLine("[DEV][WARN] Plaintext is unexpectedly small for Dilithium private key material.");
+        appendTerminalLine(tr("[DEV][WARN] Plaintext is unexpectedly small for Dilithium private key material."));
     }
 
-    // Clear decrypted secret bytes as soon as we’re done.
     sodium_memzero(plain.data(), (size_t)plain.size());
 
-    QMessageBox::information(this, "DEV test OK",
-                             "Decrypt OK.\n\n"
-                             "Validated format + passphrase unlock.\n"
-                             "Details written to the terminal/log.");
+    QMessageBox::information(this, tr("DEV test OK"),
+                             tr("Decrypt OK.\n\n"
+                                "Validated format + passphrase unlock.\n"
+                                "Details written to the terminal/log."));
 }
 
 void MainWindow::applySavedSettings()
 {
     QSettings s;
 
-    // Theme
     applyCurrentTheme();
 
-    // Logging level
     Logger::setLogLevel(s.value("logging/level", 1).toInt());
 
-    // Log file override: empty => revert to default path
     const QString logFile = s.value("logging/filePath", "").toString().trimmed();
     Logger::setLogFilePathOverride(logFile);
 
-    // Audit dir override: empty => revert to default dir
     const QString auditDir = s.value("audit/dirPath", "").toString().trimmed();
     AuditLogger::setAuditDirOverride(auditDir);
 }
-
 
 void MainWindow::onOpenSettingsDialog()
 {
@@ -2414,24 +1898,22 @@ void MainWindow::onOpenSettingsDialog()
     if (dlg.exec() != QDialog::Accepted)
         return;
 
-    // Apply immediately (theme + log level)
     applySavedSettings();
     rebuildProfileList();
 
-    appendTerminalLine("[INFO] Settings updated.");
-    if (m_statusLabel) m_statusLabel->setText("Settings updated.");
+    appendTerminalLine(tr("[INFO] Settings updated."));
+    if (m_statusLabel) m_statusLabel->setText(tr("Settings updated."));
 }
 
 void MainWindow::onOpenSettings()
 {
-    QMessageBox::information(this, "Settings", "Settings dialog (coming next).");
+    QMessageBox::information(this, tr("Settings"), tr("Settings dialog (coming next)."));
 }
 
 void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScope, const SshProfile& p)
 {
     if (!term || !shortcutScope) return;
 
-    // If no new macros exist, fall back to legacy single macro (backward-compat)
     QVector<ProfileMacro> macros = p.macros;
     if (macros.isEmpty()) {
         ProfileMacro m;
@@ -2446,40 +1928,37 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
     if (macros.isEmpty())
         return;
 
-    // Protect against term being destroyed while shortcutScope still lives
     QPointer<CpunkTermWidget> termPtr(term);
 
     for (int i = 0; i < macros.size(); ++i) {
         const ProfileMacro& m = macros[i];
 
         const QString shortcutText = m.shortcut.trimmed();
-        const QString cmd          = m.command; // keep as-is
+        const QString cmd          = m.command;
         const bool sendEnter       = m.sendEnter;
 
-        // Only enable if BOTH shortcut + command are set
         if (shortcutText.isEmpty() || cmd.trimmed().isEmpty())
             continue;
 
         const QKeySequence seq(shortcutText);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
         if (seq.isEmpty()) {
-            uiWarn(QString("[MACRO] Invalid shortcut '%1' (profile '%2')").arg(shortcutText, p.name));
+            uiWarn(tr("[MACRO] Invalid shortcut '%1' (profile '%2')").arg(shortcutText, p.name));
             continue;
         }
 #endif
 
-        // Parent to the scope so it dies with the window/tabs container
         auto* sc = new QShortcut(seq, shortcutScope);
         sc->setContext(Qt::WidgetWithChildrenShortcut);
 
         const QString shownName = m.name.trimmed().isEmpty()
-            ? QString("Macro %1").arg(i + 1)
+            ? tr("Macro %1").arg(i + 1)
             : m.name.trimmed();
 
-        uiDebug(QString("[MACRO] Bound %1 → \"%2\" (enter=%3) [%4] profile '%5'")
+        uiDebug(tr("[MACRO] Bound %1 → \"%2\" (enter=%3) [%4] profile '%5'")
                     .arg(seq.toString(),
                          cmd.trimmed(),
-                         sendEnter ? "yes" : "no",
+                         sendEnter ? tr("yes") : tr("no"),
                          shownName,
                          p.name));
 
@@ -2491,7 +1970,7 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
                 out += "\n";
 
             termPtr->sendText(out);
-            uiDebug(QString("[MACRO] Sent (%1): %2").arg(shownName, cmd.trimmed()));
+            uiDebug(tr("[MACRO] Sent (%1): %2").arg(shownName, cmd.trimmed()));
         });
     }
 }
@@ -2503,29 +1982,26 @@ void MainWindow::onKexNegotiated(const QString& prettyText, const QString& rawKe
         rawKex.contains("sntrup", Qt::CaseInsensitive);
 
     updatePqStatusLabel(
-        pq ? ("PQ KEX: " + prettyText) : ("KEX: " + prettyText),
+        pq ? (tr("PQ KEX: %1").arg(prettyText)) : (tr("KEX: %1").arg(prettyText)),
         pq ? "#00FF99" : "#9AA0A6"
     );
 
     if (m_pqStatusLabel)
-        m_pqStatusLabel->setToolTip("Negotiated KEX: " + rawKex);
+        m_pqStatusLabel->setToolTip(tr("Negotiated KEX: %1").arg(rawKex));
 }
 
 void MainWindow::onIdentityManagerRequested()
 {
-    // If already open, bring to front
     if (m_identityDlg) {
         m_identityDlg->raise();
         m_identityDlg->activateWindow();
         return;
     }
 
-    // IMPORTANT: parent = nullptr so it’s freely movable and not “attached”
     m_identityDlg = new IdentityManagerDialog(nullptr);
     m_identityDlg->setAttribute(Qt::WA_DeleteOnClose, true);
-    m_identityDlg->setWindowTitle("CPUNK PQ-SSH — Identity Manager");
+    m_identityDlg->setWindowTitle(tr("CPUNK PQ-SSH — Identity Manager"));
 
-    // When closed, clear pointer
     connect(m_identityDlg, &QObject::destroyed, this, [this]() {
         m_identityDlg = nullptr;
     });
@@ -2537,7 +2013,6 @@ void MainWindow::onIdentityManagerRequested()
 
 void MainWindow::onImportOpenSshConfig()
 {
-    // If already open, bring to front
     if (m_sshPlanDlg) {
         m_sshPlanDlg->raise();
         m_sshPlanDlg->activateWindow();
@@ -2549,13 +2024,12 @@ void MainWindow::onImportOpenSshConfig()
 
     QDir().mkpath(sshDir);
 
-    // If config missing, offer to create it
     if (!QFileInfo::exists(path)) {
         const auto ans = QMessageBox::question(
             this,
-            "OpenSSH config not found",
-            "No OpenSSH config file was found at:\n\n" + path +
-            "\n\nCreate a starter ~/.ssh/config now?",
+            tr("OpenSSH config not found"),
+            tr("No OpenSSH config file was found at:\n\n%1\n\nCreate a starter ~/.ssh/config now?")
+                .arg(path),
             QMessageBox::Yes | QMessageBox::No,
             QMessageBox::Yes
         );
@@ -2565,8 +2039,8 @@ void MainWindow::onImportOpenSshConfig()
 
         QFile f(path);
         if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
-            QMessageBox::critical(this, "Cannot create config",
-                                  "Failed to create:\n" + path + "\n\n" + f.errorString());
+            QMessageBox::critical(this, tr("Cannot create config"),
+                                  tr("Failed to create:\n%1\n\n%2").arg(path, f.errorString()));
             return;
         }
 
@@ -2586,7 +2060,6 @@ void MainWindow::onImportOpenSshConfig()
         QFile::setPermissions(path, QFileDevice::ReadOwner | QFileDevice::WriteOwner);
     }
 
-    // Detect "only comments" -> inform user (optional but helpful)
     {
         QFile rf(path);
         if (rf.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -2605,34 +2078,29 @@ void MainWindow::onImportOpenSshConfig()
             if (!hasHost) {
                 QMessageBox::information(
                     this,
-                    "Nothing to import yet",
-                    "Your ~/.ssh/config contains no active Host entries (only comments).\n\n"
-                    "Add a block like:\n\n"
-                    "Host myserver\n"
-                    "    HostName 192.168.1.10\n"
-                    "    User root\n"
-                    "    Port 22\n\n"
-                    "Then try Import again."
+                    tr("Nothing to import yet"),
+                    tr("Your ~/.ssh/config contains no active Host entries (only comments).\n\n"
+                       "Add a block like:\n\n"
+                       "Host myserver\n"
+                       "    HostName 192.168.1.10\n"
+                       "    User root\n"
+                       "    Port 22\n\n"
+                       "Then try Import again.")
                 );
-                // You can return here if you want to avoid opening an empty dialog:
-                // return;
             }
         }
     }
 
-    // Parse config
     const SshConfigParseResult parsed = SshConfigParser::parseFile(path);
 
-    // Existing profile names for diff
     QStringList existingNames;
     existingNames.reserve(m_profiles.size());
     for (const auto& p : m_profiles)
         existingNames << p.name;
 
-    // Open Import Plan dialog (modeless)
     m_sshPlanDlg = new SshConfigImportPlanDialog(path, parsed, existingNames, nullptr);
     m_sshPlanDlg->setAttribute(Qt::WA_DeleteOnClose, true);
-    m_sshPlanDlg->setWindowTitle("CPUNK PQ-SSH — Import Plan");
+    m_sshPlanDlg->setWindowTitle(tr("CPUNK PQ-SSH — Import Plan"));
 
     connect(m_sshPlanDlg, &QObject::destroyed, this, [this]() {
         m_sshPlanDlg = nullptr;
@@ -2646,23 +2114,19 @@ void MainWindow::onImportOpenSshConfig()
     m_sshPlanDlg->activateWindow();
 }
 
-
 void MainWindow::onApplyImportedProfiles(const QVector<ImportedProfile>& creates,
                                         const QVector<ImportedProfile>& updates)
 {
-    Q_UNUSED(updates); // v1: implement updates later
+    Q_UNUSED(updates);
 
     int added = 0;
 
     for (const auto& ip : creates) {
         SshProfile p;
         p.name = ip.name;
-
-        // Adjust these fields to match your SshProfile struct:
         p.host = ip.hostName;
         p.user = ip.user;
         p.port = ip.port;
-        // p.identityFile = ip.identityFile; // only if you have it in SshProfile
 
         m_profiles.push_back(p);
         added++;
@@ -2671,17 +2135,16 @@ void MainWindow::onApplyImportedProfiles(const QVector<ImportedProfile>& creates
     if (added > 0) {
         saveProfilesToDisk();
         rebuildProfileList();
-        appendTerminalLine(QString("[INFO] Imported %1 profile(s) from ~/.ssh/config").arg(added));
-        if (m_statusLabel) m_statusLabel->setText(QString("Imported %1 profiles").arg(added));
+        appendTerminalLine(tr("[INFO] Imported %1 profile(s) from ~/.ssh/config").arg(added));
+        if (m_statusLabel) m_statusLabel->setText(tr("Imported %1 profiles").arg(added));
     } else {
-        appendTerminalLine("[INFO] Import plan applied: no profiles added.");
-        if (m_statusLabel) m_statusLabel->setText("Import plan applied: no changes.");
+        appendTerminalLine(tr("[INFO] Import plan applied: no profiles added."));
+        if (m_statusLabel) m_statusLabel->setText(tr("Import plan applied: no changes."));
     }
 }
 
 void MainWindow::closeEvent(QCloseEvent* e)
 {
-    // Stop tabbed terminals if any
     if (m_tabWidget) {
         for (int i = 0; i < m_tabWidget->count(); ++i) {
             if (auto *term = qobject_cast<CpunkTermWidget*>(m_tabWidget->widget(i))) {
@@ -2694,13 +2157,10 @@ void MainWindow::closeEvent(QCloseEvent* e)
     QMainWindow::closeEvent(e);
 }
 
-
-
 bool MainWindow::eventFilter(QObject* obj, QEvent* ev)
 {
     if (ev->type() == QEvent::Close) {
 
-        // Per-connection window: stop the terminal stored on that window
         if (auto *w = qobject_cast<QWidget*>(obj)) {
             const QVariant v = w->property("pqssh_term");
             if (v.isValid()) {
@@ -2709,7 +2169,6 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* ev)
             }
         }
 
-        // Tabbed window: stop all terminals once (window is closing)
         if (obj == m_tabbedShellWindow && m_tabWidget) {
             for (int i = 0; i < m_tabWidget->count(); ++i) {
                 if (auto *term = qobject_cast<CpunkTermWidget*>(m_tabWidget->widget(i))) {
@@ -2725,13 +2184,10 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* ev)
 static void stopTerm(CpunkTermWidget* term)
 {
     if (!term) return;
-
-    // Ask the running shell/ssh to exit gracefully.
     term->sendText("exit\n");
-
-    // If ssh ignores it (or it's stuck), closing the widget is the fallback.
     term->close();
 }
+
 bool MainWindow::verifyAppPassword(const QString& pass) const
 {
     if (pass.isEmpty())
@@ -2749,25 +2205,24 @@ bool MainWindow::verifyAppPassword(const QString& pass) const
            ) == 0;
 }
 
-
 bool MainWindow::showStartupUnlockDialog()
 {
     QDialog dlg(nullptr);
-    dlg.setWindowTitle("Unlock CPUNK PQ-SSH");
+    dlg.setWindowTitle(tr("Unlock CPUNK PQ-SSH"));
     dlg.setModal(true);
     dlg.resize(360, 140);
 
     auto *layout = new QVBoxLayout(&dlg);
 
     auto *label = new QLabel(
-        "This application is protected.\n\n"
-        "Enter your application password:",
+        tr("This application is protected.\n\n"
+           "Enter your application password:"),
         &dlg
     );
 
     auto *edit = new QLineEdit(&dlg);
     edit->setEchoMode(QLineEdit::Password);
-    edit->setPlaceholderText("Password");
+    edit->setPlaceholderText(tr("Password"));
 
     auto *buttons = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
@@ -2784,8 +2239,8 @@ bool MainWindow::showStartupUnlockDialog()
         } else {
             QMessageBox::critical(
                 &dlg,
-                "Unlock failed",
-                "Incorrect password."
+                tr("Unlock failed"),
+                tr("Incorrect password.")
             );
             edit->clear();
             edit->setFocus();

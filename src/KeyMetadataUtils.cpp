@@ -1,3 +1,4 @@
+// KeyMetadataUtils.cpp
 #include "KeyMetadataUtils.h"
 
 #include <QFile>
@@ -5,6 +6,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDateTime>
+#include <QObject>
 
 /*
  * KeyMetadataUtils
@@ -43,13 +45,15 @@
  */
 bool parseIsoUtc(const QString &s, QDateTime &outUtc)
 {
-    if (s.trimmed().isEmpty()) return false;
+    if (s.trimmed().isEmpty())
+        return false;
 
     QDateTime dt = QDateTime::fromString(s, Qt::ISODateWithMs);
     if (!dt.isValid())
         dt = QDateTime::fromString(s, Qt::ISODate);
 
-    if (!dt.isValid()) return false;
+    if (!dt.isValid())
+        return false;
 
     outUtc = dt.toUTC();
     return true;
@@ -84,14 +88,15 @@ bool parseIsoUtc(const QString &s, QDateTime &outUtc)
  */
 bool autoExpireMetadataFile(const QString &path, QString *errOut, int *expiredSetOut)
 {
-    if (expiredSetOut) *expiredSetOut = 0;
+    if (expiredSetOut)
+        *expiredSetOut = 0;
 
     QFile f(path);
     if (!f.exists())
         return true; // No metadata yet → nothing to do
 
     if (!f.open(QIODevice::ReadOnly)) {
-        if (errOut) *errOut = "Cannot read " + path;
+        if (errOut) *errOut = QObject::tr("Cannot read %1").arg(path);
         return false;
     }
 
@@ -106,7 +111,8 @@ bool autoExpireMetadataFile(const QString &path, QString *errOut, int *expiredSe
     const QDateTime nowUtc = QDateTime::currentDateTimeUtc();
 
     for (auto it = root.begin(); it != root.end(); ++it) {
-        if (!it.value().isObject()) continue;
+        if (!it.value().isObject())
+            continue;
 
         QJsonObject meta = it.value().toObject();
 
@@ -135,7 +141,7 @@ bool autoExpireMetadataFile(const QString &path, QString *errOut, int *expiredSe
 
     QFile out(path);
     if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        if (errOut) *errOut = "Cannot write " + path;
+        if (errOut) *errOut = QObject::tr("Cannot write %1").arg(path);
         return false;
     }
 
@@ -173,7 +179,7 @@ int countExpiredKeysInMetadata(QString *errOut)
         return 0;
 
     if (!f.open(QIODevice::ReadOnly)) {
-        if (errOut) *errOut = "Cannot read " + path;
+        if (errOut) *errOut = QObject::tr("Cannot read %1").arg(path);
         return 0;
     }
 
@@ -187,7 +193,8 @@ int countExpiredKeysInMetadata(QString *errOut)
     int count = 0;
 
     for (const auto &v : doc.object()) {
-        if (!v.isObject()) continue;
+        if (!v.isObject())
+            continue;
 
         const QJsonObject meta = v.toObject();
         if (!meta.value("expire_date").isString())

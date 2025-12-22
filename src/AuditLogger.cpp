@@ -13,6 +13,8 @@
 #include <QSysInfo>
 #include <QThread>
 #include <QCryptographicHash>
+#include <QCoreApplication>
+
 
 // =====================================================
 // Global audit logger state (process-wide)
@@ -101,8 +103,12 @@ static bool ensureOpenLocked(QString* err)
 
     g_auditFile = new QFile(wantPath);
     if (!g_auditFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
-        if (err) *err = QString("AuditLogger: failed to open %1: %2")
-                            .arg(wantPath, g_auditFile->errorString());
+        if (err) {
+            *err = QCoreApplication::translate(
+                       "AuditLogger",
+                       "AuditLogger: failed to open %1: %2"
+                   ).arg(wantPath, g_auditFile->errorString());
+        }
         closeAuditFileLocked();
         return false;
     }

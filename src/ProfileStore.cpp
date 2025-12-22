@@ -1,4 +1,23 @@
 // ProfileStore.cpp
+//
+// ARCHITECTURE NOTES (ProfileStore.cpp)
+//
+// ProfileStore is the persistence boundary for SSH profiles.
+// Responsibilities:
+// - Locate config path for profiles.json
+// - Serialize/deserialize profiles to JSON
+// - Keep backward compatibility with legacy single-macro fields
+//
+// Non-responsibilities:
+// - No UI (dialogs/widgets)
+// - No SSH/network operations
+//
+// Schema evolution:
+// - New multi-macro list lives in profile["macros"] (array of objects).
+// - Legacy single macro fields ("macro_shortcut", "macro_command", "macro_enter")
+//   are still read and written (synced from macros[0]) so older app versions
+//   can keep working.
+//
 
 #include "ProfileStore.h"
 
@@ -9,6 +28,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonParseError>
 
 // -----------------------------
 // Helpers: macros <-> JSON
@@ -227,8 +248,9 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
         if (!prof.keyFile.trimmed().isEmpty())
             obj["key_file"] = prof.keyFile;
 
-        obj["key_type"] = prof.keyType.trimmed().isEmpty() ? QString("auto")
-                                                           : prof.keyType.trimmed();
+        obj["key_type"] = prof.keyType.trimmed().isEmpty()
+                              ? QStringLiteral("auto")
+                              : prof.keyType.trimmed();
 
         // ---- NEW: Hotkey macros (multi) ----
         // Store only non-empty macros

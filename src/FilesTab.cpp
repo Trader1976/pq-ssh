@@ -167,14 +167,14 @@ void FilesTab::buildUi()
     topL->setContentsMargins(0, 0, 0, 0);
     topL->setSpacing(6);
 
-    m_localUpBtn        = new QPushButton("Local Up", top);
-    m_remoteUpBtn       = new QPushButton("Remote Up", top);
-    m_refreshBtn        = new QPushButton("Refresh", top);
-    m_uploadBtn         = new QPushButton("Upload…", top);
-    m_uploadFolderBtn   = new QPushButton("Upload folder…", top);
-    m_downloadBtn       = new QPushButton("Download…", top);
+    m_localUpBtn        = new QPushButton(tr("Local Up"), top);
+    m_remoteUpBtn       = new QPushButton(tr("Remote Up"), top);
+    m_refreshBtn        = new QPushButton(tr("Refresh"), top);
+    m_uploadBtn         = new QPushButton(tr("Upload…"), top);
+    m_uploadFolderBtn   = new QPushButton(tr("Upload folder…"), top);
+    m_downloadBtn       = new QPushButton(tr("Download…"), top);
 
-    m_remotePathLabel = new QLabel("Remote: ~", top);
+    m_remotePathLabel   = new QLabel(tr("Remote: ~"), top);
     m_remotePathLabel->setStyleSheet("color:#888;");
 
     topL->addWidget(m_localUpBtn);
@@ -246,8 +246,12 @@ void FilesTab::buildUi()
     m_remoteTable = new RemoteDropTable(split);
 
     m_remoteTable->setColumnCount(4);
-    m_remoteTable->setHorizontalHeaderLabels(
-        {"Name", "Type", "Size", "Modified"});
+    m_remoteTable->setHorizontalHeaderLabels(QStringList{
+        tr("Name"),
+        tr("Type"),
+        tr("Size"),
+        tr("Modified")
+    });
 
     auto *hdr = m_remoteTable->horizontalHeader();
     hdr->setSectionResizeMode(QHeaderView::Interactive); // 🔹 user-resizable
@@ -347,7 +351,9 @@ void FilesTab::setRemoteCwd(const QString& path)
 {
     m_remoteCwd = path;
     if (m_remotePathLabel)
-        m_remotePathLabel->setText("Remote: " + m_remoteCwd);
+        m_remotePathLabel->setText(
+    tr("Remote: %1").arg(m_remoteCwd)
+);
 }
 
 QString FilesTab::remoteParentDir(const QString& p) const
@@ -387,7 +393,7 @@ void FilesTab::onSshDisconnected()
 void FilesTab::refreshRemote()
 {
     if (!m_ssh || !m_ssh->isConnected()) {
-        QMessageBox::information(this, "Files", "Not connected.");
+        QMessageBox::information(this,tr( "Files"),tr( "Not connected."));
         return;
     }
 
@@ -556,7 +562,7 @@ void FilesTab::runTransfer(const QString& title,
         m_progressDlg = nullptr;
     }
 
-    m_progressDlg = new QProgressDialog(title, "Cancel", 0, 100, this);
+    m_progressDlg = new QProgressDialog(title, tr("Cancel"), 0, 100, this);
     m_progressDlg->setWindowModality(Qt::WindowModal);
     m_progressDlg->setMinimumDuration(200);
     m_progressDlg->setAutoClose(true);
@@ -581,12 +587,19 @@ void FilesTab::runTransfer(const QString& title,
 
         if (!r.ok) {
             const QString msg = r.err.trimmed().isEmpty()
-                ? QStringLiteral("Transfer failed or cancelled.")
+                ? tr("Transfer failed or cancelled.")
                 : r.err.trimmed();
 
-            qWarning().noquote() << QString("[FILES][TRANSFER] FAILED: %1").arg(msg);
+            // Developer log (do NOT translate)
+            qWarning().noquote()
+                << QString("[FILES][TRANSFER] FAILED: %1").arg(msg);
 
-            QMessageBox::warning(this, "Transfer", msg);
+            // User-facing dialog (translate title)
+            QMessageBox::warning(
+                this,
+                tr("Transfer"),
+                msg
+            );
         } else {
             qInfo().noquote() << "[FILES][TRANSFER] OK";
             refreshRemote();
@@ -607,9 +620,9 @@ void FilesTab::uploadSelected()
 {
     const QStringList files = QFileDialog::getOpenFileNames(
         this,
-        "Select local files to upload",
+        tr("Select local files to upload"),
         m_localCwd.isEmpty() ? QDir::homePath() : m_localCwd,
-        "All files (*)");
+        tr("All files (*)"));
 
     startUploadPaths(files);
 }
@@ -618,7 +631,7 @@ void FilesTab::uploadFolder()
 {
     const QString dir = QFileDialog::getExistingDirectory(
         this,
-        "Select folder to upload",
+        tr("Select folder to upload"),
         m_localCwd.isEmpty() ? QDir::homePath() : m_localCwd);
 
     if (dir.isEmpty()) return;
@@ -633,11 +646,12 @@ void FilesTab::onRemoteFilesDropped(const QStringList& localPaths)
 void FilesTab::startUploadPaths(const QStringList& paths)
 {
     if (!m_ssh || !m_ssh->isConnected()) {
-        QMessageBox::information(this, "Upload", "Not connected.");
-        return;
+    QMessageBox::information(this, tr("Upload"), tr("Not connected."));
+    return;
     }
     if (paths.isEmpty()) return;
 
+    // Logs: do NOT translate (keep stable for debugging / parsing)
     qInfo().noquote() << QString("[XFER][UPLOAD] request paths=%1 remoteCwd='%2'")
                          .arg(paths.size())
                          .arg(m_remoteCwd);
@@ -680,7 +694,7 @@ void FilesTab::startUploadPaths(const QStringList& paths)
     for (const auto& t : tasks)
         dirs.insert(QFileInfo(t.remotePath).path());
 
-    runTransfer(QString("Uploading %1 item(s)…").arg(tasks.size()),
+    runTransfer(tr("Uploading %1 item(s)…").arg(tasks.size()),
                 [this, tasks, totalBytes, dirs](QString *err) -> bool {
 
         qInfo().noquote() << QString("[XFER][UPLOAD] batch start files=%1 total=%2 dirs=%3")
@@ -688,15 +702,23 @@ void FilesTab::startUploadPaths(const QStringList& paths)
                              .arg(prettySize(totalBytes))
                              .arg(dirs.size());
 
-        // 1) ensure dirs
-        for (const QString& d : dirs) {
-            QString e;
-            if (!m_ssh->ensureRemoteDir(d, 0755, &e)) {
-                qWarning().noquote() << QString("[XFER][UPLOAD] ensureRemoteDir FAIL '%1' : %2").arg(d, e);
-                if (err) *err = "Failed to create remote dir:\n" + d + "\n" + e;
-                return false;
-            }
-        }
+                    // 1) ensure dirs
+                    for (const QString& d : dirs) {
+                        QString e;
+                        if (!m_ssh->ensureRemoteDir(d, 0755, &e)) {
+                            // Developer log (do NOT translate)
+                            qWarning().noquote()
+                                << QString("[XFER][UPLOAD] ensureRemoteDir FAIL '%1' : %2")
+                                       .arg(d, e);
+
+                            // User-facing error (translate)
+                            if (err) {
+                                *err = tr("Failed to create remote directory:\n%1\n%2")
+                                           .arg(d, e);
+                            }
+                            return false;
+                        }
+                    }
 
         // 2) upload sequentially + aggregated progress
         quint64 completedBytes = 0;
@@ -726,7 +748,11 @@ void FilesTab::startUploadPaths(const QStringList& paths)
             if (!ok) {
                 qWarning().noquote() << QString("[XFER][UPLOAD] FAIL %1 -> %2 : %3")
                                         .arg(t.localPath, t.remotePath, e);
-                if (err) *err = e;
+
+                if (err) {
+                    *err = tr("Upload failed:\n%1\n→ %2\n\n%3")
+                               .arg(t.localPath, t.remotePath, e);
+                }
                 return false;
             }
 
@@ -799,7 +825,7 @@ bool FilesTab::collectRemoteRecursive(const QString& remoteRoot,
 void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString& destDir)
 {
     if (!m_ssh || !m_ssh->isConnected()) {
-        QMessageBox::information(this, "Download", "Not connected.");
+        QMessageBox::information(this, tr("Download"), tr("Not connected."));
         return;
     }
     if (remotePaths.isEmpty()) return;
@@ -824,7 +850,12 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
         QString stErr;
         if (!m_ssh->statRemotePath(rp, &info, &stErr)) {
             qWarning().noquote() << QString("[XFER][DOWNLOAD] stat FAIL '%1' : %2").arg(rp, stErr);
-            QMessageBox::warning(this, "Download", "Cannot stat remote path:\n" + rp + "\n" + stErr);
+            QMessageBox::warning(
+            this,
+            tr("Download"),
+            tr("Cannot stat remote path:\n%1\n%2")
+                .arg(rp, stErr)
+        );
             return;
         }
 
@@ -839,7 +870,11 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
             QString e;
             if (!collectRemoteRecursive(rp, localRoot, rem, loc, sizes, &totalBytes, &e)) {
                 qWarning().noquote() << QString("[XFER][DOWNLOAD] expand FAIL '%1' : %2").arg(rp, e);
-                QMessageBox::warning(this, "Download", e);
+                QMessageBox::warning(
+                    this,
+                    tr("Download"),
+                    e
+                );
                 return;
             }
         } else {
@@ -859,7 +894,7 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
                          .arg(rem.size())
                          .arg(prettySize(totalBytes));
 
-    runTransfer(QString("Downloading %1 file(s)…").arg(rem.size()),
+    runTransfer(tr("Downloading %1 file(s)…").arg(rem.size()),
                 [this, rem, loc, sizes, totalBytes](QString *err) -> bool {
 
         qInfo().noquote() << QString("[XFER][DOWNLOAD] batch start files=%1 total=%2")
@@ -906,7 +941,7 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
                     qWarning().noquote() << QString("[XFER][DOWNLOAD] verify FAIL %1 : %2")
                                             .arg(loc[i], verr);
                     if (err) {
-                        *err = QString("Integrity check failed for download:\n%1\n\n%2")
+                        *err = tr("Integrity check failed for download:\n%1\n\n%2")
                                    .arg(loc[i], verr);
                     }
                     return false;
@@ -927,19 +962,19 @@ void FilesTab::startDownloadPaths(const QStringList& remotePaths, const QString&
 void FilesTab::downloadSelected()
 {
     if (!m_ssh || !m_ssh->isConnected()) {
-        QMessageBox::information(this, "Download", "Not connected.");
+        QMessageBox::information(this, tr("Download"), tr("Not connected."));
         return;
     }
 
     const auto rows = m_remoteTable->selectionModel()->selectedRows();
     if (rows.isEmpty()) {
-        QMessageBox::information(this, "Download", "Select file(s) or folder(s) first.");
+        QMessageBox::information(this, tr("Download"),tr( "Select file(s) or folder(s) first."));
         return;
     }
 
     const QString destDir = QFileDialog::getExistingDirectory(
         this,
-        "Select local destination folder",
+        tr("Select local destination folder"),
         m_localCwd.isEmpty() ? QDir::homePath() : m_localCwd);
 
     if (destDir.isEmpty()) return;
@@ -959,12 +994,12 @@ void FilesTab::showLocalContextMenu(const QPoint& pos)
 
     QMenu menu(this);
 
-    QAction* actRename   = menu.addAction("Rename…");
-    QAction* actNewFolder = menu.addAction("New folder…");
+    QAction* actRename   = menu.addAction(tr("Rename…"));
+    QAction* actNewFolder = menu.addAction(tr("New folder…"));
     menu.addSeparator();
-    QAction* actCopyPath = menu.addAction("Copy path");
+    QAction* actCopyPath = menu.addAction(tr("Copy path"));
     menu.addSeparator();
-    QAction* actDelete   = menu.addAction("Delete");
+    QAction* actDelete   = menu.addAction(tr("Delete"));
 
     const QModelIndexList rows = m_localView->selectionModel()
                                     ? m_localView->selectionModel()->selectedRows()
@@ -991,12 +1026,12 @@ void FilesTab::showRemoteContextMenu(const QPoint& pos)
 
     QMenu menu(this);
 
-    QAction* actRename    = menu.addAction("Rename…");
-    QAction* actNewFolder = menu.addAction("New folder…");
+    QAction* actRename    = menu.addAction(tr("Rename…"));
+    QAction* actNewFolder = menu.addAction(tr("New folder…"));
     menu.addSeparator();
-    QAction* actCopyPath  = menu.addAction("Copy path");
+    QAction* actCopyPath  = menu.addAction(tr("Copy path"));
     menu.addSeparator();
-    QAction* actDelete    = menu.addAction("Delete");
+    QAction* actDelete    = menu.addAction(tr("Delete"));
 
     const auto rows = m_remoteTable->selectionModel()
                         ? m_remoteTable->selectionModel()->selectedRows()
@@ -1016,13 +1051,12 @@ void FilesTab::showRemoteContextMenu(const QPoint& pos)
 }
 
 
-void FilesTab::deleteLocalSelection()
-{
+void FilesTab::deleteLocalSelection() {
     if (!m_localView || !m_localModel) return;
 
     const QModelIndexList rows = m_localView->selectionModel()->selectedRows();
     if (rows.isEmpty()) {
-        QMessageBox::information(this, "Delete", "Select one or more local items first.");
+        QMessageBox::information(this, tr("Delete"), tr("Select one or more local items first."));
         return;
     }
 
@@ -1037,13 +1071,18 @@ void FilesTab::deleteLocalSelection()
 
     if (paths.isEmpty()) return;
 
-    const QString msg = QString("Delete %1 local item(s)?\n\nThis cannot be undone.")
-                            .arg(paths.size());
+    const QString msg =
+        tr("Delete %1 local item(s)?\n\nThis cannot be undone.")
+            .arg(paths.size());
 
-    if (QMessageBox::question(this, "Delete", msg,
-                              QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) {
+    if (QMessageBox::question(
+            this,
+            tr("Delete"),
+            msg,
+            QMessageBox::Yes | QMessageBox::No
+        ) != QMessageBox::Yes) {
         return;
-    }
+        }
 
     for (const QString& p : paths) {
         QFileInfo fi(p);
@@ -1052,30 +1091,38 @@ void FilesTab::deleteLocalSelection()
         if (fi.isDir()) {
             QDir dir(p);
             if (!dir.removeRecursively()) {
-                QMessageBox::warning(this, "Delete", "Failed to delete folder:\n" + p);
+                QMessageBox::warning(
+                    this,
+                    tr("Delete"),
+                    tr("Failed to delete folder:\n%1").arg(p)
+                );
                 return;
             }
         } else {
             if (!QFile::remove(p)) {
-                QMessageBox::warning(this, "Delete", "Failed to delete file:\n" + p);
+                QMessageBox::warning(
+                    this,
+                    tr("Delete"),
+                    tr("Failed to delete file:\n%1").arg(p)
+                );
                 return;
             }
         }
+
+
+        m_localView->setRootIndex(m_localModel->index(m_localCwd));
     }
-
-    m_localView->setRootIndex(m_localModel->index(m_localCwd));
 }
-
 void FilesTab::deleteRemoteSelection()
 {
     if (!m_ssh || !m_ssh->isConnected() || !m_remoteTable) {
-        QMessageBox::information(this, "Delete", "Not connected.");
+        QMessageBox::information(this, tr("Delete"), tr("Not connected."));
         return;
     }
 
     const auto rows = m_remoteTable->selectionModel()->selectedRows();
     if (rows.isEmpty()) {
-        QMessageBox::information(this, "Delete", "Select one or more remote items first.");
+        QMessageBox::information(this, tr("Delete"), tr("Select one or more remote items first."));
         return;
     }
 
@@ -1096,31 +1143,35 @@ void FilesTab::deleteRemoteSelection()
 
     if (items.isEmpty()) return;
 
-    const QString msg =
-        QString("Delete %1 remote item(s)?\n\nFolders will be deleted recursively.")
-            .arg(items.size());
+        const QString msg =
+            tr("Delete %1 remote item(s)?\n\nFolders will be deleted recursively.")
+                .arg(items.size());
 
-    if (QMessageBox::question(this, "Delete", msg,
-                              QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) {
-        return;
-    }
+        if (QMessageBox::question(this, tr("Delete"), msg,
+                                  QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes) {
+            return;
+                                  }
 
-    runTransfer(QString("Deleting %1 item(s)…").arg(items.size()),
-                [this, items](QString* err) -> bool {
+        runTransfer(tr("Deleting %1 item(s)…").arg(items.size()),
+                    [this, items](QString* err) -> bool {
 
-        for (const auto& x : items) {
-            const QString cmd = x.isDir
-                ? QString("rm -rf -- %1").arg(shQuote(x.path))
-                : QString("rm -f  -- %1").arg(shQuote(x.path));
+            for (const auto& x : items) {
+                const QString cmd = x.isDir
+                    ? QString("rm -rf -- %1").arg(shQuote(x.path))
+                    : QString("rm -f  -- %1").arg(shQuote(x.path));
 
-            QString out, e;
-            if (!m_ssh->exec(cmd, &out, &e)) {
-                if (err) *err = "Remote delete failed:\n" + x.path + "\n" + e;
-                return false;
+                QString out, e;
+                if (!m_ssh->exec(cmd, &out, &e)) {
+                    if (err) {
+                        *err = tr("Remote delete failed:\n%1\n%2")
+                                   .arg(x.path, e);
+                    }
+                    return false;
+                }
             }
-        }
-        return true;
-    });
+            return true;
+        });
+
 }
 
 void FilesTab::renameLocalSelection()
@@ -1129,7 +1180,7 @@ void FilesTab::renameLocalSelection()
 
     const QModelIndexList rows = m_localView->selectionModel()->selectedRows();
     if (rows.size() != 1) {
-        QMessageBox::information(this, "Rename", "Select exactly one local item.");
+        QMessageBox::information(this, tr("Rename"), tr("Select exactly one local item."));
         return;
     }
 
@@ -1139,7 +1190,7 @@ void FilesTab::renameLocalSelection()
     bool ok = false;
     const QString oldName = fi.fileName();
     const QString newName = QInputDialog::getText(
-        this, "Rename", "New name:", QLineEdit::Normal, oldName, &ok);
+        this, tr("Rename"), tr("New name:"), QLineEdit::Normal, oldName, &ok);
 
     if (!ok) return;
     const QString nn = newName.trimmed();
@@ -1149,7 +1200,7 @@ void FilesTab::renameLocalSelection()
     const QString newPath = QDir(fi.absolutePath()).filePath(nn);
 
     if (QFileInfo::exists(newPath)) {
-        QMessageBox::warning(this, "Rename", "Target name already exists.");
+        QMessageBox::warning(this, tr("Rename"), tr("Target name already exists."));
         return;
     }
 
@@ -1162,7 +1213,7 @@ void FilesTab::renameLocalSelection()
     }
 
     if (!success) {
-        QMessageBox::warning(this, "Rename", "Rename failed.");
+        QMessageBox::warning(this, tr("Rename"), tr("Rename failed."));
         return;
     }
 
@@ -1173,13 +1224,13 @@ void FilesTab::renameLocalSelection()
 void FilesTab::renameRemoteSelection()
 {
     if (!m_ssh || !m_ssh->isConnected() || !m_remoteTable) {
-        QMessageBox::information(this, "Rename", "Not connected.");
+        QMessageBox::information(this, tr("Rename"), tr("Not connected."));
         return;
     }
 
     const auto rows = m_remoteTable->selectionModel()->selectedRows();
     if (rows.size() != 1) {
-        QMessageBox::information(this, "Rename", "Select exactly one remote item.");
+        QMessageBox::information(this, tr("Rename"), tr("Select exactly one remote item."));
         return;
     }
 
@@ -1191,7 +1242,7 @@ void FilesTab::renameRemoteSelection()
 
     bool ok = false;
     const QString newName = QInputDialog::getText(
-        this, "Rename", "New name:", QLineEdit::Normal, oldName, &ok);
+        this, tr("Rename"),tr( "New name:"), QLineEdit::Normal, oldName, &ok);
 
     if (!ok) return;
     const QString nn = newName.trimmed();
@@ -1200,17 +1251,21 @@ void FilesTab::renameRemoteSelection()
     const QString parentDir = QFileInfo(oldPath).path();
     const QString newPath = joinRemote(parentDir, nn);
 
-    runTransfer(QString("Renaming %1…").arg(oldName),
-                [this, oldPath, newPath](QString* err) -> bool {
-                    QString out, e;
-                    const QString cmd = QString("mv -- %1 %2")
-                                            .arg(shQuote(oldPath), shQuote(newPath));
-                    if (!m_ssh->exec(cmd, &out, &e)) {
-                        if (err) *err = e;
-                        return false;
-                    }
-                    return true;
-                });
+        runTransfer(tr("Renaming %1…").arg(oldName),
+                    [this, oldPath, newPath](QString* err) -> bool {
+                        QString out, e;
+                        const QString cmd = QString("mv -- %1 %2")
+                                                .arg(shQuote(oldPath), shQuote(newPath));
+
+                        if (!m_ssh->exec(cmd, &out, &e)) {
+                            if (err) {
+                                *err = tr("Rename failed:\n%1")
+                                           .arg(e);
+                            }
+                            return false;
+                        }
+                        return true;
+                    });
 }
 
 void FilesTab::newLocalFolder()
@@ -1223,7 +1278,7 @@ void FilesTab::newLocalFolder()
 
     bool ok = false;
     const QString name = QInputDialog::getText(
-        this, "New folder", "Folder name:", QLineEdit::Normal, "NewFolder", &ok);
+        this, tr("New folder"), tr("Folder name:"), QLineEdit::Normal, tr("NewFolder"), &ok);
 
     if (!ok) return;
     const QString n = name.trimmed();
@@ -1231,12 +1286,12 @@ void FilesTab::newLocalFolder()
 
     const QString path = QDir(base).filePath(n);
     if (QFileInfo::exists(path)) {
-        QMessageBox::warning(this, "New folder", "That name already exists.");
+        QMessageBox::warning(this, tr("New folder"), tr("That name already exists."));
         return;
     }
 
     if (!QDir(base).mkdir(n)) {
-        QMessageBox::warning(this, "New folder", "Failed to create folder.");
+        QMessageBox::warning(this, tr("New folder"), tr("Failed to create folder."));
         return;
     }
 
@@ -1246,13 +1301,13 @@ void FilesTab::newLocalFolder()
 void FilesTab::newRemoteFolder()
 {
     if (!m_ssh || !m_ssh->isConnected()) {
-        QMessageBox::information(this, "New folder", "Not connected.");
+        QMessageBox::information(this, tr("New folder"), tr("Not connected."));
         return;
     }
 
     bool ok = false;
     const QString name = QInputDialog::getText(
-        this, "New folder", "Folder name:", QLineEdit::Normal, "NewFolder", &ok);
+        this, tr("New folder"), tr("Folder name:"), QLineEdit::Normal, tr("NewFolder"), &ok);
 
     if (!ok) return;
     const QString n = name.trimmed();
@@ -1260,16 +1315,19 @@ void FilesTab::newRemoteFolder()
 
     const QString remotePath = joinRemote(m_remoteCwd, n);
 
-    runTransfer(QString("Creating folder %1…").arg(n),
-                [this, remotePath](QString* err) -> bool {
-                    QString out, e;
-                    const QString cmd = QString("mkdir -p -- %1").arg(shQuote(remotePath));
-                    if (!m_ssh->exec(cmd, &out, &e)) {
-                        if (err) *err = e;
-                        return false;
-                    }
-                    return true;
-                });
+        runTransfer(tr("Creating folder %1…").arg(n),
+                    [this, remotePath](QString* err) -> bool {
+                        QString out, e;
+                        const QString cmd = QString("mkdir -p -- %1").arg(shQuote(remotePath));
+                        if (!m_ssh->exec(cmd, &out, &e)) {
+                            if (err) {
+                                *err = tr("Failed to create folder:\n%1")
+                                           .arg(e);
+                            }
+                            return false;
+                        }
+                        return true;
+                    });
 }
 
 void FilesTab::copyLocalPath()

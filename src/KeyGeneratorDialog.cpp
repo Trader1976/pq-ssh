@@ -56,14 +56,10 @@
 #include <QJsonValue>
 #include <QCryptographicHash>
 #include <QBrush>
-#include <QComboBox>
 #include <QGroupBox>
 #include <sodium.h>
 #include <QMenu>
 #include <QInputDialog>
-
-
-
 
 // Return current UTC timestamp in ISO 8601 with milliseconds.
 // Used consistently across metadata.json.
@@ -71,6 +67,7 @@ static QString isoUtcNow()
 {
     return QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
 }
+
 // Detect whether an OpenSSH private key is encrypted.
 //
 // Used purely for UI signaling (🔒 icon),
@@ -88,7 +85,7 @@ static bool sodiumInitOnce(QString *errOut)
     if (inited) return true;
 
     if (sodium_init() < 0) {
-        if (errOut) *errOut = "libsodium init failed (sodium_init).";
+        if (errOut) *errOut = QObject::tr("libsodium init failed (sodium_init).");
         return false;
     }
     inited = true;
@@ -159,7 +156,7 @@ static bool runDilithium5StubKeygen(const QString &privPath,
     {
         QFile f(privPath);
         if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            if (errOut) *errOut = QString("Failed to write private key: %1").arg(f.errorString());
+            if (errOut) *errOut = QObject::tr("Failed to write private key: %1").arg(f.errorString());
             return false;
         }
         f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
@@ -170,7 +167,7 @@ static bool runDilithium5StubKeygen(const QString &privPath,
     {
         QFile f(privPath + ".pub");
         if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            if (errOut) *errOut = QString("Failed to write public key: %1").arg(f.errorString());
+            if (errOut) *errOut = QObject::tr("Failed to write public key: %1").arg(f.errorString());
             return false;
         }
 
@@ -202,7 +199,7 @@ class EditMetadataDialog : public QDialog
 public:
     explicit EditMetadataDialog(QWidget *parent = nullptr) : QDialog(parent)
     {
-        setWindowTitle("Edit Key Metadata");
+        setWindowTitle(tr("Edit Key Metadata"));
         setModal(true);
         resize(520, 260);
 
@@ -221,7 +218,7 @@ public:
         auto *expireLay = new QHBoxLayout(expireRow);
         expireLay->setContentsMargins(0,0,0,0);
 
-        expireCheck = new QCheckBox("Enable", this);
+        expireCheck = new QCheckBox(tr("Enable"), this);
         expireDate = new QDateTimeEdit(QDateTime::currentDateTimeUtc().addDays(90), this);
         expireDate->setDisplayFormat("yyyy-MM-dd HH:mm 'UTC'");
         expireDate->setTimeSpec(Qt::UTC);
@@ -232,11 +229,11 @@ public:
         expireLay->addWidget(expireCheck);
         expireLay->addWidget(expireDate, 1);
 
-        form->addRow("Label:", labelEdit);
-        form->addRow("Owner:", ownerEdit);
-        form->addRow("Purpose:", purposeEdit);
-        form->addRow("Rotation policy (days):", rotationSpin);
-        form->addRow("Expire date:", expireRow);
+        form->addRow(tr("Label:"), labelEdit);
+        form->addRow(tr("Owner:"), ownerEdit);
+        form->addRow(tr("Purpose:"), purposeEdit);
+        form->addRow(tr("Rotation policy (days):"), rotationSpin);
+        form->addRow(tr("Expire date:"), expireRow);
 
         root->addLayout(form);
 
@@ -304,7 +301,7 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
     : QDialog(parent),
       m_profileNames(profileNames)
 {
-    setWindowTitle("Key Generator");
+    setWindowTitle(tr("Key Generator"));
     setModal(true);
     resize(920, 520);
 
@@ -324,39 +321,39 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
 
     m_algoCombo = new QComboBox(this);
     m_algoCombo->addItems({ "ed25519", "rsa3072", "rsa4096", "dilithium5" });
-    form->addRow("Algorithm:", m_algoCombo);
+    form->addRow(tr("Algorithm:"), m_algoCombo);
 
     m_keyNameEdit = new QLineEdit(this);
-    m_keyNameEdit->setPlaceholderText("id_ed25519_pqssh");
-    form->addRow("Key filename:", m_keyNameEdit);
+    m_keyNameEdit->setPlaceholderText(tr("id_ed25519_pqssh"));
+    form->addRow(tr("Key filename:"), m_keyNameEdit);
 
     m_labelEdit = new QLineEdit(this);
-    form->addRow("Label:", m_labelEdit);
+    form->addRow(tr("Label:"), m_labelEdit);
 
     m_ownerEdit = new QLineEdit(this);
     const QString envUser = qEnvironmentVariable("USER");
     if (!envUser.isEmpty()) m_ownerEdit->setText(envUser);
-    form->addRow("Owner:", m_ownerEdit);
+    form->addRow(tr("Owner:"), m_ownerEdit);
 
     m_purposeEdit = new QLineEdit(this);
-    m_purposeEdit->setPlaceholderText("e.g. admin, prod-access, ci-deployment");
-    form->addRow("Purpose:", m_purposeEdit);
+    m_purposeEdit->setPlaceholderText(tr("e.g. admin, prod-access, ci-deployment"));
+    form->addRow(tr("Purpose:"), m_purposeEdit);
 
     m_rotationSpin = new QSpinBox(this);
     m_rotationSpin->setRange(0, 3650);
     m_rotationSpin->setValue(90);
-    form->addRow("Rotation policy (days):", m_rotationSpin);
+    form->addRow(tr("Rotation policy (days):"), m_rotationSpin);
 
     m_statusCombo = new QComboBox(this);
     m_statusCombo->addItems({ "active", "revoked", "expired" });
     m_statusCombo->setCurrentText("active");
-    form->addRow("Status:", m_statusCombo);
+    form->addRow(tr("Status:"), m_statusCombo);
 
     auto *expireRow = new QWidget(this);
     auto *expireLayout = new QHBoxLayout(expireRow);
     expireLayout->setContentsMargins(0,0,0,0);
 
-    m_expireCheck = new QCheckBox("Enable", this);
+    m_expireCheck = new QCheckBox(tr("Enable"), this);
     m_expireDate = new QDateTimeEdit(QDateTime::currentDateTimeUtc().addDays(90), this);
     m_expireDate->setDisplayFormat("yyyy-MM-dd HH:mm 'UTC'");
     m_expireDate->setTimeSpec(Qt::UTC);
@@ -368,14 +365,14 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
 
     expireLayout->addWidget(m_expireCheck);
     expireLayout->addWidget(m_expireDate, 1);
-    form->addRow("Expire date:", expireRow);
+    form->addRow(tr("Expire date:"), expireRow);
 
     m_pass1Edit = new QLineEdit(this);
     m_pass1Edit->setEchoMode(QLineEdit::Password);
     m_pass2Edit = new QLineEdit(this);
     m_pass2Edit->setEchoMode(QLineEdit::Password);
-    form->addRow("Passphrase:", m_pass1Edit);
-    form->addRow("Passphrase (again):", m_pass2Edit);
+    form->addRow(tr("Passphrase:"), m_pass1Edit);
+    form->addRow(tr("Passphrase (again):"), m_pass2Edit);
 
     auto updatePassphraseUi = [this]() {
         const bool isDilithium = (m_algoCombo->currentText() == "dilithium5");
@@ -383,10 +380,10 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
         m_pass2Edit->setEnabled(true);
 
         if (isDilithium) {
-            m_pass1Edit->setPlaceholderText("Encrypt Dilithium5 private key (required)");
-            m_pass2Edit->setPlaceholderText("Repeat passphrase");
-            m_pass1Edit->setToolTip("Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305).");
-            m_pass2Edit->setToolTip("Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305).");
+            m_pass1Edit->setPlaceholderText(tr("Encrypt Dilithium5 private key (required)"));
+            m_pass2Edit->setPlaceholderText(tr("Repeat passphrase"));
+            m_pass1Edit->setToolTip(tr("Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305)."));
+            m_pass2Edit->setToolTip(tr("Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305)."));
         } else {
             m_pass1Edit->setPlaceholderText(QString());
             m_pass2Edit->setPlaceholderText(QString());
@@ -403,18 +400,18 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
 
     m_resultLabel = new QLabel(this);
     m_resultLabel->setWordWrap(true);
-    m_resultLabel->setText(QString("Keys are saved under:\n%1").arg(keysDir()));
+    m_resultLabel->setText(tr("Keys are saved under:\n%1").arg(keysDir()));
     genLayout->addWidget(m_resultLabel);
 
     auto *genButtonsRow = new QHBoxLayout();
     genButtonsRow->addStretch(1);
-    m_generateBtn = new QPushButton("Generate", this);
+    m_generateBtn = new QPushButton(tr("Generate"), this);
     genButtonsRow->addWidget(m_generateBtn);
     genLayout->addLayout(genButtonsRow);
 
     connect(m_generateBtn, &QPushButton::clicked, this, &KeyGeneratorDialog::onGenerate);
 
-    m_tabs->addTab(genTab, "Generate");
+    m_tabs->addTab(genTab, tr("Generate"));
 
     // ============================
     // TAB 2: Keys (Manage)
@@ -424,7 +421,7 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
 
     m_keysHintLabel = new QLabel(this);
     m_keysHintLabel->setWordWrap(true);
-    m_keysHintLabel->setText(QString("Inventory:\n- metadata: %1\n- key files: %2/*.pub")
+    m_keysHintLabel->setText(tr("Inventory:\n- metadata: %1\n- key files: %2/*.pub")
                                  .arg(metadataPath(), keysDir()));
     keysLayout->addWidget(m_keysHintLabel);
 
@@ -437,8 +434,8 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
 
     m_table->setColumnCount(10);
     m_table->setHorizontalHeaderLabels({
-        "Fingerprint", "Label", "Owner", "Algorithm", "Status",
-        "Created", "Expires", "Purpose", "Rotation", "Key file"
+        tr("Fingerprint"), tr("Label"), tr("Owner"), tr("Algorithm"), tr("Status"),
+        tr("Created"), tr("Expires"), tr("Purpose"), tr("Rotation"), tr("Key file")
     });
     m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_table->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -465,19 +462,19 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
     keysLayout->addWidget(m_table, 1);
 
     auto *btnRow = new QHBoxLayout();
-    m_refreshBtn   = new QPushButton("Refresh", this);
-    m_copyFpBtn    = new QPushButton("Copy fingerprint", this);
-    m_copyPubBtn   = new QPushButton("Copy public key", this);
-    m_exportPubBtn = new QPushButton("Export pubkey...", this);
+    m_refreshBtn   = new QPushButton(tr("Refresh"), this);
+    m_copyFpBtn    = new QPushButton(tr("Copy fingerprint"), this);
+    m_copyPubBtn   = new QPushButton(tr("Copy public key"), this);
+    m_exportPubBtn = new QPushButton(tr("Export pubkey..."), this);
 
     // ✅ NEW button (your desired flow)
-    m_installBtn   = new QPushButton("Install selected key…", this);
-    m_installBtn->setToolTip("Choose a profile and install this public key into ~/.ssh/authorized_keys on that server.");
+    m_installBtn   = new QPushButton(tr("Install selected key…"), this);
+    m_installBtn->setToolTip(tr("Choose a profile and install this public key into ~/.ssh/authorized_keys on that server."));
 
-    m_editMetaBtn  = new QPushButton("Edit metadata...", this);
-    m_revokeBtn    = new QPushButton("Mark revoked", this);
-    m_deleteBtn    = new QPushButton("Delete", this);
-    m_deleteFilesCheck = new QCheckBox("Also delete key files", this);
+    m_editMetaBtn  = new QPushButton(tr("Edit metadata..."), this);
+    m_revokeBtn    = new QPushButton(tr("Mark revoked"), this);
+    m_deleteBtn    = new QPushButton(tr("Delete"), this);
+    m_deleteFilesCheck = new QCheckBox(tr("Also delete key files"), this);
 
     btnRow->addWidget(m_refreshBtn);
     btnRow->addStretch(1);
@@ -504,11 +501,11 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
 
     connect(m_table, &QTableWidget::itemSelectionChanged, this, &KeyGeneratorDialog::onKeySelectionChanged);
 
-    m_tabs->addTab(keysTab, "Keys");
+    m_tabs->addTab(keysTab, tr("Keys"));
 
     // Bottom close
     auto *buttons = new QDialogButtonBox(this);
-    auto *closeBtn = buttons->addButton("Close", QDialogButtonBox::RejectRole);
+    auto *closeBtn = buttons->addButton(tr("Close"), QDialogButtonBox::RejectRole);
     connect(closeBtn, &QPushButton::clicked, this, &QDialog::reject);
     root->addWidget(buttons);
 
@@ -547,7 +544,7 @@ bool KeyGeneratorDialog::ensureKeysDir(QString *errOut)
     QDir d(keysDir());
     if (d.exists()) return true;
     if (!d.mkpath(".")) {
-        if (errOut) *errOut = QString("Failed to create keys directory: %1").arg(keysDir());
+        if (errOut) *errOut = tr("Failed to create keys directory: %1").arg(keysDir());
         return false;
     }
     return true;
@@ -570,7 +567,7 @@ bool KeyGeneratorDialog::runSshKeygen(const QString &algo, const QString &privPa
     } else if (algo == "rsa4096") {
         args << "-t" << "rsa" << "-b" << "4096";
     } else {
-        if (errOut) *errOut = QString("Unsupported algorithm: %1").arg(algo);
+        if (errOut) *errOut = tr("Unsupported algorithm: %1").arg(algo);
         return false;
     }
 
@@ -584,11 +581,11 @@ bool KeyGeneratorDialog::runSshKeygen(const QString &algo, const QString &privPa
     QProcess p;
     p.start("ssh-keygen", args);
     if (!p.waitForFinished(30000)) {
-        if (errOut) *errOut = "ssh-keygen timed out.";
+        if (errOut) *errOut = tr("ssh-keygen timed out.");
         return false;
     }
     if (p.exitStatus() != QProcess::NormalExit || p.exitCode() != 0) {
-        if (errOut) *errOut = QString("ssh-keygen failed:\n%1")
+        if (errOut) *errOut = tr("ssh-keygen failed:\n%1")
             .arg(QString::fromLocal8Bit(p.readAllStandardError()));
         return false;
     }
@@ -616,7 +613,7 @@ bool KeyGeneratorDialog::computeFingerprint(const QString &pubPath, QString *fpO
 
     QFile f(pubPath);
     if (!f.open(QIODevice::ReadOnly)) {
-        if (errOut) *errOut = "Cannot read public key: " + f.errorString();
+        if (errOut) *errOut = tr("Cannot read public key: %1").arg(f.errorString());
         return false;
     }
     const QString line = QString::fromUtf8(f.readLine()).trimmed();
@@ -624,7 +621,7 @@ bool KeyGeneratorDialog::computeFingerprint(const QString &pubPath, QString *fpO
 
     const QStringList parts = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
     if (parts.size() < 2) {
-        if (errOut) *errOut = QString("Unrecognized public key format:\n%1").arg(line);
+        if (errOut) *errOut = tr("Unrecognized public key format:\n%1").arg(line);
         return false;
     }
 
@@ -632,13 +629,13 @@ bool KeyGeneratorDialog::computeFingerprint(const QString &pubPath, QString *fpO
     const QByteArray b64  = parts[1].toLatin1();
 
     if (!kind.startsWith("pqssh-")) {
-        if (errOut) *errOut = QString("Unsupported public key format (not OpenSSH, not PQSSH): %1").arg(kind);
+        if (errOut) *errOut = tr("Unsupported public key format (not OpenSSH, not PQSSH): %1").arg(kind);
         return false;
     }
 
     const QByteArray pub = b64DecodeLoose(b64);
     if (pub.isEmpty()) {
-        if (errOut) *errOut = "Invalid base64 public key data.";
+        if (errOut) *errOut = tr("Invalid base64 public key data.");
         return false;
     }
 
@@ -656,7 +653,7 @@ bool KeyGeneratorDialog::loadMetadata(QMap<QString, QJsonObject> *out, QString *
     if (!f.exists()) return true;
 
     if (!f.open(QIODevice::ReadOnly)) {
-        if (errOut) *errOut = "Cannot read metadata.json";
+        if (errOut) *errOut = tr("Cannot read metadata.json");
         return false;
     }
     const auto doc = QJsonDocument::fromJson(f.readAll());
@@ -676,7 +673,7 @@ bool KeyGeneratorDialog::writeMetadata(const QJsonObject &root, QString *errOut)
 {
     QFile f(metadataPath());
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        if (errOut) *errOut = "Cannot write metadata.json";
+        if (errOut) *errOut = tr("Cannot write metadata.json");
         return false;
     }
     f.write(QJsonDocument(root).toJson(QJsonDocument::Indented));
@@ -701,7 +698,7 @@ bool KeyGeneratorDialog::saveMetadata(const QString &fingerprint,
     QFile f(metadataPath());
     if (f.exists()) {
         if (!f.open(QIODevice::ReadOnly)) {
-            if (errOut) *errOut = "Cannot read metadata.json";
+            if (errOut) *errOut = tr("Cannot read metadata.json");
             return false;
         }
         const auto doc = QJsonDocument::fromJson(f.readAll());
@@ -844,11 +841,11 @@ void KeyGeneratorDialog::onGenerate()
 
     if (isDilithium) {
         if (m_pass1Edit->text().isEmpty()) {
-            m_resultLabel->setText("Dilithium5 keys require a passphrase.");
+            m_resultLabel->setText(tr("Dilithium5 keys require a passphrase."));
             return;
         }
         if (m_pass1Edit->text() != m_pass2Edit->text()) {
-            m_resultLabel->setText("Passphrases do not match.");
+            m_resultLabel->setText(tr("Passphrases do not match."));
             return;
         }
     }
@@ -874,7 +871,7 @@ void KeyGeneratorDialog::onGenerate()
     const QString pass1 = m_pass1Edit->text();
     const QString pass2 = m_pass2Edit->text();
     if (pass1 != pass2) {
-        m_resultLabel->setText("Passphrases do not match.");
+        m_resultLabel->setText(tr("Passphrases do not match."));
         return;
     }
 
@@ -894,7 +891,7 @@ void KeyGeneratorDialog::onGenerate()
     if (isDilithium) {
         QFile plainFile(privPath);
         if (!plainFile.open(QIODevice::ReadOnly)) {
-            m_resultLabel->setText("Failed to read generated Dilithium private key.");
+            m_resultLabel->setText(tr("Failed to read generated Dilithium private key."));
             return;
         }
 
@@ -904,14 +901,14 @@ void KeyGeneratorDialog::onGenerate()
         QByteArray encrypted;
         QString encErr;
         if (!encryptDilithiumKey(plainKey, pass1, &encrypted, &encErr)) {
-            m_resultLabel->setText("Encryption failed: " + encErr);
+            m_resultLabel->setText(tr("Encryption failed: %1").arg(encErr));
             return;
         }
 
         const QString encPath = privPath + ".enc";
         QFile encFile(encPath);
         if (!encFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            m_resultLabel->setText("Failed to write encrypted Dilithium key.");
+            m_resultLabel->setText(tr("Failed to write encrypted Dilithium key."));
             return;
         }
         encFile.write(encrypted);
@@ -940,11 +937,11 @@ void KeyGeneratorDialog::onGenerate()
     }
 
     m_resultLabel->setText(
-        QString("✅ Key generated\n\n"
-                "Fingerprint: %1\n"
-                "Private: %2\n"
-                "Public:  %3\n"
-                "Metadata: %4")
+        tr("✅ Key generated\n\n"
+           "Fingerprint: %1\n"
+           "Private: %2\n"
+           "Public:  %3\n"
+           "Metadata: %4")
             .arg(fp, finalPrivPath, pubPath, metadataPath())
     );
 
@@ -988,8 +985,8 @@ void KeyGeneratorDialog::refreshKeysTable()
         const bool isLocked = isEncFile || isOpenSshEnc;
 
         QString lockTip;
-        if (isEncFile)    lockTip = "🔒 Private key is stored encrypted at rest (.enc)";
-        if (isOpenSshEnc) lockTip = "🔒 OpenSSH private key is passphrase-protected";
+        if (isEncFile)    lockTip = tr("🔒 Private key is stored encrypted at rest (.enc)");
+        if (isOpenSshEnc) lockTip = tr("🔒 OpenSSH private key is passphrase-protected");
 
         const QString keyFileShown = k.pubPath.isEmpty()
             ? QString()
@@ -1028,7 +1025,7 @@ void KeyGeneratorDialog::refreshKeysTable()
         }
 
         if (isExpired) {
-            const QString tip = QString("Key is expired (expire_date=%1 UTC)")
+            const QString tip = tr("Key is expired (expire_date=%1 UTC)")
                                     .arg(expUtc.toString(Qt::ISODateWithMs));
             for (int c = 0; c < m_table->columnCount(); ++c) {
                 if (auto *it = m_table->item(r, c)) {
@@ -1054,10 +1051,10 @@ void KeyGeneratorDialog::refreshKeysTable()
     }
 
     if (!err.isEmpty()) {
-        m_keysHintLabel->setText(QString("Inventory warning: %1\nmetadata: %2\nkeys: %3")
+        m_keysHintLabel->setText(tr("Inventory warning: %1\nmetadata: %2\nkeys: %3")
                                      .arg(err, metadataPath(), keysDir()));
     } else {
-        m_keysHintLabel->setText(QString("metadata: %1\nkeys: %2")
+        m_keysHintLabel->setText(tr("metadata: %1\nkeys: %2")
                                      .arg(metadataPath(), keysDir()));
     }
 
@@ -1185,20 +1182,18 @@ void KeyGeneratorDialog::onExportPublicKey()
     if (line.isEmpty()) return;
 
     const QString suggested = QFileInfo(k.pubPath).fileName();
-    const QString outPath = QFileDialog::getSaveFileName(this, "Export public key", suggested);
+    const QString outPath = QFileDialog::getSaveFileName(this, tr("Export public key"), suggested);
     if (outPath.isEmpty()) return;
 
     QFile f(outPath);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QMessageBox::warning(this, "Export failed", f.errorString());
+        QMessageBox::warning(this, tr("Export failed"), f.errorString());
         return;
     }
     f.write(line.toUtf8());
     f.write("\n");
     f.close();
 }
-
-
 
 bool KeyGeneratorDialog::updateMetadataFields(const QString &fingerprint,
                                              const QString &label,
@@ -1210,24 +1205,24 @@ bool KeyGeneratorDialog::updateMetadataFields(const QString &fingerprint,
 {
     QFile f(metadataPath());
     if (!f.exists()) {
-        if (errOut) *errOut = "metadata.json does not exist.";
+        if (errOut) *errOut = tr("metadata.json does not exist.");
         return false;
     }
     if (!f.open(QIODevice::ReadOnly)) {
-        if (errOut) *errOut = "Cannot read metadata.json";
+        if (errOut) *errOut = tr("Cannot read metadata.json");
         return false;
     }
     const auto doc = QJsonDocument::fromJson(f.readAll());
     f.close();
 
     if (!doc.isObject()) {
-        if (errOut) *errOut = "metadata.json is not a JSON object.";
+        if (errOut) *errOut = tr("metadata.json is not a JSON object.");
         return false;
     }
 
     QJsonObject root = doc.object();
     if (!root.value(fingerprint).isObject()) {
-        if (errOut) *errOut = "Selected fingerprint not found in metadata.json";
+        if (errOut) *errOut = tr("Selected fingerprint not found in metadata.json");
         return false;
     }
 
@@ -1266,7 +1261,7 @@ void KeyGeneratorDialog::onEditMetadata()
                              dlg.rotationDays(),
                              dlg.expiresIsoOrEmpty(),
                              &err)) {
-        QMessageBox::warning(this, "Edit failed", err);
+        QMessageBox::warning(this, tr("Edit failed"), err);
         return;
     }
 
@@ -1282,7 +1277,7 @@ void KeyGeneratorDialog::onMarkRevoked()
     if (!f.exists()) return;
 
     if (!f.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, "Error", "Cannot read metadata.json");
+        QMessageBox::warning(this, tr("Error"), tr("Cannot read metadata.json"));
         return;
     }
     auto doc = QJsonDocument::fromJson(f.readAll());
@@ -1298,7 +1293,7 @@ void KeyGeneratorDialog::onMarkRevoked()
 
     QString err;
     if (!writeMetadata(root, &err)) {
-        QMessageBox::warning(this, "Error", err);
+        QMessageBox::warning(this, tr("Error"), err);
         return;
     }
 
@@ -1310,18 +1305,18 @@ void KeyGeneratorDialog::onDeleteKey()
     KeyRow k = selectedRow();
     if (k.fingerprint.isEmpty()) return;
 
-    QString msg = QString("Delete key entry?\n\nFingerprint:\n%1").arg(k.fingerprint);
+    QString msg = tr("Delete key entry?\n\nFingerprint:\n%1").arg(k.fingerprint);
     if (m_deleteFilesCheck->isChecked())
-        msg += "\n\nAlso delete key files on disk.";
+        msg += "\n\n" + tr("Also delete key files on disk.");
 
-    const auto res = QMessageBox::question(this, "Confirm delete", msg,
+    const auto res = QMessageBox::question(this, tr("Confirm delete"), msg,
                                           QMessageBox::Yes | QMessageBox::No);
     if (res != QMessageBox::Yes) return;
 
     QFile f(metadataPath());
     if (f.exists()) {
         if (!f.open(QIODevice::ReadOnly)) {
-            QMessageBox::warning(this, "Error", "Cannot read metadata.json");
+            QMessageBox::warning(this, tr("Error"), tr("Cannot read metadata.json"));
             return;
         }
         auto doc = QJsonDocument::fromJson(f.readAll());
@@ -1332,7 +1327,7 @@ void KeyGeneratorDialog::onDeleteKey()
             root.remove(k.fingerprint);
             QString err;
             if (!writeMetadata(root, &err)) {
-                QMessageBox::warning(this, "Error", err);
+                QMessageBox::warning(this, tr("Error"), err);
                 return;
             }
         }
@@ -1362,13 +1357,13 @@ void KeyGeneratorDialog::onKeysContextMenuRequested(const QPoint& pos)
 
     QMenu menu(this);
 
-    QAction *installAct = menu.addAction("Install selected key…");
+    QAction *installAct = menu.addAction(tr("Install selected key…"));
     installAct->setEnabled(hasPub && !m_profileNames.isEmpty());
 
     if (!hasPub)
-        installAct->setToolTip("Selected key has no readable .pub file.");
+        installAct->setToolTip(tr("Selected key has no readable .pub file."));
     else if (m_profileNames.isEmpty())
-        installAct->setToolTip("No profiles available.");
+        installAct->setToolTip(tr("No profiles available."));
 
     connect(installAct, &QAction::triggered, this, &KeyGeneratorDialog::onInstallSelectedKey);
 
@@ -1387,26 +1382,26 @@ void KeyGeneratorDialog::onInstallSelectedKey()
 {
     KeyRow k = selectedRow();
     if (k.pubPath.isEmpty() || !QFile::exists(k.pubPath)) {
-        QMessageBox::warning(this, "Install key", "Selected key has no readable public key file.");
+        QMessageBox::warning(this, tr("Install key"), tr("Selected key has no readable public key file."));
         return;
     }
 
     const QString pubLine = readPublicKeyLine(k.pubPath).trimmed();
     if (pubLine.isEmpty()) {
-        QMessageBox::warning(this, "Install key", "Public key line is empty.");
+        QMessageBox::warning(this, tr("Install key"), tr("Public key line is empty."));
         return;
     }
 
     if (m_profileNames.isEmpty()) {
-        QMessageBox::warning(this, "Install key", "No profiles available.");
+        QMessageBox::warning(this, tr("Install key"), tr("No profiles available."));
         return;
     }
 
     bool ok = false;
     const QString chosen = QInputDialog::getItem(
         this,
-        "Install selected key",
-        "Choose target profile:",
+        tr("Install selected key"),
+        tr("Choose target profile:"),
         m_profileNames,
         0,
         false,
@@ -1416,7 +1411,7 @@ void KeyGeneratorDialog::onInstallSelectedKey()
 
     const int profileIndex = m_profileNames.indexOf(chosen);
     if (profileIndex < 0) {
-        QMessageBox::warning(this, "Install key", "Invalid profile selection.");
+        QMessageBox::warning(this, tr("Install key"), tr("Invalid profile selection."));
         return;
     }
 
@@ -1426,12 +1421,12 @@ void KeyGeneratorDialog::onInstallSelectedKey()
     const QString preview = parts.value(1).left(24);
 
     const QString localConfirm =
-        QString("Install this key?\n\n"
-                "Key: %1 (%2…)\n"
-                "To profile: %3")
+        tr("Install this key?\n\n"
+           "Key: %1 (%2…)\n"
+           "To profile: %3")
             .arg(kind, preview, chosen);
 
-    if (QMessageBox::question(this, "Confirm selection", localConfirm) != QMessageBox::Yes)
+    if (QMessageBox::question(this, tr("Confirm selection"), localConfirm) != QMessageBox::Yes)
         return;
 
     emit installPublicKeyRequested(pubLine, profileIndex);

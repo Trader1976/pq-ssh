@@ -250,9 +250,9 @@ void SettingsDialog::loadFromSettings()
 
     const bool hasHash = !hash.trimmed().isEmpty();
     if (m_appLockStatus) {
-        if (enabled && hasHash) m_appLockStatus->setText("Password set");
-        else if (enabled && !hasHash) m_appLockStatus->setText("Enabled, but no password set!");
-        else m_appLockStatus->setText("Off");
+        if (enabled && hasHash) m_appLockStatus->setText(tr("Password set"));
+        else if (enabled && !hasHash) m_appLockStatus->setText(tr("Enabled, but no password set!"));
+        else m_appLockStatus->setText(tr("Off"));
     }
 
     if (m_disableAppLockBtn)
@@ -314,9 +314,9 @@ void SettingsDialog::onBrowseLogFile()
 
     const QString chosen = QFileDialog::getSaveFileName(
         this,
-        "Choose log file",
+        tr("Choose log file"),
         QDir(startDir).filePath("pq-ssh.log"),
-        "Log files (*.log);;All files (*)"
+        tr("Log files (*.log);;All files (*)")
     );
 
     if (!chosen.isEmpty() && m_logFileEdit)
@@ -345,7 +345,7 @@ void SettingsDialog::onBrowseAuditDir()
 
     const QString chosen = QFileDialog::getExistingDirectory(
         this,
-        "Choose audit directory",
+        tr("Choose audit directory"),
         startDir,
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
     );
@@ -371,8 +371,8 @@ void SettingsDialog::onSetAppPasswordClicked()
     // Prompt new password twice
     bool ok1 = false;
     const QString pass1 = QInputDialog::getText(
-        this, "Set application password",
-        "Enter new password:",
+        this, tr("Set application password"),
+        tr("Enter new password:"),
         QLineEdit::Password,
         QString(), &ok1
     );
@@ -382,8 +382,8 @@ void SettingsDialog::onSetAppPasswordClicked()
 
     bool ok2 = false;
     const QString pass2 = QInputDialog::getText(
-        this, "Confirm password",
-        "Re-enter password:",
+        this, tr("Confirm password"),
+        tr("Re-enter password:"),
         QLineEdit::Password,
         QString(), &ok2
     );
@@ -392,7 +392,7 @@ void SettingsDialog::onSetAppPasswordClicked()
         return;
 
     if (pass1 != pass2) {
-        QMessageBox::warning(this, "Password mismatch", "Passwords do not match.");
+        QMessageBox::warning(this, tr("Password mismatch"),tr( "Passwords do not match."));
         return;
     }
 
@@ -404,7 +404,7 @@ void SettingsDialog::onSetAppPasswordClicked()
             (unsigned long long)pass1.toUtf8().size(),
             crypto_pwhash_OPSLIMIT_MODERATE,
             crypto_pwhash_MEMLIMIT_MODERATE) != 0) {
-        QMessageBox::critical(this, "Error", "Failed to generate password hash (out of memory?).");
+        QMessageBox::critical(this, tr("Error"),tr( "Failed to generate password hash (out of memory?)."));
         return;
     }
 
@@ -413,18 +413,18 @@ void SettingsDialog::onSetAppPasswordClicked()
     s.setValue("appLock/enabled", true);
 
     if (m_appLockCheck) m_appLockCheck->setChecked(true);
-    if (m_appLockStatus) m_appLockStatus->setText("Password set");
+    if (m_appLockStatus) m_appLockStatus->setText(tr("Password set"));
     if (m_disableAppLockBtn) m_disableAppLockBtn->setEnabled(true);
 
-    QMessageBox::information(this, "App lock enabled", "Startup password has been set.");
+    QMessageBox::information(this,tr( "App lock enabled"),tr( "Startup password has been set."));
 }
 
 void SettingsDialog::onDisableAppLockClicked()
 {
     const auto ans = QMessageBox::question(
         this,
-        "Disable app lock",
-        "Disable app lock and remove the stored password hash?",
+        tr("Disable app lock"),
+        tr("Disable app lock and remove the stored password hash?"),
         QMessageBox::Yes | QMessageBox::Cancel,
         QMessageBox::Cancel
     );
@@ -440,5 +440,5 @@ void SettingsDialog::onDisableAppLockClicked()
     if (m_appLockStatus) m_appLockStatus->setText("Off");
     if (m_disableAppLockBtn) m_disableAppLockBtn->setEnabled(false);
 
-    QMessageBox::information(this, "App lock disabled", "App startup password has been removed.");
+    QMessageBox::information(this,tr( "App lock disabled"), tr("App startup password has been removed."));
 }
