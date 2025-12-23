@@ -190,16 +190,16 @@ static bool runDilithium5StubKeygen(const QString &privPath,
 // ============================================================================
 // Lightweight modal dialog for editing *existing* key metadata.
 //
-// Embedded here intentionally:
-//   - Only used by KeyGeneratorDialog
-//   - Keeps metadata UX logic close to inventory logic
-//   - Avoids over-abstracting a UI that may change often
+// IMPORTANT (Qt/MOC):
+// - Do NOT use Q_OBJECT in a cpp-local class unless you also include a .moc file.
+// - For this dialog we don't need signals/slots; we use QObject::tr() for i18n.
+// - Removing Q_OBJECT fixes AutoMoc build errors and still keeps translations working.
 class EditMetadataDialog : public QDialog
 {
 public:
     explicit EditMetadataDialog(QWidget *parent = nullptr) : QDialog(parent)
     {
-        setWindowTitle(tr("Edit Key Metadata"));
+        setWindowTitle(QObject::tr("Edit Key Metadata"));
         setModal(true);
         resize(520, 260);
 
@@ -216,9 +216,9 @@ public:
 
         auto *expireRow = new QWidget(this);
         auto *expireLay = new QHBoxLayout(expireRow);
-        expireLay->setContentsMargins(0,0,0,0);
+        expireLay->setContentsMargins(0, 0, 0, 0);
 
-        expireCheck = new QCheckBox(tr("Enable"), this);
+        expireCheck = new QCheckBox(QObject::tr("Enable"), this);
         expireDate = new QDateTimeEdit(QDateTime::currentDateTimeUtc().addDays(90), this);
         expireDate->setDisplayFormat("yyyy-MM-dd HH:mm 'UTC'");
         expireDate->setTimeSpec(Qt::UTC);
@@ -229,11 +229,11 @@ public:
         expireLay->addWidget(expireCheck);
         expireLay->addWidget(expireDate, 1);
 
-        form->addRow(tr("Label:"), labelEdit);
-        form->addRow(tr("Owner:"), ownerEdit);
-        form->addRow(tr("Purpose:"), purposeEdit);
-        form->addRow(tr("Rotation policy (days):"), rotationSpin);
-        form->addRow(tr("Expire date:"), expireRow);
+        form->addRow(QObject::tr("Label:"), labelEdit);
+        form->addRow(QObject::tr("Owner:"), ownerEdit);
+        form->addRow(QObject::tr("Purpose:"), purposeEdit);
+        form->addRow(QObject::tr("Rotation policy (days):"), rotationSpin);
+        form->addRow(QObject::tr("Expire date:"), expireRow);
 
         root->addLayout(form);
 
@@ -465,13 +465,13 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
     m_refreshBtn   = new QPushButton(tr("Refresh"), this);
     m_copyFpBtn    = new QPushButton(tr("Copy fingerprint"), this);
     m_copyPubBtn   = new QPushButton(tr("Copy public key"), this);
-    m_exportPubBtn = new QPushButton(tr("Export pubkey..."), this);
+    m_exportPubBtn = new QPushButton(tr("Export pubkey…"), this);
 
     // ✅ NEW button (your desired flow)
     m_installBtn   = new QPushButton(tr("Install selected key…"), this);
     m_installBtn->setToolTip(tr("Choose a profile and install this public key into ~/.ssh/authorized_keys on that server."));
 
-    m_editMetaBtn  = new QPushButton(tr("Edit metadata..."), this);
+    m_editMetaBtn  = new QPushButton(tr("Edit metadata.…"), this);
     m_revokeBtn    = new QPushButton(tr("Mark revoked"), this);
     m_deleteBtn    = new QPushButton(tr("Delete"), this);
     m_deleteFilesCheck = new QCheckBox(tr("Also delete key files"), this);
@@ -506,7 +506,7 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
     // Bottom close
     auto *buttons = new QDialogButtonBox(this);
     auto *closeBtn = buttons->addButton(tr("Close"), QDialogButtonBox::RejectRole);
-    connect(closeBtn, &QPushButton::clicked, this, &QDialog::reject);
+    connect(closeBtn, &QPushButton::clicked, this, &KeyGeneratorDialog::reject);
     root->addWidget(buttons);
 
     refreshKeysTable();

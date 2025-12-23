@@ -63,7 +63,7 @@ IdentityManagerDialog::IdentityManagerDialog(QWidget *parent)
     : QDialog(parent)
 {
     // UI shell
-    setWindowTitle("Identity Manager");
+    setWindowTitle(tr("Identity Manager"));
     resize(700, 520);
 
     // Layout: top form -> derive button -> fingerprint label -> public output -> action row
@@ -73,29 +73,29 @@ IdentityManagerDialog::IdentityManagerDialog(QWidget *parent)
     // Recovery words (expected: 24 tokens). We accept free-form text and let
     // IdentityDerivation decide how to normalize/parse it.
     m_words = new QPlainTextEdit;
-    m_words->setPlaceholderText("word1 word2 ... word24");
+    m_words->setPlaceholderText(tr("word1 word2 ... word24"));
 
     // Optional passphrase (BIP39-like “25th word” concept). This is a secret.
     m_pass = new QLineEdit;
     m_pass->setEchoMode(QLineEdit::Password);
 
     // Comment is appended to authorized_keys line. Not security relevant, but helps UX.
-    m_comment = new QLineEdit("pq-ssh");
+    m_comment = new QLineEdit(QStringLiteral("pq-ssh"));
 
-    f->addRow("24 words:", m_words);
-    f->addRow("Passphrase:", m_pass);
-    f->addRow("Comment:", m_comment);
+    f->addRow(tr("24 words:"), m_words);
+    f->addRow(tr("Passphrase:"), m_pass);
+    f->addRow(tr("Comment:"), m_comment);
     v->addLayout(f);
 
     // Derivation trigger.
     // Note: Derivation should be fast; if it becomes slow, move to a worker thread
     // and disable UI while running to avoid re-entrancy.
-    auto *btn = new QPushButton("Derive global SSH key");
+    auto *btn = new QPushButton(tr("Derive global SSH key"));
     connect(btn, &QPushButton::clicked, this, &IdentityManagerDialog::onDerive);
     v->addWidget(btn);
 
     // Fingerprint display. Starts blank-ish; updated after successful derive.
-    m_fp = new QLabel("Fingerprint:");
+    m_fp = new QLabel(tr("Fingerprint:"));
     v->addWidget(m_fp);
 
     // Public key output (authorized_keys line). Read-only: user copies/saves from here.
@@ -105,10 +105,10 @@ IdentityManagerDialog::IdentityManagerDialog(QWidget *parent)
 
     // Actions row: clipboard + save to disk
     auto *row = new QHBoxLayout();
-    auto *cp = new QPushButton("Copy public");
-    auto *cf = new QPushButton("Copy fingerprint");
-    auto *sp = new QPushButton("Save private…");
-    auto *su = new QPushButton("Save public…");
+    auto *cp = new QPushButton(tr("Copy public"));
+    auto *cf = new QPushButton(tr("Copy fingerprint"));
+    auto *sp = new QPushButton(tr("Save private…"));
+    auto *su = new QPushButton(tr("Save public…"));
 
     connect(cp, &QPushButton::clicked, this, &IdentityManagerDialog::onCopyPublic);
     connect(cf, &QPushButton::clicked, this, &IdentityManagerDialog::onCopyFingerprint);
@@ -161,7 +161,7 @@ void IdentityManagerDialog::onDerive()
     //
     // If you ever introduce per-profile keys (host/user scoped), extend the info string
     // with normalized identifiers (e.g., host:port:user) to derive *distinct* keys.
-    const QString info = "CPUNK/PQSSH/ssh-ed25519/global/v1";
+    const QString info = QStringLiteral("CPUNK/PQSSH/ssh-ed25519/global/v1");
 
     // Derive deterministic Ed25519 keypair from inputs.
     // IdentityDerivation is expected to handle:
@@ -186,7 +186,7 @@ void IdentityManagerDialog::onDerive()
     m_priv64 = d.priv64;
 
     // Display fingerprint (internal/PQ-SSH style).
-    m_fp->setText("Fingerprint: " + sha3Fingerprint(m_pub32));
+    m_fp->setText(tr("Fingerprint: %1").arg(sha3Fingerprint(m_pub32)));
 
     // Build the OpenSSH public key line:
     //   "ssh-ed25519 AAAAC3... comment"
@@ -205,7 +205,8 @@ void IdentityManagerDialog::onCopyPublic()
 {
     // Copies the full authorized_keys line to clipboard.
     // WARNING: Clipboard is global OS state. This is intentional by user action.
-    QApplication::clipboard()->setText(m_pubOut->toPlainText());
+    if (m_pubOut)
+        QApplication::clipboard()->setText(m_pubOut->toPlainText());
 }
 
 void IdentityManagerDialog::onCopyFingerprint()
@@ -213,19 +214,20 @@ void IdentityManagerDialog::onCopyFingerprint()
     // UI label format is "Fingerprint: <hex>".
     // We remove the prefix so user gets only the hex value.
     // NOTE: This assumes prefix length is stable; if UI text changes, update this.
-    QApplication::clipboard()->setText(m_fp->text().mid(12));
+    if (m_fp)
+        QApplication::clipboard()->setText(m_fp->text().mid(tr("Fingerprint: ").size()));
 }
 
 void IdentityManagerDialog::onSavePrivate()
 {
     // Private key is only available after derive().
     if (m_privFile.isEmpty()) {
-        QMessageBox::warning(this, "Save private key", "No private key derived yet.");
+        QMessageBox::warning(this, tr("Save private key"), tr("No private key derived yet."));
         return;
     }
 
     // Default filename follows OpenSSH convention.
-    const QString p = QFileDialog::getSaveFileName(this, "Save private key", "id_ed25519");
+    const QString p = QFileDialog::getSaveFileName(this, tr("Save private key"), tr("id_ed25519"));
     if (p.isEmpty()) return;
 
     // Write file atomically-ish:
@@ -233,7 +235,7 @@ void IdentityManagerDialog::onSavePrivate()
     //   a temp file then renaming (QSaveFile).
     QFile f(p);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QMessageBox::critical(this, "Save private key", "Cannot write file:\n" + f.errorString());
+        QMessageBox::critical(this, tr("Save private key"), tr("Cannot write file:\n%1").arg(f.errorString()));
         return;
     }
 
@@ -248,10 +250,9 @@ void IdentityManagerDialog::onSavePrivate()
     //
     // Also: QSaveFile would preserve permissions more predictably in some cases.
     QFile::setPermissions(p, QFileDevice::ReadOwner | QFileDevice::WriteOwner);
-    QFile::setPermissions(p, QFileDevice::ReadOwner);
 
     if (written != m_privFile.size()) {
-        QMessageBox::critical(this, "Save private key", "Write failed (short write).");
+        QMessageBox::critical(this, tr("Save private key"), tr("Write failed (short write)."));
         return;
     }
 }
@@ -261,17 +262,17 @@ void IdentityManagerDialog::onSavePublic()
     // Public key line must exist after derive().
     const QString pubLine = m_pubOut ? m_pubOut->toPlainText().trimmed() : QString();
     if (pubLine.isEmpty()) {
-        QMessageBox::warning(this, "Save public key", "No public key derived yet.");
+        QMessageBox::warning(this, tr("Save public key"), tr("No public key derived yet."));
         return;
     }
 
     // Default filename follows OpenSSH convention.
-    const QString p = QFileDialog::getSaveFileName(this, "Save public key", "id_ed25519.pub");
+    const QString p = QFileDialog::getSaveFileName(this, tr("Save public key"), tr("id_ed25519.pub"));
     if (p.isEmpty()) return;
 
     QFile f(p);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QMessageBox::critical(this, "Save public key", "Cannot write file:\n" + f.errorString());
+        QMessageBox::critical(this, tr("Save public key"), tr("Cannot write file:\n%1").arg(f.errorString()));
         return;
     }
 
@@ -281,7 +282,7 @@ void IdentityManagerDialog::onSavePublic()
     f.close();
 
     if (written != bytes.size()) {
-        QMessageBox::critical(this, "Save public key", "Write failed (short write).");
+        QMessageBox::critical(this, tr("Save public key"), tr("Write failed (short write)."));
         return;
     }
 }

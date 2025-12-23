@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QFileInfo>
+#include <QObject>
 
 AuditLogModel::AuditLogModel(QObject* parent) : QAbstractTableModel(parent) {}
 
@@ -15,12 +16,12 @@ QVariant AuditLogModel::headerData(int section, Qt::Orientation o, int role) con
 {
     if (o != Qt::Horizontal || role != Qt::DisplayRole) return {};
     switch ((Col)section) {
-        case TimeCol:    return "Time";
-        case SevCol:     return "Level";
-        case EventCol:   return "Event";
-        case TargetCol:  return "Target";
-        case SummaryCol: return "Summary";
-        case SessionCol: return "Session";
+        case TimeCol:    return tr("Time");
+        case SevCol:     return tr("Level");
+        case EventCol:   return tr("Event");
+        case TargetCol:  return tr("Target");
+        case SummaryCol: return tr("Summary");
+        case SessionCol: return tr("Session");
         default: return {};
     }
 }
@@ -32,15 +33,18 @@ QVariant AuditLogModel::data(const QModelIndex& idx, int role) const
 
     if (role == Qt::DisplayRole) {
         switch ((Col)idx.column()) {
-            case TimeCol:    return it.ts.isValid() ? it.ts.toString("HH:mm:ss.zzz") : QString();
+            case TimeCol:
+                return it.ts.isValid() ? it.ts.toString("HH:mm:ss.zzz") : QString();
+
             case SevCol:
                 switch (it.sev) {
-                    case AuditSeverity::Ok: return "OK";
-                    case AuditSeverity::Warn: return "WARN";
-                    case AuditSeverity::Error: return "ERROR";
-                    case AuditSeverity::Security: return "SEC";
-                    default: return "INFO";
+                    case AuditSeverity::Ok:       return tr("OK");
+                    case AuditSeverity::Warn:     return tr("WARN");
+                    case AuditSeverity::Error:    return tr("ERROR");
+                    case AuditSeverity::Security: return tr("SEC");
+                    default:                      return tr("INFO");
                 }
+
             case EventCol:   return it.event;
             case TargetCol:  return it.target;
             case SummaryCol: return it.summary;
@@ -50,14 +54,12 @@ QVariant AuditLogModel::data(const QModelIndex& idx, int role) const
     }
 
     // Give delegate access to severity + raw object
-    if (role == Qt::UserRole)  return (int)it.sev;
-    if (role == Qt::UserRole+1) return it.raw;
+    if (role == Qt::UserRole)    return (int)it.sev;
+    if (role == Qt::UserRole+1)  return it.raw;
 
     // Tooltips
     if (role == Qt::ToolTipRole) {
-        return QString("%1\n%2")
-            .arg(it.event)
-            .arg(it.summary);
+        return tr("%1\n%2").arg(it.event, it.summary);
     }
 
     return {};
@@ -75,7 +77,7 @@ bool AuditLogModel::loadFromFile(const QString& filePath, QString* err)
     if (err) err->clear();
     QFile f(filePath);
     if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        if (err) *err = QString("Cannot open %1: %2").arg(filePath, f.errorString());
+        if (err) *err = tr("Cannot open %1: %2").arg(filePath, f.errorString());
         return false;
     }
 
@@ -111,7 +113,7 @@ bool AuditLogModel::parseLine(const QByteArray& line, AuditLogEntry* out, QStrin
     QJsonParseError pe{};
     const QJsonDocument doc = QJsonDocument::fromJson(line, &pe);
     if (pe.error != QJsonParseError::NoError || !doc.isObject()) {
-        if (err) *err = "Invalid JSON";
+        if (err) *err = tr("Invalid JSON");
         return false;
     }
 
@@ -191,31 +193,34 @@ QString AuditLogModel::deriveSummary(const QJsonObject& o)
         const int dur = o.value("duration_ms").toInt(0);
 
         if (ev.contains("start", Qt::CaseInsensitive))
-            return QString("Fleet started (%1 targets, concurrency %2)").arg(targets).arg(conc);
+            return tr("Fleet started (%1 targets, concurrency %2)").arg(targets).arg(conc);
 
         if (ev.contains("target", Qt::CaseInsensitive) && dur > 0) {
             const QString status = o.value("status").toString();
             const QString err = o.value("error").toString();
             if (!err.isEmpty())
-                return QString("Target %1 in %2 ms — %3").arg(status.isEmpty() ? "done" : status).arg(dur).arg(err);
-            return QString("Target done in %1 ms").arg(dur);
+                return tr("Target %1 in %2 ms — %3")
+                    .arg(status.isEmpty() ? tr("done") : status)
+                    .arg(dur)
+                    .arg(err);
+            return tr("Target done in %1 ms").arg(dur);
         }
 
         if (!action.isEmpty())
-            return QString("Fleet event: %1").arg(action);
+            return tr("Fleet event: %1").arg(action);
     }
 
     // Key install summaries
     if (ev.contains("key", Qt::CaseInsensitive) && ev.contains("install", Qt::CaseInsensitive)) {
         const QString path = o.value("path").toString();
-        if (!path.isEmpty()) return QString("Key install: %1").arg(path);
-        return "Key install activity";
+        if (!path.isEmpty()) return tr("Key install: %1").arg(path);
+        return tr("Key install activity");
     }
 
     // Generic fallback: print event + one/two helpful fields if present
     const QString cmdHead = o.value("cmd_head").toString();
     if (!cmdHead.isEmpty())
-        return QString("%1 (%2)").arg(ev, cmdHead);
+        return tr("%1 (%2)").arg(ev, cmdHead);
 
     return ev;
 }

@@ -43,6 +43,7 @@
 // - Handle additional SSH config directives relevant to PQ-SSH profiles.
 
 #include "SshConfigImportPlan.h"
+
 #include <QDir>
 
 static QString firstOpt(const SshConfigHostBlock& b, const QString& key)
@@ -266,6 +267,7 @@ int SshConfigImportPlan::countAction(const QVector<ImportPlanRow>& rows, ImportA
 {
     // Utility used by the UI to build summary counts.
     int n = 0;
-    for (const auto& r : rows) if (r.action == a) n++;
+    for (const auto& r : rows)
+        if (r.action == a) n++;
     return n;
 }

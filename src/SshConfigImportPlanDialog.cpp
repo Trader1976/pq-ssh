@@ -45,7 +45,6 @@
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QComboBox>
@@ -101,7 +100,7 @@ void SshConfigImportPlanDialog::buildUi()
     // These options control plan generation (model rebuild), not just filtering.
     auto* optRow = new QHBoxLayout();
 
-    // Apply GLOBAL defaults (OpenSSH "Host *" or global config) into each host entry
+    // Apply GLOBAL defaults (OpenSSH global defaults) into each host entry
     // before deriving per-host profiles.
     m_applyGlobal = new QCheckBox("Apply GLOBAL defaults", this);
     m_applyGlobal->setChecked(true);
@@ -112,7 +111,7 @@ void SshConfigImportPlanDialog::buildUi()
     m_skipWildcards->setChecked(true);
 
     // If enabled: allow matching an existing PQ-SSH profile name and updating it.
-    // If disabled: collisions turn into Skip/Invalid (depending on plan logic).
+    // If disabled: collisions become Skip/Invalid (depending on plan logic).
     m_allowUpdates = new QCheckBox("Allow updates", this);
     m_allowUpdates->setChecked(false);
 
@@ -248,10 +247,10 @@ QString SshConfigImportPlanDialog::actionText(ImportAction a) const
 {
     // Text mapping for the “Action” column. Must match status filter labels.
     switch (a) {
-        case ImportAction::Create: return "Create";
-        case ImportAction::Update: return "Update";
-        case ImportAction::Skip:   return "Skip";
-        case ImportAction::Invalid:return "Invalid";
+        case ImportAction::Create:  return "Create";
+        case ImportAction::Update:  return "Update";
+        case ImportAction::Skip:    return "Skip";
+        case ImportAction::Invalid: return "Invalid";
     }
     return "Invalid";
 }
@@ -278,11 +277,10 @@ void SshConfigImportPlanDialog::rebuildPlan()
     // Generate plan rows (model)
     m_rows = SshConfigImportPlan::buildPlan(m_parsed, m_existingNames, m_opt);
 
-    // UX: if there is nothing to import, disable apply.
-    // (Also: show a helpful hint to the user.)
+    // UX: if there is nothing to import, disable apply and show hint.
     if (m_rows.isEmpty()) {
         m_summary->setText("No importable Host entries found. Add at least one 'Host name' block to ~/.ssh/config, then Refresh.");
-        m_applyBtn->setEnabled(false);
+        if (m_applyBtn) m_applyBtn->setEnabled(false);
     }
 
     // Re-render view and update derived UI state
@@ -360,14 +358,16 @@ void SshConfigImportPlanDialog::updateSummary()
     const int selCreates = SshConfigImportPlan::selectedCreates(m_rows).size();
     const int selUpdates = SshConfigImportPlan::selectedUpdates(m_rows).size();
 
-    m_summary->setText(QString("Plan: Create %1 (selected %2), Update %3 (selected %4), Skip %5, Invalid %6.")
-                       .arg(cCreate).arg(selCreates)
-                       .arg(cUpdate).arg(selUpdates)
-                       .arg(cSkip)
-                       .arg(cInvalid));
+    m_summary->setText(
+        QString("Plan: Create %1 (selected %2), Update %3 (selected %4), Skip %5, Invalid %6.")
+            .arg(cCreate).arg(selCreates)
+            .arg(cUpdate).arg(selUpdates)
+            .arg(cSkip)
+            .arg(cInvalid));
 
     // Apply only when something actionable is selected.
-    m_applyBtn->setEnabled((selCreates + selUpdates) > 0);
+    if (m_applyBtn)
+        m_applyBtn->setEnabled((selCreates + selUpdates) > 0);
 }
 
 void SshConfigImportPlanDialog::onFilterChanged()

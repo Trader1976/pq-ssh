@@ -11,6 +11,7 @@
 #include <QSettings>
 #include <QCryptographicHash>
 #include <QJsonObject>
+#include <QCoreApplication>
 
 #include "../AuditLogger.h"
 
@@ -18,12 +19,32 @@
 // Helpers
 // =====================================================
 
+// NOTE: FleetExecutor is not a QObject UI class, so use translate() (i18n-friendly)
+// for any user-facing strings that may be shown in UI (titles/errors).
+static inline QString T(const char* s)
+{
+    return QCoreApplication::translate("FleetExecutor", s);
+}
+
+static inline QString T(const char* s, const QString& a1)
+{
+    return QCoreApplication::translate("FleetExecutor", s).arg(a1);
+}
+
+static inline QString Tms(const char* s, int ms)
+{
+    return QCoreApplication::translate("FleetExecutor", s).arg(ms);
+}
+
 static QString actionToTitle(const FleetAction& a)
 {
     switch (a.type) {
-        case FleetActionType::RunCommand:     return a.title.isEmpty() ? "Run command" : a.title;
-        case FleetActionType::CheckService:   return a.title.isEmpty() ? "Check service" : a.title;
-        case FleetActionType::RestartService: return a.title.isEmpty() ? "Restart service" : a.title;
+        case FleetActionType::RunCommand:
+            return a.title.isEmpty() ? T("Run command") : a.title;
+        case FleetActionType::CheckService:
+            return a.title.isEmpty() ? T("Check service") : a.title;
+        case FleetActionType::RestartService:
+            return a.title.isEmpty() ? T("Restart service") : a.title;
     }
     return a.title;
 }
@@ -185,7 +206,7 @@ void FleetExecutor::start(const QVector<SshProfile>& profiles,
                 }
 
                 r.state = FleetTargetState::Canceled;
-                r.error = "Canceled";
+                r.error = T("Canceled");
                 m_job.results.push_back(r);
                 m_done++;
                 emit jobProgress(m_job, m_done, m_total);
@@ -250,7 +271,7 @@ void FleetExecutor::start(const QVector<SshProfile>& profiles,
                     }
 
                     r.state = FleetTargetState::Canceled;
-                    r.error = "Canceled";
+                    r.error = T("Canceled");
                     out.push_back(r);
                     continue;
                 }
@@ -259,7 +280,7 @@ void FleetExecutor::start(const QVector<SshProfile>& profiles,
                     FleetTargetResult r;
                     r.profileIndex = profileIndex;
                     r.state = FleetTargetState::Failed;
-                    r.error = "Invalid profile index";
+                    r.error = T("Invalid profile index");
                     out.push_back(r);
                     continue;
                 }
@@ -316,8 +337,9 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
 
     if (m_cancelRequested.loadAcquire() != 0) {
         r.state = FleetTargetState::Canceled;
-        r.error = "Canceled";
+        r.error = T("Canceled");
 
+        // keep audit reason keys stable (not translated)
         AuditLogger::writeEvent("fleet.target.canceled", {
             {"jobId", m_job.id},
             {"profileIndex", profileIndex},
@@ -330,7 +352,7 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
 
     if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
         r.state = FleetTargetState::Failed;
-        r.error = "Empty user/host";
+        r.error = T("Empty user/host");
 
         AuditLogger::writeEvent("fleet.target.failed", {
             {"jobId", m_job.id},
@@ -344,7 +366,7 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
 
     if (cmd.trimmed().isEmpty()) {
         r.state = FleetTargetState::Failed;
-        r.error = "Empty command/service";
+        r.error = T("Empty command/service");
 
         AuditLogger::writeEvent("fleet.target.failed", {
             {"jobId", m_job.id},
@@ -407,7 +429,7 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
 
     if (m_cancelRequested.loadAcquire() != 0) {
         r.state = FleetTargetState::Canceled;
-        r.error = "Canceled";
+        r.error = T("Canceled");
 
         AuditLogger::writeEvent("fleet.target.canceled", {
             {"jobId", m_job.id},
@@ -427,8 +449,8 @@ FleetTargetResult FleetExecutor::runOneTarget(const SshProfile& p,
 
         r.state = FleetTargetState::Failed;
         r.error = looksTimeout
-                    ? QString("Timeout after %1 ms").arg(timeoutMs)
-                    : (trimmed.isEmpty() ? "Command failed" : trimmed);
+                    ? Tms("Timeout after %1 ms", timeoutMs)
+                    : (trimmed.isEmpty() ? T("Command failed") : trimmed);
 
         AuditLogger::writeEvent("fleet.target.failed", {
             {"jobId", m_job.id},

@@ -148,7 +148,7 @@ QVector<SshProfile> ProfileStore::defaults()
     const QString user = qEnvironmentVariable("USER", "user");
 
     SshProfile p;
-    p.name = "Localhost";
+    p.name = QCoreApplication::translate("ProfileStore", "Localhost");
     p.user = user;
     p.host = "localhost";
     p.port = 22;
@@ -181,6 +181,7 @@ QVector<SshProfile> ProfileStore::defaults()
     out.push_back(p);
     return out;
 }
+
 
 bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
 {
@@ -280,7 +281,9 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
 
     QFile f(configPath());
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        if (err) *err = QString("Could not write profiles.json: %1").arg(f.errorString());
+        if (err) *err = QCoreApplication::translate("ProfileStore",
+                                                    "Could not write profiles.json: %1")
+                            .arg(f.errorString());
         return false;
     }
 
@@ -302,7 +305,9 @@ QVector<SshProfile> ProfileStore::load(QString* err)
     }
 
     if (!f.open(QIODevice::ReadOnly)) {
-        if (err) *err = QString("Could not open profiles.json: %1").arg(f.errorString());
+        if (err) *err = QCoreApplication::translate("ProfileStore",
+                                                    "Could not open profiles.json: %1")
+                            .arg(f.errorString());
         return out;
     }
 
@@ -312,7 +317,9 @@ QVector<SshProfile> ProfileStore::load(QString* err)
     QJsonParseError perr;
     QJsonDocument doc = QJsonDocument::fromJson(data, &perr);
     if (perr.error != QJsonParseError::NoError || !doc.isObject()) {
-        if (err) *err = QString("Invalid JSON in profiles.json: %1").arg(perr.errorString());
+        if (err) *err = QCoreApplication::translate("ProfileStore",
+                                                    "Invalid JSON in profiles.json: %1")
+                            .arg(perr.errorString());
         return out;
     }
 

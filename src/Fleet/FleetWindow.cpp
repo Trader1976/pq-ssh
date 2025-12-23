@@ -19,7 +19,7 @@
 static QString normalizedGroup(const QString& g)
 {
     const QString s = g.trimmed();
-    return s.isEmpty() ? QStringLiteral("Ungrouped") : s;
+    return s.isEmpty() ? QObject::tr("Ungrouped") : s;
 }
 
 static bool isHeaderItem(const QListWidgetItem* it)
@@ -32,7 +32,7 @@ FleetWindow::FleetWindow(const QVector<SshProfile>& profiles, QWidget* parent)
     , m_profiles(profiles)
 {
     setAttribute(Qt::WA_DeleteOnClose, true);
-    setWindowTitle("CPUNK PQ-SSH — Fleet Jobs");
+    setWindowTitle(tr("CPUNK PQ-SSH — Fleet Jobs"));
     resize(1200, 720);
 
     m_exec = new FleetExecutor(this);
@@ -63,12 +63,12 @@ void FleetWindow::buildUi()
     topL->setSpacing(8);
 
     m_filterEdit = new QLineEdit(topBar);
-    m_filterEdit->setPlaceholderText("Filter targets (name, host, group) ...");
+    m_filterEdit->setPlaceholderText(tr("Filter targets (name, host, group) ..."));
 
-    m_selectAllBtn = new QPushButton("Select all", topBar);
-    m_selectNoneBtn = new QPushButton("Select none", topBar);
+    m_selectAllBtn = new QPushButton(tr("Select all"), topBar);
+    m_selectNoneBtn = new QPushButton(tr("Select none"), topBar);
 
-    topL->addWidget(new QLabel("Targets:", topBar));
+    topL->addWidget(new QLabel(tr("Targets:"), topBar));
     topL->addWidget(m_filterEdit, 1);
     topL->addWidget(m_selectAllBtn);
     topL->addWidget(m_selectNoneBtn);
@@ -96,7 +96,7 @@ void FleetWindow::buildUi()
     rightL->setSpacing(8);
 
     // Action box
-    auto* actionBox = new QGroupBox("Fleet action", right);
+    auto* actionBox = new QGroupBox(tr("Fleet action"), right);
     auto* actionL = new QVBoxLayout(actionBox);
 
     auto* aTop = new QWidget(actionBox);
@@ -105,35 +105,34 @@ void FleetWindow::buildUi()
     aTopL->setSpacing(8);
 
     m_actionCombo = new QComboBox(aTop);
-    m_actionCombo->addItem("Run command", (int)FleetActionType::RunCommand);
-    m_actionCombo->addItem("Check service (systemd)", (int)FleetActionType::CheckService);
-    m_actionCombo->addItem("Restart service (systemd)", (int)FleetActionType::RestartService);
+    m_actionCombo->addItem(tr("Run command"), (int)FleetActionType::RunCommand);
+    m_actionCombo->addItem(tr("Check service (systemd)"), (int)FleetActionType::CheckService);
+    m_actionCombo->addItem(tr("Restart service (systemd)"), (int)FleetActionType::RestartService);
 
     m_concurrencySpin = new QSpinBox(aTop);
     m_concurrencySpin->setRange(1, 32);
     m_concurrencySpin->setValue(4);
-    m_concurrencySpin->setToolTip("Max parallel targets");
+    m_concurrencySpin->setToolTip(tr("Max parallel targets"));
 
     // NEW: Timeout (seconds)
     m_timeoutSpin = new QSpinBox(aTop);
     m_timeoutSpin->setRange(1, 3600);
     m_timeoutSpin->setValue(90);
-    m_timeoutSpin->setSuffix(" s");
-    m_timeoutSpin->setToolTip("Per-target command timeout (seconds).");
-    aTopL->addWidget(new QLabel("Timeout:", aTop));
-    aTopL->addWidget(m_timeoutSpin);
+    m_timeoutSpin->setSuffix(tr(" s"));
+    m_timeoutSpin->setToolTip(tr("Per-target command timeout (seconds)."));
 
     // NEW: Audit command logging mode (per-user setting)
     m_cmdAuditCombo = new QComboBox(aTop);
-    m_cmdAuditCombo->addItem("None", 0);              // log nothing about command
-    m_cmdAuditCombo->addItem("Safe (head + hash)", 1);// cmd_head + cmd_hash
-    m_cmdAuditCombo->addItem("Full (risky)", 2);      // cmd_full (opt-in)
+    m_cmdAuditCombo->addItem(tr("None"), 0);                 // log nothing about command
+    m_cmdAuditCombo->addItem(tr("Safe (head + hash)"), 1);   // cmd_head + cmd_hash
+    m_cmdAuditCombo->addItem(tr("Full (risky)"), 2);         // cmd_full (opt-in)
     m_cmdAuditCombo->setToolTip(
-        "Controls what gets written to Audit Logs for Fleet commands.\n"
-        "None: no command data\n"
-        "Safe: logs cmd_head + cmd_hash (recommended)\n"
-        "Full: logs full command text (may leak secrets!)"
+        tr("Controls what gets written to Audit Logs for Fleet commands.\n"
+           "None: no command data\n"
+           "Safe: logs cmd_head + cmd_hash (recommended)\n"
+           "Full: logs full command text (may leak secrets!)")
     );
+
     // Load initial value from settings
     {
         QSettings s;
@@ -163,25 +162,25 @@ void FleetWindow::buildUi()
                 s.setValue("audit/warnedFullCmdLog", true);
                 QMessageBox::warning(
                     this,
-                    "Audit logging: Full commands",
-                    "You enabled FULL command logging in audit logs.\n\n"
-                    "This can leak secrets (tokens, passwords, private paths) into audit files.\n"
-                    "Recommended setting is: Safe (head + hash)."
+                    tr("Audit logging: Full commands"),
+                    tr("You enabled FULL command logging in audit logs.\n\n"
+                       "This can leak secrets (tokens, passwords, private paths) into audit files.\n"
+                       "Recommended setting is: Safe (head + hash).")
                 );
             }
         }
     });
 
-    aTopL->addWidget(new QLabel("Action:", aTop));
+    aTopL->addWidget(new QLabel(tr("Action:"), aTop));
     aTopL->addWidget(m_actionCombo, 1);
 
-    aTopL->addWidget(new QLabel("Concurrency:", aTop));
+    aTopL->addWidget(new QLabel(tr("Concurrency:"), aTop));
     aTopL->addWidget(m_concurrencySpin);
 
-    aTopL->addWidget(new QLabel("Timeout:", aTop));
+    aTopL->addWidget(new QLabel(tr("Timeout:"), aTop));
     aTopL->addWidget(m_timeoutSpin);
 
-    aTopL->addWidget(new QLabel("Audit cmd log:", aTop));
+    aTopL->addWidget(new QLabel(tr("Audit cmd log:"), aTop));
     aTopL->addWidget(m_cmdAuditCombo);
 
     // Action stacked pages
@@ -194,8 +193,8 @@ void FleetWindow::buildUi()
         l->setContentsMargins(0, 0, 0, 0);
 
         m_cmdEdit = new QLineEdit(page);
-        m_cmdEdit->setPlaceholderText("e.g. uname -a");
-        l->addRow("Command:", m_cmdEdit);
+        m_cmdEdit->setPlaceholderText(tr("e.g. uname -a"));
+        l->addRow(tr("Command:"), m_cmdEdit);
 
         m_actionStack->addWidget(page);
     }
@@ -207,8 +206,8 @@ void FleetWindow::buildUi()
         l->setContentsMargins(0, 0, 0, 0);
 
         m_serviceEdit = new QLineEdit(page);
-        m_serviceEdit->setPlaceholderText("e.g. nginx");
-        l->addRow("Service:", m_serviceEdit);
+        m_serviceEdit->setPlaceholderText(tr("e.g. nginx"));
+        l->addRow(tr("Service:"), m_serviceEdit);
 
         m_actionStack->addWidget(page);
     }
@@ -221,7 +220,8 @@ void FleetWindow::buildUi()
 
         // Reuse same service edit instance? No (cleaner UI): create a new one
         auto* svc = new QLineEdit(page);
-        svc->setPlaceholderText("e.g. nginx");
+        svc->setPlaceholderText(tr("e.g. nginx"));
+
         // We'll mirror its text to m_serviceEdit for simplicity
         connect(svc, &QLineEdit::textChanged, this, [this](const QString& t) {
             if (m_serviceEdit) m_serviceEdit->setText(t);
@@ -230,9 +230,9 @@ void FleetWindow::buildUi()
             if (svc->text() != t) svc->setText(t);
         });
 
-        m_confirmDanger = new QCheckBox("I understand this is disruptive (restart).", page);
-        l->addRow("Service:", svc);
-        l->addRow("", m_confirmDanger);
+        m_confirmDanger = new QCheckBox(tr("I understand this is disruptive (restart)."), page);
+        l->addRow(tr("Service:"), svc);
+        l->addRow(QString(), m_confirmDanger);
 
         m_actionStack->addWidget(page);
     }
@@ -246,11 +246,11 @@ void FleetWindow::buildUi()
     runL->setContentsMargins(0, 0, 0, 0);
     runL->setSpacing(8);
 
-    m_runBtn = new QPushButton("Run fleet job", runBar);
-    m_cancelBtn = new QPushButton("Cancel", runBar);
+    m_runBtn = new QPushButton(tr("Run fleet job"), runBar);
+    m_cancelBtn = new QPushButton(tr("Cancel"), runBar);
     m_cancelBtn->setEnabled(false);
 
-    m_statusLabel = new QLabel("Ready.", runBar);
+    m_statusLabel = new QLabel(tr("Ready."), runBar);
     m_statusLabel->setStyleSheet("color:#888;");
 
     runL->addWidget(m_runBtn);
@@ -261,7 +261,13 @@ void FleetWindow::buildUi()
     m_resultsTable = new QTableWidget(right);
     m_resultsTable->setColumnCount(7);
     m_resultsTable->setHorizontalHeaderLabels({
-        "Profile", "Group", "Target", "Status", "Duration", "Stdout (preview)", "Error (preview)"
+        tr("Profile"),
+        tr("Group"),
+        tr("Target"),
+        tr("Status"),
+        tr("Duration"),
+        tr("Stdout (preview)"),
+        tr("Error (preview)")
     });
     m_resultsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_resultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -275,7 +281,7 @@ void FleetWindow::buildUi()
     // Log pane
     m_log = new QPlainTextEdit(right);
     m_log->setReadOnly(true);
-    m_log->setPlaceholderText("Fleet log…");
+    m_log->setPlaceholderText(tr("Fleet log…"));
 
     auto* rightSplit = new QSplitter(Qt::Vertical, right);
     rightSplit->setChildrenCollapsible(false);
@@ -309,7 +315,6 @@ void FleetWindow::buildUi()
     onActionChanged(m_actionCombo->currentIndex());
 }
 
-
 void FleetWindow::appendLog(const QString& line)
 {
     if (!m_log) return;
@@ -320,13 +325,13 @@ void FleetWindow::appendLog(const QString& line)
 QString FleetWindow::stateToText(FleetTargetState st) const
 {
     switch (st) {
-        case FleetTargetState::Queued:   return "QUEUED";
-        case FleetTargetState::Running:  return "RUNNING";
-        case FleetTargetState::Ok:       return "OK";
-        case FleetTargetState::Failed:   return "FAIL";
-        case FleetTargetState::Canceled: return "CANCELED";
+        case FleetTargetState::Queued:   return tr("QUEUED");
+        case FleetTargetState::Running:  return tr("RUNNING");
+        case FleetTargetState::Ok:       return tr("OK");
+        case FleetTargetState::Failed:   return tr("FAIL");
+        case FleetTargetState::Canceled: return tr("CANCELED");
     }
-    return "UNKNOWN";
+    return tr("UNKNOWN");
 }
 
 void FleetWindow::rebuildTargetsList()
@@ -382,7 +387,7 @@ void FleetWindow::rebuildTargetsList()
         it->setFlags(it->flags() | Qt::ItemIsUserCheckable);
         it->setCheckState(Qt::Unchecked);
         it->setData(Qt::UserRole, idx);
-        it->setToolTip(QString("%1@%2:%3  [%4]")
+        it->setToolTip(tr("%1@%2:%3  [%4]")
                            .arg(p.user, p.host)
                            .arg((p.port > 0) ? p.port : 22)
                            .arg(normalizedGroup(p.group)));
@@ -455,7 +460,7 @@ void FleetWindow::upsertResultRow(const FleetTargetResult& r)
     }
 
     const QString target = QString("%1@%2:%3").arg(r.user, r.host).arg(r.port);
-    const QString dur = (r.durationMs > 0) ? QString("%1 ms").arg(r.durationMs) : QString();
+    const QString dur = (r.durationMs > 0) ? tr("%1 ms").arg(r.durationMs) : QString();
 
     auto preview = [](const QString& s) -> QString {
         QString t = s;
@@ -518,7 +523,7 @@ void FleetWindow::onRunClicked()
 
     const QVector<int> targets = selectedProfileIndexes();
     if (targets.isEmpty()) {
-        QMessageBox::information(this, "Fleet", "Select at least one target profile.");
+        QMessageBox::information(this, tr("Fleet"), tr("Select at least one target profile."));
         return;
     }
 
@@ -539,11 +544,11 @@ void FleetWindow::onRunClicked()
     if (cmdLogMode == 2) {
         const auto ans = QMessageBox::warning(
             this,
-            "Audit logging: FULL commands",
-            "You selected FULL command logging for audit logs.\n\n"
-            "This stores the entire command string into the audit log file and may include secrets "
-            "(tokens, passwords, etc.).\n\n"
-            "Continue?",
+            tr("Audit logging: FULL commands"),
+            tr("You selected FULL command logging for audit logs.\n\n"
+               "This stores the entire command string into the audit log file and may include secrets "
+               "(tokens, passwords, etc.).\n\n"
+               "Continue?"),
             QMessageBox::Yes | QMessageBox::Cancel,
             QMessageBox::Cancel
         );
@@ -556,33 +561,33 @@ void FleetWindow::onRunClicked()
 
     if (action.type == FleetActionType::RunCommand) {
         action.payload = m_cmdEdit ? m_cmdEdit->text() : QString();
-        action.title   = "Run command";
+        action.title   = tr("Run command");
         if (action.payload.trimmed().isEmpty()) {
-            QMessageBox::warning(this, "Fleet", "Command is empty.");
+            QMessageBox::warning(this, tr("Fleet"), tr("Command is empty."));
             return;
         }
     } else if (action.type == FleetActionType::CheckService) {
         action.payload = m_serviceEdit ? m_serviceEdit->text() : QString();
-        action.title   = "Check service";
+        action.title   = tr("Check service");
         if (action.payload.trimmed().isEmpty()) {
-            QMessageBox::warning(this, "Fleet", "Service name is empty.");
+            QMessageBox::warning(this, tr("Fleet"), tr("Service name is empty."));
             return;
         }
     } else if (action.type == FleetActionType::RestartService) {
         action.payload = m_serviceEdit ? m_serviceEdit->text() : QString();
-        action.title   = "Restart service";
+        action.title   = tr("Restart service");
         if (action.payload.trimmed().isEmpty()) {
-            QMessageBox::warning(this, "Fleet", "Service name is empty.");
+            QMessageBox::warning(this, tr("Fleet"), tr("Service name is empty."));
             return;
         }
         if (m_confirmDanger && !m_confirmDanger->isChecked()) {
-            QMessageBox::warning(this, "Fleet", "Confirm the disruptive action checkbox to proceed.");
+            QMessageBox::warning(this, tr("Fleet"), tr("Confirm the disruptive action checkbox to proceed."));
             return;
         }
         const auto ans = QMessageBox::question(
             this,
-            "Confirm restart",
-            QString("Restart service '%1' on %2 target(s)?").arg(action.payload).arg(targets.size()),
+            tr("Confirm restart"),
+            tr("Restart service '%1' on %2 target(s)?").arg(action.payload).arg(targets.size()),
             QMessageBox::Yes | QMessageBox::Cancel,
             QMessageBox::Cancel
         );
@@ -592,16 +597,16 @@ void FleetWindow::onRunClicked()
 
     clearResults();
 
-    auto modeText = [](int m) -> QString {
+    auto modeText = [this](int m) -> QString {
         switch (m) {
-            case 0: return "None";
-            case 1: return "Safe";
-            case 2: return "Full";
+            case 0: return tr("None");
+            case 1: return tr("Safe");
+            case 2: return tr("Full");
         }
-        return "Safe";
+        return tr("Safe");
     };
 
-    appendLog(QString("Starting job on %1 target(s), concurrency=%2, timeout=%3s, auditCmd=%4")
+    appendLog(tr("Starting job on %1 target(s), concurrency=%2, timeout=%3s, auditCmd=%4")
                   .arg(targets.size())
                   .arg(conc)
                   .arg(timeoutSec)
@@ -626,21 +631,19 @@ void FleetWindow::onRunClicked()
     if (m_cancelBtn) m_cancelBtn->setEnabled(true);
 }
 
-
-
 void FleetWindow::onCancelClicked()
 {
     if (!m_exec || !m_exec->isRunning()) return;
-    appendLog("Cancel requested.");
+    appendLog(tr("Cancel requested."));
     m_exec->cancel();
 }
 
 void FleetWindow::onJobStarted(const FleetJob& job)
 {
     if (m_statusLabel)
-        m_statusLabel->setText(QString("Running: %1").arg(job.title));
+        m_statusLabel->setText(tr("Running: %1").arg(job.title));
 
-    appendLog(QString("JOB %1 started: %2").arg(job.id, job.title));
+    appendLog(tr("JOB %1 started: %2").arg(job.id, job.title));
 }
 
 void FleetWindow::onJobProgress(const FleetJob& job, int done, int total)
@@ -651,7 +654,7 @@ void FleetWindow::onJobProgress(const FleetJob& job, int done, int total)
         upsertResultRow(r);
 
     if (m_statusLabel)
-        m_statusLabel->setText(QString("Progress: %1/%2").arg(done).arg(total));
+        m_statusLabel->setText(tr("Progress: %1/%2").arg(done).arg(total));
 }
 
 void FleetWindow::onJobFinished(const FleetJob& job)
@@ -667,7 +670,7 @@ void FleetWindow::onJobFinished(const FleetJob& job)
     }
 
     const QString summary =
-        QString("Finished: OK=%1  FAIL=%2  CANCELED=%3  (targets=%4)")
+        tr("Finished: OK=%1  FAIL=%2  CANCELED=%3  (targets=%4)")
             .arg(ok).arg(fail).arg(cancel).arg(job.results.size());
 
     appendLog(summary);
@@ -691,9 +694,9 @@ void FleetWindow::onResultRowActivated(int row, int /*col*/)
     const QString err = it->data(Qt::UserRole + 2).toString();
     const QString hi  = it->data(Qt::UserRole + 3).toString();
 
-    QString title = "Fleet result";
+    QString title = tr("Fleet result");
     if (profileIndex >= 0 && profileIndex < m_profiles.size())
-        title = "Fleet result — " + m_profiles[profileIndex].name;
+        title = tr("Fleet result — %1").arg(m_profiles[profileIndex].name);
 
     auto* dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -705,7 +708,7 @@ void FleetWindow::onResultRowActivated(int row, int /*col*/)
     auto* meta = new QLabel(dlg);
     if (profileIndex >= 0 && profileIndex < m_profiles.size()) {
         const auto& p = m_profiles[profileIndex];
-        meta->setText(QString("<b>%1</b> — %2@%3:%4 — group: %5")
+        meta->setText(tr("<b>%1</b> — %2@%3:%4 — group: %5")
                       .arg(p.name, p.user, p.host)
                       .arg((p.port > 0) ? p.port : 22)
                       .arg(normalizedGroup(p.group)));
@@ -726,9 +729,9 @@ void FleetWindow::onResultRowActivated(int row, int /*col*/)
     hiView->setReadOnly(true);
     hiView->setPlainText(hi);
 
-    tabs->addTab(outView, "Stdout");
-    tabs->addTab(errView, "Stderr");
-    tabs->addTab(hiView,  "Error");
+    tabs->addTab(outView, tr("Stdout"));
+    tabs->addTab(errView, tr("Stderr"));
+    tabs->addTab(hiView,  tr("Error"));
 
     v->addWidget(tabs, 1);
 

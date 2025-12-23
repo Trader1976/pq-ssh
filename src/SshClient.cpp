@@ -25,6 +25,7 @@
 #include <QDateTime>
 #include <QCryptographicHash>
 #include <QElapsedTimer>
+#include <QObject>
 
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
@@ -44,7 +45,7 @@
 // ------------------------------------------------------------
 static QString libsshError(ssh_session s)
 {
-    if (!s) return QStringLiteral("libssh: null session");
+    if (!s) return QObject::tr("libssh: null session");
     return QString::fromLocal8Bit(ssh_get_error(s));
 }
 
@@ -54,16 +55,16 @@ static QString libsshError(ssh_session s)
 static bool openSftp(ssh_session session, sftp_session *out, QString *err)
 {
     if (err) err->clear();
-    if (!out) { if (err) *err = "openSftp: out is null."; return false; }
+    if (!out) { if (err) *err = QObject::tr("openSftp: out is null."); return false; }
     *out = nullptr;
 
-    if (!session) { if (err) *err = "Not connected."; return false; }
+    if (!session) { if (err) *err = QObject::tr("Not connected."); return false; }
 
     sftp_session sftp = sftp_new(session);
-    if (!sftp) { if (err) *err = "sftp_new failed."; return false; }
+    if (!sftp) { if (err) *err = QObject::tr("sftp_new failed."); return false; }
 
     if (sftp_init(sftp) != SSH_OK) {
-        if (err) *err = "sftp_init failed: " + libsshError(session);
+        if (err) *err = QObject::tr("sftp_init failed: %1").arg(libsshError(session));
         sftp_free(sftp);
         return false;
     }
@@ -108,9 +109,9 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
     }
 
     if (host.isEmpty()) {
-        if (err) *err = QStringLiteral("No host specified.");
+        if (err) *err = tr("No host specified.");
         qWarning().noquote() << QString("[SSH] connectPublicKey FAILED: %1")
-                                .arg(err ? *err : "No host specified.");
+                                .arg(err ? *err : tr("No host specified."));
         return false;
     }
 
@@ -154,33 +155,33 @@ bool SshClient::testUnlockDilithiumKey(const QString& encKeyPath, QString* err)
 
     QFile f(encKeyPath);
     if (!f.open(QIODevice::ReadOnly)) {
-        if (err) *err = QString("Cannot read key file: %1").arg(f.errorString());
+        if (err) *err = tr("Cannot read key file: %1").arg(f.errorString());
         return false;
     }
     const QByteArray enc = f.readAll();
     f.close();
 
     if (!m_passphraseProvider) {
-        if (err) *err = "No passphrase provider set (UI callback missing).";
+        if (err) *err = tr("No passphrase provider set (UI callback missing).");
         return false;
     }
 
     bool ok = false;
     const QString pass = m_passphraseProvider(encKeyPath, &ok);
     if (!ok) {
-        if (err) *err = "Cancelled by user.";
+        if (err) *err = tr("Cancelled by user.");
         return false;
     }
 
     QByteArray plain;
     QString decErr;
     if (!decryptDilithiumKey(enc, pass, &plain, &decErr)) {
-        if (err) *err = "Decrypt failed: " + decErr;
+        if (err) *err = tr("Decrypt failed: %1").arg(decErr);
         return false;
     }
 
     if (plain.isEmpty()) {
-        if (err) *err = "Decrypt returned empty plaintext.";
+        if (err) *err = tr("Decrypt returned empty plaintext.");
         return false;
     }
 
@@ -202,12 +203,12 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     const QString user = profile.user.trimmed();
 
     if (host.isEmpty()) {
-        if (err) *err = QStringLiteral("No host specified.");
+        if (err) *err = tr("No host specified.");
         qWarning().noquote() << QString("[SSH] connectProfile FAILED: %1").arg(err ? *err : "No host");
         return false;
     }
     if (user.isEmpty()) {
-        if (err) *err = QStringLiteral("No user specified.");
+        if (err) *err = tr("No user specified.");
         qWarning().noquote() << QString("[SSH] connectProfile FAILED host='%1': %2")
                                 .arg(host, err ? *err : "No user");
         return false;
@@ -218,7 +219,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
                            ? QStringLiteral("auto")
                            : profile.keyType.trimmed();
     if (kt != "auto" && kt != "openssh") {
-        if (err) *err = QStringLiteral("Unsupported key_type '%1' (PQ keys not implemented yet).").arg(kt);
+        if (err) *err = tr("Unsupported key_type '%1' (PQ keys not implemented yet).").arg(kt);
         qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
                                 .arg(user, host, err ? *err : "Unsupported key_type");
         return false;
@@ -241,7 +242,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 
     ssh_session s = ssh_new();
     if (!s) {
-        if (err) *err = QStringLiteral("ssh_new() failed.");
+        if (err) *err = tr("ssh_new() failed.");
         qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
                                 .arg(user, host, err ? *err : "ssh_new failed");
         return false;
@@ -358,7 +359,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     int rc = ssh_connect(s);
     if (rc != SSH_OK) {
         const QString e = libsshError(s);
-        return failAndFree(QStringLiteral("ssh_connect failed: %1").arg(e));
+        return failAndFree(tr("ssh_connect failed: %1").arg(e));
     }
 
     qInfo().noquote() << QString("[SSH] ssh_connect OK host='%1' port=%2").arg(host).arg(port);
@@ -379,10 +380,6 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     // Emit to UI (MainWindow can print something cool)
     emit kexNegotiated(pretty, rawKex);
 
-    const bool pq = rawKex.contains("mlkem", Qt::CaseInsensitive) ||
-                    rawKex.contains("sntrup", Qt::CaseInsensitive);
-    qInfo().noquote() << QString("[SSH] PQ KEX: %1").arg(pq ? "YES" : "NO");
-
     // Authentication strategy:
     rc = ssh_userauth_agent(s, nullptr);
     if (rc == SSH_AUTH_SUCCESS) {
@@ -401,7 +398,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 
     if (rc != SSH_AUTH_SUCCESS) {
         const QString e = libsshError(s);
-        if (err) *err = QStringLiteral("Public-key auth failed: %1").arg(e);
+        if (err) *err = tr("Public-key auth failed: %1").arg(e);
 
         qWarning().noquote() << QString("[SSH] auth FAILED user='%1' host='%2' err='%3'")
                                 .arg(user, host, e);
@@ -447,24 +444,24 @@ QString SshClient::remotePwd(QString* err) const
     if (err) err->clear();
 
     if (!m_session) {
-        if (err) *err = QStringLiteral("Not connected.");
+        if (err) *err = tr("Not connected.");
         return QString();
     }
 
     ssh_channel ch = ssh_channel_new(m_session);
     if (!ch) {
-        if (err) *err = QStringLiteral("ssh_channel_new failed.");
+        if (err) *err = tr("ssh_channel_new failed.");
         return QString();
     }
 
     if (ssh_channel_open_session(ch) != SSH_OK) {
-        if (err) *err = QStringLiteral("ssh_channel_open_session failed: %1").arg(libsshError(m_session));
+        if (err) *err = tr("ssh_channel_open_session failed: %1").arg(libsshError(m_session));
         ssh_channel_free(ch);
         return QString();
     }
 
     if (ssh_channel_request_exec(ch, "pwd") != SSH_OK) {
-        if (err) *err = QStringLiteral("ssh_channel_request_exec(pwd) failed: %1").arg(libsshError(m_session));
+        if (err) *err = tr("ssh_channel_request_exec(pwd) failed: %1").arg(libsshError(m_session));
         ssh_channel_close(ch);
         ssh_channel_free(ch);
         return QString();
@@ -483,7 +480,7 @@ QString SshClient::remotePwd(QString* err) const
 
     const QString pwd = QString::fromUtf8(buf).trimmed();
     if (pwd.isEmpty()) {
-        if (err) *err = QStringLiteral("Remote 'pwd' returned empty.");
+        if (err) *err = tr("Remote 'pwd' returned empty.");
     }
     return pwd;
 }
@@ -499,7 +496,7 @@ bool SshClient::listRemoteDir(const QString& remotePath,
     if (outItems) outItems->clear();
 
     if (!m_session) {
-        if (err) *err = "Not connected.";
+        if (err) *err = tr("Not connected.");
         return false;
     }
 
@@ -510,7 +507,7 @@ bool SshClient::listRemoteDir(const QString& remotePath,
 
     sftp_dir dir = sftp_opendir(sftp, path.toUtf8().constData());
     if (!dir) {
-        if (err) *err = QString("sftp_opendir failed for '%1': %2").arg(path, libsshError(m_session));
+        if (err) *err = tr("sftp_opendir failed for '%1': %2").arg(path, libsshError(m_session));
         sftp_free(sftp);
         return false;
     }
@@ -555,15 +552,15 @@ bool SshClient::statRemotePath(const QString& remotePath,
                                QString* err)
 {
     if (err) err->clear();
-    if (!outInfo) { if (err) *err = "statRemotePath: outInfo is null."; return false; }
+    if (!outInfo) { if (err) *err = tr("statRemotePath: outInfo is null."); return false; }
     *outInfo = RemoteEntry{};
 
     if (!m_session) {
-        if (err) *err = "Not connected.";
+        if (err) *err = tr("Not connected.");
         return false;
     }
     if (remotePath.trimmed().isEmpty()) {
-        if (err) *err = "Remote path is empty.";
+        if (err) *err = tr("Remote path is empty.");
         return false;
     }
 
@@ -572,7 +569,7 @@ bool SshClient::statRemotePath(const QString& remotePath,
 
     sftp_attributes a = sftp_stat(sftp, remotePath.toUtf8().constData());
     if (!a) {
-        if (err) *err = QString("sftp_stat failed for '%1': %2").arg(remotePath, libsshError(m_session));
+        if (err) *err = tr("sftp_stat failed for '%1': %2").arg(remotePath, libsshError(m_session));
         sftp_free(sftp);
         return false;
     }
@@ -608,11 +605,11 @@ bool SshClient::uploadFile(const QString& localPath,
     m_cancelRequested.store(false);
 
     if (!m_session) {
-        if (err) *err = "Not connected.";
+        if (err) *err = tr("Not connected.");
         return false;
     }
     if (localPath.trimmed().isEmpty() || remotePath.trimmed().isEmpty()) {
-        if (err) *err = "uploadFile: localPath/remotePath empty.";
+        if (err) *err = tr("uploadFile: localPath/remotePath empty.");
         return false;
     }
 
@@ -637,7 +634,7 @@ bool SshClient::uploadFile(const QString& localPath,
     );
 
     if (!f) {
-        if (err) *err = QString("Cannot open remote temp file '%1': %2").arg(tmpPath, libsshError(m_session));
+        if (err) *err = tr("Cannot open remote temp file '%1': %2").arg(tmpPath, libsshError(m_session));
         sftp_free(sftp);
         return false;
     }
@@ -651,7 +648,7 @@ bool SshClient::uploadFile(const QString& localPath,
             sftp_close(f);
             sftp_unlink(sftp, tmpPath.toUtf8().constData());
             sftp_free(sftp);
-            if (err) *err = "Cancelled by user";
+            if (err) *err = tr("Cancelled by user");
             return false;
         }
 
@@ -660,7 +657,7 @@ bool SshClient::uploadFile(const QString& localPath,
 
         const ssize_t w = sftp_write(f, buf.constData(), (size_t)n);
         if (w < 0) {
-            if (err) *err = QString("SFTP write failed: %1").arg(libsshError(m_session));
+            if (err) *err = tr("SFTP write failed: %1").arg(libsshError(m_session));
             sftp_close(f);
             sftp_unlink(sftp, tmpPath.toUtf8().constData());
             sftp_free(sftp);
@@ -684,7 +681,7 @@ bool SshClient::uploadFile(const QString& localPath,
         if (sftp_rename(sftp,
                         tmpPath.toUtf8().constData(),
                         remotePath.toUtf8().constData()) != SSH_OK) {
-            if (err) *err = QString("SFTP rename failed '%1' -> '%2': %3")
+            if (err) *err = tr("SFTP rename failed '%1' -> '%2': %3")
                                 .arg(tmpPath, remotePath, libsshError(m_session));
             sftp_unlink(sftp, tmpPath.toUtf8().constData());
             sftp_free(sftp);
@@ -711,11 +708,11 @@ bool SshClient::downloadFile(const QString& remotePath,
     m_cancelRequested.store(false);
 
     if (!m_session) {
-        if (err) *err = "Not connected.";
+        if (err) *err = tr("Not connected.");
         return false;
     }
     if (remotePath.trimmed().isEmpty() || localPath.trimmed().isEmpty()) {
-        if (err) *err = "downloadFile: remotePath/localPath empty.";
+        if (err) *err = tr("downloadFile: remotePath/localPath empty.");
         return false;
     }
 
@@ -735,7 +732,7 @@ bool SshClient::downloadFile(const QString& remotePath,
     );
 
     if (!f) {
-        if (err) *err = QString("Cannot open remote file '%1': %2").arg(remotePath, libsshError(m_session));
+        if (err) *err = tr("Cannot open remote file '%1': %2").arg(remotePath, libsshError(m_session));
         sftp_free(sftp);
         return false;
     }
@@ -766,7 +763,7 @@ bool SshClient::downloadFile(const QString& remotePath,
             out.remove();
             sftp_close(f);
             sftp_free(sftp);
-            if (err) *err = "Cancelled by user";
+            if (err) *err = tr("Cancelled by user");
             return false;
         }
 
@@ -774,7 +771,7 @@ bool SshClient::downloadFile(const QString& remotePath,
         if (n == 0)
             break; // EOF
         if (n < 0) {
-            if (err) *err = QString("SFTP read failed: %1").arg(libsshError(m_session));
+            if (err) *err = tr("SFTP read failed: %1").arg(libsshError(m_session));
             out.close();
             out.remove();
             sftp_close(f);
@@ -784,7 +781,7 @@ bool SshClient::downloadFile(const QString& remotePath,
 
         const qint64 w = out.write(buf.constData(), (qint64)n);
         if (w != (qint64)n) {
-            if (err) *err = QString("Local write failed: %1").arg(out.errorString());
+            if (err) *err = tr("Local write failed: %1").arg(out.errorString());
             out.close();
             out.remove();
             sftp_close(f);
@@ -804,7 +801,7 @@ bool SshClient::downloadFile(const QString& remotePath,
 
     QFile::remove(localPath);
     if (!QFile::rename(tmpLocal, localPath)) {
-        if (err) *err = "Failed to rename downloaded temp file to final path.";
+        if (err) *err = tr("Failed to rename downloaded temp file to final path.");
         QFile::remove(tmpLocal);
         return false;
     }
@@ -820,11 +817,11 @@ bool SshClient::uploadBytes(const QString& remotePath, const QByteArray& data, Q
     if (err) err->clear();
 
     if (!m_session) {
-        if (err) *err = QStringLiteral("Not connected.");
+        if (err) *err = tr("Not connected.");
         return false;
     }
     if (remotePath.isEmpty()) {
-        if (err) *err = QStringLiteral("Remote path is empty.");
+        if (err) *err = tr("Remote path is empty.");
         return false;
     }
 
@@ -839,7 +836,7 @@ bool SshClient::uploadBytes(const QString& remotePath, const QByteArray& data, Q
     );
 
     if (!f) {
-        if (err) *err = QStringLiteral("sftp_open failed for '%1'.").arg(remotePath);
+        if (err) *err = tr("sftp_open failed for '%1'.").arg(remotePath);
         sftp_free(sftp);
         return false;
     }
@@ -849,7 +846,7 @@ bool SshClient::uploadBytes(const QString& remotePath, const QByteArray& data, Q
     while (remaining > 0) {
         ssize_t written = sftp_write(f, ptr, (size_t)remaining);
         if (written < 0) {
-            if (err) *err = QStringLiteral("sftp_write failed for '%1'.").arg(remotePath);
+            if (err) *err = tr("sftp_write failed for '%1'.").arg(remotePath);
             sftp_close(f);
             sftp_free(sftp);
             return false;
@@ -872,15 +869,15 @@ bool SshClient::downloadToFile(const QString& remotePath, const QString& localPa
     if (err) err->clear();
 
     if (!m_session) {
-        if (err) *err = QStringLiteral("Not connected.");
+        if (err) *err = tr("Not connected.");
         return false;
     }
     if (remotePath.isEmpty()) {
-        if (err) *err = QStringLiteral("Remote path is empty.");
+        if (err) *err = tr("Remote path is empty.");
         return false;
     }
     if (localPath.isEmpty()) {
-        if (err) *err = QStringLiteral("Local path is empty.");
+        if (err) *err = tr("Local path is empty.");
         return false;
     }
 
@@ -898,7 +895,7 @@ bool SshClient::downloadToFile(const QString& remotePath, const QString& localPa
     );
 
     if (!f) {
-        if (err) *err = QStringLiteral("sftp_open failed for '%1'.").arg(remotePath);
+        if (err) *err = tr("sftp_open failed for '%1'.").arg(remotePath);
         sftp_free(sftp);
         return false;
     }
@@ -915,7 +912,7 @@ bool SshClient::downloadToFile(const QString& remotePath, const QString& localPa
 
     QFile out(localPath);
     if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        if (err) *err = QStringLiteral("Could not write local file '%1': %2").arg(localPath, out.errorString());
+        if (err) *err = tr("Could not write local file '%1': %2").arg(localPath, out.errorString());
         return false;
     }
     out.write(data);
@@ -933,7 +930,7 @@ QByteArray SshClient::sha256LocalFile(const QString& localPath, QString* err) co
 
     QFile f(localPath);
     if (!f.open(QIODevice::ReadOnly)) {
-        if (err) *err = QString("Cannot open local file for hashing: %1").arg(f.errorString());
+        if (err) *err = tr("Cannot open local file for hashing: %1").arg(f.errorString());
         return {};
     }
 
@@ -944,13 +941,13 @@ QByteArray SshClient::sha256LocalFile(const QString& localPath, QString* err) co
 
         // Allow cancel to abort verification too
         if (m_cancelRequested.load()) {
-            if (err) *err = "Cancelled by user";
+            if (err) *err = tr("Cancelled by user");
             return {};
         }
 
         const qint64 n = f.read(buf.data(), buf.size());
         if (n < 0) {
-            if (err) *err = QString("Local read failed while hashing: %1").arg(f.errorString());
+            if (err) *err = tr("Local read failed while hashing: %1").arg(f.errorString());
             return {};
         }
         if (n == 0) break;
@@ -966,7 +963,7 @@ QByteArray SshClient::sha256RemoteFile(const QString& remotePath, QString* err)
     if (err) err->clear();
 
     if (!m_session) {
-        if (err) *err = "Not connected.";
+        if (err) *err = tr("Not connected.");
         return {};
     }
 
@@ -981,7 +978,7 @@ QByteArray SshClient::sha256RemoteFile(const QString& remotePath, QString* err)
     );
 
     if (!f) {
-        if (err) *err = "Cannot open remote file for hashing";
+        if (err) *err = tr("Cannot open remote file for hashing.");
         sftp_free(sftp);
         return {};
     }
@@ -995,14 +992,14 @@ QByteArray SshClient::sha256RemoteFile(const QString& remotePath, QString* err)
         if (m_cancelRequested.load()) {
             sftp_close(f);
             sftp_free(sftp);
-            if (err) *err = "Cancelled by user";
+            if (err) *err = tr("Cancelled by user");
             return {};
         }
 
         const ssize_t n = sftp_read(f, buf.data(), buf.size());
         if (n == 0) break;     // EOF
         if (n < 0) {
-            if (err) *err = "SFTP read failed while hashing remote file";
+            if (err) *err = tr("SFTP read failed while hashing remote file.");
             sftp_close(f);
             sftp_free(sftp);
             return {};
@@ -1026,19 +1023,19 @@ bool SshClient::verifyLocalVsRemoteSha256(const QString& localPath,
     QString e1, e2;
     const QByteArray l = sha256LocalFile(localPath, &e1);
     if (l.isEmpty()) {
-        if (err) *err = "Local SHA-256 failed: " + e1;
+        if (err) *err = tr("Local SHA-256 failed: %1").arg(e1);
         return false;
     }
 
     const QByteArray r = sha256RemoteFile(remotePath, &e2);
     if (r.isEmpty()) {
-        if (err) *err = "Remote SHA-256 failed: " + e2;
+        if (err) *err = tr("Remote SHA-256 failed: %1").arg(e2);
         return false;
     }
 
     if (l != r) {
         if (err) {
-            *err = QString("Checksum mismatch (SHA-256)\nLocal : %1\nRemote: %2")
+            *err = tr("Checksum mismatch (SHA-256)\nLocal : %1\nRemote: %2")
                 .arg(QString::fromLatin1(l.toHex()))
                 .arg(QString::fromLatin1(r.toHex()));
         }
@@ -1057,19 +1054,19 @@ bool SshClient::verifyRemoteVsLocalSha256(const QString& remotePath,
     QString e1, e2;
     const QByteArray r = sha256RemoteFile(remotePath, &e1);
     if (r.isEmpty()) {
-        if (err) *err = "Remote SHA-256 failed: " + e1;
+        if (err) *err = tr("Remote SHA-256 failed: %1").arg(e1);
         return false;
     }
 
     const QByteArray l = sha256LocalFile(localPath, &e2);
     if (l.isEmpty()) {
-        if (err) *err = "Local SHA-256 failed: " + e2;
+        if (err) *err = tr("Local SHA-256 failed: %1").arg(e2);
         return false;
     }
 
     if (l != r) {
         if (err) {
-            *err = QString("Checksum mismatch (SHA-256)\nRemote: %1\nLocal : %2")
+            *err = tr("Checksum mismatch (SHA-256)\nRemote: %1\nLocal : %2")
                 .arg(QString::fromLatin1(r.toHex()))
                 .arg(QString::fromLatin1(l.toHex()));
         }
@@ -1096,13 +1093,13 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
     if (err) err->clear();
 
     if (!m_session) {
-        if (err) *err = "Not connected.";
+        if (err) *err = tr("Not connected.");
         return false;
     }
 
     ssh_channel ch = ssh_channel_new(m_session);
     if (!ch) {
-        if (err) *err = "ssh_channel_new failed.";
+        if (err) *err = tr("ssh_channel_new failed.");
         return false;
     }
 
@@ -1124,10 +1121,10 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
     };
 
     if (ssh_channel_open_session(ch) != SSH_OK)
-        return fail("ssh_channel_open_session failed: " + libsshError(m_session));
+        return fail(tr("ssh_channel_open_session failed: %1").arg(libsshError(m_session)));
 
     if (ssh_channel_request_exec(ch, command.toUtf8().constData()) != SSH_OK)
-        return fail("ssh_channel_request_exec failed: " + libsshError(m_session));
+        return fail(tr("ssh_channel_request_exec failed: %1").arg(libsshError(m_session)));
 
     QByteArray outBuf, errBuf;
     char buf[4096];
@@ -1157,44 +1154,44 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
 
     while (true) {
         if (timeoutMs > 0 && timer.elapsed() > timeoutMs) {
-            if (err) *err = QString("Remote command timed out after %1 ms.").arg(timeoutMs);
+            if (err) *err = tr("Remote command timed out after %1 ms.").arg(timeoutMs);
             cleanup();
             return false;
         }
 
         const int availOut = ssh_channel_poll_timeout(ch, /*timeoutMs*/ 50, /*is_stderr*/ 0);
         if (availOut == SSH_ERROR)
-            return fail("ssh_channel_poll_timeout(stdout) failed: " + libsshError(m_session));
+            return fail(tr("ssh_channel_poll_timeout(stdout) failed: %1").arg(libsshError(m_session)));
 
         if (availOut > 0) {
             if (!readAvailable(/*isStderr*/0))
-                return fail("ssh_channel_read(stdout) failed: " + libsshError(m_session));
+                return fail(tr("ssh_channel_read(stdout) failed: %1").arg(libsshError(m_session)));
         }
 
         const int availErr = ssh_channel_poll_timeout(ch, /*timeoutMs*/ 0, /*is_stderr*/ 1);
         if (availErr == SSH_ERROR)
-            return fail("ssh_channel_poll_timeout(stderr) failed: " + libsshError(m_session));
+            return fail(tr("ssh_channel_poll_timeout(stderr) failed: %1").arg(libsshError(m_session)));
 
         if (availErr > 0) {
             if (!readAvailable(/*isStderr*/1))
-                return fail("ssh_channel_read(stderr) failed: " + libsshError(m_session));
+                return fail(tr("ssh_channel_read(stderr) failed: %1").arg(libsshError(m_session)));
         }
 
         if (ssh_channel_is_eof(ch)) {
             const int drainOut = ssh_channel_poll_timeout(ch, 0, 0);
             const int drainErr = ssh_channel_poll_timeout(ch, 0, 1);
             if (drainOut == SSH_ERROR)
-                return fail("ssh_channel_poll_timeout(stdout/drain) failed: " + libsshError(m_session));
+                return fail(tr("ssh_channel_poll_timeout(stdout/drain) failed: %1").arg(libsshError(m_session)));
             if (drainErr == SSH_ERROR)
-                return fail("ssh_channel_poll_timeout(stderr/drain) failed: " + libsshError(m_session));
+                return fail(tr("ssh_channel_poll_timeout(stderr/drain) failed: %1").arg(libsshError(m_session)));
 
             if (drainOut > 0) {
                 if (!readAvailable(0))
-                    return fail("ssh_channel_read(stdout/drain) failed: " + libsshError(m_session));
+                    return fail(tr("ssh_channel_read(stdout/drain) failed: %1").arg(libsshError(m_session)));
             }
             if (drainErr > 0) {
                 if (!readAvailable(1))
-                    return fail("ssh_channel_read(stderr/drain) failed: " + libsshError(m_session));
+                    return fail(tr("ssh_channel_read(stderr/drain) failed: %1").arg(libsshError(m_session)));
             }
 
             if (drainOut <= 0 && drainErr <= 0)
@@ -1215,8 +1212,8 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
         if (err) {
             const QString e = QString::fromUtf8(errBuf).trimmed();
             *err = e.isEmpty()
-                ? QString("Remote command failed (exit %1).").arg(status)
-                : QString("Remote command failed (exit %1): %2").arg(status).arg(e);
+                ? tr("Remote command failed (exit %1).").arg(status)
+                : tr("Remote command failed (exit %1): %2").arg(status).arg(e);
         }
         return false;
     }
@@ -1243,14 +1240,14 @@ bool SshClient::readRemoteTextFile(const QString& remotePath, QString* textOut, 
 {
     if (textOut) textOut->clear();
     if (err) err->clear();
-    if (!m_session) { if (err) *err = "Not connected."; return false; }
+    if (!m_session) { if (err) *err = tr("Not connected."); return false; }
 
     sftp_session sftp = nullptr;
     if (!openSftp(m_session, &sftp, err)) return false;
 
     sftp_file f = sftp_open(sftp, remotePath.toUtf8().constData(), O_RDONLY, 0);
     if (!f) {
-        if (err) *err = QString("sftp_open failed for '%1' (may not exist).").arg(remotePath);
+        if (err) *err = tr("sftp_open failed for '%1' (may not exist).").arg(remotePath);
         sftp_free(sftp);
         return false;
     }
@@ -1275,7 +1272,7 @@ bool SshClient::readRemoteTextFile(const QString& remotePath, QString* textOut, 
 bool SshClient::writeRemoteTextFileAtomic(const QString& remotePath, const QString& text, int permsOctal, QString* err)
 {
     if (err) err->clear();
-    if (!m_session) { if (err) *err = "Not connected."; return false; }
+    if (!m_session) { if (err) *err = tr("Not connected."); return false; }
 
     const QString tmpPath = remotePath + ".pqssh.tmp";
 
@@ -1289,7 +1286,7 @@ bool SshClient::writeRemoteTextFileAtomic(const QString& remotePath, const QStri
         (mode_t)permsOctal
     );
     if (!f) {
-        if (err) *err = QString("sftp_open failed for '%1'.").arg(tmpPath);
+        if (err) *err = tr("sftp_open failed for '%1'.").arg(tmpPath);
         sftp_free(sftp);
         return false;
     }
@@ -1301,7 +1298,7 @@ bool SshClient::writeRemoteTextFileAtomic(const QString& remotePath, const QStri
     while (remaining > 0) {
         ssize_t written = sftp_write(f, ptr, (size_t)remaining);
         if (written < 0) {
-            if (err) *err = QString("sftp_write failed for '%1'.").arg(tmpPath);
+            if (err) *err = tr("sftp_write failed for '%1'.").arg(tmpPath);
             sftp_close(f);
             sftp_free(sftp);
             return false;
@@ -1316,7 +1313,7 @@ bool SshClient::writeRemoteTextFileAtomic(const QString& remotePath, const QStri
     if (sftp_rename(sftp, tmpPath.toUtf8().constData(), remotePath.toUtf8().constData()) != SSH_OK) {
         sftp_unlink(sftp, remotePath.toUtf8().constData());
         if (sftp_rename(sftp, tmpPath.toUtf8().constData(), remotePath.toUtf8().constData()) != SSH_OK) {
-            if (err) *err = QString("sftp_rename failed for '%1' → '%2'.").arg(tmpPath, remotePath);
+            if (err) *err = tr("sftp_rename failed for '%1' → '%2'.").arg(tmpPath, remotePath);
             sftp_free(sftp);
             return false;
         }
@@ -1369,29 +1366,29 @@ bool SshClient::installAuthorizedKey(const QString& pubKeyLine,
     if (backupPathOut) backupPathOut->clear();
 
     if (!m_session) {
-        if (err) *err = "Not connected.";
+        if (err) *err = tr("Not connected.");
         return false;
     }
 
     const QString key = normalizeKeyLine(pubKeyLine);
     if (key.isEmpty()) {
-        if (err) *err = "Public key line is empty.";
+        if (err) *err = tr("Public key line is empty.");
         return false;
     }
     if (!looksLikeOpenSshPubKey(key)) {
-        if (err) *err = "Does not look like an OpenSSH public key line.";
+        if (err) *err = tr("Does not look like an OpenSSH public key line.");
         return false;
     }
 
     // Resolve remote $HOME
     QString homeOut, e;
     if (!exec("printf %s \"$HOME\"", &homeOut, &e)) {
-        if (err) *err = "Failed to read remote $HOME: " + e;
+        if (err) *err = tr("Failed to read remote $HOME: %1").arg(e);
         return false;
     }
     const QString home = homeOut.trimmed();
     if (home.isEmpty()) {
-        if (err) *err = "Remote $HOME is empty.";
+        if (err) *err = tr("Remote $HOME is empty.");
         return false;
     }
 
@@ -1425,7 +1422,7 @@ bool SshClient::installAuthorizedKey(const QString& pubKeyLine,
     if (hasExisting) {
         const QString backupDir = sshDir + "/pqssh_backups";
         if (!ensureRemoteDir(backupDir, 0700, &e)) {
-            if (err) *err = "Failed to create backup dir: " + e;
+            if (err) *err = tr("Failed to create backup dir: %1").arg(e);
             return false;
         }
 
@@ -1440,7 +1437,7 @@ bool SshClient::installAuthorizedKey(const QString& pubKeyLine,
             const QString cpCmd2 = QString("cp -f %1 %2")
                                        .arg(shQuote(akPath), shQuote(backupPath));
             if (!exec(cpCmd2, &out, &cpErr)) {
-                if (err) *err = QString("Backup failed. Aborting install.\nTried:\n%1\n%2\nError: %3")
+                if (err) *err = tr("Backup failed. Aborting install.\nTried:\n%1\n%2\nError: %3")
                                     .arg(cpCmd, cpCmd2, cpErr);
                 return false;
             }

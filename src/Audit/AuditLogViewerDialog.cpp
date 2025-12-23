@@ -56,7 +56,7 @@ protected:
 AuditLogViewerDialog::AuditLogViewerDialog(QWidget* parent)
     : QDialog(parent)
 {
-    setWindowTitle("Audit Log Viewer");
+    setWindowTitle(tr("Audit Log Viewer"));
     resize(1100, 720);
 
     auto* outer = new QVBoxLayout(this);
@@ -71,17 +71,17 @@ AuditLogViewerDialog::AuditLogViewerDialog(QWidget* parent)
     m_date->setCalendarPopup(true);
 
     m_search = new QLineEdit(this);
-    m_search->setPlaceholderText("Search event/target/session/message…");
+    m_search->setPlaceholderText(tr("Search event/target/session/message…"));
 
     m_reloadBtn = new QToolButton(this);
-    m_reloadBtn->setText("Reload");
+    m_reloadBtn->setText(tr("Reload"));
 
     m_openDirBtn = new QToolButton(this);
-    m_openDirBtn->setText("Open folder");
+    m_openDirBtn->setText(tr("Open folder"));
 
     m_exportBtn = new QToolButton(this);
-    m_exportBtn->setText("Export HTML…");
-    m_exportBtn->setToolTip("Export the currently filtered audit events to a standalone HTML report");
+    m_exportBtn->setText(tr("Export HTML…"));
+    m_exportBtn->setToolTip(tr("Export the currently filtered audit events to a standalone HTML report"));
 
     top->addWidget(m_date, 0);
     top->addWidget(m_search, 1);
@@ -155,9 +155,9 @@ void AuditLogViewerDialog::loadDate(const QDate& d)
 
     if (!m_model->loadFromFile(file, &err)) {
         m_details->setHtml(
-            QString("<h3>No audit file for %1</h3>"
-                    "<p><code>%2</code></p>"
-                    "<p>%3</p>")
+            tr("<h3>No audit file for %1</h3>"
+               "<p><code>%2</code></p>"
+               "<p>%3</p>")
                 .arg(d.toString(Qt::ISODate),
                      file.toHtmlEscaped(),
                      err.toHtmlEscaped()));
@@ -218,26 +218,26 @@ void AuditLogViewerDialog::showDetails(const AuditLogEntry& e)
     html += "<table style='border-collapse:collapse; width:100%;'>";
 
     // Common fields first
-    html += kvRow("session_id", o.value("session_id").toString());
-    html += kvRow("target", e.target);
-    html += kvRow("summary", e.summary);
+    html += kvRow(QStringLiteral("session_id"), o.value("session_id").toString());
+    html += kvRow(tr("target"), e.target);
+    html += kvRow(tr("summary"), e.summary);
 
     // “nice” fields if present
-    if (o.contains("profile")) html += kvRow("profile", o.value("profile").toString());
-    if (o.contains("user"))    html += kvRow("user", o.value("user").toString());
-    if (o.contains("host"))    html += kvRow("host", o.value("host").toString());
-    if (o.contains("port"))    html += kvRow("port", QString::number(o.value("port").toInt()));
-    if (o.contains("status"))  html += kvRow("status", o.value("status").toString());
-    if (o.contains("duration_ms")) html += kvRow("duration_ms", QString::number(o.value("duration_ms").toInt()));
-    if (o.contains("cmd_head")) html += kvRow("cmd_head", o.value("cmd_head").toString());
-    if (o.contains("cmd_hash")) html += kvRow("cmd_hash", o.value("cmd_hash").toString());
+    if (o.contains("profile")) html += kvRow(QStringLiteral("profile"), o.value("profile").toString());
+    if (o.contains("user"))    html += kvRow(QStringLiteral("user"), o.value("user").toString());
+    if (o.contains("host"))    html += kvRow(QStringLiteral("host"), o.value("host").toString());
+    if (o.contains("port"))    html += kvRow(QStringLiteral("port"), QString::number(o.value("port").toInt()));
+    if (o.contains("status"))  html += kvRow(QStringLiteral("status"), o.value("status").toString());
+    if (o.contains("duration_ms")) html += kvRow(QStringLiteral("duration_ms"), QString::number(o.value("duration_ms").toInt()));
+    if (o.contains("cmd_head")) html += kvRow(QStringLiteral("cmd_head"), o.value("cmd_head").toString());
+    if (o.contains("cmd_hash")) html += kvRow(QStringLiteral("cmd_hash"), o.value("cmd_hash").toString());
 
     html += "</table>";
 
     // Raw JSON (collapsed)
     const QString raw = QString::fromUtf8(QJsonDocument(o).toJson(QJsonDocument::Indented));
     html += "<hr style='border:none; border-top:1px solid rgba(255,255,255,0.08); margin:14px 0'>";
-    html += "<details><summary style='cursor:pointer'>Raw JSON</summary>";
+    html += tr("<details><summary style='cursor:pointer'>Raw JSON</summary>");
     html += QString("<pre style='white-space:pre-wrap; font-family:monospace; font-size:12px;'>%1</pre>")
                 .arg(raw.toHtmlEscaped());
     html += "</details>";
@@ -266,15 +266,15 @@ static QString sevClassToBadge(const QString& sev)
 void AuditLogViewerDialog::onExportHtml()
 {
     const QDate d = m_date ? m_date->date() : QDate::currentDate();
-    const QString suggested = QString("pq-ssh-audit-%1-%2.html")
+    const QString suggested = tr("pq-ssh-audit-%1-%2.html")
                                   .arg(d.toString("yyyy-MM-dd"),
                                        QDateTime::currentDateTime().toString("HHmmss"));
 
     const QString outPath = QFileDialog::getSaveFileName(
         this,
-        "Export audit log (HTML)",
+        tr("Export audit log (HTML)"),
         QDir::home().filePath(suggested),
-        "HTML files (*.html);;All files (*)");
+        tr("HTML files (*.html);;All files (*)"));
 
     if (outPath.isEmpty())
         return;
@@ -288,7 +288,7 @@ void AuditLogViewerDialog::onExportHtml()
 
     html += "<!doctype html><html><head><meta charset='utf-8'>";
     html += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
-    html += "<title>PQ-SSH Audit Report</title>";
+    html += "<title>" + escHtml(tr("PQ-SSH Audit Report")) + "</title>";
     html += R"(
 <style>
 :root { color-scheme: dark; }
@@ -319,31 +319,31 @@ details summary { cursor:pointer; opacity:.9; }
     html += "</head><body>";
 
     html += "<div class='header'>";
-    html += "<div class='h1'>PQ-SSH Audit Report</div>";
-    html += "<div class='meta'>Date: " + escHtml(d.toString(Qt::ISODate)) + "</div>";
-    html += "<div class='meta'>Source file: <span class='small'>" + escHtml(filePath) + "</span></div>";
-    html += "<div class='meta'>Rows exported (filtered): " + QString::number(rows) + "</div>";
+    html += "<div class='h1'>" + escHtml(tr("PQ-SSH Audit Report")) + "</div>";
+    html += "<div class='meta'>" + escHtml(tr("Date: %1").arg(d.toString(Qt::ISODate))) + "</div>";
+    html += "<div class='meta'>" + escHtml(tr("Source file:")) + " <span class='small'>" + escHtml(filePath) + "</span></div>";
+    html += "<div class='meta'>" + escHtml(tr("Rows exported (filtered): %1").arg(QString::number(rows))) + "</div>";
     if (!search.isEmpty())
-        html += "<div class='meta'>Search filter: <span class='small'>" + escHtml(search) + "</span></div>";
+        html += "<div class='meta'>" + escHtml(tr("Search filter:")) + " <span class='small'>" + escHtml(search) + "</span></div>";
     html += "</div>";
 
     html += "<div class='wrap'>";
     html += "<table class='table'>";
-    html += "<thead><tr><th>Time</th><th>Severity</th><th>Event</th><th>Target</th><th>Session</th><th>Details</th></tr></thead><tbody>";
+    html += "<thead><tr><th>" + escHtml(tr("Time")) + "</th><th>" + escHtml(tr("Severity")) + "</th><th>"
+         + escHtml(tr("Event")) + "</th><th>" + escHtml(tr("Target")) + "</th><th>"
+         + escHtml(tr("Session")) + "</th><th>" + escHtml(tr("Details")) + "</th></tr></thead><tbody>";
 
     for (int r = 0; r < rows; ++r) {
         const QModelIndex p0 = m_proxy->index(r, 0);
 
         // Pull display columns via proxy (what user sees)
-        const QString time = m_proxy->index(r, AuditLogModel::TimeCol).data(Qt::DisplayRole).toString();
-        const QString sev = m_proxy->index(r, AuditLogModel::SevCol).data(Qt::DisplayRole).toString();
-        const QString event = m_proxy->index(r, AuditLogModel::EventCol).data(Qt::DisplayRole).toString();
-        const QString target = m_proxy->index(r, AuditLogModel::TargetCol).data(Qt::DisplayRole).toString();
+        const QString time    = m_proxy->index(r, AuditLogModel::TimeCol).data(Qt::DisplayRole).toString();
+        const QString sev     = m_proxy->index(r, AuditLogModel::SevCol).data(Qt::DisplayRole).toString();
+        const QString event   = m_proxy->index(r, AuditLogModel::EventCol).data(Qt::DisplayRole).toString();
+        const QString target  = m_proxy->index(r, AuditLogModel::TargetCol).data(Qt::DisplayRole).toString();
         const QString session = m_proxy->index(r, AuditLogModel::SessionCol).data(Qt::DisplayRole).toString();
 
 #if 1
-        // If you have SummaryCol in your model, keep this.
-        // If not, delete these two lines and the summary usage below.
         const QString summary = m_proxy->index(r, AuditLogModel::SummaryCol).data(Qt::DisplayRole).toString();
 #else
         const QString summary;
@@ -357,16 +357,16 @@ details summary { cursor:pointer; opacity:.9; }
         html += "<tr>";
         html += "<td class='small'>" + escHtml(time) + "</td>";
         html += "<td><span class='badge " + escHtml(sevClassToBadge(sev)) + "'>"
-                + escHtml(sev.isEmpty() ? "INFO" : sev) + "</span></td>";
+                + escHtml(sev.isEmpty() ? tr("INFO") : sev) + "</span></td>";
         html += "<td>" + escHtml(event) + "</td>";
         html += "<td class='small'>" + escHtml(target) + "</td>";
-        html += "<td class='small'>" + escHtml(session.isEmpty() ? "-" : session) + "</td>";
+        html += "<td class='small'>" + escHtml(session.isEmpty() ? tr("-") : session) + "</td>";
 
         html += "<td>";
         if (!summary.isEmpty())
             html += "<div class='small'>" + escHtml(summary) + "</div>";
 
-        html += "<details><summary>Raw JSON</summary>";
+        html += "<details><summary>" + escHtml(tr("Raw JSON")) + "</summary>";
         html += "<div class='code'>" + escHtml(rawCompact) + "</div>";
         html += "</details>";
         html += "</td>";
@@ -375,12 +375,12 @@ details summary { cursor:pointer; opacity:.9; }
     }
 
     html += "</tbody></table></div>";
-    html += "<div class='footer'>CPUNK PQ-SSH — audit export</div>";
+    html += "<div class='footer'>" + escHtml(tr("CPUNK PQ-SSH — audit export")) + "</div>";
     html += "</body></html>";
 
     QSaveFile f(outPath);
     if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
-        QMessageBox::warning(this, "Export failed", "Cannot write file:\n" + f.errorString());
+        QMessageBox::warning(this, tr("Export failed"), tr("Cannot write file:\n%1").arg(f.errorString()));
         return;
     }
 
@@ -393,7 +393,7 @@ details summary { cursor:pointer; opacity:.9; }
     out << html;
 
     if (!f.commit()) {
-        QMessageBox::warning(this, "Export failed", "Failed to finalize file:\n" + f.errorString());
+        QMessageBox::warning(this, tr("Export failed"), tr("Failed to finalize file:\n%1").arg(f.errorString()));
         return;
     }
 
