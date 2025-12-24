@@ -3060,7 +3060,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>English</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+2"/>
         <source>Suomi</source>
         <translation>Suomi</translation>
     </message>

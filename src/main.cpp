@@ -30,6 +30,7 @@ static bool installAppTranslator(QApplication& app, const QString& langCode)
 {
     // Expect qm inside resources:
     //   :/i18n/pqssh_en.qm
+    //   :/i18n/pqssh_es.qm
     //   :/i18n/pqssh_fi.qm
     //
     // If you prefer external files, change path accordingly.
@@ -41,7 +42,7 @@ static bool installAppTranslator(QApplication& app, const QString& langCode)
         delete tr;
         return false;
     }
-
+    qDebug() << "langCode=" << langCode << "qm=" << qmPath << "loaded=" << tr->isEmpty();
     app.installTranslator(tr);
     return true;
 }
@@ -68,6 +69,7 @@ int main(int argc, char *argv[])
 
     qInfo() << "QM exists fi:" << QFile(":/i18n/pqssh_fi.qm").exists();
     qInfo() << "QM exists en:" << QFile(":/i18n/pqssh_en.qm").exists();
+    qInfo() << "QM exists en:" << QFile(":/i18n/pqssh_es.qm").exists();
 
     if (!lang.isEmpty() && lang != "en") {
         const bool ok = installAppTranslator(app, lang);

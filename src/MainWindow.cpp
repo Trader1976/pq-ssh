@@ -755,6 +755,11 @@ void MainWindow::setupMenus()
         g_fleetWin->activateWindow();
     });
 
+    QAction *identityAct = new QAction(tr("Identity manager…"), this);
+    identityAct->setToolTip(tr("Recover a global SSH keypair from 24 words (Ed25519)."));
+    toolsMenu->addAction(identityAct);
+    connect(identityAct, &QAction::triggered, this, &MainWindow::onIdentityManagerRequested);
+
     // Keys
     auto *keysMenu = menuBar()->addMenu(tr("&Keys"));
 
@@ -895,13 +900,7 @@ void MainWindow::setupMenus()
     // View
     auto *viewMenu = menuBar()->addMenu(tr("&View"));
 
-    QAction *identityAct = new QAction(tr("Identity manager…"), this);
-    identityAct->setToolTip(tr("Recover a global SSH keypair from 24 words (Ed25519)."));
-    viewMenu->addAction(identityAct);
-    connect(identityAct, &QAction::triggered, this, &MainWindow::onIdentityManagerRequested);
 
-    // Help
-    auto *helpMenu = menuBar()->addMenu(tr("&Help"));
 
     QAction *auditViewerAct = new QAction(tr("Audit log viewer…"), this);
     auditViewerAct->setToolTip(tr("View audit logs in a readable, colored format"));
@@ -912,7 +911,7 @@ void MainWindow::setupMenus()
         dlg->raise();
         dlg->activateWindow();
     });
-    helpMenu->addAction(auditViewerAct);
+    viewMenu->addAction(auditViewerAct);
 
     QAction *openAuditDirAct = new QAction(tr("Open audit log folder"), this);
     openAuditDirAct->setToolTip(tr("Open audit log directory"));
@@ -920,17 +919,20 @@ void MainWindow::setupMenus()
         const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/audit";
         QDesktopServices::openUrl(QUrl::fromLocalFile(dir));
     });
-    helpMenu->addAction(openAuditDirAct);
+    viewMenu->addAction(openAuditDirAct);
+
+    QAction *openLogAct = new QAction(tr("Open log file"), this);
+    openLogAct->setToolTip(tr("Open pq-ssh log file"));
+    connect(openLogAct, &QAction::triggered, this, &MainWindow::onOpenLogFile);
+    viewMenu->addAction(openLogAct);
+
+    // Help
+    auto *helpMenu = menuBar()->addMenu(tr("&Help"));
 
     QAction *manualAct = new QAction(tr("User Manual"), this);
     manualAct->setToolTip(tr("Open PQ-SSH user manual"));
     connect(manualAct, &QAction::triggered, this, &MainWindow::onOpenUserManual);
     helpMenu->addAction(manualAct);
-
-    QAction *openLogAct = new QAction(tr("Open log file"), this);
-    openLogAct->setToolTip(tr("Open pq-ssh log file"));
-    connect(openLogAct, &QAction::triggered, this, &MainWindow::onOpenLogFile);
-    helpMenu->addAction(openLogAct);
 
     statusBar()->showMessage(tr("Ready"));
 
