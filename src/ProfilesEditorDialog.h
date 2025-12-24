@@ -95,6 +95,7 @@ private slots:
     void onMacroNameEdited(const QString &text);
     void importMacros();
     void exportMacros();
+    void onClearKeyFile();
 
 private:
     QVector<SshProfile> m_working;
@@ -127,6 +128,7 @@ private:
 
     QComboBox *m_keyTypeCombo = nullptr;
     QLineEdit *m_keyFileEdit  = nullptr;
+    QPushButton *m_keyClearBtn = nullptr;
 
     // Right: macros column (multi)
     QListWidget *m_macroList = nullptr;

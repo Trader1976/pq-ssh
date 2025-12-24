@@ -399,7 +399,7 @@ void ProfilesEditorDialog::buildUi()
     split->setHandleWidth(1);
 
     auto *outer = new QHBoxLayout(this);
-    outer->setContentsMargins(0, 0, 0, 0);
+    outer->setContentsMargins(8, 8, 8, 8);
     outer->addWidget(split);
 
     // =========================================================
@@ -440,7 +440,7 @@ void ProfilesEditorDialog::buildUi()
     // =========================================================
     auto *detailsWidget = new QWidget(split);
     auto *detailsLayout = new QVBoxLayout(detailsWidget);
-    detailsLayout->setContentsMargins(0, 0, 0, 0);
+    detailsLayout->setContentsMargins(0, 0, 8, 0);
     detailsLayout->setSpacing(6);
 
     auto *form = new QFormLayout();
@@ -500,13 +500,24 @@ void ProfilesEditorDialog::buildUi()
     auto *browseBtn = new QToolButton(detailsWidget);
     browseBtn->setText("...");
 
+    m_keyClearBtn = new QPushButton(tr("Remove"), detailsWidget);
+    m_keyClearBtn->setToolTip(tr("Remove selected key file (sets key type to auto)"));
+    m_keyClearBtn->setEnabled(false);
+
     auto *keyRow = new QWidget(detailsWidget);
     auto *keyRowLayout = new QHBoxLayout(keyRow);
     keyRowLayout->setContentsMargins(0,  0,  0,  0);
     keyRowLayout->setSpacing(6);
     keyRowLayout->addWidget(m_keyFileEdit, 1);
+    keyRowLayout->addWidget(m_keyClearBtn, 0);
     keyRowLayout->addWidget(browseBtn, 0);
 
+    if (m_keyFileEdit) {
+        connect(m_keyFileEdit, &QLineEdit::textChanged, this, [this](const QString &t) {
+            if (m_keyClearBtn)
+                m_keyClearBtn->setEnabled(!t.trimmed().isEmpty());
+        });
+    }
     connect(browseBtn, &QToolButton::clicked, this, [this]() {
         const QString startDir = QDir::homePath() + "/.ssh";
         const QString path = QFileDialog::getOpenFileName(
@@ -682,7 +693,7 @@ void ProfilesEditorDialog::buildUi()
     split->setStretchFactor(0, 2);
     split->setStretchFactor(1, 3);
     split->setStretchFactor(2, 5);
-    split->setSizes({260, 380, 620});
+    split->setSizes({260, 520, 380});
 
     // =========================================================
     // Wiring
@@ -726,6 +737,9 @@ void ProfilesEditorDialog::buildUi()
 
     connect(m_macroExportBtn, &QPushButton::clicked,
             this, &ProfilesEditorDialog::exportMacros);
+
+    connect(m_keyClearBtn, &QPushButton::clicked,
+        this, &ProfilesEditorDialog::onClearKeyFile);
 
     // UX: ensure first profile has at least one macro row so the editor doesn't look "dead".
     if (!m_working.isEmpty() && m_working[0].macros.isEmpty()) {
@@ -1276,4 +1290,22 @@ void ProfilesEditorDialog::importMacros()
         tr("Macros imported"),
         tr("Imported %1 macros.").arg(added)
     );
+}
+void ProfilesEditorDialog::onClearKeyFile()
+{
+    if (!m_keyFileEdit) return;
+
+    // Clear the key path
+    m_keyFileEdit->clear();
+
+    // To avoid validation errors (key_type != auto requires key_file),
+    // force key_type back to auto when removing the key file.
+    if (m_keyTypeCombo) {
+        const int idx = m_keyTypeCombo->findText(QStringLiteral("auto"));
+        if (idx >= 0) m_keyTypeCombo->setCurrentIndex(idx);
+        else m_keyTypeCombo->setCurrentText(QStringLiteral("auto"));
+    }
+
+    // Keep model/list label in sync immediately
+    syncFormToCurrent();
 }

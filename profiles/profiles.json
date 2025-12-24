@@ -87,10 +87,34 @@
             "host": "83.146.239.12",
             "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
             "key_type": "auto",
-            "macro_enter": true,
+            "macro_command": "ls",
+            "macro_enter": false,
+            "macro_shortcut": "Ctrl+F",
+            "macros": [
+                {
+                    "command": "ls",
+                    "name": "files",
+                    "send_enter": false,
+                    "shortcut": "Ctrl+F"
+                }
+            ],
             "name": "cellnode2",
             "port": 1050,
             "pq_debug": false,
+            "term_color_scheme": "WhiteOnBlack",
+            "term_font_size": 11,
+            "term_height": 500,
+            "term_width": 900,
+            "user": "timo"
+        },
+        {
+            "history_lines": 2000,
+            "host": "83.146.239.12",
+            "key_type": "auto",
+            "macro_enter": true,
+            "name": "DHT test",
+            "port": 1060,
+            "pq_debug": true,
             "term_color_scheme": "WhiteOnBlack",
             "term_font_size": 11,
             "term_height": 500,
