@@ -8,6 +8,58 @@
 
     <!-- IMPORTANT for QTextBrowser + QRC -->
     <link rel="stylesheet" href="qrc:/docs/user-manual.css" />
+    <link rel="stylesheet" href="qrc:/docs/user-manual.css" />
+
+    <!-- Force User Manual to always look like Windows Classic -->
+    <style>
+        :root { color-scheme: light; }
+        html, body {
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
+
+        /* Neutralize any inherited/global theme styling */
+        * {
+            background-color: transparent;
+            color: inherit;
+            border-color: #b0b0b0;
+        }
+
+        /* Manual layout primitives */
+        .top, .card, .callout, .note, .tip, .warn, .footer {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid #b0b0b0 !important;
+            box-shadow: none !important;
+        }
+
+        .logo {
+            background: #e6e6e6 !important;
+            color: #000 !important;
+            border: 1px solid #b0b0b0 !important;
+            border-radius: 0 !important;
+        }
+
+        .btn {
+            background: #e6e6e6 !important;
+            color: #000 !important;
+            border: 1px solid #808080 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            text-decoration: none !important;
+        }
+        .btn:hover { filter: none !important; }
+
+        code, pre, .codeblock {
+            background: #f3f3f3 !important;
+            color: #000 !important;
+            border: 1px solid #b0b0b0 !important;
+            box-shadow: none !important;
+        }
+
+        .muted { color: #333 !important; }
+    </style>
+
 </head>
 
 <body>
@@ -94,6 +146,32 @@
             <li><b>Terminal scheme</b> — color scheme for the terminal</li>
             <li><b>Hotkey macros</b> — per-profile macro list (shortcut → command)</li>
         </ul>
+
+        <h3>Probe server crypto (diagnostics)</h3>
+        <p>
+            In <b>Edit profiles…</b>, PQ-SSH provides a <b>Probe server crypto…</b> button to help you inspect
+            what the SSH handshake negotiates with a server.
+            This is useful when you want to verify the server’s crypto policy (or compare servers) without guessing.
+        </p>
+
+        <ul class="bullets">
+            <li><b>When it becomes available:</b> the button is enabled after you set both <b>User</b> and <b>Host</b> (Port is optional).</li>
+            <li><b>What it shows:</b> negotiated <b>KEX</b> (key exchange), <b>host key algorithm</b>, and <b>ciphers</b> in both directions (client→server / server→client).</li>
+            <li><b>How it works:</b> PQ-SSH runs your system <b>OpenSSH</b> client in verbose mode (<code>ssh -vvv</code>) with a short timeout and extracts the negotiated values.</li>
+            <li><b>Authentication not required:</b> SSH negotiation happens before authentication, so the probe can still show useful results even if login fails.</li>
+            <li><b>Read-only:</b> the probe <b>does not</b> modify the server, profile settings, or SSH configuration.</li>
+        </ul>
+
+        <div class="note">
+            If the probe shows <b>(not found)</b>, common causes include: the host is unreachable, the port is blocked,
+            DNS fails, or the local <code>ssh</code> output format differs from what the parser expects. Open the
+            probe dialog details to see the raw output.
+        </div>
+
+        <div class="tip">
+            Tip: Use the probe to confirm your server is using modern algorithms (for example <code>curve25519-sha256</code> for KEX
+            and <code>ssh-ed25519</code> for host keys), and to spot legacy RSA/SHA1 deployments that should be upgraded.
+        </div>
 
         <div class="tip">
             Tip: keep profile names short and consistent (Prod, Staging, Home, etc.) and use Groups to keep the list readable.
@@ -345,7 +423,7 @@
             Example:
             <pre class="codeblock"><code>echo "Connected to {USER}@{HOST}:{PORT}"</code></pre>
             expands to:
-            <pre class="codeblock"><code>echo "Connected to timo@example.com:2222"</code></pre>
+            <pre class="codeblock"><code>echo "Connected to john@example.com:2222"</code></pre>
         </div>
 
         <h3>Supported placeholders</h3>
