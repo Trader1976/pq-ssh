@@ -58,6 +58,8 @@
 #include <QJsonValue>
 #include <QJsonParseError>
 #include <QDateTime>
+#include <QProcess>
+#include <QPlainTextEdit>
 
 #include "CpunkTermWidget.h"
 
@@ -81,6 +83,16 @@ static QStringList allTermSchemes()
     schemes.sort(Qt::CaseInsensitive);
 
     return schemes;
+}
+static QString extractFirstAfter(const QString &text, const QString &prefix)
+{
+    const QStringList lines = text.split('\n');
+    for (const QString &ln : lines) {
+        const QString s = ln.trimmed();
+        if (s.startsWith(prefix))
+            return s.mid(prefix.size()).trimmed();
+    }
+    return QString();
 }
 
 static void fillSchemeCombo(QComboBox *combo)
@@ -544,6 +556,23 @@ void ProfilesEditorDialog::buildUi()
     form->addRow(tr("Key type:"), m_keyTypeCombo);
     form->addRow(tr("Key file:"), keyRow);
 
+    // Server crypto probe (uses system OpenSSH for a quick negotiation report)
+    m_probeBtn = new QPushButton(tr("Probe server crypto…"), detailsWidget);
+    m_probeBtn->setEnabled(false);
+    m_probeBtn->setToolTip(tr(
+        "Probe the negotiated SSH crypto with the current User/Host/Port.\n\n"
+        "Shows:\n"
+        "• KEX (key exchange)\n"
+        "• Host key algorithm\n"
+        "• Ciphers (client→server / server→client)\n\n"
+        "How it works:\n"
+        "• Runs the system OpenSSH client (ssh -vvv) with a short timeout.\n"
+        "• No settings are saved.\n"
+        "• Authentication is not required; negotiation happens before auth.\n\n"
+        "Tip: If you get '(not found)', the server may be unreachable or ssh output differs."
+    ));
+    form->addRow(QString(), m_probeBtn);
+
     detailsLayout->addLayout(form);
 
     m_buttonsBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, detailsWidget);
@@ -691,9 +720,9 @@ void ProfilesEditorDialog::buildUi()
     // Splitter sizing
     // =========================================================
     split->setStretchFactor(0, 2);
-    split->setStretchFactor(1, 3);
-    split->setStretchFactor(2, 5);
-    split->setSizes({260, 520, 380});
+    split->setStretchFactor(1, 6);
+    split->setStretchFactor(2, 3);
+    split->setSizes({240, 560, 360});
 
     // =========================================================
     // Wiring
@@ -750,6 +779,25 @@ void ProfilesEditorDialog::buildUi()
         m.sendEnter = true;
         m_working[0].macros.push_back(m);
     }
+    // Server crypto probe wiring
+    connect(m_probeBtn, &QPushButton::clicked,
+            this, &ProfilesEditorDialog::onProbeCrypto);
+
+    connect(m_userEdit, &QLineEdit::textChanged,
+            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
+    connect(m_hostEdit, &QLineEdit::textChanged,
+            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
+
+    updateProbeButtonEnabled();    // Server crypto probe wiring
+    connect(m_probeBtn, &QPushButton::clicked,
+            this, &ProfilesEditorDialog::onProbeCrypto);
+
+    connect(m_userEdit, &QLineEdit::textChanged,
+            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
+    connect(m_hostEdit, &QLineEdit::textChanged,
+            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
+
+    updateProbeButtonEnabled();
 
     // Ensure something is selected (which triggers initial load).
     if (m_list->count() > 0 && m_list->currentRow() < 0)
@@ -881,6 +929,7 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         if (m_macroEnterCheck) m_macroEnterCheck->setChecked(true);
         m_currentMacroRow = -1;
     }
+    updateProbeButtonEnabled();
 }
 
 // =========================================================
@@ -1309,3 +1358,79 @@ void ProfilesEditorDialog::onClearKeyFile()
     // Keep model/list label in sync immediately
     syncFormToCurrent();
 }
+void ProfilesEditorDialog::updateProbeButtonEnabled()
+{
+    const QString u = m_userEdit ? m_userEdit->text().trimmed() : QString();
+    const QString h = m_hostEdit ? m_hostEdit->text().trimmed() : QString();
+
+    if (m_probeBtn)
+        m_probeBtn->setEnabled(!u.isEmpty() && !h.isEmpty());
+}
+
+void ProfilesEditorDialog::onProbeCrypto()
+{
+    const QString user = m_userEdit ? m_userEdit->text().trimmed() : QString();
+    const QString host = m_hostEdit ? m_hostEdit->text().trimmed() : QString();
+    const int port = m_portSpin ? m_portSpin->value() : 22;
+
+    if (user.isEmpty() || host.isEmpty()) return;
+
+    const QString target = QString("%1@%2").arg(user, host);
+
+    // Run OpenSSH in verbose mode. Negotiation info appears before auth, so this is useful even if auth fails.
+    QStringList args;
+    args << "-vvv"
+         << "-p" << QString::number(port)
+         << "-o" << "BatchMode=yes"
+         << "-o" << "PreferredAuthentications=none"
+         << "-o" << "ConnectTimeout=5"
+         << "-o" << "NumberOfPasswordPrompts=0"
+         << target
+         << "exit";
+
+    QProcess proc;
+    proc.setProgram("ssh");
+    proc.setArguments(args);
+
+    proc.start();
+    if (!proc.waitForStarted(1500)) {
+        QMessageBox::warning(this, tr("Server crypto probe"), tr("Could not start the ssh command."));
+        return;
+    }
+
+    proc.waitForFinished(9000);
+
+    const QString out = QString::fromUtf8(proc.readAllStandardOutput());
+    const QString err = QString::fromUtf8(proc.readAllStandardError());
+    const QString all = out + "\n" + err;
+
+    // Extract common OpenSSH debug lines
+    const QString kexAlg  = extractFirstAfter(all, "debug1: kex: algorithm: ");
+    const QString hostKey = extractFirstAfter(all, "debug1: kex: host key algorithm: ");
+    const QString c2s     = extractFirstAfter(all, "debug1: kex: client->server cipher: ");
+    const QString s2c     = extractFirstAfter(all, "debug1: kex: server->client cipher: ");
+
+    QString summary;
+    summary += tr("Target: %1\n").arg(target);
+    summary += tr("Port: %1\n\n").arg(port);
+
+    summary += tr("KEX: %1\n").arg(kexAlg.isEmpty() ? tr("(not found)") : kexAlg);
+    summary += tr("Host key: %1\n").arg(hostKey.isEmpty() ? tr("(not found)") : hostKey);
+
+    // These lines include cipher + MAC + compression on newer OpenSSH, e.g.
+    // "chacha20-poly1305@openssh.com MAC: <implicit> compression: none"
+    summary += tr("Cipher C→S: %1\n").arg(c2s.isEmpty() ? tr("(not found)") : c2s);
+    summary += tr("Cipher S→C: %1\n").arg(s2c.isEmpty() ? tr("(not found)") : s2c);
+
+    QMessageBox box(this);
+    box.setWindowTitle(tr("Server crypto probe"));
+    box.setIcon(QMessageBox::Information);
+    box.setText(summary);
+    box.setDetailedText(all.left(200000)); // avoid insane dumps
+    box.setStandardButtons(QMessageBox::Ok);
+    box.exec();
+}
+
+
+
+

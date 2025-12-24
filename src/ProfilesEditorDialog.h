@@ -39,6 +39,7 @@ class QPushButton;
 class QKeySequenceEdit;
 class QLabel;
 class QJsonObject;
+class QPlainTextEdit;
 
 class ProfilesEditorDialog : public QDialog
 {
@@ -96,6 +97,9 @@ private slots:
     void importMacros();
     void exportMacros();
     void onClearKeyFile();
+    void onProbeCrypto();
+    void updateProbeButtonEnabled();
+
 
 private:
     QVector<SshProfile> m_working;
@@ -134,6 +138,7 @@ private:
     QListWidget *m_macroList = nullptr;
     QPushButton *m_macroAddBtn = nullptr;
     QPushButton *m_macroDelBtn = nullptr;
+    QPushButton *m_probeBtn = nullptr;
 
     // Macro editor (edits selected macro)
     QLineEdit        *m_macroNameEdit = nullptr;       // ProfileMacro::name
