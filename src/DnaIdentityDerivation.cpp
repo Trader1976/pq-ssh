@@ -2,19 +2,10 @@
 
 #include <QRegularExpression>
 #include <openssl/evp.h>
-#include <openssl/hmac.h>
-#include <openssl/kdf.h>
 
-// Bring in the SAME function pq-ssh will link from QGP/DNA crypto.
-// Adjust include / symbol name if needed.
 extern "C" {
     int qgp_dsa87_keypair_derand(unsigned char* pk, unsigned char* sk, const unsigned char seed[32]);
 }
-
-// If you have constants in headers, use those instead of literals.
-static constexpr int DSA87_PK_BYTES = 2592;
-// Secret size: in Dilithium5 it is commonly 4896; use your QGP constant if available.
-static constexpr int DSA87_SK_BYTES = 4896;
 
 static void secure_memzero(void* p, size_t n) {
     volatile unsigned char* v = reinterpret_cast<volatile unsigned char*>(p);
@@ -25,15 +16,21 @@ static void secureZero(QByteArray& b) {
     if (!b.isEmpty()) secure_memzero(b.data(), (size_t)b.size());
 }
 
-QString DnaIdentityDerivation::normalizeMnemonic(const QString& words)
+// If you have constants in headers, use those instead of literals.
+static constexpr int DSA87_PK_BYTES = 2592;
+static constexpr int DSA87_SK_BYTES = 4896;
+
+namespace DnaIdentityDerivation {
+
+QString normalizeMnemonic(const QString& words)
 {
     QString t = words.trimmed();
     t.replace(QRegularExpression("\\s+"), " ");
     return t.toLower();
 }
 
-QByteArray DnaIdentityDerivation::bip39Seed64(const QString& mnemonicWords,
-                                             const QString& passphrase)
+QByteArray bip39Seed64(const QString& mnemonicWords,
+                       const QString& passphrase)
 {
     QByteArray out(64, 0);
 
@@ -52,7 +49,7 @@ QByteArray DnaIdentityDerivation::bip39Seed64(const QString& mnemonicWords,
     return out;
 }
 
-QByteArray DnaIdentityDerivation::shake256_32(const QByteArray& input)
+QByteArray shake256_32(const QByteArray& input)
 {
     QByteArray out(32, 0);
 
@@ -75,7 +72,7 @@ QByteArray DnaIdentityDerivation::shake256_32(const QByteArray& input)
     return out;
 }
 
-QString DnaIdentityDerivation::sha3_512_hex(const QByteArray& bytes)
+QString sha3_512_hex(const QByteArray& bytes)
 {
     unsigned char out[64];
     unsigned int len = 0;
@@ -95,55 +92,61 @@ QString DnaIdentityDerivation::sha3_512_hex(const QByteArray& bytes)
     return h;
 }
 
-DerivedDnaIdentity DnaIdentityDerivation::deriveFromWords(const QString& mnemonicWords,
-                                                         const QString& passphrase)
+// ✅ THIS MUST EXIST, and must match header exactly:
+DerivedDnaIdentity deriveFromWords(const QString& mnemonicWords,
+                                  const QString& passphrase)
 {
     DerivedDnaIdentity r;
 
-    // 1) master seed (BIP39-style, like your IdentityDerivation does already)
-    QByteArray master = bip39Seed64(mnemonicWords, passphrase);
-    if (master.size() != 64) { r.error = "PBKDF2 seed derivation failed"; return r; }
+    const QString normalized = normalizeMnemonic(mnemonicWords);
 
-    // 2) SHAKE-based derivation (this is the key difference vs pq-ssh HKDF)
-    const QByteArray signingCtx("qgp-signing-v1");
-    const QByteArray encCtx("qgp-encryption-v1");
+    // 1) BIP39 master seed (64)
+    QByteArray master = bip39Seed64(normalized, passphrase);
+    if (master.size() != 64) {
+        r.error = "PBKDF2 seed derivation failed";
+        return r;
+    }
 
-    QByteArray signingSeed = shake256_32(master + signingCtx);
-    QByteArray encSeed = shake256_32(master + encCtx);
-
-    if (signingSeed.size() != 32 || encSeed.size() != 32) {
+    // 2) Deterministic 32-byte seed for ML-DSA-87 (match your DNA contexts!)
+    const QByteArray ctx = QByteArrayLiteral("qgp-signing-v1"); // <-- replace if you used different
+    QByteArray in = master + ctx;
+    QByteArray seed32 = shake256_32(in);
+    if (seed32.size() != 32) {
         r.error = "SHAKE256 seed derivation failed";
         secureZero(master);
+        secureZero(in);
         return r;
     }
 
-    // 3) Deterministic Dilithium keypair from signing seed (DNA fingerprint basis)
-    QByteArray pk(DSA87_PK_BYTES, 0);
-    QByteArray sk(DSA87_SK_BYTES, 0);
+    // 3) Deterministic Dilithium keypair
+    r.dilithiumPk = QByteArray(DSA87_PK_BYTES, 0);
+    r.dilithiumSk = QByteArray(DSA87_SK_BYTES, 0);
 
     if (qgp_dsa87_keypair_derand(
-            reinterpret_cast<unsigned char*>(pk.data()),
-            reinterpret_cast<unsigned char*>(sk.data()),
-            reinterpret_cast<const unsigned char*>(signingSeed.constData())) != 0) {
+            reinterpret_cast<unsigned char*>(r.dilithiumPk.data()),
+            reinterpret_cast<unsigned char*>(r.dilithiumSk.data()),
+            reinterpret_cast<const unsigned char*>(seed32.constData())) != 0) {
         r.error = "qgp_dsa87_keypair_derand failed";
         secureZero(master);
-        secureZero(signingSeed);
-        secureZero(encSeed);
-        secureZero(sk);
+        secureZero(in);
+        secureZero(seed32);
+        secureZero(r.dilithiumPk);
+        secureZero(r.dilithiumSk);
+        r.dilithiumPk.clear();
+        r.dilithiumSk.clear();
         return r;
     }
 
-    r.masterSeed64 = master;      // you can wipe immediately if you don’t want to keep it
-    r.signingSeed32 = signingSeed;
-    r.encryptionSeed32 = encSeed;
-    r.dilithiumPk = pk;
-    r.dilithiumSk = sk;
-    r.fingerprintHex128 = sha3_512_hex(pk);
+    // 4) Fingerprint = SHA3-512(pk) hex
+    r.fingerprintHex128 = sha3_512_hex(r.dilithiumPk);
     r.ok = true;
 
-    // Optional: wipe master immediately (DNA does)
-    // If you need it for wallet derivation later, don’t wipe until you’ve stored it encrypted.
-    secureZero(r.masterSeed64);
+    // Wipe temporary secrets (keep pk/sk only if you truly need them)
+    secureZero(master);
+    secureZero(in);
+    secureZero(seed32);
 
     return r;
 }
+
+} // namespace DnaIdentityDerivation

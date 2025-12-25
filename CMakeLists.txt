@@ -107,9 +107,6 @@ add_executable(pq-ssh
         src/IdentityManagerDialog.cpp
         src/IdentityManagerDialog.h
 
-        src/IdentityDerivation.cpp
-        src/IdentityDerivation.h
-
         src/OpenSshEd25519Key.cpp
         src/OpenSshEd25519Key.h
 
@@ -138,8 +135,6 @@ add_executable(pq-ssh
         src/Audit/AuditLogModel.cpp
         src/Audit/AuditLogDelegate.h
         src/Audit/AuditLogDelegate.cpp
-        src/DnaMnemonicIdentity.h
-        src/DnaMnemonicIdentity.cpp
         src/DnaIdentityDerivation.h
         src/DnaIdentityDerivation.cpp
         src/dna_vendor/qgp_dilithium.c
