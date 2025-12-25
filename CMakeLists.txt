@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(PQ_SSH LANGUAGES CXX)
+project(PQ_SSH LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -138,6 +138,37 @@ add_executable(pq-ssh
         src/Audit/AuditLogModel.cpp
         src/Audit/AuditLogDelegate.h
         src/Audit/AuditLogDelegate.cpp
+        src/DnaMnemonicIdentity.h
+        src/DnaMnemonicIdentity.cpp
+        src/DnaIdentityDerivation.h
+        src/DnaIdentityDerivation.cpp
+        src/dna_vendor/qgp_dilithium.c
+        src/dna_vendor/crypto/dsa/sign.c
+        src/dna_vendor/crypto/dsa/packing.c
+        src/dna_vendor/crypto/dsa/poly.c
+        src/dna_vendor/crypto/dsa/polyvec.c
+        src/dna_vendor/crypto/dsa/ntt.c
+        src/dna_vendor/crypto/dsa/reduce.c
+        src/dna_vendor/crypto/dsa/rounding.c
+        src/dna_vendor/crypto/dsa/fips202.c
+        src/dna_vendor/crypto/dsa/randombytes.h
+        src/dna_vendor/crypto/dsa/utils/qgp_dilithium.h
+        src/dna_vendor/crypto/dsa/api.h
+        src/dna_vendor/crypto/dsa/sign.h
+        src/dna_vendor/crypto/dsa/packing.h
+        src/dna_vendor/crypto/dsa/fips202.h
+        src/dna_vendor/crypto/dsa/utils/qgp_random.h
+        src/dna_vendor/qgp_randombytes.c
+        src/dna_vendor/crypto/dsa/symmetric-shake.c
+        src/dna_vendor/crypto/dsa/symmetric.c
+)
+target_include_directories(pq-ssh PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/dna_vendor
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/dna_vendor/crypto/dsa
+        ${LIBSSH_INCLUDE_DIRS}
+        ${QTERM_INCLUDE_DIRS}
+        ${SODIUM_INCLUDE_DIRS}
 )
 
 # IMPORTANT: this fixes your error "SshClient.h: No such file or directory"

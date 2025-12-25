@@ -44,6 +44,7 @@
 #include "IdentityManagerDialog.h"
 #include "IdentityDerivation.h"
 #include "OpenSshEd25519Key.h"
+#include "DnaIdentityDerivation.h"
 
 #include <QVBoxLayout>
 #include <QFormLayout>
@@ -58,6 +59,9 @@
 #include <QMessageBox>
 
 #include <openssl/evp.h>
+extern "C" void pqcrystals_dilithium_fips202_ref_shake256(
+    uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen
+);
 
 IdentityManagerDialog::IdentityManagerDialog(QWidget *parent)
     : QDialog(parent)
@@ -90,9 +94,84 @@ IdentityManagerDialog::IdentityManagerDialog(QWidget *parent)
     // Derivation trigger.
     // Note: Derivation should be fast; if it becomes slow, move to a worker thread
     // and disable UI while running to avoid re-entrancy.
-    auto *btn = new QPushButton(tr("Derive global SSH key"));
-    connect(btn, &QPushButton::clicked, this, &IdentityManagerDialog::onDerive);
-    v->addWidget(btn);
+auto *btn = new QPushButton(tr("Derive identity (DNA → SSH key)"));
+connect(btn, &QPushButton::clicked, this, [this]{
+    const QString words = m_words->toPlainText();
+    const QString pass  = m_pass->text();
+
+    // 1) Derive DNA identity (fingerprint + (optionally) internal seeds/keys)
+    auto r = DnaIdentityDerivation::deriveFromWords(words, pass);
+    if (!r.ok) {
+        QMessageBox::warning(this, tr("Identity"), tr("Failed: %1").arg(r.error));
+        return;
+    }
+
+    // Show DNA fingerprint (matches DNA-Messenger: SHA3-512 of ML-DSA-87 public key)
+    m_fp->setText(tr("Fingerprint: %1").arg(r.fingerprintHex128));
+
+    // 2) Derive an Ed25519 keypair deterministically from the SAME mnemonic/passphrase
+    //    but using a DNA-style root and SHAKE domain separation.
+    //
+    //    We use BIP39 seed derivation (PBKDF2-HMAC-SHA512, 2048 rounds):
+    //      master_seed[64] = PBKDF2(mnemonic, salt="mnemonic"+pass, sha512, 2048, 64)
+    //
+    //    Then:
+    //      ed_seed32 = SHAKE256(master_seed || "cpunk-pqssh-ed25519-v1", 32)
+
+    QByteArray master64 = IdentityDerivation::bip39Seed64(words, pass);
+    if (master64.size() != 64) {
+        QMessageBox::critical(this, tr("Identity"), tr("Failed to derive BIP39 master seed."));
+        return;
+    }
+
+    const QByteArray ctx = QByteArrayLiteral("cpunk-pqssh-ed25519-v1");
+    QByteArray in = master64 + ctx;
+
+    QByteArray edSeed32(32, 0);
+    // Uses the symbol you now have from the Dilithium fips202 vendor.
+    pqcrystals_dilithium_fips202_ref_shake256(
+        reinterpret_cast<uint8_t*>(edSeed32.data()), edSeed32.size(),
+        reinterpret_cast<const uint8_t*>(in.constData()), in.size()
+    );
+
+    // Generate Ed25519 pub32 from seed32 using OpenSSL raw API
+    EVP_PKEY *pkey = EVP_PKEY_new_raw_private_key(
+        EVP_PKEY_ED25519, nullptr,
+        reinterpret_cast<const unsigned char*>(edSeed32.constData()),
+        edSeed32.size()
+    );
+    if (!pkey) {
+        QMessageBox::critical(this, tr("Identity"), tr("Failed to create Ed25519 key."));
+        return;
+    }
+
+    unsigned char pub[32];
+    size_t pubLen = sizeof(pub);
+    if (EVP_PKEY_get_raw_public_key(pkey, pub, &pubLen) != 1 || pubLen != 32) {
+        EVP_PKEY_free(pkey);
+        QMessageBox::critical(this, tr("Identity"), tr("Failed to extract Ed25519 public key."));
+        return;
+    }
+    EVP_PKEY_free(pkey);
+
+    // Cache key material for Save/Copy actions (same as your old flow)
+    m_pub32  = QByteArray(reinterpret_cast<const char*>(pub), 32);
+    m_priv64 = edSeed32 + m_pub32;
+
+    // Build outputs
+    const QString comment = m_comment ? m_comment->text() : QStringLiteral("pq-ssh");
+    const QString pubLine = OpenSshEd25519Key::publicKeyLine(m_pub32, comment);
+    m_pubOut->setPlainText(pubLine);
+    m_privFile = OpenSshEd25519Key::privateKeyFile(m_pub32, m_priv64, comment);
+
+    // Best-effort wipe (Qt containers aren’t guaranteed secure, but this helps)
+    master64.fill('\0');
+    in.fill('\0');
+    edSeed32.fill('\0');
+});
+v->addWidget(btn);
+
+
 
     // Fingerprint display. Starts blank-ish; updated after successful derive.
     m_fp = new QLabel(tr("Fingerprint:"));
