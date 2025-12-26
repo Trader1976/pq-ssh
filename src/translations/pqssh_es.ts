@@ -6,113 +6,114 @@
     <message>
         <location filename="../Audit/AuditLogModel.cpp" line="+19"/>
         <source>Time</source>
-        <translation type="unfinished"></translation>
+        <translation>Hora</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Level</source>
-        <translation type="unfinished"></translation>
+        <translation>Nivel</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Event</source>
-        <translation type="unfinished"></translation>
+        <translation>Evento</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Target</source>
-        <translation type="unfinished"></translation>
+        <translation>Objetivo</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Summary</source>
-        <translation type="unfinished"></translation>
+        <translation>Resumen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Session</source>
-        <translation type="unfinished"></translation>
+        <translation>Sesión</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>WARN</source>
-        <translation type="unfinished"></translation>
+        <translation>ADVERTENCIA</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>ERROR</source>
-        <translation type="unfinished"></translation>
+        <translation>ERROR</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>SEC</source>
-        <translation type="unfinished"></translation>
+        <translation>SEG</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>INFO</source>
-        <translation type="unfinished"></translation>
+        <translation>INFO</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>%1
 %2</source>
-        <translation type="unfinished"></translation>
+        <translation>%1
+%2</translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Cannot open %1: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>No se puede abrir %1: %2</translation>
     </message>
     <message>
         <location line="+36"/>
         <source>Invalid JSON</source>
-        <translation type="unfinished"></translation>
+        <translation>JSON inválido</translation>
     </message>
     <message>
         <location line="+80"/>
         <source>Fleet started (%1 targets, concurrency %2)</source>
-        <translation type="unfinished"></translation>
+        <translation>Flota iniciada (%1 objetivos, concurrencia %2)</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Target %1 in %2 ms — %3</source>
-        <translation type="unfinished"></translation>
+        <translation>Objetivo %1 en %2 ms — %3</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>done</source>
-        <translation type="unfinished"></translation>
+        <translation>completado</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Target done in %1 ms</source>
-        <translation type="unfinished"></translation>
+        <translation>Objetivo completado en %1 ms</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Fleet event: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Evento de flota: %1</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Key install: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Instalación de clave: %1</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Key install activity</source>
-        <translation type="unfinished"></translation>
+        <translation>Actividad de instalación de claves</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>%1 (%2)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 (%2)</translation>
     </message>
 </context>
 <context>
@@ -120,149 +121,149 @@
     <message>
         <location filename="../Audit/AuditLogViewerDialog.cpp" line="+59"/>
         <source>Audit Log Viewer</source>
-        <translation type="unfinished"></translation>
+        <translation>Visor de registros de auditoría</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Search event/target/session/message…</source>
-        <translation type="unfinished"></translation>
+        <translation>Buscar evento/objetivo/sesión/mensaje…</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Reload</source>
-        <translation type="unfinished"></translation>
+        <translation>Recargar</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Open folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Abrir carpeta</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Export HTML…</source>
-        <translation type="unfinished"></translation>
+        <translation>Exportar HTML…</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Export the currently filtered audit events to a standalone HTML report</source>
-        <translation type="unfinished"></translation>
+        <translation>Exportar los eventos de auditoría filtrados actualmente a un informe HTML independiente</translation>
     </message>
     <message>
         <location line="+74"/>
         <source>&lt;h3&gt;No audit file for %1&lt;/h3&gt;&lt;p&gt;&lt;code&gt;%2&lt;/code&gt;&lt;/p&gt;&lt;p&gt;%3&lt;/p&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h3&gt;No hay archivo de auditoría para %1&lt;/h3&gt;&lt;p&gt;&lt;code&gt;%2&lt;/code&gt;&lt;/p&gt;&lt;p&gt;%3&lt;/p&gt;</translation>
     </message>
     <message>
         <location line="+64"/>
         <source>target</source>
-        <translation type="unfinished"></translation>
+        <translation>objetivo</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>summary</source>
-        <translation type="unfinished"></translation>
+        <translation>resumen</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>&lt;details&gt;&lt;summary style=&apos;cursor:pointer&apos;&gt;Raw JSON&lt;/summary&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;details&gt;&lt;summary style=&apos;cursor:pointer&apos;&gt;JSON sin procesar&lt;/summary&gt;</translation>
     </message>
     <message>
         <location line="+29"/>
         <source>pq-ssh-audit-%1-%2.html</source>
-        <translation type="unfinished"></translation>
+        <translation>pq-ssh-audit-%1-%2.html</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Export audit log (HTML)</source>
-        <translation type="unfinished"></translation>
+        <translation>Exportar registro de auditoría (HTML)</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>HTML files (*.html);;All files (*)</source>
-        <translation type="unfinished"></translation>
+        <translation>Archivos HTML (*.html);;Todos los archivos (*)</translation>
     </message>
     <message>
         <location line="+14"/>
         <location line="+31"/>
         <source>PQ-SSH Audit Report</source>
-        <translation type="unfinished"></translation>
+        <translation>Informe de auditoría de PQ-SSH</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Date: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Fecha: %1</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Source file:</source>
-        <translation type="unfinished"></translation>
+        <translation>Archivo de origen:</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Rows exported (filtered): %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Filas exportadas (filtradas): %1</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Search filter:</source>
-        <translation type="unfinished"></translation>
+        <translation>Filtro de búsqueda:</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Time</source>
-        <translation type="unfinished"></translation>
+        <translation>Hora</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Severity</source>
-        <translation type="unfinished"></translation>
+        <translation>Gravedad</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Event</source>
-        <translation type="unfinished"></translation>
+        <translation>Evento</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Target</source>
-        <translation type="unfinished"></translation>
+        <translation>Objetivo</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Session</source>
-        <translation type="unfinished"></translation>
+        <translation>Sesión</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Details</source>
-        <translation type="unfinished"></translation>
+        <translation>Detalles</translation>
     </message>
     <message>
         <location line="+26"/>
         <source>INFO</source>
-        <translation type="unfinished"></translation>
+        <translation>INFO</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>-</source>
-        <translation type="unfinished"></translation>
+        <translation>-</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Raw JSON</source>
-        <translation type="unfinished"></translation>
+        <translation>JSON sin procesar</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>CPUNK PQ-SSH — audit export</source>
-        <translation type="unfinished"></translation>
+        <translation>CPUNK PQ-SSH — exportación de auditoría</translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+13"/>
         <source>Export failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Error en la exportación</translation>
     </message>
     <message>
         <location line="-13"/>
@@ -276,13 +277,25 @@
 %1</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Cannot write file:
+    %1</source>
+        <translation type="vanished">No se puede escribir el archivo:
+    %1</translation>
+    </message>
+    <message>
+        <source>Failed to finalize file:
+    %1</source>
+        <translation type="vanished">Error al finalizar el archivo:
+    %1</translation>
+    </message>
 </context>
 <context>
     <name>AuditLogger</name>
     <message>
         <location filename="../AuditLogger.cpp" line="+107"/>
         <source>AuditLogger: failed to open %1: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>AuditLogger: no se pudo abrir %1: %2</translation>
     </message>
 </context>
 <context>
@@ -821,7 +834,7 @@ Recommended setting is: Safe (head + hash).</source>
     <message>
         <location line="+1"/>
         <source>Target</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Objetivo</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -861,7 +874,7 @@ Recommended setting is: Safe (head + hash).</source>
     <message>
         <location line="+1"/>
         <source>OK</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">OK</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -1689,7 +1702,7 @@ keys: %2</source>
     <message>
         <location line="+5"/>
         <source>Export failed</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Error en la exportación</translation>
     </message>
     <message>
         <location line="+18"/>
@@ -2364,7 +2377,7 @@ Proceed?</source>
     <message>
         <location line="+1"/>
         <source>%1 (%2)</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">%1 (%2)</translation>
     </message>
     <message>
         <location line="+31"/>
@@ -2907,7 +2920,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
     <message>
         <location line="+2"/>
         <source>-</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">-</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3025,7 +3038,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
     <message>
         <location line="-17"/>
         <source>Export failed</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Error en la exportación</translation>
     </message>
     <message>
         <location line="+15"/>
