@@ -22,6 +22,19 @@
 #include <QApplication>
 #include <QFile>
 #include <QMessageBox>
+#include <QHBoxLayout>
+#include <QSplitter>
+#include <QListWidget>
+#include <QResizeEvent>
+#include <QListWidgetItem>
+#include <QFontMetrics>
+#include <QStandardPaths>
+#include <QDir>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QDateTime>
+#include <QRandomGenerator>
 
 #include <openssl/evp.h>
 
@@ -33,115 +46,126 @@ static void bestEffortZero(QByteArray &b)
     b.clear();
 }
 
+
 IdentityManagerDialog::IdentityManagerDialog(QWidget *parent)
     : QDialog(parent)
 {
     setWindowTitle(tr("Identity Manager"));
-    resize(700, 520);
+    resize(1100, 650);
+    setMinimumWidth(1000);
 
-    auto *v = new QVBoxLayout(this);
+    buildUi();
+    loadSaved();
+    clearDerivedUi();
+}
+
+
+void IdentityManagerDialog::buildUi()
+{
+    auto *root = new QVBoxLayout(this);
+    root->setContentsMargins(10,10,10,10);
+    root->setSpacing(10);
+
+    auto *split = new QSplitter(this);
+    split->setOrientation(Qt::Horizontal);
+
+    // ===== Left: saved identities =====
+    auto *left = new QWidget(split);
+
+    const int leftW = 320;                 // pick what you like
+    left->setMinimumWidth(leftW);
+    left->setMaximumWidth(leftW);
+    left->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+    // Keep left pane width stable (prevents it from changing when right side updates)
+    //left->setMinimumWidth(280);
+    //left->setMaximumWidth(340); // adjust to taste
+    //left->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    split->setCollapsible(0, false);
+    split->setSizes({320, 1200});
+
+    split->setHandleWidth(1);              // optional: thinner divider
+    split->setChildrenCollapsible(false);  // prevents auto-collapse behavior
+
+    auto *leftL = new QVBoxLayout(left);
+    leftL->setContentsMargins(0,0,0,0);
+    leftL->setSpacing(6);
+
+    auto *leftTitle = new QLabel(tr("Saved identities"), left);
+    leftTitle->setStyleSheet("font-weight:600;");
+    leftL->addWidget(leftTitle);
+    split->setStretchFactor(0, 0);
+    split->setStretchFactor(1, 1);
+    split->setSizes({leftW, 2000});        // right side gets the rest
+
+    m_savedList = new QListWidget(left);
+    m_savedList->setSelectionMode(QAbstractItemView::SingleSelection);
+    leftL->addWidget(m_savedList, 1);
+
+    m_removeIdBtn = new QPushButton(tr("Remove"), left);
+    m_removeIdBtn->setEnabled(false);
+    leftL->addWidget(m_removeIdBtn);
+
+    // ===== Right: actions + editor =====
+    auto *right = new QWidget(split);
+    auto *rightL = new QVBoxLayout(right);
+    rightL->setContentsMargins(0,0,0,0);
+    rightL->setSpacing(8);
+
+    // Action row
+    auto *actionRow = new QHBoxLayout();
+    actionRow->setContentsMargins(0,0,0,0);
+
+    m_createBtn  = new QPushButton(tr("Create identity"), right);
+    m_restoreBtn = new QPushButton(tr("Restore identity"), right);
+    m_saveIdBtn  = new QPushButton(tr("Save identity"), right);
+    m_deriveBtn  = new QPushButton(tr("Derive"), right);
+
+    actionRow->addWidget(m_createBtn);
+    actionRow->addWidget(m_restoreBtn);
+    actionRow->addWidget(m_saveIdBtn);
+    actionRow->addWidget(m_deriveBtn);
+    actionRow->addStretch(1);
+
+    rightL->addLayout(actionRow);
+
+    // Form
     auto *f = new QFormLayout();
+    f->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
-    m_words = new QPlainTextEdit;
+    m_alias = new QLineEdit(right);
+    m_words = new QPlainTextEdit(right);
     m_words->setPlaceholderText(tr("word1 word2 ... word24"));
 
-    m_pass = new QLineEdit;
+    m_pass = new QLineEdit(right);
     m_pass->setEchoMode(QLineEdit::Password);
 
-    m_comment = new QLineEdit(QStringLiteral("pq-ssh"));
+    m_comment = new QLineEdit(QStringLiteral("pq-ssh"), right);
 
+    f->addRow(tr("Alias:"), m_alias);
     f->addRow(tr("24 words:"), m_words);
     f->addRow(tr("Passphrase:"), m_pass);
     f->addRow(tr("Comment:"), m_comment);
-    v->addLayout(f);
 
-    auto *btn = new QPushButton(tr("Derive identity (DNA → SSH key)"));
-    connect(btn, &QPushButton::clicked, this, [this]{
-        const QString words = m_words ? m_words->toPlainText() : QString();
-        const QString pass  = m_pass  ? m_pass->text()         : QString();
+    rightL->addLayout(f);
 
-        // 1) DNA identity (fingerprint)
-        //    This MUST exist and link: DnaIdentityDerivation::deriveFromWords(words, pass)
-        const auto r = DnaIdentityDerivation::deriveFromWords(words, pass);
-        if (!r.ok) {
-            QMessageBox::warning(this, tr("Identity"), tr("Failed: %1").arg(r.error));
-            return;
-        }
-        m_fp->setText(tr("Fingerprint: %1").arg(r.fingerprintHex128));
+    m_fp = new QLabel(tr("Fingerprint:"), right);
+    // Prevent layout resize when text grows
+    m_fp->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_fp->setMinimumHeight(m_fp->sizeHint().height());
+    m_fp->setWordWrap(false);
+    m_fp->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-        // 2) Derive Ed25519 keypair from SAME BIP39 master seed, but with domain separation.
-        //
-        // master64 = PBKDF2-HMAC-SHA512(mnemonic, salt="mnemonic"+pass, 2048, 64)
-        // edSeed32 = SHAKE256(master64 || "cpunk-pqssh-ed25519-v1", 32)
-        //
-        // Use your existing DnaIdentityDerivation::bip39Seed64 (no new API).
-        QByteArray master64 = DnaIdentityDerivation::bip39Seed64(words, pass);
-        if (master64.size() != 64) {
-            QMessageBox::critical(this, tr("Identity"), tr("Failed to derive BIP39 master seed."));
-            return;
-        }
+    rightL->addWidget(m_fp);
 
-        const QByteArray ctx = QByteArrayLiteral("cpunk-pqssh-ed25519-v1");
-        QByteArray in = master64 + ctx;
-
-        // Use OpenSSL SHAKE256 (no dependency on Dilithium vendor shake symbol)
-        QByteArray edSeed32 = DnaIdentityDerivation::shake256_32(in);
-        if (edSeed32.size() != 32) {
-            bestEffortZero(master64);
-            bestEffortZero(in);
-            QMessageBox::critical(this, tr("Identity"), tr("Failed to derive Ed25519 seed (SHAKE256)."));
-            return;
-        }
-
-        // Generate Ed25519 pub32 from seed32 using OpenSSL raw API
-        EVP_PKEY *pkey = EVP_PKEY_new_raw_private_key(
-            EVP_PKEY_ED25519, nullptr,
-            reinterpret_cast<const unsigned char*>(edSeed32.constData()),
-            static_cast<size_t>(edSeed32.size())
-        );
-        if (!pkey) {
-            bestEffortZero(master64);
-            bestEffortZero(in);
-            bestEffortZero(edSeed32);
-            QMessageBox::critical(this, tr("Identity"), tr("Failed to create Ed25519 key."));
-            return;
-        }
-
-        unsigned char pub[32];
-        size_t pubLen = sizeof(pub);
-        if (EVP_PKEY_get_raw_public_key(pkey, pub, &pubLen) != 1 || pubLen != 32) {
-            EVP_PKEY_free(pkey);
-            bestEffortZero(master64);
-            bestEffortZero(in);
-            bestEffortZero(edSeed32);
-            QMessageBox::critical(this, tr("Identity"), tr("Failed to extract Ed25519 public key."));
-            return;
-        }
-        EVP_PKEY_free(pkey);
-
-        // Cache key material for Save/Copy actions
-        m_pub32  = QByteArray(reinterpret_cast<const char*>(pub), 32);
-        m_priv64 = edSeed32 + m_pub32;
-
-        const QString comment = m_comment ? m_comment->text() : QStringLiteral("pq-ssh");
-        const QString pubLine = OpenSshEd25519Key::publicKeyLine(m_pub32, comment);
-        m_pubOut->setPlainText(pubLine);
-        m_privFile = OpenSshEd25519Key::privateKeyFile(m_pub32, m_priv64, comment);
-
-        // Best-effort wipe temporary secrets
-        bestEffortZero(master64);
-        bestEffortZero(in);
-        bestEffortZero(edSeed32);
-    });
-    v->addWidget(btn);
-
-    m_fp = new QLabel(tr("Fingerprint:"));
-    v->addWidget(m_fp);
-
-    m_pubOut = new QPlainTextEdit;
+    m_pubOut = new QPlainTextEdit(right);
     m_pubOut->setReadOnly(true);
-    v->addWidget(m_pubOut, 1);
+    // Prevent sudden layout jumps
+    m_pubOut->setMinimumHeight(120);
+    m_pubOut->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    rightL->addWidget(m_pubOut, 1);
 
+    // Bottom row (your existing Copy/Save buttons)
     auto *row = new QHBoxLayout();
     auto *cp = new QPushButton(tr("Copy public"));
     auto *cf = new QPushButton(tr("Copy fingerprint"));
@@ -157,8 +181,33 @@ IdentityManagerDialog::IdentityManagerDialog(QWidget *parent)
     row->addWidget(cf);
     row->addWidget(sp);
     row->addWidget(su);
-    v->addLayout(row);
+    row->addStretch(1);
+    rightL->addLayout(row);
+
+    split->addWidget(left);
+    split->addWidget(right);
+
+    // Make splitter respect fixed left width and avoid jitter
+    split->setCollapsible(0, false);
+    split->setStretchFactor(0, 0);
+    split->setStretchFactor(1, 1);
+
+    // Set initial sizes (left, right)
+    split->setSizes({320, 1200});
+
+    split->setStretchFactor(0, 0);
+    split->setStretchFactor(1, 1);
+    root->addWidget(split, 1);
+
+    // Wiring
+    connect(m_deriveBtn, &QPushButton::clicked, this, &IdentityManagerDialog::onDerive);
+    connect(m_createBtn, &QPushButton::clicked, this, &IdentityManagerDialog::onCreateIdentity);
+    connect(m_restoreBtn, &QPushButton::clicked, this, &IdentityManagerDialog::onRestoreIdentity);
+    connect(m_saveIdBtn, &QPushButton::clicked, this, &IdentityManagerDialog::onSaveIdentity);
+    connect(m_removeIdBtn, &QPushButton::clicked, this, &IdentityManagerDialog::onRemoveIdentity);
+    connect(m_savedList, &QListWidget::itemClicked, this, &IdentityManagerDialog::onSelectSaved);
 }
+
 
 void IdentityManagerDialog::onCopyPublic()
 {
@@ -168,10 +217,8 @@ void IdentityManagerDialog::onCopyPublic()
 
 void IdentityManagerDialog::onCopyFingerprint()
 {
-    if (m_fp)
-        QApplication::clipboard()->setText(m_fp->text().mid(tr("Fingerprint: ").size()));
+    QApplication::clipboard()->setText(m_fullFingerprint);
 }
-
 void IdentityManagerDialog::onSavePrivate()
 {
     if (m_privFile.isEmpty()) {
@@ -236,8 +283,12 @@ void IdentityManagerDialog::onDerive()
         return;
     }
 
-    if (m_fp)
-        m_fp->setText(tr("Fingerprint: %1").arg(r.fingerprintHex128));
+    m_fullFingerprint = r.fingerprintHex128;
+    updateFingerprintUi();
+
+    // NEW: track the currently derived identity so Save/Remove knows what is “current”
+    m_selectedFp = r.fingerprintHex128;
+    if (m_removeIdBtn) m_removeIdBtn->setEnabled(!m_selectedFp.isEmpty());
 
     QByteArray master64 = DnaIdentityDerivation::bip39Seed64(words, pass);
     if (master64.size() != 64) {
@@ -293,4 +344,342 @@ void IdentityManagerDialog::onDerive()
     memset(master64.data(), 0, (size_t)master64.size());
     memset(in.data(), 0, (size_t)in.size());
     memset(edSeed32.data(), 0, (size_t)edSeed32.size());
+}
+
+void IdentityManagerDialog::clearDerivedUi()
+{
+    m_selectedFp.clear();
+    if (m_fp) m_fp->setText(tr("Fingerprint:"));
+    if (m_pubOut) m_pubOut->clear();
+    m_pub32.clear();
+    m_priv64.clear();
+    m_privFile.clear();
+    if (m_removeIdBtn) m_removeIdBtn->setEnabled(false);
+}
+QString IdentityManagerDialog::normalizeWords(const QString &in) const
+{
+    QString s = in;
+    s.replace("\r", " ");
+    s.replace("\n", " ");
+    return s.simplified();
+}
+QStringList IdentityManagerDialog::parseWords24(const QString &in, QString *err) const
+{
+    if (err) err->clear();
+    const QString s = normalizeWords(in);
+    if (s.isEmpty()) { if (err) *err = tr("Words are empty."); return {}; }
+    const QStringList parts = s.split(' ', Qt::SkipEmptyParts);
+    if (parts.size() != 24) { if (err) *err = tr("Expected 24 words, got %1.").arg(parts.size()); return {}; }
+    return parts;
+}
+QStringList IdentityManagerDialog::loadWordlist(QString *err) const
+{
+    if (err) err->clear();
+
+    // Recommended: ship a BIP39 list as a QRC resource file.
+    // Example: resources/wordlists/bip39_english.txt  (2048 lines)
+    QFile f(":/wordlists/bip39_english.txt");
+    if (f.open(QIODevice::ReadOnly)) {
+        QStringList wl;
+        while (!f.atEnd()) {
+            const QString w = QString::fromUtf8(f.readLine()).trimmed();
+            if (!w.isEmpty()) wl << w;
+        }
+        if (wl.size() >= 2048) return wl;
+        if (err) *err = tr("Wordlist loaded but seems too small (%1).").arg(wl.size());
+        return wl;
+    }
+
+    // Fallback list (works but NOT a real mnemonic scheme!)
+    return QStringList{
+        "apple","binary","cable","drift","eagle","fabric","giant","hazard","icon","jungle","kitten","laser",
+        "magic","native","orbit","pilot","quantum","rocket","silent","tactic","unique","vivid","window","zebra"
+    };
+}
+QStringList IdentityManagerDialog::generateRandom24(QString *err) const
+{
+    if (err) err->clear();
+    QString wlErr;
+    const QStringList wl = loadWordlist(&wlErr);
+    if (wl.size() < 24) {
+        if (err) *err = wlErr.isEmpty() ? tr("Wordlist is too small.") : wlErr;
+        return {};
+    }
+
+    QStringList out;
+    out.reserve(24);
+    for (int i = 0; i < 24; ++i) {
+        const int idx = QRandomGenerator::global()->bounded(wl.size());
+        out << wl.at(idx);
+    }
+    return out;
+}
+void IdentityManagerDialog::onCreateIdentity()
+{
+    QString err;
+    const QStringList words = generateRandom24(&err);
+    if (words.isEmpty()) {
+        QMessageBox::warning(this, tr("Create identity"), err.isEmpty() ? tr("Failed to generate words.") : err);
+        return;
+    }
+
+    // Make it readable: one per line
+    if (m_words) m_words->setPlainText(words.join("\n"));
+
+    if (m_alias) m_alias->clear();
+    if (m_savedList) m_savedList->clearSelection();
+    clearDerivedUi();
+    if (m_alias) m_alias->setFocus();
+}
+void IdentityManagerDialog::onRestoreIdentity()
+{
+    // “Restore” just means user enters/pastes 24 words like today
+    if (m_savedList) m_savedList->clearSelection();
+    clearDerivedUi();
+    if (m_words) m_words->setFocus();
+}
+QString IdentityManagerDialog::identitiesPath() const
+{
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(dir);
+    return dir + QDir::separator() + "identities.json";
+}
+
+bool IdentityManagerDialog::readIdentitiesJson(QJsonObject *root, QString *err) const
+{
+    if (err) err->clear();
+    if (root) root->remove(QString());
+
+    QFile f(identitiesPath());
+    if (!f.exists()) {
+        if (root) *root = QJsonObject{{"version", 1}, {"items", QJsonArray{}}};
+        return true;
+    }
+    if (!f.open(QIODevice::ReadOnly)) {
+        if (err) *err = f.errorString();
+        return false;
+    }
+
+    const QJsonDocument doc = QJsonDocument::fromJson(f.readAll());
+    if (!doc.isObject()) {
+        if (err) *err = tr("Invalid identities.json");
+        return false;
+    }
+    if (root) *root = doc.object();
+    if (!root->contains("items") || !(*root)["items"].isArray())
+        (*root)["items"] = QJsonArray{};
+    if (!root->contains("version"))
+        (*root)["version"] = 1;
+    return true;
+}
+
+bool IdentityManagerDialog::writeIdentitiesJson(const QJsonObject &root, QString *err) const
+{
+    if (err) err->clear();
+    QFile f(identitiesPath());
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        if (err) *err = f.errorString();
+        return false;
+    }
+    const QJsonDocument doc(root);
+    f.write(doc.toJson(QJsonDocument::Indented));
+    return true;
+}
+
+void IdentityManagerDialog::loadSaved()
+{
+    if (!m_savedList) return;
+    m_savedList->clear();
+
+    QJsonObject root;
+    QString err;
+    if (!readIdentitiesJson(&root, &err)) {
+        QMessageBox::warning(this, tr("Identity"), tr("Cannot load identities:\n%1").arg(err));
+        return;
+    }
+
+    const QJsonArray items = root["items"].toArray();
+    for (const QJsonValue &v : items) {
+        const QJsonObject o = v.toObject();
+        const QString fp = o["fingerprint"].toString();
+        const QString alias = o["alias"].toString();
+        const QString label = alias.isEmpty() ? fp.left(16) : alias;
+
+        auto *it = new QListWidgetItem(label, m_savedList);
+        it->setData(Qt::UserRole, fp);
+        it->setToolTip(tr("Fingerprint: %1").arg(fp));
+    }
+
+    m_removeIdBtn->setEnabled(!m_selectedFp.isEmpty());
+}
+
+void IdentityManagerDialog::onSaveIdentity()
+{
+    // Must have a derived identity to save safely (fingerprint + pub line)
+    const QString fpText = m_fp ? m_fp->text() : QString();
+    const QString pubLine = m_pubOut ? m_pubOut->toPlainText().trimmed() : QString();
+
+    if (!fpText.startsWith(tr("Fingerprint: "))) {
+        QMessageBox::warning(this, tr("Save identity"), tr("Derive identity first."));
+        return;
+    }
+    const QString fp = fpText.mid(tr("Fingerprint: ").size()).trimmed();
+    if (fp.isEmpty() || pubLine.isEmpty()) {
+        QMessageBox::warning(this, tr("Save identity"), tr("Derive identity first."));
+        return;
+    }
+
+    QJsonObject root;
+    QString err;
+    if (!readIdentitiesJson(&root, &err)) {
+        QMessageBox::warning(this, tr("Save identity"), err);
+        return;
+    }
+
+    QJsonArray items = root["items"].toArray();
+
+    // Upsert by fingerprint
+    QJsonArray out;
+
+
+    const QString alias = m_alias ? m_alias->text().trimmed() : QString();
+    const QString comment = m_comment ? m_comment->text().trimmed() : QString();
+
+    bool replaced = false;
+    for (const QJsonValue &v : items) {
+        const QJsonObject o = v.toObject();
+        if (o["fingerprint"].toString() == fp) {
+            QJsonObject n = o;
+            n["fingerprint"] = fp;
+            n["alias"] = alias;
+            n["comment"] = comment;
+            n["pub"] = pubLine;
+            if (!n.contains("created"))
+                n["created"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+            n["updated"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+            out.append(n);
+            replaced = true;
+        } else {
+            out.append(o);
+        }
+    }
+
+    if (!replaced) {
+        QJsonObject n;
+        n["fingerprint"] = fp;
+        n["alias"] = alias;
+        n["comment"] = comment;
+        n["pub"] = pubLine;
+        n["created"] = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+        out.append(n);
+    }
+
+    root["items"] = out;
+
+    if (!writeIdentitiesJson(root, &err)) {
+        QMessageBox::warning(this, tr("Save identity"), err);
+        return;
+    }
+
+    m_selectedFp = fp;
+    loadSaved();
+    QMessageBox::information(this, tr("Save identity"), tr("Identity saved."));
+}
+
+void IdentityManagerDialog::onRemoveIdentity()
+{
+    if (m_selectedFp.isEmpty()) return;
+
+    const auto answer = QMessageBox::question(
+        this,
+        tr("Remove identity"),
+        tr("Remove selected identity?\n\nThis does not delete exported key files."),
+        QMessageBox::Yes | QMessageBox::No
+    );
+    if (answer != QMessageBox::Yes) return;
+
+    QJsonObject root;
+    QString err;
+    if (!readIdentitiesJson(&root, &err)) {
+        QMessageBox::warning(this, tr("Remove identity"), err);
+        return;
+    }
+
+    const QJsonArray items = root["items"].toArray();
+    QJsonArray out;
+    for (const QJsonValue &v : items) {
+        const QJsonObject o = v.toObject();
+        if (o["fingerprint"].toString() != m_selectedFp)
+            out.append(o);
+    }
+    root["items"] = out;
+
+    if (!writeIdentitiesJson(root, &err)) {
+        QMessageBox::warning(this, tr("Remove identity"), err);
+        return;
+    }
+
+    m_selectedFp.clear();
+    clearDerivedUi();
+    loadSaved();
+}
+void IdentityManagerDialog::onSelectSaved(QListWidgetItem *item)
+{
+    if (!item) return;
+    const QString fp = item->data(Qt::UserRole).toString();
+    if (fp.isEmpty()) return;
+
+    QJsonObject root;
+    QString err;
+    if (!readIdentitiesJson(&root, &err)) {
+        QMessageBox::warning(this, tr("Identity"), err);
+        return;
+    }
+
+    const QJsonArray items = root["items"].toArray();
+    for (const QJsonValue &v : items) {
+        const QJsonObject o = v.toObject();
+        if (o["fingerprint"].toString() == fp) {
+            m_selectedFp = fp;
+            if (m_alias) m_alias->setText(o["alias"].toString());
+            if (m_comment) m_comment->setText(o["comment"].toString());
+            if (m_fp) m_fp->setText(tr("Fingerprint: %1").arg(fp));
+            if (m_pubOut) m_pubOut->setPlainText(o["pub"].toString());
+
+            // Don’t reveal words. User can re-enter to re-derive private key.
+            if (m_words) m_words->clear();
+            if (m_pass) m_pass->clear();
+
+            if (m_removeIdBtn) m_removeIdBtn->setEnabled(true);
+            return;
+        }
+    }
+}
+
+void IdentityManagerDialog::updateFingerprintUi()
+{
+    if (!m_fp) return;
+
+    const QString prefix = tr("Fingerprint: ");
+    const QString full = m_fullFingerprint.trimmed();
+
+    if (full.isEmpty()) {
+        m_fp->setText(prefix);
+        m_fp->setToolTip(QString());
+        return;
+    }
+
+    const int avail = qMax(0, m_fp->width()
+        - m_fp->fontMetrics().horizontalAdvance(prefix) - 8);
+
+    const QString elided = m_fp->fontMetrics().elidedText(full, Qt::ElideMiddle, avail);
+
+    m_fp->setText(prefix + elided);
+    m_fp->setToolTip(prefix + full);
+}
+
+void IdentityManagerDialog::resizeEvent(QResizeEvent *e)
+{
+    QDialog::resizeEvent(e);
+    updateFingerprintUi();
 }

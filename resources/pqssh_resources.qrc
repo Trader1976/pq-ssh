@@ -14,4 +14,8 @@
         <file alias="pqssh_es.qm">i18n/pqssh_es.qm</file>
         <file alias="pqssh_fi.qm">i18n/pqssh_fi.qm</file>
     </qresource>
+
+    <qresource prefix="/wordlists">
+        <file>bip39_english.txt</file>
+    </qresource>
 </RCC>
