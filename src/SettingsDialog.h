@@ -14,6 +14,10 @@ class QToolButton;
 class SettingsDialog : public QDialog
 {
     Q_OBJECT
+
+signals:
+    void settingsApplied(bool languageChanged);
+
 public:
     explicit SettingsDialog(QWidget *parent = nullptr);
 

@@ -707,6 +707,16 @@ void MainWindow::setupMenus()
             m_settingsDlg = nullptr;
         });
 
+        connect(m_settingsDlg, &SettingsDialog::settingsApplied, this,
+        [this](bool /*langChanged*/) {
+            // Apply theme/logging/audit overrides immediately
+            applySavedSettings();
+            rebuildProfileList();
+
+            appendTerminalLine(tr("[INFO] Settings applied."));
+            if (m_statusLabel) m_statusLabel->setText(tr("Settings applied."));
+        });
+
         connect(m_settingsDlg, &QDialog::accepted, this, [this]() {
             applySavedSettings();
             rebuildProfileList();

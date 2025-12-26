@@ -26,12 +26,11 @@ bool SettingsDialog::applySettings()
 {
     QSettings s;
 
-    const QString oldLang = s.value("ui/language", "en").toString().trimmed();
-
-    saveToSettings();      // write current UI values into QSettings
+    const QString oldLang  = s.value("ui/language", "en").toString().trimmed();
+    saveToSettings();
     s.sync();
 
-    const QString newLang = s.value("ui/language", "en").toString().trimmed();
+    const QString newLang  = s.value("ui/language", "en").toString().trimmed();
     return (newLang != oldLang);
 }
 
@@ -194,6 +193,9 @@ void SettingsDialog::buildUi()
     if (auto* applyBtn = m_buttons->button(QDialogButtonBox::Apply)) {
         connect(applyBtn, &QPushButton::clicked, this, [this]() {
             const bool langChanged = applySettings();
+
+            emit settingsApplied(langChanged); // <-- NEW
+
             if (langChanged && !m_restartWarned) {
                 m_restartWarned = true;
                 QMessageBox::information(
@@ -282,6 +284,8 @@ void SettingsDialog::saveToSettings()
 void SettingsDialog::onAccepted()
 {
     const bool langChanged = applySettings();
+
+    emit settingsApplied(langChanged); // <-- NEW (optional but nice)
 
     if (langChanged && !m_restartWarned) {
         m_restartWarned = true;
