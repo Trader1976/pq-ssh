@@ -102,9 +102,19 @@ void IdentityManagerDialog::buildUi()
     m_savedList->setSelectionMode(QAbstractItemView::SingleSelection);
     leftL->addWidget(m_savedList, 1);
 
+    m_savedList->setToolTip(
+    tr("Saved identities.\n"
+       "Select an identity to view its fingerprint and public key.")
+    );
+
     m_removeIdBtn = new QPushButton(tr("Remove"), left);
     m_removeIdBtn->setEnabled(false);
     leftL->addWidget(m_removeIdBtn);
+
+    m_removeIdBtn->setToolTip(
+    tr("Remove the selected identity from the local store.\n"
+       "This does not delete any exported key files.")
+    );
 
     // ===== Right: actions + editor =====
     auto *right = new QWidget(split);
@@ -120,6 +130,24 @@ void IdentityManagerDialog::buildUi()
     m_restoreBtn = new QPushButton(tr("Restore identity"), right);
     m_saveIdBtn  = new QPushButton(tr("Save identity"), right);
     m_deriveBtn  = new QPushButton(tr("Derive"), right);
+
+    m_createBtn->setToolTip(
+    tr("Create a new identity by generating a random 24-word recovery phrase.\n"
+       "Write the words down and keep them safe.")
+    );
+
+    m_restoreBtn->setToolTip(
+        tr("Restore an existing identity by entering your 24-word recovery phrase.")
+    );
+
+    m_deriveBtn->setToolTip(
+        tr("Derive the identity fingerprint and SSH key from the entered words.")
+    );
+
+    m_saveIdBtn->setToolTip(
+        tr("Save this identity to the local identity store.\n"
+           "Only public information is saved (no recovery words).")
+    );
 
     actionRow->addWidget(m_createBtn);
     actionRow->addWidget(m_restoreBtn);
@@ -165,12 +193,46 @@ void IdentityManagerDialog::buildUi()
     m_pubOut->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     rightL->addWidget(m_pubOut, 1);
 
+    m_words->setToolTip(
+    tr("Enter your 24-word recovery phrase.\n"
+       "Words can be separated by spaces or new lines.")
+    );
+
+    m_pass->setToolTip(
+        tr("Optional passphrase used together with the recovery words.")
+    );
+
+    m_alias->setToolTip(
+        tr("Optional human-readable name for this identity.")
+    );
+
+    m_comment->setToolTip(
+        tr("Comment added to the generated SSH public key.")
+    );
+
+
     // Bottom row (your existing Copy/Save buttons)
     auto *row = new QHBoxLayout();
     auto *cp = new QPushButton(tr("Copy public"));
     auto *cf = new QPushButton(tr("Copy fingerprint"));
     auto *sp = new QPushButton(tr("Save private…"));
     auto *su = new QPushButton(tr("Save public…"));
+    cp->setToolTip(
+        tr("Copy the OpenSSH public key to the clipboard.")
+    );
+
+    cf->setToolTip(
+        tr("Copy the full identity fingerprint to the clipboard.")
+    );
+
+    sp->setToolTip(
+        tr("Save the private SSH key to a file.\n"
+           "Protect this file and set correct permissions.")
+    );
+
+    su->setToolTip(
+        tr("Save the public SSH key to a file.")
+    );
 
     connect(cp, &QPushButton::clicked, this, &IdentityManagerDialog::onCopyPublic);
     connect(cf, &QPushButton::clicked, this, &IdentityManagerDialog::onCopyFingerprint);
