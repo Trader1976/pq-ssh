@@ -2957,8 +2957,8 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
     </message>
     <message>
         <location line="+9"/>
-        <source>e.g. /home/timo/.ssh/id_ed25519 (optional)</source>
-        <translation>esim. /home/timo/.ssh/id_ed25519 (valinnainen)</translation>
+        <source>e.g. /home/john/.ssh/id_ed25519 (optional)</source>
+        <translation>esim. /home/john/.ssh/id_ed25519 (valinnainen)</translation>
     </message>
     <message>
         <location line="+5"/>

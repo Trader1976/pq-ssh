@@ -2715,8 +2715,8 @@ Introduzca la contraseña de la aplicación:</translation>
     </message>
     <message>
         <location line="+9"/>
-        <source>e.g. /home/timo/.ssh/id_ed25519 (optional)</source>
-        <translation>p. ej. /home/timo/.ssh/id_ed25519 (opcional)</translation>
+        <source>e.g. /home/john/.ssh/id_ed25519 (optional)</source>
+        <translation>p. ej. /home/john/.ssh/id_ed25519 (opcional)</translation>
     </message>
     <message>
         <location line="+16"/>

@@ -116,20 +116,10 @@
             "host": "83.146.239.12",
             "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
             "key_type": "auto",
-            "macro_command": "echo \"{{USER}}={USER}  {{TIME}}={TIME}\"",
             "macro_enter": true,
-            "macro_shortcut": "Ctrl+T",
-            "macros": [
-                {
-                    "command": "echo \"{{USER}}={USER}  {{TIME}}={TIME}\"",
-                    "name": "test",
-                    "send_enter": true,
-                    "shortcut": "Ctrl+T"
-                }
-            ],
             "name": "DHT test",
             "port": 1060,
-            "port_forwarding_enabled": false,
+            "port_forwarding_enabled": true,
             "port_forwards": [
                 {
                     "bind": "127.0.0.1",
@@ -154,7 +144,7 @@
             "term_color_scheme": "WhiteOnBlack",
             "term_font_size": 11,
             "term_height": 500,
-            "term_width": 900,
+            "term_width": 1200,
             "user": "timo"
         }
     ]

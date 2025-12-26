@@ -2857,7 +2857,7 @@ Disable app lock in Settings or set a password.</source>
     </message>
     <message>
         <location line="+9"/>
-        <source>e.g. /home/timo/.ssh/id_ed25519 (optional)</source>
+        <source>e.g. /home/john/.ssh/id_ed25519 (optional)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

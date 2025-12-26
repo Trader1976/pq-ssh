@@ -84,7 +84,7 @@ struct SshConfigHostBlock {
     QMap<QString, QStringList> options;
 
     // Source metadata for traceability/debugging.
-    QString sourceFile; // e.g. /home/timo/.ssh/config
+    QString sourceFile; // e.g. /home/john/.ssh/config
     int startLine = 0;  // 1-based line number where the Host block begins (or 1 for GLOBAL)
 };
 

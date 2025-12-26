@@ -503,7 +503,7 @@ void ProfilesEditorDialog::buildUi()
     m_keyTypeCombo->addItem(QStringLiteral("pq")); // placeholder
 
     m_keyFileEdit = new QLineEdit(detailsWidget);
-    m_keyFileEdit->setPlaceholderText(tr("e.g. /home/timo/.ssh/id_ed25519 (optional)"));
+    m_keyFileEdit->setPlaceholderText(tr("e.g. /home/john/.ssh/id_ed25519 (optional)"));
 
     auto *browseBtn = new QToolButton(detailsWidget);
     browseBtn->setText("...");
