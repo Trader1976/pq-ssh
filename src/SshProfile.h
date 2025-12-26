@@ -13,6 +13,46 @@ struct ProfileMacro {
     bool    sendEnter = true;
 };
 
+// -----------------------------
+// Port forwarding (per-profile)
+// -----------------------------
+enum class PortForwardType {
+    Local,   // -L
+    Remote,  // -R
+    Dynamic  // -D (SOCKS)
+};
+
+struct PortForwardRule {
+    PortForwardType type = PortForwardType::Local;
+    QString bind = "127.0.0.1";   // listen/bind address
+    int listenPort = 0;          // required
+
+    // Only for Local/Remote
+    QString targetHost = "localhost";
+    int targetPort = 0;
+
+    bool enabled = true;
+    QString note;
+};
+
+static inline QString portForwardTypeToString(PortForwardType t)
+{
+    switch (t) {
+        case PortForwardType::Local:   return "local";
+        case PortForwardType::Remote:  return "remote";
+        case PortForwardType::Dynamic: return "dynamic";
+    }
+    return "local";
+}
+
+static inline PortForwardType portForwardTypeFromString(const QString &s)
+{
+    const QString v = s.trimmed().toLower();
+    if (v == "remote")  return PortForwardType::Remote;
+    if (v == "dynamic") return PortForwardType::Dynamic;
+    return PortForwardType::Local;
+}
+
 struct SshProfile {
     // Connection
     QString name;
@@ -39,6 +79,12 @@ struct SshProfile {
     // Hotkey macros (NEW: multi)
     // -----------------------------
     QVector<ProfileMacro> macros;
+
+    // -----------------------------
+    // Port forwarding (NEW)
+    // -----------------------------
+    bool portForwardingEnabled = false;
+    QVector<PortForwardRule> portForwards;
 
     // -----------------------------
     // Backward-compat (OLD: single)

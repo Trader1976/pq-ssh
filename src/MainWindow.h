@@ -131,7 +131,10 @@ private:
     FilesTab   *m_filesTab = nullptr;
 
     // Terminal UI (QTermWidget-based)
-    void openShellForProfile(const SshProfile &p, const QString &target, bool newWindow);
+    void openShellForProfile(const SshProfile &p,
+                         const QString &target,
+                         bool newWindow,
+                         const QStringList &extraSshArgs = {});
     CpunkTermWidget* createTerm(const SshProfile &p, QWidget *parent);
     void applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p);
 

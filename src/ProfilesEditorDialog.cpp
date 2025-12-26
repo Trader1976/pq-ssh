@@ -28,6 +28,7 @@
 //
 
 #include "ProfilesEditorDialog.h"
+#include "PortForwardingDialog.h"
 
 #include <QHBoxLayout>
 #include <QVBoxLayout>
@@ -93,6 +94,18 @@ static QString extractFirstAfter(const QString &text, const QString &prefix)
             return s.mid(prefix.size()).trimmed();
     }
     return QString();
+}
+
+static QString forwardSummary(const SshProfile &p)
+{
+    int l=0,r=0,d=0;
+    for (const auto &f : p.portForwards) {
+        if (!f.enabled) continue;
+        if (f.type == PortForwardType::Local) ++l;
+        else if (f.type == PortForwardType::Remote) ++r;
+        else ++d;
+    }
+    return QString("Forwards: L%1 R%2 D%3").arg(l).arg(r).arg(d);
 }
 
 static void fillSchemeCombo(QComboBox *combo)
@@ -319,42 +332,7 @@ void ProfilesEditorDialog::loadMacroToEditor(int macroRow)
     if (m_macroEnterCheck) m_macroEnterCheck->setChecked(m.sendEnter);
 }
 
-// Writes the currently visible macro editor fields -> m_working[m_currentRow].macros[m_currentMacroRow]
-void ProfilesEditorDialog::syncMacroEditorToCurrent()
-{
-    if (m_currentRow < 0 || m_currentRow >= m_working.size())
-        return;
 
-    SshProfile &p = m_working[m_currentRow];
-
-    if (m_currentMacroRow < 0 || m_currentMacroRow >= p.macros.size())
-        return;
-
-    ProfileMacro &m = p.macros[m_currentMacroRow];
-
-    // Name
-    if (m_macroNameEdit)
-        m.name = m_macroNameEdit->text().trimmed();
-
-    // Shortcut
-    if (m_macroShortcutEdit)
-        m.shortcut = m_macroShortcutEdit->keySequence().toString().trimmed();
-
-    // Command
-    if (m_macroCmdEdit)
-        m.command = m_macroCmdEdit->text();
-
-    // Enter behavior
-    if (m_macroEnterCheck)
-        m.sendEnter = m_macroEnterCheck->isChecked();
-
-    // Live update list item label (no full rebuild needed).
-    if (m_macroList && m_currentMacroRow >= 0 && m_currentMacroRow < m_macroList->count()) {
-        if (QListWidgetItem *it = m_macroList->item(m_currentMacroRow)) {
-            it->setText(macroDisplayName(m, m_currentMacroRow));
-        }
-    }
-}
 
 // =========================================================
 // Constructor
@@ -402,7 +380,6 @@ ProfilesEditorDialog::ProfilesEditorDialog(const QVector<SshProfile> &profiles,
 // - buildUi() is view assembly only; no persistence, no SSH.
 // - It may seed "one empty macro" for usability, but that is still just model state.
 //
-
 void ProfilesEditorDialog::buildUi()
 {
     // Splitter provides resizable columns.
@@ -518,7 +495,7 @@ void ProfilesEditorDialog::buildUi()
 
     auto *keyRow = new QWidget(detailsWidget);
     auto *keyRowLayout = new QHBoxLayout(keyRow);
-    keyRowLayout->setContentsMargins(0,  0,  0,  0);
+    keyRowLayout->setContentsMargins(0, 0, 0, 0);
     keyRowLayout->setSpacing(6);
     keyRowLayout->addWidget(m_keyFileEdit, 1);
     keyRowLayout->addWidget(m_keyClearBtn, 0);
@@ -530,6 +507,7 @@ void ProfilesEditorDialog::buildUi()
                 m_keyClearBtn->setEnabled(!t.trimmed().isEmpty());
         });
     }
+
     connect(browseBtn, &QToolButton::clicked, this, [this]() {
         const QString startDir = QDir::homePath() + "/.ssh";
         const QString path = QFileDialog::getOpenFileName(
@@ -556,6 +534,38 @@ void ProfilesEditorDialog::buildUi()
     form->addRow(tr("Key type:"), m_keyTypeCombo);
     form->addRow(tr("Key file:"), keyRow);
 
+    // =========================
+    // Advanced: Port forwarding (inside form)
+    // =========================
+    auto *advBox = new QWidget(detailsWidget);
+    auto *advL = new QVBoxLayout(advBox);
+    advL->setContentsMargins(0, 6, 0, 0);
+    advL->setSpacing(6);
+
+    auto *advTitle = new QLabel(tr("Advanced"), advBox);
+    advTitle->setStyleSheet("font-weight: bold;");
+
+    m_pfEnableCheck = new QCheckBox(tr("Enable port forwarding"), advBox);
+
+    auto *pfRow = new QWidget(advBox);
+    auto *pfRowL = new QHBoxLayout(pfRow);
+    pfRowL->setContentsMargins(0, 0, 0, 0);
+    pfRowL->setSpacing(6);
+
+    m_pfSummaryLbl = new QLabel(tr("Forwards: L0 R0 D0"), pfRow);
+    m_pfSummaryLbl->setStyleSheet("color: #9aa0a6; font-size: 12px;");
+
+    m_pfEditBtn = new QPushButton(tr("Port forwarding…"), pfRow);
+
+    pfRowL->addWidget(m_pfSummaryLbl, 1);
+    pfRowL->addWidget(m_pfEditBtn, 0);
+
+    advL->addWidget(advTitle);
+    advL->addWidget(m_pfEnableCheck);
+    advL->addWidget(pfRow);
+
+    form->addRow(QString(), advBox);
+
     // Server crypto probe (uses system OpenSSH for a quick negotiation report)
     m_probeBtn = new QPushButton(tr("Probe server crypto…"), detailsWidget);
     m_probeBtn->setEnabled(false);
@@ -573,6 +583,7 @@ void ProfilesEditorDialog::buildUi()
     ));
     form->addRow(QString(), m_probeBtn);
 
+    // Add the form once, then buttons at the bottom
     detailsLayout->addLayout(form);
 
     m_buttonsBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, detailsWidget);
@@ -607,9 +618,9 @@ void ProfilesEditorDialog::buildUi()
     m_macroImportBtn = new QPushButton(tr("Import…"), macroPanel);
     m_macroExportBtn = new QPushButton(tr("Export…"), macroPanel);
 
-    auto* ieRow = new QWidget(macroPanel);
-    auto* ieRowL = new QHBoxLayout(ieRow);
-    ieRowL->setContentsMargins(0,0,0,0);
+    auto *ieRow = new QWidget(macroPanel);
+    auto *ieRowL = new QHBoxLayout(ieRow);
+    ieRowL->setContentsMargins(0, 0, 0, 0);
     ieRowL->setSpacing(6);
     ieRowL->addWidget(m_macroImportBtn);
     ieRowL->addWidget(m_macroExportBtn);
@@ -768,7 +779,27 @@ void ProfilesEditorDialog::buildUi()
             this, &ProfilesEditorDialog::exportMacros);
 
     connect(m_keyClearBtn, &QPushButton::clicked,
-        this, &ProfilesEditorDialog::onClearKeyFile);
+            this, &ProfilesEditorDialog::onClearKeyFile);
+
+    // Port forwardings
+    connect(m_pfEditBtn, &QPushButton::clicked,
+            this, &ProfilesEditorDialog::onEditPortForwards);
+
+    connect(m_pfEnableCheck, &QCheckBox::toggled,
+            this, [this](bool) { syncFormToCurrent(); });
+
+    // Server crypto probe wiring (ONLY ONCE)
+    connect(m_probeBtn, &QPushButton::clicked,
+            this, &ProfilesEditorDialog::onProbeCrypto);
+
+    connect(m_userEdit, &QLineEdit::textChanged,
+            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
+    connect(m_hostEdit, &QLineEdit::textChanged,
+            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
+    connect(m_portSpin, QOverload<int>::of(&QSpinBox::valueChanged),
+            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
+
+    updateProbeButtonEnabled();
 
     // UX: ensure first profile has at least one macro row so the editor doesn't look "dead".
     if (!m_working.isEmpty() && m_working[0].macros.isEmpty()) {
@@ -779,30 +810,13 @@ void ProfilesEditorDialog::buildUi()
         m.sendEnter = true;
         m_working[0].macros.push_back(m);
     }
-    // Server crypto probe wiring
-    connect(m_probeBtn, &QPushButton::clicked,
-            this, &ProfilesEditorDialog::onProbeCrypto);
-
-    connect(m_userEdit, &QLineEdit::textChanged,
-            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
-    connect(m_hostEdit, &QLineEdit::textChanged,
-            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
-
-    updateProbeButtonEnabled();    // Server crypto probe wiring
-    connect(m_probeBtn, &QPushButton::clicked,
-            this, &ProfilesEditorDialog::onProbeCrypto);
-
-    connect(m_userEdit, &QLineEdit::textChanged,
-            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
-    connect(m_hostEdit, &QLineEdit::textChanged,
-            this, &ProfilesEditorDialog::updateProbeButtonEnabled);
-
-    updateProbeButtonEnabled();
 
     // Ensure something is selected (which triggers initial load).
     if (m_list->count() > 0 && m_list->currentRow() < 0)
         m_list->setCurrentRow(0);
 }
+
+
 
 // =========================================================
 // Selection change handling
@@ -906,7 +920,12 @@ void ProfilesEditorDialog::loadProfileToForm(int row)
         m_working[row].macros.push_back(m);
     }
 
+
     rebuildMacroList();
+
+    if (m_pfEnableCheck) m_pfEnableCheck->setChecked(p.portForwardingEnabled);
+    if (m_pfSummaryLbl)  m_pfSummaryLbl->setText(forwardSummary(p));
+    if (m_pfEditBtn)     m_pfEditBtn->setEnabled(true);
 
     // Prefer previous macro selection if still valid.
     int wantRow = m_currentMacroRow;
@@ -950,6 +969,13 @@ void ProfilesEditorDialog::syncFormToCurrent()
 
     SshProfile &p = m_working[m_currentRow];
 
+    // ---- Port forwarding ----
+    if (m_pfEnableCheck)
+        p.portForwardingEnabled = m_pfEnableCheck->isChecked();
+
+    if (m_pfSummaryLbl)
+        m_pfSummaryLbl->setText(forwardSummary(p));
+
     // Core connection
     if (m_nameEdit) p.name = m_nameEdit->text().trimmed();
     if (m_userEdit) p.user = m_userEdit->text().trimmed();
@@ -990,6 +1016,7 @@ void ProfilesEditorDialog::syncFormToCurrent()
 
     p.name = shownName;
 }
+
 
 // Live update list label when user edits Name: field.
 // If Name is empty, show "user@host" as the visible label.
@@ -1115,7 +1142,42 @@ bool ProfilesEditorDialog::validateProfiles(QString *errMsg) const
     if (errMsg) errMsg->clear();
     return true;
 }
+// Writes the currently visible macro editor fields -> m_working[m_currentRow].macros[m_currentMacroRow]
+void ProfilesEditorDialog::syncMacroEditorToCurrent()
+{
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return;
 
+    SshProfile &p = m_working[m_currentRow];
+
+    if (m_currentMacroRow < 0 || m_currentMacroRow >= p.macros.size())
+        return;
+
+    ProfileMacro &m = p.macros[m_currentMacroRow];
+
+    // Name
+    if (m_macroNameEdit)
+        m.name = m_macroNameEdit->text().trimmed();
+
+    // Shortcut
+    if (m_macroShortcutEdit)
+        m.shortcut = m_macroShortcutEdit->keySequence().toString().trimmed();
+
+    // Command
+    if (m_macroCmdEdit)
+        m.command = m_macroCmdEdit->text();
+
+    // Enter behavior
+    if (m_macroEnterCheck)
+        m.sendEnter = m_macroEnterCheck->isChecked();
+
+    // Live update list item label (no full rebuild needed).
+    if (m_macroList && m_currentMacroRow >= 0 && m_currentMacroRow < m_macroList->count()) {
+        if (QListWidgetItem *it = m_macroList->item(m_currentMacroRow)) {
+            it->setText(macroDisplayName(m, m_currentMacroRow));
+        }
+    }
+}
 void ProfilesEditorDialog::onAccepted()
 {
     // Capture any in-flight edits.
@@ -1431,6 +1493,24 @@ void ProfilesEditorDialog::onProbeCrypto()
     box.exec();
 }
 
+void ProfilesEditorDialog::onEditPortForwards()
+{
+    if (m_currentRow < 0 || m_currentRow >= m_working.size())
+        return;
+
+    syncFormToCurrent();
+
+    PortForwardingDialog dlg(m_working[m_currentRow].portForwards, this);
+    if (dlg.exec() != QDialog::Accepted)
+        return;
+
+    m_working[m_currentRow].portForwards = dlg.rules();
+
+    if (m_pfSummaryLbl)
+        m_pfSummaryLbl->setText(forwardSummary(m_working[m_currentRow]));
+
+    syncFormToCurrent();
+}
 
 
 

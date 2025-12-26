@@ -99,6 +99,7 @@ private slots:
     void onClearKeyFile();
     void onProbeCrypto();
     void updateProbeButtonEnabled();
+    void onEditPortForwards();
 
 
 private:
@@ -153,4 +154,9 @@ private:
 
     // Save / Cancel
     QDialogButtonBox *m_buttonsBox = nullptr;
+
+    // Advanced: Port forwarding
+    QCheckBox   *m_pfEnableCheck = nullptr;
+    QLabel      *m_pfSummaryLbl  = nullptr;
+    QPushButton *m_pfEditBtn     = nullptr;
 };

@@ -339,6 +339,39 @@ void MainWindow::ensureProfileItemSelected()
     }
 }
 
+static QStringList buildPortForwardArgs(const SshProfile &p)
+{
+    QStringList out;
+    if (!p.portForwardingEnabled) return out;
+
+    for (const auto &r : p.portForwards) {
+        if (!r.enabled) continue;
+        if (r.listenPort <= 0 || r.listenPort > 65535) continue;
+
+        const QString bind = r.bind.trimmed().isEmpty() ? QStringLiteral("127.0.0.1") : r.bind.trimmed();
+
+        if (r.type == PortForwardType::Dynamic) {
+            out << "-D" << QString("%1:%2").arg(bind).arg(r.listenPort);
+            continue;
+        }
+
+        if (r.targetHost.trimmed().isEmpty()) continue;
+        if (r.targetPort <= 0 || r.targetPort > 65535) continue;
+
+        const QString spec = QString("%1:%2:%3:%4")
+            .arg(bind)
+            .arg(r.listenPort)
+            .arg(r.targetHost.trimmed())
+            .arg(r.targetPort);
+
+        if (r.type == PortForwardType::Local)  out << "-L" << spec;
+        else                                   out << "-R" << spec;
+    }
+
+    return out;
+}
+
+
 void MainWindow::applyCurrentTheme()
 {
     QSettings s;
@@ -1205,7 +1238,11 @@ void MainWindow::onConnectClicked()
     const bool newWindow =
         (m_openInNewWindowCheck && m_openInNewWindowCheck->isChecked());
 
-    openShellForProfile(p, shownTarget, newWindow);
+
+    const QStringList pfArgs = buildPortForwardArgs(p);
+
+    openShellForProfile(p, shownTarget, newWindow, pfArgs);
+
 
     updatePqStatusLabel(tr("PQ: checking…"), "#888");
 
@@ -1424,6 +1461,41 @@ bool MainWindow::probePqSupport(const QString &target)
     return true;
 }
 
+
+static QStringList redactSshArgsForUi(const QStringList &args)
+{
+    QStringList out;
+    out.reserve(args.size());
+
+    for (int i = 0; i < args.size(); ++i) {
+        const QString &a = args[i];
+
+        if (a == "-L" || a == "-R" || a == "-D") {
+            out << a;
+            // Next token is the spec; redact it if present.
+            if (i + 1 < args.size()) {
+                out << "<redacted>";
+                ++i;
+            }
+            continue;
+        }
+
+        // Optional: also redact key file path
+        if (a == "-i") {
+            out << a;
+            if (i + 1 < args.size()) {
+                out << "<keyfile>";
+                ++i;
+            }
+            continue;
+        }
+
+        out << a;
+    }
+
+    return out;
+}
+
 // ========================
 // Terminal creation
 // ========================
@@ -1478,13 +1550,20 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
         sshArgs << "-o" << "HostbasedAuthentication=no";
     }
 
+    // ---- Port forwarding (profile-defined) ----
+    const QStringList pfArgs = buildPortForwardArgs(p);
+    if (!pfArgs.isEmpty()) {
+        sshArgs << pfArgs;
+    }
+
     if (p.port > 0 && p.port != 22)
         sshArgs << "-p" << QString::number(p.port);
 
     const QString target = (p.user + "@" + p.host);
     sshArgs << target;
 
-    appendTerminalLine(tr("[SSH-CMD] ssh %1").arg(sshArgs.join(" ")));
+    appendTerminalLine(tr("[SSH-CMD] ssh %1").arg(redactSshArgsForUi(sshArgs).join(" ")));
+    logSessionInfo(QString("SSH cmd: ssh %1").arg(sshArgs.join(" ")));
 
     auto shQuote = [](const QString &s) -> QString {
         QString out = s;
@@ -1604,7 +1683,10 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
     syncTerminalSurroundingsToTerm(term);
 }
 
-void MainWindow::openShellForProfile(const SshProfile &p, const QString &target, bool newWindow)
+void MainWindow::openShellForProfile(const SshProfile &p,
+                                     const QString &target,
+                                     bool newWindow,
+                                     const QStringList &extraSshArgs)
 {
     Q_UNUSED(target);
 

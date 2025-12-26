@@ -124,6 +124,97 @@ static void syncLegacyMacroFromList(SshProfile &p)
     p.macroEnter    = m.sendEnter;
 }
 
+// -----------------------------
+// Helpers: port forwards <-> JSON
+// -----------------------------
+static bool isForwardEmpty(const PortForwardRule &r)
+{
+    return r.listenPort <= 0;
+}
+
+static bool isForwardValid(const PortForwardRule &r)
+{
+    if (r.listenPort <= 0 || r.listenPort > 65535) return false;
+
+    if (r.type == PortForwardType::Dynamic) {
+        // Only bind + listenPort matter
+        return true;
+    }
+
+    if (r.targetHost.trimmed().isEmpty()) return false;
+    if (r.targetPort <= 0 || r.targetPort > 65535) return false;
+    return true;
+}
+
+static QJsonObject forwardToJson(const PortForwardRule &r)
+{
+    QJsonObject o;
+    o["type"] = portForwardTypeToString(r.type);
+
+    const QString b = r.bind.trimmed();
+    if (!b.isEmpty()) o["bind"] = b;
+
+    o["listen_port"] = r.listenPort;
+    o["enabled"] = r.enabled;
+
+    if (r.type != PortForwardType::Dynamic) {
+        const QString th = r.targetHost.trimmed();
+        if (!th.isEmpty()) o["target_host"] = th;
+        o["target_port"] = r.targetPort;
+    }
+
+    if (!r.note.trimmed().isEmpty())
+        o["note"] = r.note.trimmed();
+
+    return o;
+}
+
+static PortForwardRule forwardFromJson(const QJsonObject &o)
+{
+    PortForwardRule r;
+    r.type = portForwardTypeFromString(o.value("type").toString("local"));
+    r.bind = o.value("bind").toString("127.0.0.1").trimmed();
+    r.listenPort = o.value("listen_port").toInt(0);
+    r.enabled = o.value("enabled").toBool(true);
+
+    if (r.type != PortForwardType::Dynamic) {
+        r.targetHost = o.value("target_host").toString("localhost");
+        r.targetPort = o.value("target_port").toInt(0);
+    } else {
+        r.targetHost = "localhost";
+        r.targetPort = 0;
+    }
+
+    r.note = o.value("note").toString();
+    return r;
+}
+
+static QJsonArray forwardsToJsonArray(const QVector<PortForwardRule> &rules)
+{
+    QJsonArray a;
+    for (const auto &r : rules) {
+        if (isForwardEmpty(r)) continue;      // don't persist blanks
+        a.append(forwardToJson(r));
+    }
+    return a;
+}
+
+static QVector<PortForwardRule> forwardsFromJsonArray(const QJsonArray &a)
+{
+    QVector<PortForwardRule> out;
+    out.reserve(a.size());
+    for (const auto &v : a) {
+        if (!v.isObject()) continue;
+        PortForwardRule r = forwardFromJson(v.toObject());
+        if (isForwardEmpty(r)) continue;
+        // Keep invalid ones too? I recommend KEEP but disable, to avoid data loss:
+        if (!isForwardValid(r)) r.enabled = false;
+        out.push_back(r);
+    }
+    return out;
+}
+
+
 QString ProfileStore::configPath()
 {
     QString baseDir = QCoreApplication::applicationDirPath();
@@ -169,6 +260,10 @@ QVector<SshProfile> ProfileStore::defaults()
     // Auth defaults
     p.keyFile = "";
     p.keyType = "auto";
+
+    // Port forwarding defaults
+    p.portForwardingEnabled = false;
+    p.portForwards.clear();
 
     // NEW: macros list (start empty; UI can create first row automatically)
     p.macros.clear();
@@ -252,6 +347,13 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
         obj["key_type"] = prof.keyType.trimmed().isEmpty()
                               ? QStringLiteral("auto")
                               : prof.keyType.trimmed();
+
+        // ---- NEW: Port forwarding ----
+        obj["port_forwarding_enabled"] = prof.portForwardingEnabled;
+
+        const QJsonArray fwArr = forwardsToJsonArray(prof.portForwards);
+        if (!fwArr.isEmpty())
+            obj["port_forwards"] = fwArr;
 
         // ---- NEW: Hotkey macros (multi) ----
         // Store only non-empty macros
@@ -358,6 +460,14 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         p.keyType = obj.value("key_type").toString("auto").trimmed();
         if (p.keyType.isEmpty())
             p.keyType = "auto";
+
+        // ---- NEW: Port forwarding ----
+        p.portForwardingEnabled = obj.value("port_forwarding_enabled").toBool(false);
+
+        if (obj.contains("port_forwards") && obj.value("port_forwards").isArray())
+            p.portForwards = forwardsFromJsonArray(obj.value("port_forwards").toArray());
+        else
+            p.portForwards.clear();
 
         // ---- NEW: macros (multi) ----
         if (obj.contains("macros") && obj.value("macros").isArray()) {

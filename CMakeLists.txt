@@ -156,6 +156,8 @@ add_executable(pq-ssh
         src/dna_vendor/qgp_randombytes.c
         src/dna_vendor/crypto/dsa/symmetric-shake.c
         src/dna_vendor/crypto/dsa/symmetric.c
+        src/PortForwardingDialog.h
+        src/PortForwardingDialog.cpp
 )
 target_include_directories(pq-ssh PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
