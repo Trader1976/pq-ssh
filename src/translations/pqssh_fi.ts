@@ -3221,31 +3221,34 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <location line="+57"/>
         <location line="+29"/>
         <source>Server crypto probe</source>
-        <translation type="unfinished"></translation>
+        <translation>Palvelimen salausasetusten tunnistus</translation>
     </message>
     <message>
         <location line="-29"/>
         <source>Could not start the ssh command.</source>
-        <translation type="unfinished"></translation>
+        <translation>ssh-komennon käynnistäminen epäonnistui.</translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Target: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Kohde: %1
+</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Port: %1
 
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Portti: %1
+
+</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>KEX: %1
 </source>
-        <translation type="unfinished">KEX: %1
+        <translation>KEX: %1
 </translation>
     </message>
     <message>
@@ -3254,25 +3257,28 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <location line="+4"/>
         <location line="+1"/>
         <source>(not found)</source>
-        <translation type="unfinished"></translation>
+        <translation>(ei löydy)</translation>
     </message>
     <message>
         <location line="-5"/>
         <source>Host key: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Palvelimen avain: %1
+</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Cipher C→S: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Salaus C→S: %1
+</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cipher S→C: %1
 </source>
-        <translation type="unfinished"></translation>
+        <translation>Salaus S→C: %1
+</translation>
     </message>
 </context>
 <context>
