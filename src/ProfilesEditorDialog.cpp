@@ -85,6 +85,25 @@ static QStringList allTermSchemes()
 
     return schemes;
 }
+
+static QString macroPlaceholderHelp()
+{
+    // Keep this in sync with expandMacroPlaceholders()/macroValueForKey()
+    return QObject::tr(
+    "You can use placeholders in macro commands:\n"
+    "  {USER}    Username\n"
+    "  {HOST}    Host/IP\n"
+    "  {PORT}    SSH port\n"
+    "  {PROFILE} Profile name\n"
+    "  {DATE}    Current date (YYYY-MM-DD)\n"
+    "  {TIME}    Current time (HH:MM:SS)\n"
+    "\n"
+    "Escapes:\n"
+    "  {{  ->  {\n"
+    "  }}  ->  }"
+    );
+}
+
 static QString extractFirstAfter(const QString &text, const QString &prefix)
 {
     const QStringList lines = text.split('\n');
@@ -658,6 +677,7 @@ void ProfilesEditorDialog::buildUi()
     auto *nameLbl = new QLabel(tr("Name:"), macroPanel);
     m_macroNameEdit = new QLineEdit(macroPanel);
     m_macroNameEdit->setPlaceholderText(tr("e.g. Backup stats"));
+    m_macroNameEdit->setToolTip(macroPlaceholderHelp());
 
     // Shortcut + Clear + Command row
     auto *rowLbls = new QWidget(macroPanel);
@@ -684,7 +704,7 @@ void ProfilesEditorDialog::buildUi()
     macroRowL->setSpacing(6);
 
     m_macroShortcutEdit = new QKeySequenceEdit(macroPanel);
-    m_macroShortcutEdit->setToolTip(tr("Click and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R"));
+    m_macroShortcutEdit->setToolTip(tr("Click and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R").arg(macroPlaceholderHelp()));
     m_macroShortcutEdit->setMinimumWidth(90);
     m_macroShortcutEdit->setMaximumWidth(120);
     m_macroShortcutEdit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
@@ -694,8 +714,10 @@ void ProfilesEditorDialog::buildUi()
     m_macroClearBtn->setFixedWidth(56);
 
     m_macroCmdEdit = new QLineEdit(macroPanel);
-    m_macroCmdEdit->setPlaceholderText(tr("e.g. cd stats && cp stats.txt stats_backup.txt"));
-    m_macroCmdEdit->setToolTip(tr("Command to send when the shortcut is pressed"));
+    m_macroCmdEdit->setPlaceholderText(tr("e.g. echo \"Connected to {USER}@{HOST}:{PORT} ({PROFILE})\""));
+    m_macroCmdEdit->setToolTip(tr(
+        "Command to send when the shortcut is pressed.\n\n%1"
+    ).arg(macroPlaceholderHelp()));
     m_macroCmdEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
     macroRowL->addWidget(m_macroShortcutEdit, 0);
@@ -704,13 +726,17 @@ void ProfilesEditorDialog::buildUi()
 
     m_macroEnterCheck = new QCheckBox(tr("Send [Enter] automatically after command"), macroPanel);
     m_macroEnterCheck->setChecked(true);
+    m_macroEnterCheck->setToolTip(tr(
+        "If enabled, PQ-SSH appends a newline so the command runs immediately."
+    ));
 
     auto *macroHint = new QLabel(
-        tr("Tip: If [Enter] is enabled, PQ-SSH appends a newline so the command runs immediately."),
+        tr("Tip: You can use placeholders like {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}."),
         macroPanel
     );
     macroHint->setWordWrap(true);
     macroHint->setStyleSheet("color: #9aa0a6; font-size: 12px;");
+    macroHint->setToolTip(macroPlaceholderHelp());
 
     // assemble macro panel
     macroL->addWidget(ieRow);

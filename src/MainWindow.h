@@ -136,6 +136,7 @@ private:
                          bool newWindow,
                          const QStringList &extraSshArgs = {});
     CpunkTermWidget* createTerm(const SshProfile &p, QWidget *parent);
+    CpunkTermWidget* createTerm(const SshProfile &p, QWidget *parent, const QStringList& extraSshArgs);
     void applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p);
 
     // Hotkey macro wiring
@@ -150,6 +151,7 @@ private:
     bool showStartupUnlockDialog();
     bool verifyAppPassword(const QString& pass) const;
     QLabel *m_versionLabel = nullptr;
+
 };
 
 #endif // MAINWINDOW_H

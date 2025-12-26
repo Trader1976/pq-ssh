@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CPUNK PQ-SSH — User Manual</title>
+    <meta name="description" content="User manual for CPUNK PQ-SSH (profile-based SSH client with PQ status, settings, file transfer, macros and logging)." />
+
+    <!-- IMPORTANT for QTextBrowser + QRC -->
+    <link rel="stylesheet" href="qrc:/docs/user-manual.css" />
+    <link rel="stylesheet" href="qrc:/docs/user-manual.css" />
+
+    <!-- Force User Manual to always look like Windows Classic -->
+    <style>
+        :root { color-scheme: light; }
+        html, body {
+            background: #ffffff !important;
+            color: #000000 !important;
+        }
+
+        /* Neutralize any inherited/global theme styling */
+        * {
+            background-color: transparent;
+            color: inherit;
+            border-color: #b0b0b0;
+        }
+
+        /* Manual layout primitives */
+        .top, .card, .callout, .note, .tip, .warn, .footer {
+            background: #ffffff !important;
+            color: #000000 !important;
+            border: 1px solid #b0b0b0 !important;
+            box-shadow: none !important;
+        }
+
+        .logo {
+            background: #e6e6e6 !important;
+            color: #000 !important;
+            border: 1px solid #b0b0b0 !important;
+            border-radius: 0 !important;
+        }
+
+        .btn {
+            background: #e6e6e6 !important;
+            color: #000 !important;
+            border: 1px solid #808080 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            text-decoration: none !important;
+        }
+        .btn:hover { filter: none !important; }
+
+        code, pre, .codeblock {
+            background: #f3f3f3 !important;
+            color: #000 !important;
+            border: 1px solid #b0b0b0 !important;
+            box-shadow: none !important;
+        }
+
+        .muted { color: #333 !important; }
+    </style>
+
+</head>
+
+<body>
+<header class="top">
+    <div class="wrap">
+        <div class="brand">
+            <div class="logo" aria-hidden="true">CP</div>
+            <div>
+                <h1>CPUNK PQ-SSH</h1>
+                <p class="subtitle">User Manual</p>
+            </div>
+        </div>
+
+        <nav class="nav" aria-label="Manual navigation">
+            <a class="btn" href="#getting-started">Getting started</a>
+            <a class="btn" href="#profiles">Profiles</a>
+            <a class="btn" href="#connect">Connect</a>
+            <a class="btn" href="#fleet-jobs">Fleet jobs</a>
+            <a class="btn" href="#macros">Macros</a>
+            <a class="btn" href="#settings">Settings</a>
+            <a class="btn" href="#themes">Themes</a>
+            <a class="btn" href="#file-transfer">File transfer</a>
+            <a class="btn" href="#pq-status">PQ status</a>
+            <a class="btn" href="#key-install">Key install</a>
+            <a class="btn" href="#logging">Logging</a>
+            <a class="btn" href="#troubleshooting">Troubleshooting</a>
+        </nav>
+    </div>
+</header>
+
+<main class="wrap content">
+    <section class="card intro">
+        <h2>What PQ-SSH is</h2>
+        <p>
+            <b>CPUNK PQ-SSH</b> is a profile-based SSH client focused on a clean terminal workflow,
+            strong security defaults, and a <b>post-quantum (PQ) readiness indicator</b>.
+        </p>
+
+        <div class="callouts">
+            <div class="callout">
+                <div class="callout-title">Terminal-first</div>
+                <p>Connections open a real SSH terminal powered by your system OpenSSH.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Profiles</div>
+                <p>Save host/user/port and preferences. Connect with one click.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Macros</div>
+                <p>Bind hotkeys to commands and send them to the active SSH terminal instantly.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">SFTP workflows</div>
+                <p>Optional libssh session enables browsing and file transfers without breaking the terminal experience.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="getting-started" class="card">
+        <h2>Getting started</h2>
+        <ol>
+            <li>Open <b>PQ-SSH</b>.</li>
+            <li>Click <b>Edit profiles…</b>.</li>
+            <li>Create a profile (Name, User, Host/IP, Port).</li>
+            <li>Select a profile and click <b>Connect</b> (or double-click the profile).</li>
+        </ol>
+
+        <div class="note">
+            <b>Default behavior:</b> “Open new connection in NEW window” is enabled, so each connection opens separately.
+        </div>
+    </section>
+
+    <section id="profiles" class="card">
+        <h2>Profiles</h2>
+        <p>A profile stores connection details and UI preferences:</p>
+
+        <ul class="bullets">
+            <li><b>Name</b> — friendly label (e.g. “Server#1”)</li>
+            <li><b>User</b> — SSH username (e.g. <code>root</code>)</li>
+            <li><b>Host</b> — hostname or IP (e.g. <code>192.168.0.1</code>)</li>
+            <li><b>Port</b> — default is <code>22</code></li>
+            <li><b>Group</b> — optional label used to organize profiles in the list</li>
+            <li><b>Key type</b> — usually <code>auto</code> or <code>openssh</code></li>
+            <li><b>Terminal scheme</b> — color scheme for the terminal</li>
+            <li><b>Hotkey macros</b> — per-profile macro list (shortcut → command)</li>
+        </ul>
+
+        <!-- ===================================================== -->
+        <!-- NEW: Port forwarding                                   -->
+        <!-- ===================================================== -->
+        <h3 id="port-forwarding">Port forwarding</h3>
+        <p>
+            PQ-SSH supports <b>per-profile port forwarding</b>. This lets you securely “tunnel” TCP traffic through your SSH
+            connection. You can enable multiple forwarding rules on a single profile (multi-forward).
+        </p>
+
+        <h4>Where to configure it</h4>
+        <ol>
+            <li>Open <b>Edit profiles…</b></li>
+            <li>Select a profile</li>
+            <li>In the middle column, open <b>Advanced</b></li>
+            <li>Enable <b>Enable port forwarding</b></li>
+            <li>Click <b>Port forwarding…</b> to add/edit rules</li>
+        </ol>
+
+        <h4>Forward types</h4>
+        <ul class="bullets">
+            <li>
+                <b>Local forwarding (-L)</b> — forwards a local port on your computer to a target host/port on the remote side.
+                <div class="note">
+                    Example: access a remote web service locally:
+                    <pre class="codeblock"><code>ssh -L 127.0.0.1:18888:localhost:18080 user@server</code></pre>
+                    Then browse/curl:
+                    <pre class="codeblock"><code>curl http://127.0.0.1:18888/</code></pre>
+                </div>
+            </li>
+            <li>
+                <b>Remote forwarding (-R)</b> — forwards a port on the remote server back to a host/port reachable from your local side.
+                <div class="note">
+                    Example (conceptual):
+                    <pre class="codeblock"><code>ssh -R 0.0.0.0:9000:127.0.0.1:3000 user@server</code></pre>
+                    Remote clients can connect to the remote server’s port <code>9000</code> (subject to server policy).
+                </div>
+            </li>
+            <li>
+                <b>Dynamic forwarding (-D)</b> — creates a local SOCKS proxy.
+                <div class="note">
+                    Example:
+                    <pre class="codeblock"><code>ssh -D 127.0.0.1:1080 user@server</code></pre>
+                    You can then point a browser or tool at SOCKS5 <code>127.0.0.1:1080</code>.
+                </div>
+            </li>
+        </ul>
+
+        <h4>Rule fields (what they mean)</h4>
+        <ul class="bullets">
+            <li><b>Enabled</b> — turns an individual rule on/off (without deleting it)</li>
+            <li><b>Type</b> — Local (-L), Remote (-R), Dynamic (-D)</li>
+            <li><b>Bind address</b> — where the listener is created (default: <code>127.0.0.1</code> for local-only)</li>
+            <li><b>Listen port</b> — the port to open (1–65535)</li>
+            <li><b>Target host / Target port</b> — only used for Local/Remote rules (ignored for Dynamic)</li>
+            <li><b>Description</b> — optional note to remember what the rule is for</li>
+        </ul>
+
+        <div class="warn">
+            <b>Security tip:</b> Prefer binding to <code>127.0.0.1</code> for local forwards.
+            Binding to <code>0.0.0.0</code> can expose the forwarded port to your entire network.
+        </div>
+
+        <h4>How to test forwarding (quick checklist)</h4>
+        <ol>
+            <li>Start a service on the remote host (example: Python test server):<br/>
+                <pre class="codeblock"><code>python3 -m http.server 18080 --bind 127.0.0.1</code></pre>
+            </li>
+            <li>In PQ-SSH, add a Local forward:<br/>
+                <pre class="codeblock"><code>127.0.0.1:18888 → localhost:18080</code></pre>
+            </li>
+            <li>Connect with the profile.</li>
+            <li>On your local machine, test it:<br/>
+                <pre class="codeblock"><code>curl -I http://127.0.0.1:18888/</code></pre>
+            </li>
+        </ol>
+
+        <h4>Troubleshooting forwarding</h4>
+        <ul class="bullets">
+            <li><b>“Address already in use”</b> means the listen port is already taken. Choose another port (e.g. 18890).</li>
+            <li><b>Connection reset / timeout</b> usually means the target service is not running or not reachable from the remote side.</li>
+            <li><b>Remote forwarding (-R) not working</b> can be blocked by the server policy (<code>AllowTcpForwarding</code>, <code>GatewayPorts</code>).</li>
+        </ul>
+
+        <div class="note">
+            PQ-SSH forwards are implemented using your system OpenSSH by passing <code>-L</code>/<code>-R</code>/<code>-D</code>
+            options when launching <code>ssh</code>. No forwarding settings are applied to the server automatically.
+        </div>
+
+        <h3>Probe server crypto (diagnostics)</h3>
+        <p>
+            In <b>Edit profiles…</b>, PQ-SSH provides a <b>Probe server crypto…</b> button to help you inspect
+            what the SSH handshake negotiates with a server.
+            This is useful when you want to verify the server’s crypto policy (or compare servers) without guessing.
+        </p>
+
+        <ul class="bullets">
+            <li><b>When it becomes available:</b> the button is enabled after you set both <b>User</b> and <b>Host</b> (Port is optional).</li>
+            <li><b>What it shows:</b> negotiated <b>KEX</b> (key exchange), <b>host key algorithm</b>, and <b>ciphers</b> in both directions (client→server / server→client).</li>
+            <li><b>How it works:</b> PQ-SSH runs your system <b>OpenSSH</b> client in verbose mode (<code>ssh -vvv</code>) with a short timeout and extracts the negotiated values.</li>
+            <li><b>Authentication not required:</b> SSH negotiation happens before authentication, so the probe can still show useful results even if login fails.</li>
+            <li><b>Read-only:</b> the probe <b>does not</b> modify the server, profile settings, or SSH configuration.</li>
+        </ul>
+
+        <div class="note">
+            If the probe shows <b>(not found)</b>, common causes include: the host is unreachable, the port is blocked,
+            DNS fails, or the local <code>ssh</code> output format differs from what the parser expects. Open the
+            probe dialog details to see the raw output.
+        </div>
+
+        <div class="tip">
+            Tip: Use the probe to confirm your server is using modern algorithms (for example <code>curve25519-sha256</code> for KEX
+            and <code>ssh-ed25519</code> for host keys), and to spot legacy RSA/SHA1 deployments that should be upgraded.
+        </div>
+
+        <div class="tip">
+            Tip: keep profile names short and consistent (Prod, Staging, Home, etc.) and use Groups to keep the list readable.
+        </div>
+    </section>
+
+    <section id="connect" class="card">
+        <h2>Connecting</h2>
+        <ol>
+            <li>Select a profile from the list.</li>
+            <li>Click <b>Connect</b> (or double-click the profile).</li>
+            <li>A terminal window opens and SSH starts automatically.</li>
+        </ol>
+
+        <div class="note">
+            Terminal sessions are driven by OpenSSH. In parallel, PQ-SSH may connect a libssh session for SFTP features.
+        </div>
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- Fleet jobs (NEW)                                       -->
+    <!-- ===================================================== -->
+
+    <section id="fleet-jobs" class="card">
+        <h2>Fleet jobs (run actions across many servers)</h2>
+
+        <p>
+            <b>Fleet jobs</b> let you run the same action across multiple saved profiles in one operation.
+            This is useful for routine admin work: health checks, service status checks, and controlled restarts.
+        </p>
+
+        <div class="callouts">
+            <div class="callout">
+                <div class="callout-title">One action → many targets</div>
+                <p>Select 5–50 profiles and execute the same job in parallel.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Concurrency control</div>
+                <p>Limit how many hosts run at once (default: 4) to avoid overload.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Timeout safety</div>
+                <p>Each target has a command timeout to prevent “hang forever” failures.</p>
+            </div>
+            <div class="callout">
+                <div class="callout-title">Audit trail</div>
+                <p>Fleet actions can be recorded to an audit log for accountability.</p>
+            </div>
+        </div>
+
+        <h3>Where to find Fleet jobs</h3>
+        <ul class="bullets">
+            <li>Open from the menu: <b>Tools → Fleet jobs…</b></li>
+        </ul>
+
+        <h3>Concepts</h3>
+        <ul class="bullets">
+            <li><b>Target</b> — one profile/host that the job runs against</li>
+            <li><b>Action</b> — what you want to do (Run command, Check service, Restart service)</li>
+            <li><b>Concurrency</b> — maximum number of targets running in parallel</li>
+            <li><b>Timeout</b> — how long a single target is allowed to run before it is treated as failed</li>
+        </ul>
+
+        <h3>Step-by-step: running a Fleet job</h3>
+        <ol>
+            <li>Open <b>Tools → Fleet jobs…</b></li>
+            <li>Select one or more target profiles in the list.</li>
+            <li>Choose an <b>Action</b>:
+                <ul class="bullets">
+                    <li><b>Run command</b> — executes a shell command on each host</li>
+                    <li><b>Check service</b> — checks if a systemd service is active</li>
+                    <li><b>Restart service</b> — restarts a systemd service (disruptive)</li>
+                </ul>
+            </li>
+            <li>Enter the <b>Command</b> (or <b>Service name</b>) depending on action.</li>
+            <li>Set <b>Concurrency</b> (recommended: 2–8, depending on your network and servers).</li>
+            <li>(If shown) set a <b>Timeout</b> (recommended: 60–180 seconds).</li>
+            <li>Click <b>Run</b>.</li>
+        </ol>
+
+        <div class="note">
+            Fleet jobs create a separate SSH connection per target to avoid cross-thread reuse and to keep failures isolated.
+        </div>
+
+        <h3>Action details</h3>
+
+        <h4>Run command</h4>
+        <p>
+            Runs a command on each target. PQ-SSH captures <b>stdout</b> and <b>stderr</b> for each host and shows the result.
+        </p>
+        <div class="note">
+            Examples:
+            <pre class="codeblock"><code>uptime</code></pre>
+            <pre class="codeblock"><code>df -h</code></pre>
+            <pre class="codeblock"><code>uname -a</code></pre>
+        </div>
+
+        <h4>Check service (systemd)</h4>
+        <p>
+            Checks whether a service is active (systemd). This is a non-disruptive health check.
+        </p>
+        <div class="note">
+            Example service name:
+            <pre class="codeblock"><code>nginx</code></pre>
+            The job will evaluate the service state (active/inactive/failed) and report the result per host.
+        </div>
+
+        <h4>Restart service (systemd)</h4>
+        <p>
+            Restarts a service (systemd). This can interrupt production traffic and should be used with caution.
+            PQ-SSH requires additional confirmation before running disruptive actions.
+        </p>
+
+        <div class="warn">
+            <b>Warning:</b> Restarting services can cause outages. Avoid running restarts during package upgrades,
+            database migrations, or long-running maintenance. Prefer <b>Check service</b> first.
+        </div>
+
+        <h3>Timeouts (why they exist)</h3>
+        <p>
+            Some commands can hang (network calls, waiting for locks, interactive prompts, slow package managers).
+            Fleet jobs enforce a timeout per target so one stuck server does not block the entire job.
+        </p>
+
+        <ul class="bullets">
+            <li>If a target exceeds the timeout, it is marked as <b>Failed</b> with a timeout message.</li>
+            <li>Other targets continue running.</li>
+            <li>Timeouts do not automatically “kill” remote processes on the server; they stop waiting for output.</li>
+        </ul>
+
+        <div class="tip">
+            Tip: For maintenance tasks like <code>apt upgrade</code> or long log scans, increase timeout or avoid Fleet.
+            Fleet is best for short, repeatable commands.
+        </div>
+
+        <h3>Concurrency (don’t overload your network)</h3>
+        <p>
+            Concurrency controls how many targets run at once.
+            Higher concurrency runs faster, but can overload:
+        </p>
+        <ul class="bullets">
+            <li>your own network / VPN</li>
+            <li>the remote SSH servers</li>
+            <li>your CPU if many connections authenticate at once</li>
+        </ul>
+
+        <div class="note">
+            Recommended starting point:
+            <ul class="bullets">
+                <li><b>Home/lab:</b> 2–4</li>
+                <li><b>Small fleet (10–20 servers):</b> 4–8</li>
+                <li><b>Large fleet:</b> tune carefully and consider batching by group</li>
+            </ul>
+        </div>
+
+        <h3>Canceling a job</h3>
+        <p>
+            Click <b>Cancel</b> to request cancellation. Targets that have not started yet will be skipped.
+            Targets already running may finish their current command; results will show as <b>Canceled</b> or <b>Failed</b>
+            depending on timing.
+        </p>
+
+        <div class="note">
+            Fleet jobs are designed to be safe to cancel: cancellation does not modify profile data.
+        </div>
+
+        <h3>Understanding results</h3>
+        <p>
+            After a job finishes, each target shows:
+        </p>
+        <ul class="bullets">
+            <li><b>Status</b> — Ok / Failed / Canceled</li>
+            <li><b>Duration</b> — how long the command took</li>
+            <li><b>Output</b> — captured stdout/stderr (trimmed for readability)</li>
+        </ul>
+
+        <h3>Audit logging (recommended for Fleet)</h3>
+        <p>
+            Fleet actions can be written to a dedicated <b>audit log</b>. Audit logs are intended for
+            traceability (who ran what, when, and against which targets).
+        </p>
+
+        <div class="note">
+            Audit logs typically store:
+            <ul class="bullets">
+                <li>timestamp</li>
+                <li>event name (e.g. <code>fleet.start</code>, <code>fleet.target.ok</code>)</li>
+                <li>target host/profile information (non-secret)</li>
+                <li>optional command hash (not the full command)</li>
+            </ul>
+        </div>
+
+        <div class="warn">
+            <b>Privacy:</b> Avoid storing full command payloads in audit logs if commands may contain secrets.
+            Prefer hashes and minimal metadata.
+        </div>
+
+        <h3>Best practices</h3>
+        <ul class="bullets">
+            <li><b>Start with “Check service”</b> before using “Restart service”.</li>
+            <li><b>Use Groups</b> (Prod/Staging/Home) and run Fleet per-group to reduce risk.</li>
+            <li><b>Keep commands short</b> and non-interactive.</li>
+            <li><b>Avoid long upgrades</b> (like <code>apt upgrade</code>) in Fleet unless you increase timeouts and understand the risk.</li>
+            <li><b>Verify one host first</b>: run the command on a single server, then expand to the whole fleet.</li>
+        </ul>
+    </section>
+
+    <section id="macros" class="card">
+        <h2>Macros (hotkeys)</h2>
+        <p>
+            PQ-SSH supports <b>per-profile hotkey macros</b>. A macro is a keyboard shortcut that sends a command into the
+            active SSH terminal instantly (optionally adding an automatic <code>[Enter]</code> so the command runs right away).
+        </p>
+
+        <h3>Where macros live</h3>
+        <ul class="bullets">
+            <li>Open <b>Edit profiles…</b></li>
+            <li>Select a profile</li>
+            <li>Use the <b>Hotkey macros</b> panel on the right</li>
+        </ul>
+
+        <h3>Creating a macro</h3>
+        <ol>
+            <li>Click <b>+</b> to add a macro.</li>
+            <li>Set a <b>Name</b> (optional, but recommended).</li>
+            <li>Click the <b>Shortcut</b> field and press a key combo (e.g. <code>F2</code>, <code>Alt+X</code>, <code>Ctrl+Shift+R</code>).</li>
+            <li>Type the <b>Command</b> to send.</li>
+            <li>Enable <b>Send [Enter] automatically</b> if you want it to run immediately.</li>
+        </ol>
+
+        <div class="note">
+            Macros are intentionally simple: PQ-SSH sends plain text to the terminal. It does not execute anything locally.
+        </div>
+
+        <h3>Using macros</h3>
+        <ul class="bullets">
+            <li>Connect using the profile that contains the macro.</li>
+            <li>Press the macro shortcut while the terminal window (or tabbed window) is active.</li>
+            <li>PQ-SSH sends the macro command into the terminal.</li>
+        </ul>
+
+        <h3>Placeholders (variables)</h3>
+        <p>
+            Macros can include <b>placeholder variables</b> that PQ-SSH expands right before sending the command.
+            This lets one macro work across multiple servers without hard-coding usernames/hosts/ports.
+        </p>
+
+        <div class="note">
+            Example:
+            <pre class="codeblock"><code>echo "Connected to {USER}@{HOST}:{PORT}"</code></pre>
+            expands to:
+            <pre class="codeblock"><code>echo "Connected to john@example.com:2222"</code></pre>
+        </div>
+
+        <h3>Supported placeholders</h3>
+        <ul class="bullets">
+            <li><code>{PROFILE}</code> — profile name</li>
+            <li><code>{USER}</code> — SSH user</li>
+            <li><code>{HOST}</code> — hostname/IP</li>
+            <li><code>{PORT}</code> — port (defaults to 22)</li>
+            <li><code>{TARGET}</code> — <code>user@host</code> (or <code>user@host:port</code> if non-22)</li>
+            <li><code>{HOME}</code> — <code>~</code></li>
+            <li><code>{KEYFILE}</code> — configured key file path (if any)</li>
+        </ul>
+
+        <div class="warn">
+            <b>Important:</b> Unknown placeholders are left as-is. PQ-SSH does not “execute” placeholders; it only replaces known tokens with text.
+        </div>
+
+        <h3>Macro examples</h3>
+        <ul class="bullets">
+            <li><b>Quick status</b>
+                <pre class="codeblock"><code>uptime</code></pre>
+            </li>
+            <li><b>Show disk usage</b>
+                <pre class="codeblock"><code>df -h</code></pre>
+            </li>
+            <li><b>Follow a service log</b>
+                <pre class="codeblock"><code>journalctl -u nginx -f</code></pre>
+            </li>
+            <li><b>Context banner (with placeholders)</b>
+                <pre class="codeblock"><code>echo "=== {PROFILE} :: {TARGET} ==="</code></pre>
+            </li>
+            <li><b>Check host key entry</b>
+                <pre class="codeblock"><code>ssh-keygen -F {HOST}</code></pre>
+            </li>
+        </ul>
+
+        <div class="tip">
+            Tip: Prefer function keys (<code>F1…F12</code>) or <code>Alt+…</code> shortcuts that don’t conflict with terminal apps like <code>vim</code> or <code>mc</code>.
+        </div>
+    </section>
+
+    <section id="settings" class="card">
+        <h2>Settings menu</h2>
+        <p>
+            PQ-SSH includes a Settings dialog to control appearance and logging behavior.
+        </p>
+
+        <h3>Where to find it</h3>
+        <ul class="bullets">
+            <li>From the top menu: <b>File → Settings…</b></li>
+        </ul>
+
+        <h3>What happens when you save</h3>
+        <ul class="bullets">
+            <li>Settings are saved and applied immediately.</li>
+            <li>Theme changes take effect instantly (no restart required).</li>
+            <li>Logging level changes take effect instantly.</li>
+        </ul>
+
+        <div class="note">
+            Settings are stored using <code>QSettings</code> under the application name and organization configured by PQ-SSH.
+        </div>
+    </section>
+
+    <section id="themes" class="card">
+        <h2>Themes</h2>
+        <p>
+            Themes control the look and feel of the main UI (lists, buttons, dialogs, tabs).
+            Terminal colors are controlled separately by the selected <b>Terminal scheme</b> in each profile.
+        </p>
+
+        <h3>Available themes</h3>
+        <ul class="bullets">
+            <li><b>CPUNK Dark</b> — dark UI with CPUNK neon accents</li>
+            <li><b>CPUNK Orange</b> — dark UI with orange accents</li>
+            <li><b>Windows Basic</b> — light/neutral UI (classic desktop feel)</li>
+            <li><b>CPUNK Neo</b> — additional CPUNK-styled theme shipped with the app</li>
+        </ul>
+
+        <h3>How to change theme</h3>
+        <ol>
+            <li>Open <b>File → Settings…</b></li>
+            <li>Select an <b>App theme</b></li>
+            <li>Click <b>Save</b></li>
+        </ol>
+
+        <div class="tip">
+            If you don’t see a visible change, make sure you clicked <b>Save</b>. PQ-SSH applies the theme when settings are saved.
+        </div>
+    </section>
+
+    <section id="file-transfer" class="card">
+        <h2>File transfer</h2>
+        <p>
+            PQ-SSH includes a built-in file transfer workflow. It uses a separate <b>libssh</b> session for SFTP operations,
+            while the interactive terminal remains powered by OpenSSH.
+        </p>
+
+        <h3>Files tab</h3>
+        <p>
+            The main window includes a <b>Files</b> tab next to the <b>Log</b> tab.
+            When SFTP is connected, you can browse the remote filesystem and perform transfers.
+        </p>
+
+        <ul class="bullets">
+            <li>If libssh connects successfully, the Files tab becomes active and remote listing works.</li>
+            <li>If libssh fails, the SSH terminal still works normally, but SFTP features are disabled.</li>
+        </ul>
+
+        <h3>Drag &amp; drop uploads</h3>
+        <p>
+            PQ-SSH supports drag &amp; drop uploads into the terminal workflow:
+        </p>
+        <ul class="bullets">
+            <li>If the libssh session is connected, dropped files are uploaded to the remote current working directory (<code>$PWD</code>).</li>
+            <li>If libssh is not connected, PQ-SSH saves the dropped file locally into a safe fallback folder.</li>
+        </ul>
+
+        <h3>Local fallback folder</h3>
+        <p>
+            When the app cannot upload (no SFTP), files are saved locally to:
+        </p>
+        <pre class="codeblock"><code>~/pqssh_drops/</code></pre>
+
+        <div class="warn">
+            <b>Note:</b> The fallback exists to prevent “silent failure” when users expect a drop action to do something.
+            It is not a sync folder.
+        </div>
+
+        <h3>Common reasons SFTP is disabled</h3>
+        <ul class="bullets">
+            <li>Authentication fails for the libssh session</li>
+            <li>Network/firewall issues</li>
+            <li>Profile uses a key type not supported by libssh in PQ-SSH yet</li>
+        </ul>
+    </section>
+
+    <section id="pq-status" class="card">
+        <h2>PQ status indicator</h2>
+        <p>
+            PQ-SSH runs a quick probe to detect whether the remote server supports a PQ-capable key exchange.
+            This does <b>not</b> change server settings; it is informational.
+        </p>
+
+        <div class="badges">
+            <span class="badge ok">PQ: ACTIVE</span>
+            <span class="badge off">PQ: OFF</span>
+            <span class="badge wait">PQ: checking…</span>
+        </div>
+
+        <ul class="bullets">
+            <li><b>PQ: ACTIVE</b> — PQ-safe KEX detected (probe succeeded).</li>
+            <li><b>PQ: OFF</b> — server likely does not offer the probed PQ/hybrid KEX.</li>
+            <li><b>PQ: checking…</b> — probe in progress.</li>
+        </ul>
+
+        <div class="note">
+            The indicator is a best-effort UI hint; it does not enforce PQ mode and does not modify SSH server configuration.
+        </div>
+    </section>
+
+    <section class="card" id="key-install">
+        <h2>Installing a public key on a server</h2>
+        <p>
+            PQ-SSH can install an <b>OpenSSH public key</b> directly to the remote server’s
+            <code>~/.ssh/authorized_keys</code> file in a safe, non-destructive way.
+        </p>
+
+        <p>This feature is available from:</p>
+        <ul class="bullets">
+            <li><b>Keys → Install public key to server…</b> (main menu)</li>
+            <li><b>Key Generator → Keys tab → Install…</b> (install a selected key)</li>
+        </ul>
+
+        <h3>What you see (confirmation step)</h3>
+        <p>Before anything is changed on the server, PQ-SSH shows a confirmation dialog with:</p>
+        <ul class="bullets">
+            <li><b>Target profile name</b></li>
+            <li><b>User / host / port</b></li>
+            <li><b>Remote path:</b> <code>~/.ssh/authorized_keys</code></li>
+            <li><b>Key type</b> (for example <code>ssh-ed25519</code>)</li>
+            <li><b>Key preview</b> (a short excerpt of the key)</li>
+        </ul>
+
+        <div class="note">
+            Nothing happens unless you explicitly confirm.
+        </div>
+
+        <h3>What happens on the server</h3>
+        <p>After confirmation, PQ-SSH connects using SSH/SFTP and performs these steps:</p>
+
+        <ol>
+            <li>
+                <b>Ensure the SSH directory exists</b>
+                <pre class="codeblock"><code>mkdir -p ~/.ssh
+chmod 700 ~/.ssh</code></pre>
+            </li>
+            <li>
+                <b>Read existing <code>authorized_keys</code> (if present)</b>
+                <p>If the same key already exists, nothing is changed.</p>
+            </li>
+            <li>
+                <b>Create a timestamped backup (if the file exists)</b>
+                <p>
+                    If <code>~/.ssh/authorized_keys</code> exists, it is backed up before modification.
+                </p>
+                <div class="warn">
+                    Backup creation is mandatory. If backup fails, key installation is aborted.
+                </div>
+            </li>
+            <li>
+                <b>Append the key only if missing</b>
+                <p>The public key is added as a new line. Duplicate keys are never inserted.</p>
+            </li>
+            <li>
+                <b>Fix permissions</b>
+                <pre class="codeblock"><code>chmod 600 ~/.ssh/authorized_keys</code></pre>
+            </li>
+        </ol>
+
+        <h3>Safety guarantees</h3>
+        <ul class="bullets">
+            <li>Existing keys are preserved</li>
+            <li>Backup before modification</li>
+            <li>No duplicate keys</li>
+            <li>Correct SSH permissions enforced</li>
+            <li>No passwords or private keys are uploaded</li>
+        </ul>
+    </section>
+
+    <section id="logging" class="card">
+        <h2>Logging &amp; Debug</h2>
+
+        <h3>Logging levels</h3>
+        <p>
+            Logging verbosity can be controlled from <b>File → Settings…</b>:
+        </p>
+        <ul class="bullets">
+            <li><b>Errors only</b> — minimal logs</li>
+            <li><b>Normal</b> — recommended default</li>
+            <li><b>Debug</b> — detailed logs for troubleshooting</li>
+        </ul>
+
+        <h3>Open the log file</h3>
+        <p>Use the menu: <b>Help → Open log file</b></p>
+
+        <pre class="codeblock"><code>~/.local/share/pq-ssh/logs/pq-ssh.log</code></pre>
+
+        <h3>PQ debug mode (UI)</h3>
+        <p>
+            Enable <b>PQ debug</b> in the bottom bar to show extra diagnostics in the UI
+            (SSH command details, scheme lists, low-level messages).
+        </p>
+
+        <div class="warn">
+            <b>Privacy note:</b> PQ-SSH does not log passwords or private key contents.
+            Debug output may still contain hostnames and file paths.
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Keys &amp; expiration warnings</h2>
+        <p>Open <b>Keys → Key Generator…</b> to create/manage keys.</p>
+
+        <ul class="bullets">
+            <li>At startup PQ-SSH may auto-mark expired keys in metadata.</li>
+            <li>If expired keys exist, a warning is shown in the status area.</li>
+            <li>Rotate keys regularly for best security.</li>
+        </ul>
+    </section>
+
+    <section id="troubleshooting" class="card">
+        <h2>Troubleshooting</h2>
+
+        <details>
+            <summary>Fleet job failed on one host</summary>
+            <ul class="bullets">
+                <li>Open <b>Help → Open log file</b> for detailed errors.</li>
+                <li>Try running the same job against that single host to reproduce.</li>
+                <li>Reduce <b>Concurrency</b> if many hosts fail at once.</li>
+                <li>Increase <b>Timeout</b> if the command is slow on that host.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Fleet restart is dangerous — how to do it safely?</summary>
+            <ul class="bullets">
+                <li>Run <b>Check service</b> first to understand current state.</li>
+                <li>Restart one host first, verify behavior, then expand to the group.</li>
+                <li>Avoid restarts during OS upgrades or package installs.</li>
+                <li>Use a conservative concurrency (2–4) for production fleets.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Theme change didn’t apply</summary>
+            <ul class="bullets">
+                <li>Open <b>File → Settings…</b>, select a theme and click <b>Save</b>.</li>
+                <li>If needed, close and re-open the Settings dialog and try again.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Connection fails immediately</summary>
+            <ul class="bullets">
+                <li>Verify host/IP and port in the profile.</li>
+                <li>Check the log file (Help → Open log file).</li>
+                <li>Enable <b>PQ debug</b> for detailed SSH diagnostics.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>PQ shows OFF</summary>
+            <ul class="bullets">
+                <li>The server likely does not offer the probed PQ key exchange.</li>
+                <li>This is informational; normal SSH can still be secure depending on your policies.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Files tab / SFTP is disabled</summary>
+            <ul class="bullets">
+                <li>libssh session may fail even if the terminal SSH works.</li>
+                <li>Some key types are not supported by libssh yet.</li>
+                <li>Check logs for auth or connect errors.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Drag &amp; drop saved locally instead of uploading</summary>
+            <ul class="bullets">
+                <li>This means SFTP/libssh was not connected at the time of the drop.</li>
+                <li>Check whether SFTP is ready and try again, or use the Files tab transfers.</li>
+                <li>Local fallback folder: <code>~/pqssh_drops/</code></li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Macro shortcut doesn’t trigger</summary>
+            <ul class="bullets">
+                <li>Make sure the macro has <b>both</b> a Shortcut and a Command.</li>
+                <li>Ensure the terminal window (or the tabbed window) is the active window.</li>
+                <li>Avoid shortcuts used by the terminal app (e.g. some <code>Ctrl+…</code> combos in <code>vim</code>).</li>
+                <li>Try a function key like <code>F2</code> or an <code>Alt+…</code> shortcut.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Placeholders didn’t expand</summary>
+            <ul class="bullets">
+                <li>Make sure you used supported tokens like <code>{HOST}</code>, <code>{USER}</code>, <code>{PORT}</code>.</li>
+                <li>Unknown placeholders are left unchanged.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Too much debug output in UI</summary>
+            <ul class="bullets">
+                <li>Turn off <b>PQ debug</b>.</li>
+                <li>The app will hide noisy lines like SSH command wrappers by default.</li>
+            </ul>
+        </details>
+    </section>
+
+    <footer class="footer">
+        <div class="muted">© CPUNK Project — PQ-SSH user documentation</div>
+    </footer>
+</main>
+</body>
+</html>

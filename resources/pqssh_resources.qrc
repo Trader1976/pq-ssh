@@ -5,8 +5,9 @@
     </qresource>
 
     <qresource prefix="/docs">
-        <file alias="user-manual.html">docs/user-manual.html</file>
         <file alias="user-manual.css">docs/user-manual.css</file>
+        <file alias="user-manual_en.html">docs/user-manual_en.html</file>
+        <file alias="user-manual_fi.html">docs/user-manual_fi.html</file>
     </qresource>
 
     <qresource prefix="/i18n">

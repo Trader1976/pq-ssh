@@ -59,9 +59,12 @@
 #include <QShortcut>
 #include <QCloseEvent>
 #include <QEvent>
+#include <QDateTime>
 #include <QMetaObject>
 #include <QVariant>
 #include <QDialogButtonBox>
+#include <QDate>
+#include <QTime>
 
 #include "AppTheme.h"
 #include "ProfileStore.h"
@@ -111,6 +114,122 @@ static void forceBlackBackground(CpunkTermWidget *term);
 static void protectTermFromAppStyles(CpunkTermWidget *term);
 static void stopTerm(CpunkTermWidget* term);
 
+
+// =====================================================
+// Macro placeholder expansion
+// =====================================================
+//
+// Supported placeholders (case-insensitive):
+//   {USER}, {HOST}, {PORT}, {PROFILE}
+// Escapes:
+//   {{ -> "{", }} -> "}"
+// Unknown placeholders are left as-is.
+//
+// =====================================================
+// Macro placeholder expansion
+// =====================================================
+//
+// Supported placeholders (case-insensitive):
+//   {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}
+// Escapes:
+//   {{ -> "{", }} -> "}"
+// Unknown placeholders are left as-is.
+//
+
+static bool macroValueForKey(const QString& keyUpper,
+                             const QString& user,
+                             const QString& host,
+                             int port,
+                             const QString& profileName,
+                             QString* out)
+{
+    if (!out) return false;
+
+    if (keyUpper == "USER")    { *out = user; return true; }
+    if (keyUpper == "HOST")    { *out = host; return true; }
+    if (keyUpper == "PORT")    { *out = QString::number(port); return true; }
+    if (keyUpper == "PROFILE") { *out = profileName; return true; }
+
+    // NEW:
+    if (keyUpper == "DATE") { *out = QDate::currentDate().toString("yyyy-MM-dd"); return true; }
+    if (keyUpper == "TIME") { *out = QTime::currentTime().toString("HH:mm:ss");  return true; }
+
+    return false;
+}
+
+// Keep the old signature too (so any other call sites keep working)
+static bool macroValueForKey(const QString& keyUpper, const SshProfile& p, QString* out)
+{
+    const int port = (p.port > 0 ? p.port : 22);
+    return macroValueForKey(keyUpper, p.user, p.host, port, p.name, out);
+}
+
+static QString expandMacroPlaceholders(const QString& in,
+                                       const QString& user,
+                                       const QString& host,
+                                       int port,
+                                       const QString& profileName)
+{
+    QString out;
+    out.reserve(in.size() + 16);
+
+    const int n = in.size();
+    for (int i = 0; i < n; ++i) {
+        const QChar c = in[i];
+
+        // Escape: "{{" -> "{"
+        if (c == '{' && i + 1 < n && in[i + 1] == '{') {
+            out += '{';
+            ++i;
+            continue;
+        }
+
+        // Escape: "}}" -> "}"
+        if (c == '}' && i + 1 < n && in[i + 1] == '}') {
+            out += '}';
+            ++i;
+            continue;
+        }
+
+        // Placeholder: "{...}"
+        if (c == '{') {
+            const int end = in.indexOf('}', i + 1);
+            if (end < 0) {
+                out += c;
+                continue;
+            }
+
+            const QString key = in.mid(i + 1, end - (i + 1)).trimmed();
+            const QString keyUpper = key.toUpper();
+
+            QString val;
+            if (macroValueForKey(keyUpper, user, host, port, profileName, &val)) {
+                out += val;
+            } else {
+                // Unknown => keep as-is
+                out += '{';
+                out += key;
+                out += '}';
+            }
+
+            i = end;
+            continue;
+        }
+
+        out += c;
+    }
+
+    return out;
+}
+
+// Keep old API as wrapper
+static QString expandMacroPlaceholders(const QString& in, const SshProfile& p)
+{
+    const int port = (p.port > 0 ? p.port : 22);
+    return expandMacroPlaceholders(in, p.user, p.host, port, p.name);
+}
+
+
 // =====================================================
 // Helpers for clean command logging
 // =====================================================
@@ -123,7 +242,27 @@ static QString shellQuote(const QString &s)
     out.replace('\'', "'\"'\"'");
     return "'" + out + "'";
 }
+static QUrl resolveUserManualUrl(QString *debugOut = nullptr)
+{
+    QSettings s;
+    QString lang = s.value("ui/language", "en").toString().trimmed().toLower();
+    if (lang.contains('_')) lang = lang.section('_', 0, 0); // accept "fi_FI" too
 
+    const QString fi = QString(":/docs/user-manual_%1.html").arg(lang);
+    const QString en = QString(":/docs/user-manual_en.html");
+
+    QString dbg;
+    dbg += QString("ui/language='%1' normalized='%2'\n")
+               .arg(s.value("ui/language").toString(), lang);
+    dbg += QString("%1 exists=%2\n").arg(fi).arg(QFile::exists(fi) ? "YES" : "NO");
+    dbg += QString("%1 exists=%2\n").arg(en).arg(QFile::exists(en) ? "YES" : "NO");
+
+    if (QFile::exists(fi)) { if (debugOut) *debugOut = dbg; return QUrl("qrc" + fi); }
+    if (QFile::exists(en)) { if (debugOut) *debugOut = dbg; return QUrl("qrc" + en); }
+
+    if (debugOut) *debugOut = dbg;
+    return {};
+}
 static QString prettyCommandLine(const QString &exe, const QStringList &args)
 {
     QStringList parts;
@@ -1496,10 +1635,8 @@ static QStringList redactSshArgsForUi(const QStringList &args)
     return out;
 }
 
-// ========================
-// Terminal creation
-// ========================
-CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
+
+CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent, const QStringList& extraSshArgs)
 {
     auto *term = new CpunkTermWidget(0, parent);
     term->setHistorySize(qMax(0, p.historyLines));
@@ -1550,11 +1687,14 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
         sshArgs << "-o" << "HostbasedAuthentication=no";
     }
 
-    // ---- Port forwarding (profile-defined) ----
+    // profile-defined port forwarding
     const QStringList pfArgs = buildPortForwardArgs(p);
-    if (!pfArgs.isEmpty()) {
+    if (!pfArgs.isEmpty())
         sshArgs << pfArgs;
-    }
+
+    // NEW: extra args (from openShellForProfile caller)
+    if (!extraSshArgs.isEmpty())
+        sshArgs << extraSshArgs;
 
     if (p.port > 0 && p.port != 22)
         sshArgs << "-p" << QString::number(p.port);
@@ -1622,6 +1762,16 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
 
     appendTerminalLine(tr("[TERM] ssh started (wrapped); terminal will close when ssh exits."));
     return term;
+}
+
+
+
+// ========================
+// Terminal creation
+// ========================
+CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
+{
+    return createTerm(p, parent, QStringList());
 }
 
 static void forceBlackBackground(CpunkTermWidget *term)
@@ -1706,7 +1856,7 @@ void MainWindow::openShellForProfile(const SshProfile &p,
         w->resize(p.termWidth > 0 ? p.termWidth : 900,
                   p.termHeight > 0 ? p.termHeight : 500);
 
-        auto *term = createTerm(p, w);
+        auto *term = createTerm(p, w, extraSshArgs);
         w->setCentralWidget(term);
 
         w->setProperty("pqssh_term", QVariant::fromValue(static_cast<QObject*>(term)));
@@ -1763,7 +1913,7 @@ void MainWindow::openShellForProfile(const SshProfile &p,
         m_tabbedShellWindow->resize(1000, 650);
     }
 
-    auto *term = createTerm(p, m_tabWidget);
+    auto *term = createTerm(p, m_tabWidget, extraSshArgs);
     const int idx = m_tabWidget->addTab(term, tabTitle);
     m_tabWidget->setCurrentIndex(idx);
 
@@ -1842,10 +1992,13 @@ bool MainWindow::uiVerbose() const
 
 void MainWindow::onOpenUserManual()
 {
-    const QUrl url("qrc:/docs/user-manual.html");
+    QString dbg;
+    const QUrl url = resolveUserManualUrl(&dbg);
 
-    if (!QFile::exists(":/docs/user-manual.html")) {
-        appendTerminalLine(tr("[WARN] User manual resource missing: :/docs/user-manual.html"));
+    if (!url.isValid()) {
+        appendTerminalLine("[MANUAL] Not found:\n" + dbg);
+        QMessageBox::warning(this, tr("User Manual"),
+                             tr("User manual was not found in application resources."));
         return;
     }
 
@@ -1855,31 +2008,16 @@ void MainWindow::onOpenUserManual()
     dlg->resize(980, 720);
 
     auto *layout = new QVBoxLayout(dlg);
-
     auto *browser = new QTextBrowser(dlg);
-
-    browser->document()->setDefaultStyleSheet(
-        "body { background:#0b0b0c; color:#e7e7ea; }"
-        "a, a:link, a:visited { color:#00ff99; text-decoration:none; }"
-        "a:hover { text-decoration:underline; color:#7cffc8; }"
-        ".nav a, a.btn {"
-        "  display:inline-block;"
-        "  padding:6px 12px;"
-        "  border-radius:999px;"
-        "  background:rgba(0,255,153,.08);"
-        "  border:1px solid rgba(0,255,153,.28);"
-        "  text-decoration:none;"
-        "}"
-    );
-
     browser->setOpenExternalLinks(true);
     browser->setSource(url);
 
     layout->addWidget(browser);
-
     dlg->setLayout(layout);
     dlg->show();
 }
+
+
 
 void MainWindow::onTestUnlockDilithiumKey()
 {
@@ -2024,12 +2162,18 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
 
     QPointer<CpunkTermWidget> termPtr(term);
 
+    // Capture only what placeholder expansion needs (avoid capturing full SshProfile)
+    const QString macroUser    = p.user;
+    const QString macroHost    = p.host;
+    const int     macroPort    = (p.port > 0 ? p.port : 22);
+    const QString macroProfile = p.name;
+
     for (int i = 0; i < macros.size(); ++i) {
         const ProfileMacro& m = macros[i];
 
         const QString shortcutText = m.shortcut.trimmed();
         const QString cmd          = m.command;
-        const bool sendEnter       = m.sendEnter;
+        const bool    sendEnter    = m.sendEnter;
 
         if (shortcutText.isEmpty() || cmd.trimmed().isEmpty())
             continue;
@@ -2056,18 +2200,31 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
                          shownName,
                          p.name));
 
-        connect(sc, &QShortcut::activated, this, [this, termPtr, cmd, sendEnter, shownName]() {
+        connect(sc, &QShortcut::activated, this,
+                [this, termPtr, cmd, sendEnter, shownName,
+                 macroUser, macroHost, macroPort, macroProfile]()
+        {
             if (!termPtr) return;
 
-            QString out = cmd;
+            // Expand placeholders right before sending (per user manual)
+            const QString expanded = expandMacroPlaceholders(
+                cmd,
+                macroUser,
+                macroHost,
+                macroPort,
+                macroProfile
+            );
+
+            QString out = expanded;
             if (sendEnter)
                 out += "\n";
 
             termPtr->sendText(out);
-            uiDebug(tr("[MACRO] Sent (%1): %2").arg(shownName, cmd.trimmed()));
+            uiDebug(tr("[MACRO] Sent (%1): %2").arg(shownName, expanded.trimmed()));
         });
     }
 }
+
 
 void MainWindow::onKexNegotiated(const QString& prettyText, const QString& rawKex)
 {
