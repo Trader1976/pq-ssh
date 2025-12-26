@@ -1,119 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="en_ES">
+<TS version="2.1" language="en_US">
 <context>
     <name>AuditLogModel</name>
     <message>
         <location filename="../Audit/AuditLogModel.cpp" line="+19"/>
         <source>Time</source>
-        <translation>Hora</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Level</source>
-        <translation>Nivel</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Event</source>
-        <translation>Evento</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Target</source>
-        <translation>Objetivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Summary</source>
-        <translation>Resumen</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Session</source>
-        <translation>Sesión</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+17"/>
         <source>OK</source>
-        <translation>OK</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>WARN</source>
-        <translation>ADVERTENCIA</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>ERROR</source>
-        <translation>ERROR</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>SEC</source>
-        <translation>SEG</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>INFO</source>
-        <translation>INFO</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+17"/>
         <source>%1
 %2</source>
-        <translation>%1
-%2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Cannot open %1: %2</source>
-        <translation>No se puede abrir %1: %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+36"/>
         <source>Invalid JSON</source>
-        <translation>JSON no válido</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+80"/>
         <source>Fleet started (%1 targets, concurrency %2)</source>
-        <translation>Flota iniciada (%1 objetivos, concurrencia %2)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Target %1 in %2 ms — %3</source>
-        <translation>Objetivo %1 en %2 ms — %3</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>done</source>
-        <translation>hecho</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Target done in %1 ms</source>
-        <translation>Objetivo completado en %1 ms</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Fleet event: %1</source>
-        <translation>Evento de flota: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Key install: %1</source>
-        <translation>Instalación de clave: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Key install activity</source>
-        <translation>Actividad de instalación de claves</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>%1 (%2)</source>
-        <translation>%1 (%2)</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -121,149 +120,149 @@
     <message>
         <location filename="../Audit/AuditLogViewerDialog.cpp" line="+59"/>
         <source>Audit Log Viewer</source>
-        <translation>Visor de registros de auditoría</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Search event/target/session/message…</source>
-        <translation>Buscar evento/objetivo/sesión/mensaje…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Reload</source>
-        <translation>Recargar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Open folder</source>
-        <translation>Abrir carpeta</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Export HTML…</source>
-        <translation>Exportar HTML…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Export the currently filtered audit events to a standalone HTML report</source>
-        <translation>Exportar los eventos de auditoría filtrados actualmente a un informe HTML independiente</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+74"/>
         <source>&lt;h3&gt;No audit file for %1&lt;/h3&gt;&lt;p&gt;&lt;code&gt;%2&lt;/code&gt;&lt;/p&gt;&lt;p&gt;%3&lt;/p&gt;</source>
-        <translation>&lt;h3&gt;No hay archivo de auditoría para %1&lt;/h3&gt;&lt;p&gt;&lt;code&gt;%2&lt;/code&gt;&lt;/p&gt;&lt;p&gt;%3&lt;/p&gt;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+64"/>
         <source>target</source>
-        <translation>objetivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>summary</source>
-        <translation>resumen</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+17"/>
         <source>&lt;details&gt;&lt;summary style=&apos;cursor:pointer&apos;&gt;Raw JSON&lt;/summary&gt;</source>
-        <translation>&lt;details&gt;&lt;summary style=&apos;cursor:pointer&apos;&gt;JSON sin procesar&lt;/summary&gt;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+29"/>
         <source>pq-ssh-audit-%1-%2.html</source>
-        <translation>pq-ssh-audit-%1-%2.html</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Export audit log (HTML)</source>
-        <translation>Exportar registro de auditoría (HTML)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>HTML files (*.html);;All files (*)</source>
-        <translation>Archivos HTML (*.html);;Todos los archivos (*)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+14"/>
         <location line="+31"/>
         <source>PQ-SSH Audit Report</source>
-        <translation>Informe de auditoría PQ-SSH</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Date: %1</source>
-        <translation>Fecha: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Source file:</source>
-        <translation>Archivo de origen:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Rows exported (filtered): %1</source>
-        <translation>Filas exportadas (filtradas): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Search filter:</source>
-        <translation>Filtro de búsqueda:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Time</source>
-        <translation>Hora</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Severity</source>
-        <translation>Severidad</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Event</source>
-        <translation>Evento</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Target</source>
-        <translation>Objetivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Session</source>
-        <translation>Sesión</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Details</source>
-        <translation>Detalles</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+26"/>
         <source>INFO</source>
-        <translation>INFO</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>-</source>
-        <translation>-</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Raw JSON</source>
-        <translation>JSON sin procesar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <source>CPUNK PQ-SSH — audit export</source>
-        <translation>CPUNK PQ-SSH — exportación de auditoría</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+13"/>
         <source>Export failed</source>
-        <translation>Error de exportación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-13"/>
@@ -283,7 +282,7 @@
     <message>
         <location filename="../AuditLogger.cpp" line="+107"/>
         <source>AuditLogger: failed to open %1: %2</source>
-        <translation>AuditLogger: error al abrir %1: %2</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -291,17 +290,17 @@
     <message>
         <location filename="../CpunkTermWidget.cpp" line="+198"/>
         <source>Copy</source>
-        <translation>Copiar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Paste</source>
-        <translation>Pegar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Paste (Shift+Insert)</source>
-        <translation>Pegar (Shift+Insert)</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -309,67 +308,67 @@
     <message>
         <location filename="../FilesTab.cpp" line="+170"/>
         <source>Local Up</source>
-        <translation>Subir local</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Remote Up</source>
-        <translation>Subir remoto</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Refresh</source>
-        <translation>Actualizar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Upload…</source>
-        <translation>Subir…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Upload folder…</source>
-        <translation>Subir carpeta…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Download…</source>
-        <translation>Descargar…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Remote: ~</source>
-        <translation>Remoto: ~</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+73"/>
         <source>Name</source>
-        <translation>Nombre</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type</source>
-        <translation>Tipo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Size</source>
-        <translation>Tamaño</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Modified</source>
-        <translation>Modificado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+102"/>
         <source>Remote: %1</source>
-        <translation>Remoto: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+41"/>
         <source>Files</source>
-        <translation>Files</translation>
+        <translation type="unfinished">Files</translation>
     </message>
     <message>
         <location line="+0"/>
@@ -380,47 +379,47 @@
         <location line="+108"/>
         <location line="+77"/>
         <source>Not connected.</source>
-        <translation>No conectado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-739"/>
         <source>Cancel</source>
-        <translation>Cancelar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Transfer failed or cancelled.</source>
-        <translation>La transferencia falló o fue cancelada.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Transfer</source>
-        <translation>Transferencia</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Select local files to upload</source>
-        <translation>Seleccione archivos locales para subir</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>All files (*)</source>
-        <translation>Todos los archivos (*)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Select folder to upload</source>
-        <translation>Seleccione la carpeta a subir</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Upload</source>
-        <translation>Subir</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+48"/>
         <source>Uploading %1 item(s)…</source>
-        <translation>Subiendo %1 elemento(s)…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+19"/>
@@ -478,12 +477,12 @@ Folders will be deleted recursively.</source>
         <location line="+90"/>
         <location line="+6"/>
         <source>Download</source>
-        <translation>Descargar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-74"/>
         <source>Downloading %1 file(s)…</source>
-        <translation>Descargando %1 archivo(s)…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+47"/>
@@ -491,38 +490,35 @@ Folders will be deleted recursively.</source>
 %1
 
 %2</source>
-        <translation>La verificación de integridad falló para la descarga:
-    %1
-
-%2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Select file(s) or folder(s) first.</source>
-        <translation>Seleccione primero archivo(s) o carpeta(s).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Select local destination folder</source>
-        <translation>Seleccione la carpeta de destino local</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+20"/>
         <location line="+32"/>
         <source>Rename…</source>
-        <translation>Renombrar…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-31"/>
         <location line="+32"/>
         <source>New folder…</source>
-        <translation>Nueva carpeta…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-30"/>
         <location line="+32"/>
         <source>Copy path</source>
-        <translation>Copiar ruta</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-30"/>
@@ -535,45 +531,41 @@ Folders will be deleted recursively.</source>
         <location line="+6"/>
         <location line="+25"/>
         <source>Delete</source>
-        <translation>Eliminar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-91"/>
         <source>Select one or more local items first.</source>
-        <translation>Seleccione primero uno o más elementos locales.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+38"/>
         <source>Failed to delete folder:
 %1</source>
-        <translation>Error al eliminar la carpeta:
-    %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Failed to delete file:
 %1</source>
-        <translation>Error al eliminar el archivo:
-    %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Select one or more remote items first.</source>
-        <translation>Seleccione primero uno o más elementos remotos.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Deleting %1 item(s)…</source>
-        <translation>Eliminando %1 elemento(s)…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Remote delete failed:
 %1
 %2</source>
-        <translation>Error al eliminar remotamente:
-    %1
-%2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+17"/>
@@ -584,38 +576,38 @@ Folders will be deleted recursively.</source>
         <location line="+6"/>
         <location line="+12"/>
         <source>Rename</source>
-        <translation>Renombrar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-62"/>
         <source>Select exactly one local item.</source>
-        <translation>Seleccione exactamente un elemento local.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
         <location line="+52"/>
         <source>New name:</source>
-        <translation>Nuevo nombre:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-42"/>
         <source>Target name already exists.</source>
-        <translation>El nombre de destino ya existe.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Rename failed.</source>
-        <translation>Error al renombrar.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Select exactly one remote item.</source>
-        <translation>Seleccione exactamente un elemento remoto.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Renaming %1…</source>
-        <translation>Renombrando %1…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+27"/>
@@ -624,34 +616,34 @@ Folders will be deleted recursively.</source>
         <location line="+10"/>
         <location line="+6"/>
         <source>New folder</source>
-        <translation>Nueva carpeta</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-29"/>
         <location line="+29"/>
         <source>Folder name:</source>
-        <translation>Nombre de la carpeta:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-29"/>
         <location line="+29"/>
         <source>NewFolder</source>
-        <translation>NuevaCarpeta</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-21"/>
         <source>That name already exists.</source>
-        <translation>Ese nombre ya existe.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Failed to create folder.</source>
-        <translation>Error al crear la carpeta.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Creating folder %1…</source>
-        <translation>Creando carpeta %1…</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -659,84 +651,84 @@ Folders will be deleted recursively.</source>
     <message>
         <location filename="../Fleet/FleetWindow.cpp" line="+35"/>
         <source>CPUNK PQ-SSH — Fleet Jobs</source>
-        <translation>CPUNK PQ-SSH — Trabajos de flota</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Filter targets (name, host, group) ...</source>
-        <translation>Filtrar objetivos (nombre, host, grupo) ...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Select all</source>
-        <translation>Seleccionar todo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Select none</source>
-        <translation>No seleccionar ninguno</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Targets:</source>
-        <translation>Objetivos:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+28"/>
         <source>Fleet action</source>
-        <translation>Acción de flota</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <location line="+456"/>
         <source>Run command</source>
-        <translation>Ejecutar comando</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-455"/>
         <source>Check service (systemd)</source>
-        <translation>Comprobar servicio (systemd)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Restart service (systemd)</source>
-        <translation>Reiniciar servicio (systemd)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Max parallel targets</source>
-        <translation>Máximo de objetivos en paralelo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source> s</source>
-        <translation> s</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Per-target command timeout (seconds).</source>
-        <translation>Tiempo de espera del comando por objetivo (segundos).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <location line="+476"/>
         <source>None</source>
-        <translation>Ninguno</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-475"/>
         <source>Safe (head + hash)</source>
-        <translation>Seguro (cabecera + hash)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Full (risky)</source>
-        <translation>Completo (arriesgado)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+37"/>
         <source>Audit logging: Full commands</source>
-        <translation>Registro de auditoría: comandos completos</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-35"/>
@@ -757,144 +749,144 @@ Recommended setting is: Safe (head + hash).</source>
     <message>
         <location line="+8"/>
         <source>Action:</source>
-        <translation>Acción:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Concurrency:</source>
-        <translation>Concurrencia:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Timeout:</source>
-        <translation>Tiempo de espera:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Audit cmd log:</source>
-        <translation>Registro de comandos de auditoría:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+13"/>
         <source>e.g. uname -a</source>
-        <translation>p. ej. uname -a</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Command:</source>
-        <translation>Comando:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+12"/>
         <location line="+14"/>
         <source>e.g. nginx</source>
-        <translation>p. ej. nginx</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-13"/>
         <location line="+24"/>
         <source>Service:</source>
-        <translation>Servicio:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-1"/>
         <source>I understand this is disruptive (restart).</source>
-        <translation>Entiendo que esto es disruptivo (reinicio).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Run fleet job</source>
-        <translation>Ejecutar trabajo de flota</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cancel</source>
-        <translation>Cancelar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Ready.</source>
-        <translation>Ready.</translation>
+        <translation type="unfinished">Ready.</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Profile</source>
-        <translation>Perfil</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Group</source>
-        <translation>Grupo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Target</source>
-        <translation>Objetivo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Status</source>
-        <translation>Estado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Duration</source>
-        <translation>Duración</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Stdout (preview)</source>
-        <translation>Stdout (vista previa)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error (preview)</source>
-        <translation>Error (vista previa)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Fleet log…</source>
-        <translation>Registro de flota…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+44"/>
         <source>QUEUED</source>
-        <translation>EN COLA</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>RUNNING</source>
-        <translation>EN EJECUCIÓN</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>OK</source>
-        <translation>OK</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>FAIL</source>
-        <translation>FALLO</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>CANCELED</source>
-        <translation>CANCELADO</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>UNKNOWN</source>
-        <translation>DESCONOCIDO</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+56"/>
         <source>%1@%2:%3  [%4]</source>
-        <translation>%1@%2:%3  [%4]</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+73"/>
         <source>%1 ms</source>
-        <translation>%1 ms</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+63"/>
@@ -903,17 +895,17 @@ Recommended setting is: Safe (head + hash).</source>
         <location line="+7"/>
         <location line="+4"/>
         <source>Fleet</source>
-        <translation>Flota</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-58"/>
         <source>Select at least one target profile.</source>
-        <translation>Seleccione al menos un perfil de objetivo.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Audit logging: FULL commands</source>
-        <translation>Registro de auditoría: comandos COMPLETOS</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
@@ -927,414 +919,629 @@ Continue?</source>
     <message>
         <location line="+18"/>
         <source>Command is empty.</source>
-        <translation>El comando está vacío.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Check service</source>
-        <translation>Comprobar servicio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+7"/>
         <source>Service name is empty.</source>
-        <translation>El nombre del servicio está vacío.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Restart service</source>
-        <translation>Reiniciar servicio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Confirm the disruptive action checkbox to proceed.</source>
-        <translation>Marque la casilla de confirmación de acción disruptiva para continuar.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm restart</source>
-        <translation>Confirmar reinicio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Restart service &apos;%1&apos; on %2 target(s)?</source>
-        <translation>¿Reiniciar el servicio &apos;%1&apos; en %2 objetivo(s)?</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+13"/>
         <location line="+3"/>
         <source>Safe</source>
-        <translation>Seguro</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-2"/>
         <source>Full</source>
-        <translation>Completo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Starting job on %1 target(s), concurrency=%2, timeout=%3s, auditCmd=%4</source>
-        <translation>Iniciando trabajo en %1 objetivo(s), concurrencia=%2, tiempo de espera=%3 s, auditCmd=%4</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+28"/>
         <source>Cancel requested.</source>
-        <translation>Cancelación solicitada.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Running: %1</source>
-        <translation>En ejecución: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>JOB %1 started: %2</source>
-        <translation>TRABAJO %1 iniciado: %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Progress: %1/%2</source>
-        <translation>Progreso: %1/%2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Finished: OK=%1  FAIL=%2  CANCELED=%3  (targets=%4)</source>
-        <translation>Finalizado: OK=%1  FALLO=%2  CANCELADO=%3  (objetivos=%4)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Fleet result</source>
-        <translation>Resultado de flota</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Fleet result — %1</source>
-        <translation>Resultado de flota — %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+12"/>
         <source>&lt;b&gt;%1&lt;/b&gt; — %2@%3:%4 — group: %5</source>
-        <translation>&lt;b&gt;%1&lt;/b&gt; — %2@%3:%4 — grupo: %5</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Stdout</source>
-        <translation>Stdout</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Stderr</source>
-        <translation>Stderr</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>IdentityManagerDialog</name>
     <message>
-        <location filename="../IdentityManagerDialog.cpp" line="+66"/>
+        <location filename="../IdentityManagerDialog.cpp" line="+53"/>
         <source>Identity Manager</source>
-        <translation>Gestor de identidades</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>word1 word2 ... word24</source>
-        <translation>palabra1 palabra2 ... palabra24</translation>
+        <location line="+53"/>
+        <source>Saved identities.
+Select an identity to view its fingerprint and public key.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
+        <source>Remove the selected identity from the local store.
+This does not delete any exported key files.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Create a new identity by generating a random 24-word recovery phrase.
+Write the words down and keep them safe.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Save this identity to the local identity store.
+Only public information is saved (no recovery words).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>word1 word2 ... word24</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
         <source>24 words:</source>
-        <translation>24 palabras:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Passphrase:</source>
-        <translation>Frase de contraseña:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Comment:</source>
-        <translation>Comentario:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Derive global SSH key</source>
-        <translation>Derivar clave SSH global</translation>
-    </message>
-    <message>
-        <location line="+5"/>
+        <location line="+4"/>
+        <location line="+234"/>
         <source>Fingerprint:</source>
-        <translation>Huella digital:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="-217"/>
+        <source>Enter your 24-word recovery phrase.
+Words can be separated by spaces or new lines.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+19"/>
         <source>Copy public</source>
-        <translation>Copiar pública</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy fingerprint</source>
-        <translation>Copiar huella digital</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Save private…</source>
-        <translation>Guardar privada…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Save public…</source>
-        <translation>Guardar pública…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+78"/>
-        <source>Fingerprint: %1</source>
-        <translation>Huella digital: %1</translation>
+        <location line="+10"/>
+        <source>Save the private SSH key to a file.
+Protect this file and set correct permissions.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+29"/>
-        <source>Fingerprint: </source>
-        <translation>Huella digital: </translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <location line="+5"/>
-        <location line="+8"/>
-        <location line="+17"/>
-        <source>Save private key</source>
-        <translation>Guardar clave privada</translation>
-    </message>
-    <message>
-        <location line="-30"/>
-        <source>No private key derived yet.</source>
-        <translation>Todavía no se ha derivado ninguna clave privada.</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>id_ed25519</source>
-        <translation>id_ed25519</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <location line="+37"/>
+        <location line="+67"/>
+        <location line="+28"/>
         <source>Cannot write file:
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20"/>
-        <location line="+30"/>
-        <source>Write failed (short write).</source>
-        <translation>Fallo de escritura (escritura incompleta).</translation>
+        <location line="+20"/>
+        <location line="+13"/>
+        <location line="+9"/>
+        <location line="+12"/>
+        <location line="+11"/>
+        <location line="+170"/>
+        <location line="+138"/>
+        <source>Identity</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20"/>
-        <location line="+5"/>
+        <location line="-353"/>
+        <source>Failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Failed to derive BIP39 master seed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Failed to derive Ed25519 seed (SHAKE256).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Failed to create Ed25519 key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Failed to extract Ed25519 public key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Words are empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Expected 24 words, got %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Wordlist loaded but seems too small (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Wordlist is too small.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Failed to generate words.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Invalid identities.json</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+131"/>
+        <source>Remove selected identity?
+
+This does not delete exported key files.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-86"/>
+        <location line="+136"/>
+        <source>Fingerprint: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-124"/>
+        <location line="+4"/>
+        <location line="+137"/>
+        <source>Fingerprint: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-438"/>
+        <location line="+4"/>
         <location line="+5"/>
         <location line="+10"/>
-        <source>Save public key</source>
-        <translation>Guardar clave pública</translation>
+        <source>Save private key</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20"/>
-        <source>No public key derived yet.</source>
-        <translation>Todavía no se ha derivado ninguna clave pública.</translation>
+        <location line="-212"/>
+        <source>Saved identities</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
+        <location line="+16"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <location line="+355"/>
+        <source>Create identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-354"/>
+        <source>Restore identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+454"/>
         <location line="+5"/>
+        <location line="+7"/>
+        <location line="+45"/>
+        <location line="+6"/>
+        <source>Save identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-516"/>
+        <source>Derive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Restore an existing identity by entering your 24-word recovery phrase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Derive the identity fingerprint and SSH key from the entered words.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+29"/>
+        <source>Alias:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+29"/>
+        <source>Optional passphrase used together with the recovery words.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Optional human-readable name for this identity.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Comment added to the generated SSH public key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Copy the OpenSSH public key to the clipboard.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Copy the full identity fingerprint to the clipboard.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Save the public SSH key to a file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+53"/>
+        <source>No private key derived yet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>id_ed25519</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+27"/>
+        <source>Write failed (short write).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-18"/>
+        <location line="+4"/>
+        <location line="+5"/>
+        <location line="+9"/>
+        <source>Save public key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-18"/>
+        <source>No public key derived yet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>id_ed25519.pub</source>
-        <translation>id_ed25519.pub</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+240"/>
+        <source>Cannot load identities:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+26"/>
+        <location line="+5"/>
+        <source>Derive identity first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+58"/>
+        <source>Identity saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <location line="+9"/>
+        <location line="+14"/>
+        <source>Remove identity</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>KeyGeneratorDialog</name>
     <message>
-        <location filename="../KeyGeneratorDialog.cpp" line="+304"/>
+        <location filename="../KeyGeneratorDialog.cpp" line="+242"/>
         <source>Key Generator</source>
-        <translation>Generador de claves</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Algorithm:</source>
-        <translation>Algoritmo:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>id_ed25519_pqssh</source>
-        <translation>id_ed25519_pqssh</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Key filename:</source>
-        <translation>Nombre de archivo de la clave:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Label:</source>
-        <translation>Etiqueta:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Owner:</source>
-        <translation>Propietario:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>e.g. admin, prod-access, ci-deployment</source>
-        <translation>p. ej., admin, acceso-prod, despliegue-ci</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Purpose:</source>
-        <translation>Propósito:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Rotation policy (days):</source>
-        <translation>Política de rotación (días):</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Status:</source>
-        <translation>Estado:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Enable</source>
-        <translation>Habilitar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Expire date:</source>
-        <translation>Fecha de caducidad:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+11"/>
         <source>Passphrase:</source>
-        <translation>Frase de contraseña:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Passphrase (again):</source>
-        <translation>Frase de contraseña (de nuevo):</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>Encrypt Dilithium5 private key (required)</source>
-        <translation>Cifrar clave privada Dilithium5 (obligatorio)</translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+14"/>
         <source>Repeat passphrase</source>
-        <translation>Repetir frase de contraseña</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
-        <location line="+1"/>
-        <source>Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305).</source>
-        <translation>Se usa para cifrar la clave privada Dilithium5 (Argon2id + XChaCha20-Poly1305).</translation>
-    </message>
-    <message>
-        <location line="+22"/>
+        <location line="+38"/>
         <location line="+6"/>
         <source>Generate</source>
-        <translation>Generar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Inventory:
 - metadata: %1
 - key files: %2/*.pub</source>
-        <translation>Inventario:
-- metadatos: %1
-- archivos de clave: %2/*.pub</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Fingerprint</source>
-        <translation>Huella digital</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Label</source>
-        <translation>Etiqueta</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Owner</source>
-        <translation>Propietario</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Algorithm</source>
-        <translation>Algoritmo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Status</source>
-        <translation>Estado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Created</source>
-        <translation>Creada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Expires</source>
-        <translation>Caduca</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Purpose</source>
-        <translation>Propósito</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Rotation</source>
-        <translation>Rotación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Key file</source>
-        <translation>Archivo de clave</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Refresh</source>
-        <translation>Actualizar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy fingerprint</source>
-        <translation>Copiar huella digital</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Copy public key</source>
-        <translation>Copiar clave pública</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
-        <location line="+889"/>
+        <location line="+863"/>
         <source>Install selected key…</source>
-        <translation>Instalar clave seleccionada…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-888"/>
+        <location line="-862"/>
         <source>Choose a profile and install this public key into ~/.ssh/authorized_keys on that server.</source>
-        <translation>Elija un perfil e instale esta clave pública en ~/.ssh/authorized_keys en ese servidor.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-4"/>
         <source>Export pubkey…</source>
-        <translation>Exportar clave pública…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-65"/>
+        <location line="-99"/>
+        <source>Optional (encrypt private key)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>If set, ssh-keygen will encrypt the OpenSSH private key (-N).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Repeat the same passphrase to confirm.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+30"/>
         <source>Keys are saved under:
 %1</source>
         <translation type="unfinished"></translation>
@@ -1342,192 +1549,167 @@ Continue?</source>
     <message>
         <location line="+71"/>
         <source>Edit metadata.…</source>
-        <translation>Editar metadatos.…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Mark revoked</source>
-        <translation>Marcar como revocada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Delete</source>
-        <translation>Eliminar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Also delete key files</source>
-        <translation>También eliminar los archivos de clave</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+27"/>
         <source>Keys</source>
-        <translation>Claves</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Close</source>
-        <translation>Cerrar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+38"/>
         <source>Failed to create keys directory: %1</source>
-        <translation>No se pudo crear el directorio de claves: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+20"/>
+        <location line="+276"/>
         <source>Unsupported algorithm: %1</source>
-        <translation>Algoritmo no compatible: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="-262"/>
         <source>ssh-keygen timed out.</source>
-        <translation>ssh-keygen agotó el tiempo de espera.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>ssh-keygen failed:
 %1</source>
-        <translation>ssh-keygen falló:
-%1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+28"/>
         <source>Cannot read public key: %1</source>
-        <translation>No se puede leer la clave pública: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Unrecognized public key format:
 %1</source>
-        <translation>Formato de clave pública no reconocido:
-%1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Unsupported public key format (not OpenSSH, not PQSSH): %1</source>
-        <translation>Formato de clave pública no compatible (no es OpenSSH, no es PQSSH): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Invalid base64 public key data.</source>
-        <translation>Datos de clave pública en base64 no válidos.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <location line="+45"/>
-        <location line="+511"/>
+        <location line="+489"/>
         <location line="+68"/>
         <location line="+39"/>
         <source>Cannot read metadata.json</source>
-        <translation>No se puede leer metadata.json</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-643"/>
+        <location line="-621"/>
         <source>Cannot write metadata.json</source>
-        <translation>No se puede escribir metadata.json</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+168"/>
-        <source>Dilithium5 keys require a passphrase.</source>
-        <translation>Las claves Dilithium5 requieren una frase de contraseña.</translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <location line="+26"/>
+        <location line="+203"/>
         <source>Passphrases do not match.</source>
-        <translation>Las frases de contraseña no coinciden.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+20"/>
-        <source>Failed to read generated Dilithium private key.</source>
-        <translation>No se pudo leer la clave privada Dilithium generada.</translation>
+        <location line="-4"/>
+        <source>Please enter the passphrase twice.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>Encryption failed: %1</source>
-        <translation>El cifrado falló: %1</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Failed to write encrypted Dilithium key.</source>
-        <translation>No se pudo escribir la clave Dilithium cifrada.</translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+43"/>
         <source>✅ Key generated
 
 Fingerprint: %1
 Private: %2
 Public:  %3
 Metadata: %4</source>
-        <translation>✅ Clave generada
-
-Huella digital: %1
-Privada: %2
-Pública:  %3
-Metadatos: %4</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+48"/>
         <source>🔒 Private key is stored encrypted at rest (.enc)</source>
-        <translation>🔒 La clave privada se almacena cifrada en reposo (.enc)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>🔒 OpenSSH private key is passphrase-protected</source>
-        <translation>🔒 La clave privada OpenSSH está protegida con frase de contraseña</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+39"/>
         <source>Key is expired (expire_date=%1 UTC)</source>
-        <translation>La clave ha caducado (expire_date=%1 UTC)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+26"/>
         <source>Inventory warning: %1
 metadata: %2
 keys: %3</source>
-        <translation>Advertencia de inventario: %1
-metadatos: %2
-claves: %3</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>metadata: %1
 keys: %2</source>
-        <translation>metadatos: %1
-claves: %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+128"/>
         <source>Export public key</source>
-        <translation>Exportar clave pública</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Export failed</source>
-        <translation>Error al exportar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <source>metadata.json does not exist.</source>
-        <translation>metadata.json no existe.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>metadata.json is not a JSON object.</source>
-        <translation>metadata.json no es un objeto JSON.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Selected fingerprint not found in metadata.json</source>
-        <translation>La huella digital seleccionada no se encontró en metadata.json</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+39"/>
         <source>Edit failed</source>
-        <translation>Error al editar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+16"/>
@@ -1535,7 +1717,7 @@ claves: %2</translation>
         <location line="+23"/>
         <location line="+11"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-22"/>
@@ -1543,31 +1725,28 @@ claves: %2</translation>
 
 Fingerprint:
 %1</source>
-        <translation>¿Eliminar entrada de clave?
-
-Huella digital:
-%1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Also delete key files on disk.</source>
-        <translation>También eliminar los archivos de clave en el disco.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Confirm delete</source>
-        <translation>Confirmar eliminación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+52"/>
         <source>Selected key has no readable .pub file.</source>
-        <translation>La clave seleccionada no tiene un archivo .pub legible.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+30"/>
         <source>No profiles available.</source>
-        <translation>No hay perfiles disponibles.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-11"/>
@@ -1575,32 +1754,32 @@ Huella digital:
         <location line="+5"/>
         <location line="+18"/>
         <source>Install key</source>
-        <translation>Instalar clave</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-29"/>
         <source>Selected key has no readable public key file.</source>
-        <translation>La clave seleccionada no tiene un archivo de clave pública legible.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Public key line is empty.</source>
-        <translation>La línea de la clave pública está vacía.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Install selected key</source>
-        <translation>Instalar clave seleccionada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Choose target profile:</source>
-        <translation>Elegir perfil de destino:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Invalid profile selection.</source>
-        <translation>Selección de perfil no válida.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
@@ -1608,507 +1787,371 @@ Huella digital:
 
 Key: %1 (%2…)
 To profile: %3</source>
-        <translation>¿Instalar esta clave?
-
-Clave: %1 (%2…)
-Al perfil: %3</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Confirm selection</source>
-        <translation>Confirmar selección</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../MainWindow.cpp" line="+262"/>
-        <source>%1@%2:%3  [%4]</source>
-        <translation type="unfinished">%1@%2:%3  [%4]</translation>
-    </message>
-    <message>
-        <location line="+117"/>
-        <source>CPUNK PQ-SSH</source>
-        <translation type="unfinished">CPUNK PQ-SSH</translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>SSH Key Passphrase</source>
-        <translation type="unfinished">Frase de contraseña de la clave SSH</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>Enter passphrase for private key:</source>
-        <translation type="unfinished">Introduzca la frase de contraseña para la clave privada:</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Enter passphrase for key:
-%1</source>
-        <translation type="unfinished">Introduzca la frase de contraseña para la clave:
-%1</translation>
-    </message>
-    <message>
-        <location line="+28"/>
-        <source>App lock</source>
-        <translation type="unfinished">Bloqueo de la aplicación</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>App lock is enabled but no password is set.
-Disable app lock in Settings or set a password.</source>
-        <translation type="unfinished">El bloqueo de la aplicación está habilitado pero no se ha establecido una contraseña.
-Desactive el bloqueo en Configuración o establezca una contraseña.</translation>
-    </message>
-    <message>
-        <location line="+28"/>
-        <location line="+8"/>
-        <source>[WARN] %1</source>
-        <translation type="unfinished">[WARN] %1</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>⚠ WARNING: You have %1 expired SSH key(s). Open Key Generator → Keys tab to review/rotate.</source>
-        <translation type="unfinished">⚠ ADVERTENCIA: Tiene %1 clave(s) SSH caducada(s). Abra Generador de claves → pestaña Claves para revisar/rotar.</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>[SECURITY] %1</source>
-        <translation type="unfinished">[SECURITY] %1</translation>
-    </message>
-    <message>
-        <location line="+31"/>
+        <location filename="../MainWindow.cpp" line="+674"/>
         <source>Profiles</source>
-        <translation type="unfinished">Perfiles</translation>
+        <translation>Profiles</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Edit profiles…</source>
-        <translation type="unfinished"></translation>
+        <translation>Edit profiles…</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Manage profiles inside the app</source>
-        <translation type="unfinished"></translation>
+        <translation>Manage profiles inside the app</translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Host:</source>
-        <translation type="unfinished">Host:</translation>
+        <translation>Host:</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>user@hostname</source>
-        <translation type="unfinished"></translation>
+        <translation>user@hostname</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Connect</source>
-        <translation type="unfinished"></translation>
+        <translation>Connect</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Disconnect</source>
-        <translation type="unfinished"></translation>
+        <translation>Disconnect</translation>
     </message>
     <message>
         <location line="+41"/>
         <source>Log</source>
-        <translation type="unfinished"></translation>
+        <translation>Log</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Files</source>
-        <translation type="unfinished">Files</translation>
+        <translation>Files</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Type command (not wired yet) ...</source>
-        <translation type="unfinished"></translation>
+        <translation>Type command (not wired yet) ...</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Send</source>
-        <translation type="unfinished"></translation>
+        <translation>Send</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Ready.</source>
-        <translation type="unfinished">Ready.</translation>
+        <translation>Ready.</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>PQ: unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>PQ: unknown</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>PQ debug</source>
-        <translation type="unfinished">Depuración PQ</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Open new connection in NEW window</source>
-        <translation type="unfinished"></translation>
+        <translation>Open new connection in NEW window</translation>
     </message>
     <message>
         <location line="+52"/>
         <source>[PQ] 🧬 Post-Quantum key exchange established → %1</source>
-        <translation type="unfinished">[PQ] 🧬 Intercambio de claves post-cuántico establecido → %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>[KEX] Classical key exchange negotiated → %1</source>
-        <translation type="unfinished">[KEX] Intercambio de claves clásico negociado → %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Post-Quantum KEX: %1</source>
-        <translation type="unfinished">KEX post-cuántico: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1306"/>
+        <location line="+1223"/>
         <source>KEX: %1</source>
-        <translation type="unfinished">KEX: %1</translation>
-    </message>
-    <message>
-        <location line="-1301"/>
-        <location line="+1306"/>
-        <source>Negotiated KEX: %1</source>
-        <translation type="unfinished">KEX negociado: %1</translation>
-    </message>
-    <message>
-        <location line="-1300"/>
-        <source>&amp;File</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-1218"/>
+        <location line="+1223"/>
+        <source>Negotiated KEX: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-1217"/>
+        <source>&amp;File</source>
+        <translation>&amp;File</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Settings…</source>
-        <translation type="unfinished"></translation>
+        <translation>Settings…</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Open PQ-SSH settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Open PQ-SSH settings</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>CPUNK PQ-SSH — Settings</source>
-        <translation type="unfinished">CPUNK PQ-SSH — Configuración</translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <location line="+1191"/>
-        <source>[INFO] Settings updated.</source>
-        <translation type="unfinished">[INFO] Configuración actualizada.</translation>
-    </message>
-    <message>
-        <location line="-1190"/>
-        <location line="+1191"/>
-        <source>Settings updated.</source>
-        <translation type="unfinished">Configuración actualizada.</translation>
-    </message>
-    <message>
-        <location line="-1183"/>
-        <source>Import OpenSSH config…</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <location line="+1079"/>
+        <source>[INFO] Settings updated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-1078"/>
+        <location line="+1079"/>
+        <source>Settings updated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-1071"/>
+        <source>Import OpenSSH config…</source>
+        <translation>Import OpenSSH config…</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Read ~/.ssh/config and preview entries (no profiles are created yet).</source>
-        <translation type="unfinished">Leer ~/.ssh/config y previsualizar entradas (aún no se crean perfiles).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Quit</source>
-        <translation type="unfinished"></translation>
+        <translation>Quit</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>&amp;Tools</source>
-        <translation type="Herramientas"></translation>
+        <translation>&amp;Tools</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Fleet jobs…</source>
-        <translation type="unfinished"></translation>
+        <translation>Fleet jobs…</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Run the same job across multiple profiles/hosts (e.g., deploy to 10 servers).</source>
-        <translation type="unfinished">Ejecutar el mismo trabajo en varios perfiles/hosts (por ejemplo, desplegar en 10 servidores).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+27"/>
         <source>&amp;Keys</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Keys</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Key Generator…</source>
-        <translation type="unfinished"></translation>
+        <translation>Key Generator…</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Generate keys and optionally install the public key to a server profile</source>
-        <translation type="unfinished">Generar claves y, opcionalmente, instalar la clave pública en un perfil de servidor</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <source>CPUNK PQ-SSH — Key Generator</source>
-        <translation type="unfinished">CPUNK PQ-SSH — Generador de claves</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Install public key to server…</source>
-        <translation type="unfinished"></translation>
+        <translation>Install public key to server…</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Append an OpenSSH public key to ~/.ssh/authorized_keys on the selected profile host.</source>
-        <translation type="unfinished">Añadir una clave pública OpenSSH a ~/.ssh/authorized_keys en el host del perfil seleccionado.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <location line="+252"/>
-        <location line="+5"/>
-        <location line="+7"/>
-        <location line="+58"/>
-        <source>Key install</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-322"/>
-        <location line="+364"/>
-        <source>No profile selected.</source>
-        <translation type="unfinished">No se seleccionó ningún perfil.</translation>
-    </message>
-    <message>
-        <location line="-358"/>
+        <location line="+13"/>
         <source>Select OpenSSH public key (.pub)</source>
-        <translation type="unfinished">Seleccionar clave pública OpenSSH (.pub)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Public keys (*.pub);;All files (*)</source>
-        <translation type="unfinished">Claves públicas (*.pub);;Todos los archivos (*)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+292"/>
+        <location line="+218"/>
         <location line="+10"/>
         <source>Key install failed</source>
-        <translation type="unfinished">La instalación de la clave falló</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-301"/>
-        <location line="+993"/>
+        <location line="-227"/>
         <source>Cannot read file:
 %1</source>
-        <translation type="unfinished">No se puede leer el archivo:
-%1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-984"/>
-        <source>DEV: Test Dilithium key unlock…</source>
-        <translation type="unfinished">DEV: Probar desbloqueo de clave Dilithium…</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Dev tool: decrypt .enc key and validate format (only visible when PQ debug is ON).</source>
-        <translation type="unfinished">Herramienta de desarrollo: descifrar clave .enc y validar formato (solo visible cuando la depuración PQ está activada).</translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <location line="+948"/>
-        <source>[DEV] PQ debug is OFF. Enable it to use the tester.</source>
-        <translation type="unfinished">[DEV] La depuración PQ está desactivada. Actívela para usar el probador.</translation>
-    </message>
-    <message>
-        <location line="-942"/>
-        <source>Select encrypted Dilithium key (.enc)</source>
-        <translation type="unfinished">Seleccionar clave Dilithium cifrada (.enc)</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <location line="+949"/>
-        <source>Encrypted keys (*.enc);;All files (*)</source>
-        <translation type="unfinished">Claves cifradas (*.enc);;Todos los archivos (*)</translation>
-    </message>
-    <message>
-        <location line="-943"/>
-        <source>[TEST] ❌ Cannot read file: %1</source>
-        <translation type="unfinished">[TEST] ❌ No se puede leer el archivo: %1</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>[TEST] File: %1</source>
-        <translation type="unfinished">[TEST] Archivo: %1</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>[TEST] Enc size: %1 bytes</source>
-        <translation type="unfinished">[TEST] Tamaño cifrado: %1 bytes</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>[TEST] ❌ Too small to be valid (need &gt;= %1 bytes)</source>
-        <translation type="unfinished">[TEST] ❌ Demasiado pequeño para ser válido (se necesitan ≥ %1 bytes)</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>[TEST] Magic: &apos;%1&apos;</source>
-        <translation type="unfinished">[TEST] Magic: &apos;%1&apos;</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>[TEST] ⚠ WARN: Magic mismatch (expected &apos;PQSSH1&apos;). Will still try decrypt.</source>
-        <translation type="unfinished">[TEST] ⚠ ADVERTENCIA: Magic no coincide (se esperaba &apos;PQSSH1&apos;). Se intentará descifrar igualmente.</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>[TEST] ✅ Unlock OK: %1</source>
-        <translation type="unfinished">[TEST] ✅ Desbloqueo correcto: %1</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>[TEST] Enc SHA256: %1</source>
-        <translation type="unfinished">[TEST] SHA256 cifrado: %1</translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>[TEST] ❌ Unlock FAILED: %1</source>
-        <translation type="unfinished">[TEST] ❌ Desbloqueo FALLIDO: %1</translation>
-    </message>
-    <message>
-        <location line="+5"/>
+        <location line="+10"/>
         <source>&amp;View</source>
-        <translation type="unfinished">&amp;Ver</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-74"/>
         <source>Identity manager…</source>
-        <translation type="unfinished">Gestor de identidad…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Recover a global SSH keypair from 24 words (Ed25519).</source>
-        <translation type="unfinished">Recuperar un par de claves SSH global a partir de 24 palabras (Ed25519).</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>&amp;Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+100"/>
+        <source>&amp;Help</source>
+        <translation>&amp;Help</translation>
+    </message>
+    <message>
+        <location line="-25"/>
         <source>Audit log viewer…</source>
-        <translation type="unfinished">Visor de registros de auditoría…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>View audit logs in a readable, colored format</source>
-        <translation type="unfinished">Ver registros de auditoría en un formato legible y con colores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Open audit log folder</source>
-        <translation type="unfinished">Abrir carpeta de registros de auditoría</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Open audit log directory</source>
-        <translation type="unfinished">Abrir directorio de registros de auditoría</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>User Manual</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Open PQ-SSH user manual</source>
-        <translation type="unfinished">Abrir el manual de usuario de PQ-SSH</translation>
+        <source>Open audit log directory</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+15"/>
+        <location line="+886"/>
+        <source>User Manual</source>
+        <translation>User Manual</translation>
+    </message>
+    <message>
+        <location line="-885"/>
+        <source>Open PQ-SSH user manual</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-9"/>
         <source>Open log file</source>
-        <translation type="unfinished">Open log file</translation>
+        <translation>Open log file</translation>
+    </message>
+    <message>
+        <location line="-147"/>
+        <source>[INFO] Settings applied.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Open pq-ssh log file</source>
-        <translation type="unfinished">Abrir archivo de registro de pq-ssh</translation>
+        <source>Settings applied.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+147"/>
+        <source>Open pq-ssh log file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
         <source>Ready</source>
-        <translation type="unfinished">Listo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <location line="+1"/>
         <source>v0.0.0</source>
-        <translation type="unfinished">v0.0.0</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-1"/>
         <location line="+1"/>
         <source>v</source>
-        <translation type="unfinished">v</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>CPUNK PQ-SSH %1</source>
-        <translation type="unfinished">CPUNK PQ-SSH %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+49"/>
         <source>[WARN] Could not save default profiles: %1</source>
-        <translation type="unfinished">[WARN] No se pudieron guardar los perfiles predeterminados: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>[WARN] ProfileStore: %1</source>
-        <translation type="unfinished">[WARN] ProfileStore: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>[ERROR] %1</source>
-        <translation type="unfinished">[ERROR] %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed to save profiles</source>
-        <translation type="unfinished">Error al guardar los perfiles</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Profiles updated.</source>
-        <translation type="unfinished">Perfiles actualizados.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>[INFO] Profiles updated.</source>
-        <translation type="unfinished">[INFO] Perfiles actualizados.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Public key is empty.</source>
-        <translation type="unfinished">La clave pública está vacía.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Invalid target profile.</source>
-        <translation type="unfinished">Perfil de destino no válido.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+108"/>
         <source>Profile has empty user/host.</source>
-        <translation type="unfinished">El perfil tiene usuario o host vacío.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-89"/>
@@ -2130,406 +2173,278 @@ Key preview:
   %4
 
 Proceed?</source>
-        <translation type="unfinished">Está a punto de instalar una clave pública en este host:
-
-Perfil de destino:
-  %1
-
-Host:
-  %2
-
-Ruta remota:
-  ~/.ssh/authorized_keys
-
-Tipo de clave:
-  %3
-
-Vista previa de la clave:
-  %4
-
-¿Continuar?</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Confirm key install</source>
-        <translation type="unfinished">Confirmar instalación de clave</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+13"/>
         <source>SSH(SFTP) connection failed:
 %1</source>
-        <translation type="unfinished">La conexión SSH (SFTP) falló:
-%1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+16"/>
         <source>Key already existed in authorized_keys.</source>
-        <translation type="unfinished">La clave ya existía en authorized_keys.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Key installed successfully.</source>
-        <translation type="unfinished">Clave instalada correctamente.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+41"/>
         <source>[WARN] No profile selected.</source>
-        <translation type="unfinished">[WARN] No se seleccionó ningún perfil.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+8"/>
         <source>[WARN] Profile has empty user/host.</source>
-        <translation type="unfinished">[WARN] El perfil tiene usuario o host vacío.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Connecting to %1 ...</source>
-        <translation type="unfinished">Conectando a %1 ...</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>[CONNECT] %1 → %2:%3</source>
-        <translation type="unfinished">[CONNECT] %1 → %2:%3</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+17"/>
         <source>PQ: checking…</source>
-        <translation type="unfinished">PQ: comprobando…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+19"/>
         <source>[PQ-PROBE] %1</source>
-        <translation type="unfinished">[PQ-PROBE] %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <source>[PQ-PROBE] stderr: &lt;empty&gt;</source>
-        <translation type="unfinished">[PQ-PROBE] stderr: &lt;vacío&gt;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>[PQ-PROBE] stderr(first): %1</source>
-        <translation type="unfinished">[PQ-PROBE] stderr (primero): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>PQ support: YES</source>
-        <translation type="unfinished">Soporte PQ: SÍ</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>PQ support: NO</source>
-        <translation type="unfinished">Soporte PQ: NO</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+14"/>
         <source>[SFTP] Disabled (key_type=&apos;%1&apos; not supported yet)</source>
-        <translation type="unfinished">[SFTP] Deshabilitado (key_type=&apos;%1&apos; aún no es compatible)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+14"/>
         <source>[SFTP] Ready (%1@%2:%3)</source>
-        <translation type="unfinished">[SFTP] Listo (%1@%2:%3)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>[SFTP] Disabled (libssh connect failed: %1)</source>
-        <translation type="unfinished">[SFTP] Deshabilitado (falló la conexión de libssh: %1)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+22"/>
         <source>Connected: %1</source>
-        <translation type="unfinished">Conectado: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Disconnected.</source>
-        <translation type="unfinished">Desconectado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+8"/>
         <source>&gt; %1</source>
-        <translation type="unfinished">&gt; %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>[INFO] Shell not implemented yet; input not sent anywhere.</source>
-        <translation type="unfinished">[INFO] El shell aún no está implementado; la entrada no se envía a ningún lugar.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+15"/>
         <source>[DROP] %1 (%2 bytes)</source>
-        <translation type="unfinished">[DROP] %1 (%2 bytes)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <source>[DROP] ERROR: %1</source>
-        <translation type="unfinished">[DROP] ERROR: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>[DROP] Saved locally: %1</source>
-        <translation type="unfinished">[DROP] Guardado localmente: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>[UPLOAD] Could not read remote pwd. %1</source>
-        <translation type="unfinished">[UPLOAD] No se pudo leer el directorio remoto actual. %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>[UPLOAD] FAILED: %1</source>
-        <translation type="unfinished">[UPLOAD] FALLÓ: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>[UPLOAD] OK → %1</source>
-        <translation type="unfinished">[UPLOAD] OK → %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>[DOWNLOAD] Shell not implemented yet (no selection source).</source>
-        <translation type="unfinished">[DOWNLOAD] El shell aún no está implementado (no hay origen de selección).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+71"/>
+        <location line="+104"/>
         <source>[SSH] key_type=&apos;%1&apos; not implemented yet → falling back to password auth.</source>
-        <translation type="unfinished">[SSH] key_type=&apos;%1&apos; aún no está implementado → se usará autenticación por contraseña.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+28"/>
         <source>[SSH-CMD] ssh %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>[SSH-WRAP] %1</source>
-        <translation type="unfinished">[SSH-WRAP] %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>[SECURITY] Local shell fallback disabled (exec ssh)</source>
-        <translation type="unfinished">[SECURITY] Fallback de shell local deshabilitado (exec ssh)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+21"/>
         <source>[TERM] ssh ended; closing terminal tab/window and disconnecting.</source>
-        <translation type="unfinished">[TERM] ssh finalizó; cerrando pestaña/ventana del terminal y desconectando.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+23"/>
         <source>[TERM] ssh started (wrapped); terminal will close when ssh exits.</source>
-        <translation type="unfinished">[TERM] ssh iniciado (envuelto); el terminal se cerrará cuando ssh termine.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+49"/>
         <source>[TERM] profile=%1 scheme=&apos;%2&apos; (raw=&apos;%3&apos;)</source>
-        <translation type="unfinished">[TERM] perfil=%1 esquema=&apos;%2&apos; (raw=&apos;%3&apos;)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>[TERM] available schemes: %1</source>
-        <translation type="unfinished">[TERM] esquemas disponibles: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+35"/>
         <source>PQ-SSH: %1 (%2)</source>
-        <translation type="unfinished">PQ-SSH: %1 (%2)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>%1 (%2)</source>
-        <translation type="unfinished">%1 (%2)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+31"/>
         <source>PQ-SSH Tabs</source>
-        <translation type="unfinished">Pestañas PQ-SSH</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+41"/>
         <source>PQ-SSH Tabs — %1</source>
-        <translation type="unfinished">Pestañas PQ-SSH — %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+30"/>
         <source>[LOG] Log file path not available.</source>
-        <translation type="unfinished">[LOG] La ruta del archivo de registro no está disponible.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+46"/>
-        <source>[WARN] User manual resource missing: :/docs/user-manual.html</source>
-        <translation type="unfinished">[WARN] Falta el recurso del manual de usuario: :/docs/user-manual.html</translation>
+        <location line="+49"/>
+        <source>User manual was not found in application resources.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>PQ-SSH User Manual</source>
-        <translation type="unfinished">Manual de usuario de PQ-SSH</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+40"/>
-        <source>Select encrypted Dilithium private key</source>
-        <translation type="unfinished">Seleccionar clave privada Dilithium cifrada</translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <location line="+8"/>
-        <location line="+37"/>
-        <location line="+6"/>
-        <source>DEV test failed</source>
-        <translation type="unfinished">La prueba DEV falló</translation>
-    </message>
-    <message>
-        <location line="-42"/>
-        <source>File is too small to be a valid PQSSH encrypted key.
-Expected: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...).</source>
-        <translation type="unfinished">El archivo es demasiado pequeño para ser una clave cifrada PQSSH válida.
-Se esperaba: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...).</translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>[DEV] Selected: %1</source>
-        <translation type="unfinished">[DEV] Seleccionado: %1</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>[DEV] Enc size: %1 bytes</source>
-        <translation type="unfinished">[DEV] Tamaño cifrado: %1 bytes</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>[DEV] Magic: &apos;%1&apos;</source>
-        <translation type="unfinished">[DEV] Magic: &apos;%1&apos;</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>[DEV][WARN] Magic mismatch. Expected &apos;PQSSH1&apos;. Continuing anyway to test decrypt...</source>
-        <translation type="unfinished">[DEV][WARN] Magic no coincide. Se esperaba &apos;PQSSH1&apos;. Continuando igualmente para probar el descifrado…</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Dilithium Key Passphrase</source>
-        <translation type="unfinished">Frase de contraseña de la clave Dilithium</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Enter passphrase for:
-%1</source>
-        <translation type="unfinished">Introduzca la frase de contraseña para:
-%1</translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>[DEV] Cancelled by user.</source>
-        <translation type="unfinished">[DEV] Cancelado por el usuario.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>[DEV][FAIL] Decrypt failed: %1</source>
-        <translation type="unfinished">[DEV][FAIL] Falló el descifrado: %1</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Decrypt failed:
-%1</source>
-        <translation type="unfinished">El descifrado falló:
-%1</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>[DEV][FAIL] Decrypt returned empty plaintext.</source>
-        <translation type="unfinished">[DEV][FAIL] El descifrado devolvió texto plano vacío.</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Decrypt returned empty plaintext.</source>
-        <translation type="unfinished">El descifrado devolvió texto plano vacío.</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>[DEV][OK] Decrypted plaintext size: %1 bytes</source>
-        <translation type="unfinished">[DEV][OK] Tamaño del texto plano descifrado: %1 bytes</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>[DEV][OK] Plain SHA256: %1</source>
-        <translation type="unfinished">[DEV][OK] SHA256 del texto plano: %1</translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>[DEV][WARN] Plaintext is unexpectedly small for Dilithium private key material.</source>
-        <translation type="unfinished">[DEV][WARN] El texto plano es inesperadamente pequeño para material de clave privada Dilithium.</translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>DEV test OK</source>
-        <translation type="unfinished">Prueba DEV correcta</translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Decrypt OK.
-
-Validated format + passphrase unlock.
-Details written to the terminal/log.</source>
-        <translation type="unfinished">Descifrado correcto.
-
-Formato validado + desbloqueo con frase de contraseña.
-Detalles escritos en el terminal/registro.</translation>
-    </message>
-    <message>
-        <location line="+35"/>
+        <location line="+44"/>
         <source>Settings</source>
-        <translation type="unfinished">Configuración</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Settings dialog (coming next).</source>
-        <translation type="unfinished">Diálogo de configuración (próximamente).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+36"/>
+        <location line="+42"/>
         <source>[MACRO] Invalid shortcut &apos;%1&apos; (profile &apos;%2&apos;)</source>
-        <translation type="unfinished">[MACRO] Acceso directo no válido &apos;%1&apos; (perfil &apos;%2&apos;)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Macro %1</source>
-        <translation type="unfinished">Macro %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>[MACRO] Bound %1 → &quot;%2&quot; (enter=%3) [%4] profile &apos;%5&apos;</source>
-        <translation type="unfinished">[MACRO] Asignado %1 → &quot;%2&quot; (enter=%3) [%4] perfil &apos;%5&apos;</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>yes</source>
-        <translation type="unfinished">sí</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>no</source>
-        <translation type="unfinished">no</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+24"/>
         <source>[MACRO] Sent (%1): %2</source>
-        <translation type="unfinished">[MACRO] Enviado (%1): %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>PQ KEX: %1</source>
-        <translation type="unfinished">KEX PQ: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <source>CPUNK PQ-SSH — Identity Manager</source>
-        <translation type="unfinished">CPUNK PQ-SSH — Gestor de identidad</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+27"/>
         <source>OpenSSH config not found</source>
-        <translation type="unfinished">No se encontró la configuración de OpenSSH</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2538,16 +2453,12 @@ Detalles escritos en el terminal/registro.</translation>
 %1
 
 Create a starter ~/.ssh/config now?</source>
-        <translation type="unfinished">No se encontró ningún archivo de configuración de OpenSSH en:
-
-%1
-
-¿Crear ahora un ~/.ssh/config inicial?</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Cannot create config</source>
-        <translation type="unfinished">No se puede crear la configuración</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2555,15 +2466,12 @@ Create a starter ~/.ssh/config now?</source>
 %1
 
 %2</source>
-        <translation type="unfinished">Error al crear:
-%1
-
-%2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+38"/>
         <source>Nothing to import yet</source>
-        <translation type="unfinished">No hay nada que importar aún</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
@@ -2577,359 +2485,629 @@ Host myserver
     Port 22
 
 Then try Import again.</source>
-        <translation type="unfinished">Su ~/.ssh/config no contiene entradas Host activas (solo comentarios).
-
-Añada un bloque como:
-
-Host myserver
-    HostName 192.168.1.10
-    User root
-    Port 22
-
-Luego intente Importar nuevamente.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+21"/>
         <source>CPUNK PQ-SSH — Import Plan</source>
-        <translation type="unfinished">CPUNK PQ-SSH — Plan de importación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+35"/>
         <source>[INFO] Imported %1 profile(s) from ~/.ssh/config</source>
-        <translation type="unfinished">[INFO] Se importaron %1 perfil(es) desde ~/.ssh/config</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Imported %1 profiles</source>
-        <translation type="unfinished">Se importaron %1 perfiles</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>[INFO] Import plan applied: no profiles added.</source>
-        <translation type="unfinished">[INFO] Plan de importación aplicado: no se añadieron perfiles.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Import plan applied: no changes.</source>
-        <translation type="unfinished">Plan de importación aplicado: sin cambios.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+69"/>
         <source>Unlock CPUNK PQ-SSH</source>
-        <translation type="unfinished">Desbloquear CPUNK PQ-SSH</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>This application is protected.
 
 Enter your application password:</source>
-        <translation type="unfinished">Esta aplicación está protegida.
-
-Introduzca la contraseña de la aplicación:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Password</source>
-        <translation type="unfinished">Contraseña</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Unlock failed</source>
-        <translation type="unfinished">Desbloqueo fallido</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Incorrect password.</source>
-        <translation type="unfinished">Contraseña incorrecta.</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-1343"/>
+        <location line="+178"/>
+        <location line="+5"/>
+        <location line="+7"/>
+        <location line="+58"/>
+        <source>Key install</source>
+        <translation>Key install</translation>
+    </message>
+    <message>
+        <location line="-836"/>
+        <source>%1@%2:%3  [%4]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+150"/>
+        <source>CPUNK PQ-SSH</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>SSH Key Passphrase</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Enter passphrase for private key:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Enter passphrase for key:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+28"/>
+        <source>App lock</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>App lock is enabled but no password is set.
+Disable app lock in Settings or set a password.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+28"/>
+        <location line="+8"/>
+        <source>[WARN] %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>⚠ WARNING: You have %1 expired SSH key(s). Open Key Generator → Keys tab to review/rotate.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>[SECURITY] %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+345"/>
+        <location line="+290"/>
+        <source>No profile selected.</source>
+        <translation>No profile selected.</translation>
+    </message>
+</context>
+<context>
+    <name>PortForwardingDialog</name>
+    <message>
+        <location filename="../PortForwardingDialog.cpp" line="+80"/>
+        <source>Port forwarding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Rule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Note</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+104"/>
+        <source>Invalid port forwarding rule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Rule #%1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Invalid listen port (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Target host is empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Invalid target port (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Duplicate bind %1:%2 (%3).</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>ProfileStore</name>
     <message>
-        <location filename="../ProfileStore.cpp" line="+151"/>
+        <location filename="../ProfileStore.cpp" line="+242"/>
         <source>Localhost</source>
-        <translation>Host local</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+133"/>
+        <location line="+144"/>
         <source>Could not write profiles.json: %1</source>
-        <translation>No se pudo escribir profiles.json: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+24"/>
         <source>Could not open profiles.json: %1</source>
-        <translation>No se pudo abrir profiles.json: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Invalid JSON in profiles.json: %1</source>
-        <translation>JSON no válido en profiles.json: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>ProfilesEditorDialog</name>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="+243"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="+287"/>
         <source>Macro %1</source>
-        <translation>Macro %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+116"/>
+        <location line="+81"/>
         <source>Manage SSH Profiles</source>
-        <translation>Gestionar perfiles SSH</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+54"/>
+        <location line="+53"/>
         <source>Profiles</source>
-        <translation>Perfiles</translation>
+        <translation type="unfinished">Profiles</translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Add</source>
-        <translation>Añadir</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Delete</source>
-        <translation>Eliminar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+35"/>
         <source>Group name for sorting in main window (empty = Ungrouped)</source>
-        <translation>Nombre de grupo para ordenar en la ventana principal (vacío = Sin agrupar)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Ungrouped</source>
-        <translation>Sin agrupar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Enable PQ debug (-vv)</source>
-        <translation>Activar depuración PQ (-vv)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Terminal scrollback buffer lines (0 = unlimited)</source>
-        <translation>Líneas del búfer de desplazamiento del terminal (0 = ilimitado)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <source>e.g. /home/john/.ssh/id_ed25519 (optional)</source>
-        <translation>p. ej. /home/john/.ssh/id_ed25519 (opcional)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+5"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Remove selected key file (sets key type to auto)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+22"/>
         <source>Select private key file</source>
-        <translation>Seleccionar archivo de clave privada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Key files (*)</source>
-        <translation>Archivos de clave (*)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+85"/>
+        <location line="+135"/>
         <source>Name:</source>
-        <translation>Nombre:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-84"/>
+        <location line="-134"/>
         <source>Group:</source>
-        <translation>Grupo:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>User:</source>
-        <translation>Usuario:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Host:</source>
-        <translation>Host:</translation>
+        <translation type="unfinished">Host:</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Port:</source>
-        <translation>Puerto:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Color scheme:</source>
-        <translation>Esquema de color:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Font size:</source>
-        <translation>Tamaño de fuente:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Window width:</source>
-        <translation>Ancho de ventana:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Window height:</source>
-        <translation>Alto de ventana:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Scrollback lines:</source>
-        <translation>Líneas de desplazamiento:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Key type:</source>
-        <translation>Tipo de clave:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Key file:</source>
-        <translation>Archivo de clave:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+10"/>
+        <source>Advanced</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Enable port forwarding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Forwards: L0 R0 D0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Port forwarding…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Probe server crypto…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Probe the negotiated SSH crypto with the current User/Host/Port.
+
+Shows:
+• KEX (key exchange)
+• Host key algorithm
+• Ciphers (client→server / server→client)
+
+How it works:
+• Runs the system OpenSSH client (ssh -vvv) with a short timeout.
+• No settings are saved.
+• Authentication is not required; negotiation happens before auth.
+
+Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh output differs.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+42"/>
         <source>Hotkey macros</source>
-        <translation>Macros de teclas rápidas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Import…</source>
-        <translation>Importar…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Export…</source>
-        <translation>Exportar…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+25"/>
         <source>+</source>
-        <translation>+</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Add macro</source>
-        <translation>Añadir macro</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>-</source>
-        <translation>-</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Delete selected macro</source>
-        <translation>Eliminar macro seleccionada</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+12"/>
         <source>e.g. Backup stats</source>
-        <translation>p. ej. Copia de seguridad de estadísticas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>Shortcut:</source>
-        <translation>Atajo:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Command:</source>
-        <translation>Comando:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Click and press a shortcut, e.g. F2, Alt+X, Ctrl+Shift+R</source>
-        <translation>Haga clic y presione un atajo, p. ej. F2, Alt+X, Ctrl+Shift+R</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Clear</source>
-        <translation>Borrar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Clear the shortcut</source>
-        <translation>Borrar el atajo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
-        <source>e.g. cd stats &amp;&amp; cp stats.txt stats_backup.txt</source>
-        <translation>p. ej. cd stats &amp;&amp; cp stats.txt stats_backup.txt</translation>
+        <source>e.g. echo &quot;Connected to {USER}@{HOST}:{PORT} ({PROFILE})&quot;</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Command to send when the shortcut is pressed</source>
-        <translation>Comando a enviar cuando se presiona el atajo</translation>
+        <source>Command to send when the shortcut is pressed.
+
+%1</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+11"/>
+        <source>If enabled, PQ-SSH appends a newline so the command runs immediately.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Tip: You can use placeholders like {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-7"/>
         <source>Send [Enter] automatically after command</source>
-        <translation>Enviar [Enter] automáticamente después del comando</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Tip: If [Enter] is enabled, PQ-SSH appends a newline so the command runs immediately.</source>
-        <translation>Consejo: Si [Enter] está activado, PQ-SSH añade un salto de línea para que el comando se ejecute inmediatamente.</translation>
-    </message>
-    <message>
-        <location line="+379"/>
+        <location line="+427"/>
         <source>Each profile must have non-empty user and host.</source>
-        <translation>Cada perfil debe tener usuario y host no vacíos.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Key type is set but key file is empty. Either set a key file or set key type to auto.</source>
-        <translation>El tipo de clave está configurado pero el archivo de clave está vacío. Configure un archivo de clave o establezca el tipo de clave en automático.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+21"/>
+        <source>Profile &apos;%1&apos;: %2 (rule #%3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Invalid listen port (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Target host is empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Invalid target port (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Duplicate bind %1:%2 (%3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+59"/>
         <source>Invalid profile</source>
-        <translation>Perfil no válido</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+116"/>
         <source>Export macros</source>
-        <translation>Exportar macros</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <location line="+40"/>
         <source>PQ-SSH Macros (*.pqssh-macros.json)</source>
-        <translation>Macros de PQ-SSH (*.pqssh-macros.json)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-17"/>
         <source>Export failed</source>
-        <translation>La exportación falló</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Import macros</source>
-        <translation>Importar macros</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+9"/>
         <location line="+9"/>
         <source>Import failed</source>
-        <translation>La importación falló</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Invalid JSON file.</source>
-        <translation>Archivo JSON no válido.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+39"/>
         <source>Macros imported</source>
-        <translation>Macros importadas</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Imported %1 macros.</source>
-        <translation>Se importaron %1 macros.</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <location line="+29"/>
+        <source>Server crypto probe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-29"/>
+        <source>Could not start the ssh command.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Target: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Port: %1
+
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>KEX: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <location line="+1"/>
+        <location line="+4"/>
+        <location line="+1"/>
+        <source>(not found)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-5"/>
+        <source>Host key: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Cipher C→S: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Cipher S→C: %1
+</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -2938,62 +3116,52 @@ Introduzca la contraseña de la aplicación:</translation>
         <location filename="../KeyMetadataUtils.cpp" line="+99"/>
         <location line="+83"/>
         <source>Cannot read %1</source>
-        <translation>No se puede leer %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-38"/>
         <source>Cannot write %1</source>
-        <translation>No se puede escribir %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-1952"/>
+        <location filename="../MainWindow.cpp" line="-849"/>
         <source>Out of memory while hashing password.</source>
-        <translation>Memoria insuficiente al hashear la contraseña.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../KeyGeneratorDialog.cpp" line="-1341"/>
+        <location filename="../KeyGeneratorDialog.cpp" line="-1280"/>
         <source>libsodium init failed (sodium_init).</source>
-        <translation>Falló la inicialización de libsodium (sodium_init).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+71"/>
-        <source>Failed to write private key: %1</source>
-        <translation>Error al escribir la clave privada: %1</translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Failed to write public key: %1</source>
-        <translation>Error al escribir la clave pública: %1</translation>
-    </message>
-    <message>
-        <location line="+32"/>
+        <location line="+55"/>
         <source>Edit Key Metadata</source>
-        <translation>Editar metadatos de la clave</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+19"/>
         <source>Enable</source>
-        <translation>Activar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Label:</source>
-        <translation>Etiqueta:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Owner:</source>
-        <translation>Propietario:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Purpose:</source>
-        <translation type="unfinished">Propósito:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Rotation policy (days):</source>
-        <translation type="unfinished">Política de rotación (días):</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3003,284 +3171,359 @@ Introduzca la contraseña de la aplicación:</translation>
     <message>
         <location filename="../Fleet/FleetWindow.cpp" line="-712"/>
         <source>Ungrouped</source>
-        <translation type="unfinished">Sin agrupar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../SshClient.cpp" line="+48"/>
         <source>libssh: null session</source>
-        <translation type="unfinished">libssh: sesión nula</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>openSftp: out is null.</source>
-        <translation type="unfinished">openSftp: out es nulo.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Not connected.</source>
-        <translation type="unfinished">No conectado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>sftp_new failed.</source>
-        <translation type="unfinished">Falló sftp_new.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>sftp_init failed: %1</source>
-        <translation type="unfinished">Falló sftp_init: %1</translation>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../PortForwardingDialog.cpp" line="-201"/>
+        <source>Forward type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Type:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Bind address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Bind address:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Listen port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Listen port:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Target host</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target host:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Target port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target port:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Description</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Description (optional):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ProfilesEditorDialog.cpp" line="-1484"/>
+        <source>You can use placeholders in macro commands:
+  {USER}    Username
+  {HOST}    Host/IP
+  {PORT}    SSH port
+  {PROFILE} Profile name
+  {DATE}    Current date (YYYY-MM-DD)
+  {TIME}    Current time (HH:MM:SS)
+
+Escapes:
+  {{  -&gt;  {
+  }}  -&gt;  }</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <location filename="../SettingsDialog.cpp" line="+56"/>
+        <location filename="../SettingsDialog.cpp" line="+55"/>
         <source>Settings</source>
-        <translation>Configuración</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+12"/>
         <source>English</source>
-        <translation>Inglés</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Suomi</source>
-        <translation>Finés</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Language:</source>
-        <translation>Idioma:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>CPUNK Dark</source>
-        <translation>CPUNK Oscuro</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>CPUNK Orange</source>
-        <translation>CPUNK Naranja</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>CPUNK Neo</source>
-        <translation>CPUNK Neo</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Windows Basic</source>
-        <translation>Windows Básico</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Theme:</source>
-        <translation>Tema:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Errors only</source>
-        <translation>Solo errores</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Normal</source>
-        <translation>Normal</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Debug</source>
-        <translation>Depuración</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Log level:</source>
-        <translation>Nivel de registro:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Empty = default (%1/&lt;app&gt;.log)</source>
-        <translation>Vacío = predeterminado (%1/&lt;app&gt;.log)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Choose log file…</source>
-        <translation>Elegir archivo de registro…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Open log file directory</source>
-        <translation>Abrir directorio del archivo de registro</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Log file:</source>
-        <translation>Archivo de registro:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+14"/>
         <source>Empty = default (AppLocalDataLocation/audit)</source>
-        <translation>Vacío = predeterminado (AppLocalDataLocation/audit)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Choose audit directory…</source>
-        <translation>Elegir directorio de auditoría…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Open audit directory</source>
-        <translation>Abrir directorio de auditoría</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Audit dir:</source>
-        <translation>Directorio de auditoría:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Require password on startup</source>
-        <translation>Requerir contraseña al iniciar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Set / change…</source>
-        <translation>Establecer / cambiar…</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Set or change the application startup password</source>
-        <translation>Establecer o cambiar la contraseña de inicio de la aplicación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Disable</source>
-        <translation>Desactivar</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Disable app lock and remove stored password hash</source>
-        <translation>Desactivar el bloqueo de la aplicación y eliminar el hash de contraseña almacenado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>App lock:</source>
-        <translation>Bloqueo de la aplicación:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+30"/>
-        <location line="+89"/>
+        <location line="+33"/>
+        <location line="+91"/>
         <source>Restart required</source>
-        <translation>Se requiere reinicio</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-88"/>
-        <location line="+89"/>
+        <location line="-90"/>
+        <location line="+91"/>
         <source>Language change will take effect after restarting the application.</source>
-        <translation>El cambio de idioma tendrá efecto después de reiniciar la aplicación.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-36"/>
-        <location line="+172"/>
+        <location line="-38"/>
+        <location line="+174"/>
         <source>Password set</source>
-        <translation>Contraseña establecida</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-171"/>
+        <location line="-173"/>
         <source>Enabled, but no password set!</source>
-        <translation>Habilitado, pero no se ha establecido contraseña.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+198"/>
+        <location line="+200"/>
         <source>Off</source>
-        <translation>Desactivado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-138"/>
         <source>Choose log file</source>
-        <translation>Elegir archivo de registro</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Log files (*.log);;All files (*)</source>
-        <translation>Archivos de registro (*.log);;Todos los archivos (*)</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+29"/>
         <source>Choose audit directory</source>
-        <translation>Elegir directorio de auditoría</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+28"/>
         <source>Set application password</source>
-        <translation>Establecer contraseña de la aplicación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Enter new password:</source>
-        <translation>Introducir nueva contraseña:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Confirm password</source>
-        <translation>Confirmar contraseña</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Re-enter password:</source>
-        <translation>Volver a introducir la contraseña:</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Password mismatch</source>
-        <translation>Las contraseñas no coinciden</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Passwords do not match.</source>
-        <translation>Las contraseñas no coinciden.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Failed to generate password hash (out of memory?).</source>
-        <translation>No se pudo generar el hash de la contraseña (¿memoria insuficiente?).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+15"/>
         <source>App lock enabled</source>
-        <translation>Bloqueo de la aplicación habilitado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Startup password has been set.</source>
-        <translation>La contraseña de inicio ha sido establecida.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+8"/>
         <source>Disable app lock</source>
-        <translation>Desactivar bloqueo de la aplicación</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Disable app lock and remove the stored password hash?</source>
-        <translation>¿Desactivar el bloqueo de la aplicación y eliminar el hash de contraseña almacenado?</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <source>App lock disabled</source>
-        <translation>Bloqueo de la aplicación desactivado</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>App startup password has been removed.</source>
-        <translation>La contraseña de inicio de la aplicación ha sido eliminada.</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -3288,59 +3531,34 @@ Introduzca la contraseña de la aplicación:</translation>
     <message>
         <location filename="../SshClient.cpp" line="+45"/>
         <location line="+2"/>
-        <location line="+92"/>
+        <location line="+47"/>
         <source>No host specified.</source>
-        <translation>No se especificó ningún host.</translation>
-    </message>
-    <message>
-        <location line="-48"/>
-        <source>Cannot read key file: %1</source>
-        <translation>No se puede leer el archivo de clave: %1</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>No passphrase provider set (UI callback missing).</source>
-        <translation>No se ha configurado un proveedor de frase de contraseña (falta la devolución de llamada de la interfaz).</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Cancelled by user.</source>
-        <translation>Cancelado por el usuario.</translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Decrypt failed: %1</source>
-        <translation>Falló el descifrado: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
-        <source>Decrypt returned empty plaintext.</source>
-        <translation>El descifrado devolvió texto plano vacío.</translation>
-    </message>
-    <message>
-        <location line="+27"/>
         <source>No user specified.</source>
-        <translation>No se especificó ningún usuario.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Unsupported key_type &apos;%1&apos; (PQ keys not implemented yet).</source>
-        <translation>Tipo de clave &apos;%1&apos; no compatible (las claves PQ aún no están implementadas).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+23"/>
         <source>ssh_new() failed.</source>
-        <translation>Falló ssh_new().</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+117"/>
         <source>ssh_connect failed: %1</source>
-        <translation>Falló ssh_connect: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+39"/>
         <source>Public-key auth failed: %1</source>
-        <translation>Falló la autenticación con clave pública: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+46"/>
@@ -3356,61 +3574,61 @@ Introduzca la contraseña de la aplicación:</translation>
         <location line="+32"/>
         <location line="+94"/>
         <source>Not connected.</source>
-        <translation>No conectado.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-916"/>
         <location line="+649"/>
         <source>ssh_channel_new failed.</source>
-        <translation>Falló ssh_channel_new.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-644"/>
         <location line="+666"/>
         <source>ssh_channel_open_session failed: %1</source>
-        <translation>Falló ssh_channel_open_session: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-660"/>
         <source>ssh_channel_request_exec(pwd) failed: %1</source>
-        <translation>Falló ssh_channel_request_exec(pwd): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+46"/>
-        <source>sftp_opendir failed for &apos;%1&apos;: %2</source>
-        <translation>Falló sftp_opendir para &apos;%1&apos;: %2</translation>
-    </message>
-    <message>
-        <location line="-27"/>
+        <location line="+19"/>
         <source>Remote &apos;pwd&apos; returned empty.</source>
-        <translation>El &apos;pwd&apos; remoto devolvió vacío.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+72"/>
+        <location line="+27"/>
+        <source>sftp_opendir failed for &apos;%1&apos;: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+45"/>
         <source>statRemotePath: outInfo is null.</source>
-        <translation>statRemotePath: outInfo es nulo.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+8"/>
         <location line="+261"/>
         <location line="+52"/>
         <source>Remote path is empty.</source>
-        <translation>La ruta remota está vacía.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-304"/>
         <source>sftp_stat failed for &apos;%1&apos;: %2</source>
-        <translation>Falló sftp_stat para &apos;%1&apos;: %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+40"/>
         <source>uploadFile: localPath/remotePath empty.</source>
-        <translation>uploadFile: localPath/remotePath está vacío.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+25"/>
         <source>Cannot open remote temp file &apos;%1&apos;: %2</source>
-        <translation>No se puede abrir el archivo temporal remoto &apos;%1&apos;: %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+14"/>
@@ -3418,210 +3636,206 @@ Introduzca la contraseña de la aplicación:</translation>
         <location line="+178"/>
         <location line="+51"/>
         <source>Cancelled by user</source>
-        <translation>Cancelado por el usuario</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-335"/>
         <source>SFTP write failed: %1</source>
-        <translation>Falló la escritura SFTP: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+24"/>
         <source>SFTP rename failed &apos;%1&apos; -&gt; &apos;%2&apos;: %3</source>
-        <translation>Falló el cambio de nombre SFTP &apos;%1&apos; -&gt; &apos;%2&apos;: %3</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+31"/>
         <source>downloadFile: remotePath/localPath empty.</source>
-        <translation>downloadFile: remotePath/localPath está vacío.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Cannot open remote file &apos;%1&apos;: %2</source>
-        <translation>No se puede abrir el archivo remoto &apos;%1&apos;: %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+39"/>
         <source>SFTP read failed: %1</source>
-        <translation>Falló la lectura SFTP: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Local write failed: %1</source>
-        <translation>Falló la escritura local: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Failed to rename downloaded temp file to final path.</source>
-        <translation>No se pudo renombrar el archivo temporal descargado a la ruta final.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+35"/>
         <location line="+59"/>
         <location line="+391"/>
         <source>sftp_open failed for &apos;%1&apos;.</source>
-        <translation>Falló sftp_open para &apos;%1&apos;.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-440"/>
         <location line="+452"/>
         <source>sftp_write failed for &apos;%1&apos;.</source>
-        <translation>Falló sftp_write para &apos;%1&apos;.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-421"/>
         <source>Local path is empty.</source>
-        <translation>La ruta local está vacía.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+35"/>
         <source>Could not write local file &apos;%1&apos;: %2</source>
-        <translation>No se pudo escribir el archivo local &apos;%1&apos;: %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+18"/>
         <source>Cannot open local file for hashing: %1</source>
-        <translation>No se puede abrir el archivo local para calcular el hash: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+17"/>
         <source>Local read failed while hashing: %1</source>
-        <translation>Falló la lectura local durante el cálculo del hash: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Cannot open remote file for hashing.</source>
-        <translation>No se puede abrir el archivo remoto para calcular el hash.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+21"/>
         <source>SFTP read failed while hashing remote file.</source>
-        <translation>Falló la lectura SFTP durante el cálculo del hash del archivo remoto.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+24"/>
         <location line="+37"/>
         <source>Local SHA-256 failed: %1</source>
-        <translation>Falló el SHA-256 local: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-31"/>
         <location line="+25"/>
         <source>Remote SHA-256 failed: %1</source>
-        <translation>Falló el SHA-256 remoto: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="-19"/>
         <source>Checksum mismatch (SHA-256)
 Local : %1
 Remote: %2</source>
-        <translation>Diferencia de suma de verificación (SHA-256)
-Local : %1
-Remoto: %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+31"/>
         <source>Checksum mismatch (SHA-256)
 Remote: %1
 Local : %2</source>
-        <translation>Diferencia de suma de verificación (SHA-256)
-Remoto: %1
-Local : %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+58"/>
         <source>ssh_channel_request_exec failed: %1</source>
-        <translation>Falló ssh_channel_request_exec: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+30"/>
         <source>Remote command timed out after %1 ms.</source>
-        <translation>El comando remoto agotó el tiempo de espera después de %1 ms.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>ssh_channel_poll_timeout(stdout) failed: %1</source>
-        <translation>Falló ssh_channel_poll_timeout(stdout): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>ssh_channel_read(stdout) failed: %1</source>
-        <translation>Falló ssh_channel_read(stdout): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>ssh_channel_poll_timeout(stderr) failed: %1</source>
-        <translation>Falló ssh_channel_poll_timeout(stderr): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>ssh_channel_read(stderr) failed: %1</source>
-        <translation>Falló ssh_channel_read(stderr): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>ssh_channel_poll_timeout(stdout/drain) failed: %1</source>
-        <translation>Falló ssh_channel_poll_timeout(stdout/drain): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
         <source>ssh_channel_poll_timeout(stderr/drain) failed: %1</source>
-        <translation>Falló ssh_channel_poll_timeout(stderr/drain): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>ssh_channel_read(stdout/drain) failed: %1</source>
-        <translation>Falló ssh_channel_read(stdout/drain): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>ssh_channel_read(stderr/drain) failed: %1</source>
-        <translation>Falló ssh_channel_read(stderr/drain): %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+21"/>
         <source>Remote command failed (exit %1).</source>
-        <translation>El comando remoto falló (salida %1).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Remote command failed (exit %1): %2</source>
-        <translation>El comando remoto falló (salida %1): %2</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+34"/>
         <source>sftp_open failed for &apos;%1&apos; (may not exist).</source>
-        <translation>Falló sftp_open para &apos;%1&apos; (puede que no exista).</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+66"/>
         <source>sftp_rename failed for &apos;%1&apos; → &apos;%2&apos;.</source>
-        <translation>Falló sftp_rename para &apos;%1&apos; → &apos;%2&apos;.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+59"/>
         <source>Public key line is empty.</source>
-        <translation>La línea de clave pública está vacía.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Does not look like an OpenSSH public key line.</source>
-        <translation>No parece una línea de clave pública OpenSSH.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Failed to read remote $HOME: %1</source>
-        <translation>No se pudo leer el $HOME remoto: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Remote $HOME is empty.</source>
-        <translation>El $HOME remoto está vacío.</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Failed to create backup dir: %1</source>
-        <translation>No se pudo crear el directorio de copia de seguridad: %1</translation>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+15"/>
@@ -3630,11 +3844,7 @@ Tried:
 %1
 %2
 Error: %3</source>
-        <translation>La copia de seguridad falló. Abortando la instalación.
-Intentado:
-%1
-%2
-Error: %3</translation>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

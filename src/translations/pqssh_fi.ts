@@ -1393,7 +1393,7 @@ Tämä ei poista vietyjä avaintiedostoja.</translation>
 <context>
     <name>KeyGeneratorDialog</name>
     <message>
-        <location filename="../KeyGeneratorDialog.cpp" line="+304"/>
+        <location filename="../KeyGeneratorDialog.cpp" line="+242"/>
         <source>Key Generator</source>
         <translation>Avaingeneraattori</translation>
     </message>
@@ -1453,7 +1453,7 @@ Tämä ei poista vietyjä avaintiedostoja.</translation>
         <translation>Vanhenee:</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+11"/>
         <source>Passphrase:</source>
         <translation>Salalause:</translation>
     </message>
@@ -1463,23 +1463,20 @@ Tämä ei poista vietyjä avaintiedostoja.</translation>
         <translation>Salalause (uudelleen):</translation>
     </message>
     <message>
-        <location line="+8"/>
         <source>Encrypt Dilithium5 private key (required)</source>
-        <translation>Salaa Dilithium5-yksityisavain (pakollinen)</translation>
+        <translation type="vanished">Salaa Dilithium5-yksityisavain (pakollinen)</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="+14"/>
         <source>Repeat passphrase</source>
         <translation>Toista salalause</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <location line="+1"/>
         <source>Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305).</source>
-        <translation>Käytetään Dilithium5-yksityisavaimen salaamiseen (Argon2id + XChaCha20-Poly1305).</translation>
+        <translation type="vanished">Käytetään Dilithium5-yksityisavaimen salaamiseen (Argon2id + XChaCha20-Poly1305).</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+38"/>
         <location line="+6"/>
         <source>Generate</source>
         <translation>Luo</translation>
@@ -1560,12 +1557,12 @@ Tämä ei poista vietyjä avaintiedostoja.</translation>
     </message>
     <message>
         <location line="+4"/>
-        <location line="+889"/>
+        <location line="+863"/>
         <source>Install selected key…</source>
         <translation>Asenna valittu avain…</translation>
     </message>
     <message>
-        <location line="-888"/>
+        <location line="-862"/>
         <source>Choose a profile and install this public key into ~/.ssh/authorized_keys on that server.</source>
         <translation>Valitse profiili ja asenna tämä julkinen avain kyseisen palvelimen ~/.ssh/authorized_keys-tiedostoon.</translation>
     </message>
@@ -1575,7 +1572,22 @@ Tämä ei poista vietyjä avaintiedostoja.</translation>
         <translation>Vie julkinen avain…</translation>
     </message>
     <message>
-        <location line="-65"/>
+        <location line="-99"/>
+        <source>Optional (encrypt private key)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>If set, ssh-keygen will encrypt the OpenSSH private key (-N).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Repeat the same passphrase to confirm.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+30"/>
         <source>Keys are saved under:
 %1</source>
         <translation>Avaimet tallennetaan sijaintiin
@@ -1612,17 +1624,18 @@ Tämä ei poista vietyjä avaintiedostoja.</translation>
         <translation>Sulje</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+38"/>
         <source>Failed to create keys directory: %1</source>
         <translation>Avainten hakemiston luonti epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+20"/>
+        <location line="+276"/>
         <source>Unsupported algorithm: %1</source>
         <translation>Ei tuettu algoritmi: %1</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="-262"/>
         <source>ssh-keygen timed out.</source>
         <translation>ssh-keygen aikakatkaistiin.</translation>
     </message>
@@ -1658,45 +1671,45 @@ Tämä ei poista vietyjä avaintiedostoja.</translation>
     <message>
         <location line="+18"/>
         <location line="+45"/>
-        <location line="+511"/>
+        <location line="+489"/>
         <location line="+68"/>
         <location line="+39"/>
         <source>Cannot read metadata.json</source>
         <translation>metadata.json-tiedostoa ei voi lukea</translation>
     </message>
     <message>
-        <location line="-643"/>
+        <location line="-621"/>
         <source>Cannot write metadata.json</source>
         <translation>metadata.json-tiedostoon ei voi kirjoittaa</translation>
     </message>
     <message>
-        <location line="+168"/>
         <source>Dilithium5 keys require a passphrase.</source>
-        <translation>Dilithium5-avaimet vaativat salalauseen.</translation>
+        <translation type="vanished">Dilithium5-avaimet vaativat salalauseen.</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <location line="+26"/>
+        <location line="+203"/>
         <source>Passphrases do not match.</source>
         <translation>Salalauseet eivät täsmää.</translation>
     </message>
     <message>
-        <location line="+20"/>
         <source>Failed to read generated Dilithium private key.</source>
-        <translation>Luotua Dilithium-yksityisavainta ei voitu lukea.</translation>
+        <translation type="vanished">Luotua Dilithium-yksityisavainta ei voitu lukea.</translation>
     </message>
     <message>
-        <location line="+10"/>
         <source>Encryption failed: %1</source>
-        <translation>Salaus epäonnistui: %1</translation>
+        <translation type="vanished">Salaus epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>Failed to write encrypted Dilithium key.</source>
-        <translation>Salatun Dilithium-avaimen kirjoittaminen epäonnistui.</translation>
+        <translation type="vanished">Salatun Dilithium-avaimen kirjoittaminen epäonnistui.</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="-4"/>
+        <source>Please enter the passphrase twice.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+43"/>
         <source>✅ Key generated
 
 Fingerprint: %1
@@ -1864,7 +1877,7 @@ Profiiliin: %3</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../MainWindow.cpp" line="+503"/>
+        <location filename="../MainWindow.cpp" line="+674"/>
         <source>Profiles</source>
         <translation>Profiilit</translation>
     </message>
@@ -1955,18 +1968,18 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1308"/>
+        <location line="+1223"/>
         <source>KEX: %1</source>
         <translation>KEX: %1</translation>
     </message>
     <message>
-        <location line="-1303"/>
-        <location line="+1308"/>
+        <location line="-1218"/>
+        <location line="+1223"/>
         <source>Negotiated KEX: %1</source>
         <translation>Neuvoteltu KEX: %1</translation>
     </message>
     <message>
-        <location line="-1302"/>
+        <location line="-1217"/>
         <source>&amp;File</source>
         <translation>&amp;Tiedosto</translation>
     </message>
@@ -1986,19 +1999,19 @@ Profiiliin: %3</translation>
         <translation>CPUNK PQ-SSH — Asetukset</translation>
     </message>
     <message>
-        <location line="+9"/>
-        <location line="+1193"/>
+        <location line="+19"/>
+        <location line="+1079"/>
         <source>[INFO] Settings updated.</source>
         <translation>[INFO] Asetukset päivitetty.</translation>
     </message>
     <message>
-        <location line="-1192"/>
-        <location line="+1193"/>
+        <location line="-1078"/>
+        <location line="+1079"/>
         <source>Settings updated.</source>
         <translation>Asetukset päivitetty.</translation>
     </message>
     <message>
-        <location line="-1185"/>
+        <location line="-1071"/>
         <source>Import OpenSSH config…</source>
         <translation>Tuo OpenSSH-asetukset…</translation>
     </message>
@@ -2069,98 +2082,81 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+289"/>
+        <location line="+218"/>
         <location line="+10"/>
         <source>Key install failed</source>
         <translation>Avaimen asennus epäonnistui</translation>
     </message>
     <message>
-        <location line="-298"/>
-        <location line="+990"/>
+        <location line="-227"/>
         <source>Cannot read file:
 %1</source>
         <translation>Tiedostoa ei voi lukea:
 %1</translation>
     </message>
     <message>
-        <location line="-981"/>
         <source>DEV: Test Dilithium key unlock…</source>
-        <translation>DEV: Testaa Dilithium-avaimen avaus…</translation>
+        <translation type="vanished">DEV: Testaa Dilithium-avaimen avaus…</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Dev tool: decrypt .enc key and validate format (only visible when PQ debug is ON).</source>
-        <translation>Kehittäjätyökalu: pura .enc-avain ja validoi muoto (näkyy vain kun PQ-virheenkorjaus on päällä).</translation>
+        <translation type="vanished">Kehittäjätyökalu: pura .enc-avain ja validoi muoto (näkyy vain kun PQ-virheenkorjaus on päällä).</translation>
     </message>
     <message>
-        <location line="+18"/>
-        <location line="+945"/>
         <source>[DEV] PQ debug is OFF. Enable it to use the tester.</source>
-        <translation>[DEV] PQ-virheenkorjaus on POIS PÄÄLTÄ. Ota se käyttöön käyttääksesi testeria.</translation>
+        <translation type="vanished">[DEV] PQ-virheenkorjaus on POIS PÄÄLTÄ. Ota se käyttöön käyttääksesi testeria.</translation>
     </message>
     <message>
-        <location line="-939"/>
         <source>Select encrypted Dilithium key (.enc)</source>
-        <translation>Valitse salattu Dilithium-avain (.enc)</translation>
+        <translation type="vanished">Valitse salattu Dilithium-avain (.enc)</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <location line="+946"/>
         <source>Encrypted keys (*.enc);;All files (*)</source>
-        <translation>Salatut avaimet (*.enc);;Kaikki tiedostot (*)</translation>
+        <translation type="vanished">Salatut avaimet (*.enc);;Kaikki tiedostot (*)</translation>
     </message>
     <message>
-        <location line="-940"/>
         <source>[TEST] ❌ Cannot read file: %1</source>
-        <translation>[TEST] ❌ Tiedostoa ei voi lukea: %1</translation>
+        <translation type="vanished">[TEST] ❌ Tiedostoa ei voi lukea: %1</translation>
     </message>
     <message>
-        <location line="+6"/>
         <source>[TEST] File: %1</source>
-        <translation>[TEST] Tiedosto: %1</translation>
+        <translation type="vanished">[TEST] Tiedosto: %1</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>[TEST] Enc size: %1 bytes</source>
-        <translation>[TEST] Enc-koko: %1 tavua</translation>
+        <translation type="vanished">[TEST] Enc-koko: %1 tavua</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>[TEST] ❌ Too small to be valid (need &gt;= %1 bytes)</source>
-        <translation>[TEST] ❌ Liian pieni ollakseen kelvollinen (tarvitaan &gt;= %1 tavua)</translation>
+        <translation type="vanished">[TEST] ❌ Liian pieni ollakseen kelvollinen (tarvitaan &gt;= %1 tavua)</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>[TEST] Magic: &apos;%1&apos;</source>
-        <translation>[TEST] Magic: &apos;%1&apos;</translation>
+        <translation type="vanished">[TEST] Magic: &apos;%1&apos;</translation>
     </message>
     <message>
-        <location line="+2"/>
         <source>[TEST] ⚠ WARN: Magic mismatch (expected &apos;PQSSH1&apos;). Will still try decrypt.</source>
-        <translation>[TEST] ⚠ VAROITUS: Magic ei täsmää (odotettiin &apos;PQSSH1&apos;). Yritetään silti purkaa.</translation>
+        <translation type="vanished">[TEST] ⚠ VAROITUS: Magic ei täsmää (odotettiin &apos;PQSSH1&apos;). Yritetään silti purkaa.</translation>
     </message>
     <message>
-        <location line="+6"/>
         <source>[TEST] ✅ Unlock OK: %1</source>
-        <translation>[TEST] ✅ Avaus OK: %1</translation>
+        <translation type="vanished">[TEST] ✅ Avaus OK: %1</translation>
     </message>
     <message>
-        <location line="+3"/>
         <source>[TEST] Enc SHA256: %1</source>
-        <translation>[TEST] Enc SHA256: %1</translation>
+        <translation type="vanished">[TEST] Enc SHA256: %1</translation>
     </message>
     <message>
-        <location line="+2"/>
         <source>[TEST] ❌ Unlock FAILED: %1</source>
-        <translation>[TEST] ❌ Avaus EPÄONNISTUI: %1</translation>
+        <translation type="vanished">[TEST] ❌ Avaus EPÄONNISTUI: %1</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+10"/>
         <source>&amp;View</source>
         <translation>&amp;Näytä</translation>
     </message>
     <message>
-        <location line="-143"/>
+        <location line="-74"/>
         <source>Identity manager…</source>
         <translation>Identiteettien hallinta…</translation>
     </message>
@@ -2170,7 +2166,7 @@ Profiiliin: %3</translation>
         <translation>Palauta globaali SSH-avainpari 24 sanasta (Ed25519).</translation>
     </message>
     <message>
-        <location line="+171"/>
+        <location line="+100"/>
         <source>&amp;Help</source>
         <translation>&amp;Ohje</translation>
     </message>
@@ -2196,11 +2192,12 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+15"/>
+        <location line="+886"/>
         <source>User Manual</source>
         <translation>Käyttöohje</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-885"/>
         <source>Open PQ-SSH user manual</source>
         <translation>Avaa PQ-SSH:n käyttöohje</translation>
     </message>
@@ -2210,7 +2207,17 @@ Profiiliin: %3</translation>
         <translation>Avaa lokitiedosto</translation>
     </message>
     <message>
+        <location line="-147"/>
+        <source>[INFO] Settings applied.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+1"/>
+        <source>Settings applied.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+147"/>
         <source>Open pq-ssh log file</source>
         <translation>Avaa pq-ssh-lokitiedosto</translation>
     </message>
@@ -2364,7 +2371,7 @@ Jatketaanko?</translation>
         <translation>[CONNECT] %1 → %2:%3</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+17"/>
         <source>PQ: checking…</source>
         <translation>PQ: tarkistetaan…</translation>
     </message>
@@ -2464,17 +2471,17 @@ Jatketaanko?</translation>
         <translation>[DOWNLOAD] Shelliä ei ole vielä toteutettu (valinnan lähdettä ei ole).</translation>
     </message>
     <message>
-        <location line="+71"/>
+        <location line="+104"/>
         <source>[SSH] key_type=&apos;%1&apos; not implemented yet → falling back to password auth.</source>
         <translation>[SSH] key_type=&apos;%1&apos; ei ole vielä toteutettu → palataan salasanatodennukseen.</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+28"/>
         <source>[SSH-CMD] ssh %1</source>
         <translation>[SSH-CMD] ssh %1</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>[SSH-WRAP] %1</source>
         <translation>[SSH-WRAP] %1</translation>
     </message>
@@ -2494,7 +2501,7 @@ Jatketaanko?</translation>
         <translation>[TERM] ssh käynnistyi (kääritty); terminaali sulkeutuu kun ssh poistuu.</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+49"/>
         <source>[TERM] profile=%1 scheme=&apos;%2&apos; (raw=&apos;%3&apos;)</source>
         <translation>[TERM] profiili=%1 teema=&apos;%2&apos; (raw=&apos;%3&apos;)</translation>
     </message>
@@ -2504,7 +2511,7 @@ Jatketaanko?</translation>
         <translation>[TERM] saatavilla olevat teemat: %1</translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+35"/>
         <source>PQ-SSH: %1 (%2)</source>
         <translation>PQ-SSH: %1 (%2)</translation>
     </message>
@@ -2529,9 +2536,13 @@ Jatketaanko?</translation>
         <translation>[LOG] Lokitiedoston polku ei ole saatavilla.</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+49"/>
+        <source>User manual was not found in application resources.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>[WARN] User manual resource missing: :/docs/user-manual.html</source>
-        <translation>[WARN] Käyttöohjeresurssi puuttuu: :/docs/user-manual.html</translation>
+        <translation type="vanished">[WARN] Käyttöohjeresurssi puuttuu: :/docs/user-manual.html</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2539,117 +2550,95 @@ Jatketaanko?</translation>
         <translation>PQ-SSH:n käyttöohje</translation>
     </message>
     <message>
-        <location line="+40"/>
         <source>Select encrypted Dilithium private key</source>
-        <translation>Valitse salattu Dilithium-yksityisavain</translation>
+        <translation type="vanished">Valitse salattu Dilithium-yksityisavain</translation>
     </message>
     <message>
-        <location line="+9"/>
-        <location line="+8"/>
-        <location line="+37"/>
-        <location line="+6"/>
         <source>DEV test failed</source>
-        <translation>DEV-testi epäonnistui</translation>
+        <translation type="vanished">DEV-testi epäonnistui</translation>
     </message>
     <message>
-        <location line="-42"/>
         <source>File is too small to be a valid PQSSH encrypted key.
 Expected: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...).</source>
-        <translation>Tiedosto on liian pieni ollakseen kelvollinen PQSSH-salattu avain.
+        <translation type="vanished">Tiedosto on liian pieni ollakseen kelvollinen PQSSH-salattu avain.
 Odotetaan: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...).</translation>
     </message>
     <message>
-        <location line="+6"/>
         <source>[DEV] Selected: %1</source>
-        <translation>[DEV] Valittu: %1</translation>
+        <translation type="vanished">[DEV] Valittu: %1</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>[DEV] Enc size: %1 bytes</source>
-        <translation>[DEV] Enc-koko: %1 tavua</translation>
+        <translation type="vanished">[DEV] Enc-koko: %1 tavua</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>[DEV] Magic: &apos;%1&apos;</source>
-        <translation>[DEV] Magic: &apos;%1&apos;</translation>
+        <translation type="vanished">[DEV] Magic: &apos;%1&apos;</translation>
     </message>
     <message>
-        <location line="+3"/>
         <source>[DEV][WARN] Magic mismatch. Expected &apos;PQSSH1&apos;. Continuing anyway to test decrypt...</source>
-        <translation>[DEV][WARN] Magic ei täsmää. Odotettiin &apos;PQSSH1&apos;. Jatketaan silti purkutestiä...</translation>
+        <translation type="vanished">[DEV][WARN] Magic ei täsmää. Odotettiin &apos;PQSSH1&apos;. Jatketaan silti purkutestiä...</translation>
     </message>
     <message>
-        <location line="+8"/>
         <source>Dilithium Key Passphrase</source>
-        <translation>Dilithium-avaimen salasana</translation>
+        <translation type="vanished">Dilithium-avaimen salasana</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Enter passphrase for:
 %1</source>
-        <translation>Syötä salasana avaimelle:
+        <translation type="vanished">Syötä salasana avaimelle:
 %1</translation>
     </message>
     <message>
-        <location line="+8"/>
         <source>[DEV] Cancelled by user.</source>
-        <translation>[DEV] Käyttäjä peruutti.</translation>
+        <translation type="vanished">[DEV] Käyttäjä peruutti.</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>[DEV][FAIL] Decrypt failed: %1</source>
-        <translation>[DEV][FAIL] Purku epäonnistui: %1</translation>
+        <translation type="vanished">[DEV][FAIL] Purku epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Decrypt failed:
 %1</source>
-        <translation>Purku epäonnistui:
+        <translation type="vanished">Purku epäonnistui:
 %1</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>[DEV][FAIL] Decrypt returned empty plaintext.</source>
-        <translation>[DEV][FAIL] Purku palautti tyhjän selvätekstin.</translation>
+        <translation type="vanished">[DEV][FAIL] Purku palautti tyhjän selvätekstin.</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Decrypt returned empty plaintext.</source>
-        <translation>Purku palautti tyhjän selvätekstin.</translation>
+        <translation type="vanished">Purku palautti tyhjän selvätekstin.</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>[DEV][OK] Decrypted plaintext size: %1 bytes</source>
-        <translation>[DEV][OK] Puretun selvätekstin koko: %1 tavua</translation>
+        <translation type="vanished">[DEV][OK] Puretun selvätekstin koko: %1 tavua</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>[DEV][OK] Plain SHA256: %1</source>
-        <translation>[DEV][OK] Plain SHA256: %1</translation>
+        <translation type="vanished">[DEV][OK] Plain SHA256: %1</translation>
     </message>
     <message>
-        <location line="+3"/>
         <source>[DEV][WARN] Plaintext is unexpectedly small for Dilithium private key material.</source>
-        <translation>[DEV][WARN] Selväteksti on yllättävän pieni Dilithium-yksityisavainmateriaaliksi.</translation>
+        <translation type="vanished">[DEV][WARN] Selväteksti on yllättävän pieni Dilithium-yksityisavainmateriaaliksi.</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>DEV test OK</source>
-        <translation>DEV-testi OK</translation>
+        <translation type="vanished">DEV-testi OK</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Decrypt OK.
 
 Validated format + passphrase unlock.
 Details written to the terminal/log.</source>
-        <translation>Purku OK.
+        <translation type="vanished">Purku OK.
 
 Muoto validoitu + salasana-avauksella.
 Yksityiskohdat kirjoitettu terminaaliin/lokiin.</translation>
     </message>
     <message>
-        <location line="+35"/>
+        <location line="+44"/>
         <source>Settings</source>
         <translation>Asetukset</translation>
     </message>
@@ -2659,7 +2648,7 @@ Yksityiskohdat kirjoitettu terminaaliin/lokiin.</translation>
         <translation>Asetusikkuna (tulossa seuraavaksi).</translation>
     </message>
     <message>
-        <location line="+36"/>
+        <location line="+42"/>
         <source>[MACRO] Invalid shortcut &apos;%1&apos; (profile &apos;%2&apos;)</source>
         <translation>[MACRO] Virheellinen pikanäppäin &apos;%1&apos; (profiili &apos;%2&apos;)</translation>
     </message>
@@ -2684,12 +2673,12 @@ Yksityiskohdat kirjoitettu terminaaliin/lokiin.</translation>
         <translation>ei</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+24"/>
         <source>[MACRO] Sent (%1): %2</source>
         <translation>[MACRO] Lähetetty (%1): %2</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>PQ KEX: %1</source>
         <translation>PQ KEX: %1</translation>
     </message>
@@ -2815,8 +2804,8 @@ Syötä sovelluksen salasana:</translation>
         <translation>Väärä salasana.</translation>
     </message>
     <message>
-        <location line="-1438"/>
-        <location line="+249"/>
+        <location line="-1343"/>
+        <location line="+178"/>
         <location line="+5"/>
         <location line="+7"/>
         <location line="+58"/>
@@ -2824,12 +2813,12 @@ Syötä sovelluksen salasana:</translation>
         <translation>Avaimen asennus</translation>
     </message>
     <message>
-        <location line="-864"/>
+        <location line="-836"/>
         <source>%1@%2:%3  [%4]</source>
         <translation>%1@%2:%3  [%4]</translation>
     </message>
     <message>
-        <location line="+117"/>
+        <location line="+150"/>
         <source>CPUNK PQ-SSH</source>
         <translation>CPUNK PQ-SSH</translation>
     </message>
@@ -2879,21 +2868,94 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>[SECURITY] %1</translation>
     </message>
     <message>
-        <location line="+335"/>
-        <location line="+361"/>
+        <location line="+345"/>
+        <location line="+290"/>
         <source>No profile selected.</source>
         <translation>Profiilia ei ole valittu.</translation>
     </message>
 </context>
 <context>
+    <name>PortForwardingDialog</name>
+    <message>
+        <location filename="../PortForwardingDialog.cpp" line="+80"/>
+        <source>Port forwarding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Type</source>
+        <translation type="unfinished">Tyyppi</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Rule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Note</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Add</source>
+        <translation type="unfinished">Lisää</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Remove</source>
+        <translation type="unfinished">Poista</translation>
+    </message>
+    <message>
+        <location line="+104"/>
+        <source>Invalid port forwarding rule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Rule #%1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Invalid listen port (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Target host is empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Invalid target port (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Duplicate bind %1:%2 (%3).</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ProfileStore</name>
     <message>
-        <location filename="../ProfileStore.cpp" line="+151"/>
+        <location filename="../ProfileStore.cpp" line="+242"/>
         <source>Localhost</source>
         <translation>Paikallinen kone</translation>
     </message>
     <message>
-        <location line="+133"/>
+        <location line="+144"/>
         <source>Could not write profiles.json: %1</source>
         <translation>profiles.json-tiedostoon ei voitu kirjoittaa: %1</translation>
     </message>
@@ -2911,17 +2973,17 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
 <context>
     <name>ProfilesEditorDialog</name>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="+255"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="+287"/>
         <source>Macro %1</source>
         <translation>Makro %1</translation>
     </message>
     <message>
-        <location line="+116"/>
+        <location line="+81"/>
         <source>Manage SSH Profiles</source>
         <translation>Hallitse SSH-profiileja</translation>
     </message>
     <message>
-        <location line="+54"/>
+        <location line="+53"/>
         <source>Profiles</source>
         <translation>Profiilit</translation>
     </message>
@@ -2971,7 +3033,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>Poista valittu avaintiedosto (asettaa avaintyypin automaattiseksi)</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Select private key file</source>
         <translation>Valitse yksityisen avaimen tiedosto</translation>
     </message>
@@ -2982,12 +3044,12 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+102"/>
+        <location line="+135"/>
         <source>Name:</source>
         <translation>Nimi:</translation>
     </message>
     <message>
-        <location line="-101"/>
+        <location line="-134"/>
         <source>Group:</source>
         <translation>Ryhmä:</translation>
     </message>
@@ -3042,7 +3104,27 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>Avaintiedosto:</translation>
     </message>
     <message>
+        <location line="+10"/>
+        <source>Advanced</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+3"/>
+        <source>Enable port forwarding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Forwards: L0 R0 D0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Port forwarding…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
         <source>Probe server crypto…</source>
         <translation>Kartoita palvelimen salaus…</translation>
     </message>
@@ -3076,7 +3158,7 @@ Miten se toimii:
 Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa tai ssh:n tuloste poikkeaa odotetusta.</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+42"/>
         <source>Hotkey macros</source>
         <translation>Pikanäppäinmakrot</translation>
     </message>
@@ -3116,7 +3198,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>esim. Varmuuskopioi statsit</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>Shortcut:</source>
         <translation>Pikanäppäin:</translation>
     </message>
@@ -3142,26 +3224,45 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
     </message>
     <message>
         <location line="+4"/>
-        <source>e.g. cd stats &amp;&amp; cp stats.txt stats_backup.txt</source>
-        <translation>esim. cd stats &amp;&amp; cp stats.txt stats_backup.txt</translation>
+        <source>e.g. echo &quot;Connected to {USER}@{HOST}:{PORT} ({PROFILE})&quot;</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Command to send when the shortcut is pressed</source>
-        <translation>Lähetettävä komento, kun pikanäppäintä painetaan</translation>
+        <source>Command to send when the shortcut is pressed.
+
+%1</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+11"/>
+        <source>If enabled, PQ-SSH appends a newline so the command runs immediately.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Tip: You can use placeholders like {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>e.g. cd stats &amp;&amp; cp stats.txt stats_backup.txt</source>
+        <translation type="vanished">esim. cd stats &amp;&amp; cp stats.txt stats_backup.txt</translation>
+    </message>
+    <message>
+        <source>Command to send when the shortcut is pressed</source>
+        <translation type="vanished">Lähetettävä komento, kun pikanäppäintä painetaan</translation>
+    </message>
+    <message>
+        <location line="-7"/>
         <source>Send [Enter] automatically after command</source>
         <translation>Lähetä [Enter] automaattisesti komennon jälkeen</translation>
     </message>
     <message>
-        <location line="+4"/>
         <source>Tip: If [Enter] is enabled, PQ-SSH appends a newline so the command runs immediately.</source>
-        <translation>Vinkki: Jos [Enter] on käytössä, PQ-SSH lisää rivinvaihdon, jolloin komento suoritetaan heti.</translation>
+        <translation type="vanished">Vinkki: Jos [Enter] on käytössä, PQ-SSH lisää rivinvaihdon, jolloin komento suoritetaan heti.</translation>
     </message>
     <message>
-        <location line="+402"/>
+        <location line="+427"/>
         <source>Each profile must have non-empty user and host.</source>
         <translation>Jokaisessa profiilissa on oltava ei-tyhjät käyttäjä ja isäntä.</translation>
     </message>
@@ -3171,7 +3272,32 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Avaimen tyyppi on asetettu, mutta avaintiedosto on tyhjä. Aseta avaintiedosto tai aseta avaimen tyypiksi automaattinen.</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+21"/>
+        <source>Profile &apos;%1&apos;: %2 (rule #%3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Invalid listen port (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Target host is empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Invalid target port (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Duplicate bind %1:%2 (%3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+59"/>
         <source>Invalid profile</source>
         <translation>Virheellinen profiili</translation>
     </message>
@@ -3295,27 +3421,25 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Ei voida kirjoittaa tiedostoon %1</translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-877"/>
+        <location filename="../MainWindow.cpp" line="-849"/>
         <source>Out of memory while hashing password.</source>
         <translation>Muisti loppui salasanaa hajautettaessa.</translation>
     </message>
     <message>
-        <location filename="../KeyGeneratorDialog.cpp" line="-1341"/>
+        <location filename="../KeyGeneratorDialog.cpp" line="-1280"/>
         <source>libsodium init failed (sodium_init).</source>
         <translation>libsodiumin alustus epäonnistui (sodium_init).</translation>
     </message>
     <message>
-        <location line="+71"/>
         <source>Failed to write private key: %1</source>
-        <translation>Yksityisen avaimen kirjoittaminen epäonnistui: %1</translation>
+        <translation type="vanished">Yksityisen avaimen kirjoittaminen epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+11"/>
         <source>Failed to write public key: %1</source>
-        <translation>Julkisen avaimen kirjoittaminen epäonnistui: %1</translation>
+        <translation type="vanished">Julkisen avaimen kirjoittaminen epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+55"/>
         <source>Edit Key Metadata</source>
         <translation>Muokkaa avaimen metatietoja</translation>
     </message>
@@ -3379,11 +3503,86 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <source>sftp_init failed: %1</source>
         <translation>sftp_init epäonnistui: %1</translation>
     </message>
+    <message>
+        <location filename="../PortForwardingDialog.cpp" line="-201"/>
+        <source>Forward type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Type:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Bind address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Bind address:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Listen port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Listen port:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Target host</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target host:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Target port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target port:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Description</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Description (optional):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ProfilesEditorDialog.cpp" line="-1484"/>
+        <source>You can use placeholders in macro commands:
+  {USER}    Username
+  {HOST}    Host/IP
+  {PORT}    SSH port
+  {PROFILE} Profile name
+  {DATE}    Current date (YYYY-MM-DD)
+  {TIME}    Current time (HH:MM:SS)
+
+Escapes:
+  {{  -&gt;  {
+  }}  -&gt;  }</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <location filename="../SettingsDialog.cpp" line="+56"/>
+        <location filename="../SettingsDialog.cpp" line="+55"/>
         <source>Settings</source>
         <translation>Asetukset</translation>
     </message>
@@ -3518,31 +3717,31 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Sovelluslukitus:</translation>
     </message>
     <message>
-        <location line="+30"/>
-        <location line="+89"/>
+        <location line="+33"/>
+        <location line="+91"/>
         <source>Restart required</source>
         <translation>Uudelleenkäynnistys vaaditaan</translation>
     </message>
     <message>
-        <location line="-88"/>
-        <location line="+89"/>
+        <location line="-90"/>
+        <location line="+91"/>
         <source>Language change will take effect after restarting the application.</source>
         <translation>Kielimuutos tulee voimaan sovelluksen uudelleenkäynnistyksen jälkeen.</translation>
     </message>
     <message>
-        <location line="-36"/>
-        <location line="+172"/>
+        <location line="-38"/>
+        <location line="+174"/>
         <source>Password set</source>
         <translation>Salasana asetettu</translation>
     </message>
     <message>
-        <location line="-171"/>
+        <location line="-173"/>
         <source>Enabled, but no password set!</source>
         <translation>Käytössä, mutta salasanaa ei ole asetettu!</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+198"/>
+        <location line="+200"/>
         <source>Off</source>
         <translation>Pois</translation>
     </message>
@@ -3637,37 +3836,32 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
     <message>
         <location filename="../SshClient.cpp" line="+45"/>
         <location line="+2"/>
-        <location line="+92"/>
+        <location line="+47"/>
         <source>No host specified.</source>
         <translation>Isäntää ei ole määritetty.</translation>
     </message>
     <message>
-        <location line="-48"/>
         <source>Cannot read key file: %1</source>
-        <translation>Avaintiedostoa ei voi lukea: %1</translation>
+        <translation type="vanished">Avaintiedostoa ei voi lukea: %1</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>No passphrase provider set (UI callback missing).</source>
-        <translation>Salasanan tarjoajaa ei ole asetettu (UI-takaisinkutsu puuttuu).</translation>
+        <translation type="vanished">Salasanan tarjoajaa ei ole asetettu (UI-takaisinkutsu puuttuu).</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>Cancelled by user.</source>
-        <translation>Käyttäjä peruutti.</translation>
+        <translation type="vanished">Käyttäjä peruutti.</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>Decrypt failed: %1</source>
-        <translation>Purkusalauksen epäonnistui: %1</translation>
+        <translation type="vanished">Purkusalauksen epäonnistui: %1</translation>
+    </message>
+    <message>
+        <source>Decrypt returned empty plaintext.</source>
+        <translation type="vanished">Purkusalauksen tulos oli tyhjä.</translation>
     </message>
     <message>
         <location line="+5"/>
-        <source>Decrypt returned empty plaintext.</source>
-        <translation>Purkusalauksen tulos oli tyhjä.</translation>
-    </message>
-    <message>
-        <location line="+27"/>
         <source>No user specified.</source>
         <translation>Käyttäjää ei ole määritetty.</translation>
     </message>
