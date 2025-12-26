@@ -21,7 +21,7 @@
 // Security intent:
 // - We keep this code small and auditable because file formats are easy to get wrong.
 // - The produced private key is intentionally unencrypted (OpenSSH "none/none") because
-//   encryption at rest is handled elsewhere (e.g., DilithiumKeyCrypto or future PQ key vault).
+//   encryption at rest is handled by OpenSSH key format when generated with a passphrase (ssh-keygen -N).
 //
 
 // =====================================================

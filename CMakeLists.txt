@@ -92,9 +92,6 @@ add_executable(pq-ssh
         src/Logger.cpp
         src/Logger.h
 
-        src/DilithiumKeyCrypto.cpp
-        src/DilithiumKeyCrypto.h
-
         src/FilesTab.cpp
         src/FilesTab.h
 

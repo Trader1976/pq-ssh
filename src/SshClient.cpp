@@ -38,7 +38,7 @@
 #include <cstring>   // memset, memcpy
 #include <algorithm> // std::min, std::fill
 
-#include "DilithiumKeyCrypto.h"
+
 
 // ------------------------------------------------------------
 // Small helper to turn libssh's last error into QString
@@ -145,52 +145,7 @@ QString SshClient::requestPassphrase(const QString& keyFile, bool *ok)
     return m_passphraseProvider(keyFile, ok);
 }
 
-// ------------------------------------------------------------
-// DEV helper: verify that an encrypted Dilithium key can be unlocked
-// without revealing any plaintext.
-// ------------------------------------------------------------
-bool SshClient::testUnlockDilithiumKey(const QString& encKeyPath, QString* err)
-{
-    if (err) err->clear();
 
-    QFile f(encKeyPath);
-    if (!f.open(QIODevice::ReadOnly)) {
-        if (err) *err = tr("Cannot read key file: %1").arg(f.errorString());
-        return false;
-    }
-    const QByteArray enc = f.readAll();
-    f.close();
-
-    if (!m_passphraseProvider) {
-        if (err) *err = tr("No passphrase provider set (UI callback missing).");
-        return false;
-    }
-
-    bool ok = false;
-    const QString pass = m_passphraseProvider(encKeyPath, &ok);
-    if (!ok) {
-        if (err) *err = tr("Cancelled by user.");
-        return false;
-    }
-
-    QByteArray plain;
-    QString decErr;
-    if (!decryptDilithiumKey(enc, pass, &plain, &decErr)) {
-        if (err) *err = tr("Decrypt failed: %1").arg(decErr);
-        return false;
-    }
-
-    if (plain.isEmpty()) {
-        if (err) *err = tr("Decrypt returned empty plaintext.");
-        return false;
-    }
-
-    // Best-effort wipe (plaintext should never persist longer than needed).
-    if (sodium_init() >= 0) sodium_memzero(plain.data(), (size_t)plain.size());
-    else std::fill(plain.begin(), plain.end(), '\0');
-
-    return true;
-}
 
 // ------------------------------------------------------------
 // connectProfile(): establish libssh session suitable for SFTP + exec

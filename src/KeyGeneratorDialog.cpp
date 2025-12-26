@@ -4,8 +4,6 @@
 //   GUI for generating, inventorying, and managing SSH keys used by pq-ssh.
 //
 // Responsibilities:
-//   - Generate keys (OpenSSH ed25519 / RSA, plus Dilithium5 stub)
-//   - Encrypt Dilithium private keys at rest using libsodium
 //   - Maintain metadata.json describing keys (labels, owner, expiry, status)
 //   - Provide a searchable/sortable key inventory UI
 //   - Export / copy public keys
@@ -24,7 +22,6 @@
 //
 #include "KeyGeneratorDialog.h"
 #include "KeyMetadataUtils.h"
-#include "DilithiumKeyCrypto.h"
 
 #include <QVBoxLayout>
 #include <QFormLayout>
@@ -112,8 +109,6 @@ static QByteArray b64DecodeLoose(const QByteArray &in)
 }
 
 // ---------------------------------------------------------------------------
-// PQSSH helpers (Dilithium5 + fingerprints)
-// ---------------------------------------------------------------------------
 // Compute SHA256 fingerprint and format it as:
 //   SHA256:<base64-no-padding>
 //
@@ -126,65 +121,8 @@ static QString sha256Fingerprint(const QByteArray &data)
     return "SHA256:" + b64;
 }
 
-// Temporary stub generator for Dilithium5 keys.
+
 //
-// IMPORTANT:
-//   This does NOT implement real Dilithium cryptography.
-//   It exists solely to validate UI flow, encryption-at-rest,
-//   metadata handling, and install mechanics.
-//
-// Future:
-//   Replace with real PQ keygen (liboqs / reference impl).
-static bool runDilithium5StubKeygen(const QString &privPath,
-                                   const QString &comment,
-                                   const QString &passphrase,
-                                   QString *errOut)
-{
-    Q_UNUSED(passphrase);
-
-    if (!sodiumInitOnce(errOut)) return false;
-
-    QByteArray pub(2592, Qt::Uninitialized);
-    QByteArray priv(4896, Qt::Uninitialized);
-
-    randombytes_buf(pub.data(),  (size_t)pub.size());
-    randombytes_buf(priv.data(), (size_t)priv.size());
-
-    QFile::remove(privPath);
-    QFile::remove(privPath + ".pub");
-
-    {
-        QFile f(privPath);
-        if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            if (errOut) *errOut = QObject::tr("Failed to write private key: %1").arg(f.errorString());
-            return false;
-        }
-        f.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner);
-        f.write(priv);
-        f.close();
-    }
-
-    {
-        QFile f(privPath + ".pub");
-        if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            if (errOut) *errOut = QObject::tr("Failed to write public key: %1").arg(f.errorString());
-            return false;
-        }
-
-        QByteArray line = "pqssh-dilithium5 ";
-        line += b64NoPad(pub);
-        if (!comment.isEmpty()) {
-            line += " ";
-            line += comment.toUtf8();
-        }
-        line += "\n";
-        f.write(line);
-        f.close();
-    }
-
-    return true;
-}
-
 // ============================================================================
 // Inline helper dialog (must be defined BEFORE use in onEditMetadata())
 // ============================================================================
@@ -320,7 +258,7 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
     form->setLabelAlignment(Qt::AlignRight);
 
     m_algoCombo = new QComboBox(this);
-    m_algoCombo->addItems({ "ed25519", "rsa3072", "rsa4096", "dilithium5" });
+    m_algoCombo->addItems({ "ed25519", "rsa3072", "rsa4096"});
     form->addRow(tr("Algorithm:"), m_algoCombo);
 
     m_keyNameEdit = new QLineEdit(this);
@@ -367,31 +305,55 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
     expireLayout->addWidget(m_expireDate, 1);
     form->addRow(tr("Expire date:"), expireRow);
 
+    // ----------------------------
+    // Passphrase (OpenSSH keys only)
+    // ----------------------------
     m_pass1Edit = new QLineEdit(this);
     m_pass1Edit->setEchoMode(QLineEdit::Password);
+
     m_pass2Edit = new QLineEdit(this);
     m_pass2Edit->setEchoMode(QLineEdit::Password);
+
     form->addRow(tr("Passphrase:"), m_pass1Edit);
     form->addRow(tr("Passphrase (again):"), m_pass2Edit);
 
     auto updatePassphraseUi = [this]() {
-        const bool isDilithium = (m_algoCombo->currentText() == "dilithium5");
-        m_pass1Edit->setEnabled(true);
-        m_pass2Edit->setEnabled(true);
+        const QString algo = m_algoCombo->currentText();
 
-        if (isDilithium) {
-            m_pass1Edit->setPlaceholderText(tr("Encrypt Dilithium5 private key (required)"));
+        // Only OpenSSH algorithms exist in the combo right now, but keep this gate future-proof.
+        const bool isOpenSshAlgo =
+            (algo == "ed25519" || algo == "rsa3072" || algo == "rsa4096" || algo == "rsa");
+
+        m_pass1Edit->setEnabled(isOpenSshAlgo);
+        m_pass2Edit->setEnabled(isOpenSshAlgo);
+
+        if (isOpenSshAlgo) {
+            m_pass1Edit->setPlaceholderText(tr("Optional (encrypt private key)"));
             m_pass2Edit->setPlaceholderText(tr("Repeat passphrase"));
-            m_pass1Edit->setToolTip(tr("Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305)."));
-            m_pass2Edit->setToolTip(tr("Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305)."));
+
+            m_pass1Edit->setToolTip(tr("If set, ssh-keygen will encrypt the OpenSSH private key (-N)."));
+            m_pass2Edit->setToolTip(tr("Repeat the same passphrase to confirm."));
         } else {
+            // If later you add non-OpenSSH algos again, disable passphrase input by default.
+            m_pass1Edit->clear();
+            m_pass2Edit->clear();
             m_pass1Edit->setPlaceholderText(QString());
             m_pass2Edit->setPlaceholderText(QString());
             m_pass1Edit->setToolTip(QString());
             m_pass2Edit->setToolTip(QString());
         }
     };
+
     updatePassphraseUi();
+
+    connect(m_algoCombo, &QComboBox::currentTextChanged, this,
+            [this, updatePassphraseUi](const QString&) {
+                // Avoid accidentally carrying a passphrase when user changes algorithms
+                m_pass1Edit->clear();
+                m_pass2Edit->clear();
+                updatePassphraseUi();
+            });
+
     connect(m_algoCombo, &QComboBox::currentTextChanged, this, [updatePassphraseUi](const QString&) {
         updatePassphraseUi();
     });
@@ -516,7 +478,6 @@ KeyGeneratorDialog::KeyGeneratorDialog(const QStringList& profileNames, QWidget 
 // ~/.pq-ssh/keys
 //   - id_ed25519_*.pub
 //   - id_ed25519_*
-//   - id_dilithium5_*.enc
 //   - metadata.json
 // Key generation flow (onGenerate):
 //
@@ -554,9 +515,6 @@ bool KeyGeneratorDialog::runSshKeygen(const QString &algo, const QString &privPa
                                      const QString &comment, const QString &passphrase,
                                      QString *errOut)
 {
-    if (algo == "dilithium5") {
-        return runDilithium5StubKeygen(privPath, comment, passphrase, errOut);
-    }
 
     QStringList args;
 
@@ -763,10 +721,11 @@ QMap<QString, KeyGeneratorDialog::KeyRow> KeyGeneratorDialog::buildInventory(QSt
             const QStringList parts = pubLine.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
             const QString kind = parts.isEmpty() ? QString() : parts[0];
 
-            if (kind == "pqssh-dilithium5") inferredAlgo = "dilithium5";
-            else if (kind == "ssh-ed25519") inferredAlgo = "ed25519";
+            if (kind == "ssh-ed25519") inferredAlgo = "ed25519";
             else if (kind == "ssh-rsa") inferredAlgo = "rsa";
-            else if (kind.startsWith("pqssh-")) inferredAlgo = kind.mid(QString("pqssh-").size());
+            else if (kind.startsWith("ecdsa-sha2-")) inferredAlgo = "ecdsa";
+            else if (kind.startsWith("sk-ssh-ed25519")) inferredAlgo = "sk-ed25519";
+            else inferredAlgo = kind; // fallback: show whatever it is
         }
 
         QString inferredCreated;
@@ -833,21 +792,17 @@ QMap<QString, KeyGeneratorDialog::KeyRow> KeyGeneratorDialog::buildInventory(QSt
 }
 
 // ---------------- UI actions ----------------
-
 void KeyGeneratorDialog::onGenerate()
 {
-    const QString algo = m_algoCombo->currentText();
-    const bool isDilithium = (algo == "dilithium5");
+    const QString algo = m_algoCombo->currentText().trimmed();
 
-    if (isDilithium) {
-        if (m_pass1Edit->text().isEmpty()) {
-            m_resultLabel->setText(tr("Dilithium5 keys require a passphrase."));
-            return;
-        }
-        if (m_pass1Edit->text() != m_pass2Edit->text()) {
-            m_resultLabel->setText(tr("Passphrases do not match."));
-            return;
-        }
+    // Guard: only OpenSSH algos supported here
+    const bool isOpenSshAlgo =
+        (algo == "ed25519" || algo == "rsa3072" || algo == "rsa4096" || algo == "rsa");
+
+    if (!isOpenSshAlgo) {
+        m_resultLabel->setText(tr("Unsupported algorithm: %1").arg(algo));
+        return;
     }
 
     QString err;
@@ -866,13 +821,22 @@ void KeyGeneratorDialog::onGenerate()
     const QString owner   = m_ownerEdit->text().trimmed();
     const QString purpose = m_purposeEdit->text().trimmed();
     const int rotationDays = m_rotationSpin->value();
-    const QString status  = m_statusCombo->currentText();
+    const QString status  = m_statusCombo->currentText().trimmed();
 
+    // Optional passphrase:
     const QString pass1 = m_pass1Edit->text();
     const QString pass2 = m_pass2Edit->text();
-    if (pass1 != pass2) {
-        m_resultLabel->setText(tr("Passphrases do not match."));
-        return;
+
+    const bool anyPass = !pass1.isEmpty() || !pass2.isEmpty();
+    if (anyPass) {
+        if (pass1.isEmpty() || pass2.isEmpty()) {
+            m_resultLabel->setText(tr("Please enter the passphrase twice."));
+            return;
+        }
+        if (pass1 != pass2) {
+            m_resultLabel->setText(tr("Passphrases do not match."));
+            return;
+        }
     }
 
     const QString privPath = QDir(keysDir()).filePath(keyName);
@@ -882,40 +846,10 @@ void KeyGeneratorDialog::onGenerate()
     if (comment.isEmpty() && !owner.isEmpty())
         comment = owner;
 
-    if (!runSshKeygen(algo, privPath, comment, pass1, &err)) {
+    // For OpenSSH keys: passphrase can be empty => ssh-keygen will create an unencrypted key.
+    if (!runSshKeygen(algo, privPath, comment, anyPass ? pass1 : QString(), &err)) {
         m_resultLabel->setText(err);
         return;
-    }
-
-    QString finalPrivPath = privPath;
-    if (isDilithium) {
-        QFile plainFile(privPath);
-        if (!plainFile.open(QIODevice::ReadOnly)) {
-            m_resultLabel->setText(tr("Failed to read generated Dilithium private key."));
-            return;
-        }
-
-        const QByteArray plainKey = plainFile.readAll();
-        plainFile.close();
-
-        QByteArray encrypted;
-        QString encErr;
-        if (!encryptDilithiumKey(plainKey, pass1, &encrypted, &encErr)) {
-            m_resultLabel->setText(tr("Encryption failed: %1").arg(encErr));
-            return;
-        }
-
-        const QString encPath = privPath + ".enc";
-        QFile encFile(encPath);
-        if (!encFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-            m_resultLabel->setText(tr("Failed to write encrypted Dilithium key."));
-            return;
-        }
-        encFile.write(encrypted);
-        encFile.close();
-
-        QFile::remove(privPath);
-        finalPrivPath = encPath;
     }
 
     QString fp;
@@ -929,6 +863,8 @@ void KeyGeneratorDialog::onGenerate()
     if (m_expireCheck->isChecked()) {
         expires = m_expireDate->dateTime().toUTC().toString(Qt::ISODateWithMs);
     }
+
+    const QString finalPrivPath = privPath;
 
     if (!saveMetadata(fp, label, owner, created, expires, purpose,
                       algo, rotationDays, status, finalPrivPath, pubPath, &err)) {

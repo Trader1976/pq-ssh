@@ -55,7 +55,6 @@ private slots:
     void downloadSelectionTriggered();
     void onOpenLogFile();
     void onOpenUserManual();
-    void onTestUnlockDilithiumKey();
     void onInstallPublicKeyRequested(const QString& pubKeyLine, int profileIndex);
     void onOpenSettingsDialog();
 

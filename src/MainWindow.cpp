@@ -73,7 +73,6 @@
 #include "CpunkTermWidget.h"
 #include <qtermwidget5/qtermwidget.h>
 #include "Logger.h"
-#include "DilithiumKeyCrypto.h"
 #include <sodium.h>
 #include "SshConfigImportPlanDialog.h"
 #include "SshConfigParser.h"
@@ -1010,79 +1009,8 @@ void MainWindow::setupMenus()
         onInstallPublicKeyRequested(pubLine, row);
     });
 
-    QAction *testUnlockAct = new QAction(tr("DEV: Test Dilithium key unlock…"), this);
-    testUnlockAct->setToolTip(tr("Dev tool: decrypt .enc key and validate format (only visible when PQ debug is ON)."));
-    keysMenu->addAction(testUnlockAct);
-
-    auto syncDevVisibility = [this, testUnlockAct]() {
-        const bool on = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
-        testUnlockAct->setVisible(on);
-        testUnlockAct->setEnabled(on);
-    };
-    syncDevVisibility();
-
-    if (m_pqDebugCheck) {
-        connect(m_pqDebugCheck, &QCheckBox::toggled, this, [syncDevVisibility](bool) {
-            syncDevVisibility();
-        });
-    }
-
-    connect(testUnlockAct, &QAction::triggered, this, [this]() {
-        if (!(m_pqDebugCheck && m_pqDebugCheck->isChecked())) {
-            appendTerminalLine(tr("[DEV] PQ debug is OFF. Enable it to use the tester."));
-            return;
-        }
-
-        const QString path = QFileDialog::getOpenFileName(
-            this,
-            tr("Select encrypted Dilithium key (.enc)"),
-            QDir(QDir::homePath()).filePath(".pq-ssh/keys"),
-            tr("Encrypted keys (*.enc);;All files (*)")
-        );
-        if (path.isEmpty()) return;
-
-        QFile f(path);
-        if (!f.open(QIODevice::ReadOnly)) {
-            appendTerminalLine(tr("[TEST] ❌ Cannot read file: %1").arg(f.errorString()));
-            return;
-        }
-        const QByteArray enc = f.readAll();
-        f.close();
-
-        appendTerminalLine(tr("[TEST] File: %1").arg(QFileInfo(path).fileName()));
-        appendTerminalLine(tr("[TEST] Enc size: %1 bytes").arg(enc.size()));
-
-        const int minSize =
-            6 + crypto_pwhash_SALTBYTES + crypto_aead_xchacha20poly1305_ietf_NPUBBYTES +
-            crypto_aead_xchacha20poly1305_ietf_ABYTES;
-
-        if (enc.size() < minSize) {
-            appendTerminalLine(tr("[TEST] ❌ Too small to be valid (need >= %1 bytes)").arg(minSize));
-            return;
-        }
-
-        const QByteArray magic = enc.left(6);
-        appendTerminalLine(tr("[TEST] Magic: '%1'").arg(QString::fromLatin1(magic)));
-        if (magic != "PQSSH1") {
-            appendTerminalLine(tr("[TEST] ⚠ WARN: Magic mismatch (expected 'PQSSH1'). Will still try decrypt."));
-        }
-
-        QString err;
-        const bool ok = m_ssh.testUnlockDilithiumKey(path, &err);
-        if (ok) {
-            appendTerminalLine(tr("[TEST] ✅ Unlock OK: %1").arg(QFileInfo(path).fileName()));
-
-            const QByteArray encSha = QCryptographicHash::hash(enc, QCryptographicHash::Sha256).toHex();
-            appendTerminalLine(tr("[TEST] Enc SHA256: %1").arg(QString::fromLatin1(encSha)));
-        } else {
-            appendTerminalLine(tr("[TEST] ❌ Unlock FAILED: %1").arg(err));
-        }
-    });
-
     // View
     auto *viewMenu = menuBar()->addMenu(tr("&View"));
-
-
 
     QAction *auditViewerAct = new QAction(tr("Audit log viewer…"), this);
     auditViewerAct->setToolTip(tr("View audit logs in a readable, colored format"));
@@ -2017,97 +1945,6 @@ void MainWindow::onOpenUserManual()
     dlg->show();
 }
 
-
-
-void MainWindow::onTestUnlockDilithiumKey()
-{
-    if (!(m_pqDebugCheck && m_pqDebugCheck->isChecked())) {
-        appendTerminalLine(tr("[DEV] PQ debug is OFF. Enable it to use the tester."));
-        return;
-    }
-
-    const QString startDir = QDir(QDir::homePath()).filePath(".pq-ssh/keys");
-    const QString path = QFileDialog::getOpenFileName(
-        this,
-        tr("Select encrypted Dilithium private key"),
-        startDir,
-        tr("Encrypted keys (*.enc);;All files (*)")
-    );
-    if (path.isEmpty())
-        return;
-
-    QFile f(path);
-    if (!f.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, tr("DEV test failed"),
-                             tr("Cannot read file:\n%1").arg(f.errorString()));
-        return;
-    }
-    const QByteArray enc = f.readAll();
-    f.close();
-
-    if (enc.size() < (6 + crypto_pwhash_SALTBYTES + crypto_aead_xchacha20poly1305_ietf_NPUBBYTES + 16)) {
-        QMessageBox::warning(this, tr("DEV test failed"),
-                             tr("File is too small to be a valid PQSSH encrypted key.\n"
-                                "Expected: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...)."));
-        return;
-    }
-
-    const QByteArray magic = enc.left(6);
-    appendTerminalLine(tr("[DEV] Selected: %1").arg(QFileInfo(path).fileName()));
-    appendTerminalLine(tr("[DEV] Enc size: %1 bytes").arg(enc.size()));
-    appendTerminalLine(tr("[DEV] Magic: '%1'").arg(QString::fromLatin1(magic)));
-
-    if (magic != "PQSSH1") {
-        appendTerminalLine(tr("[DEV][WARN] Magic mismatch. Expected 'PQSSH1'. Continuing anyway to test decrypt..."));
-    }
-
-    bool ok = false;
-    QString pass;
-    {
-        bool localOk = false;
-        pass = QInputDialog::getText(this,
-                                     tr("Dilithium Key Passphrase"),
-                                     tr("Enter passphrase for:\n%1").arg(QFileInfo(path).fileName()),
-                                     QLineEdit::Password,
-                                     QString(),
-                                     &localOk);
-        ok = localOk;
-    }
-
-    if (!ok) {
-        appendTerminalLine(tr("[DEV] Cancelled by user."));
-        return;
-    }
-
-    QByteArray plain;
-    QString decErr;
-    if (!decryptDilithiumKey(enc, pass, &plain, &decErr)) {
-        appendTerminalLine(tr("[DEV][FAIL] Decrypt failed: %1").arg(decErr));
-        QMessageBox::warning(this, tr("DEV test failed"), tr("Decrypt failed:\n%1").arg(decErr));
-        return;
-    }
-
-    if (plain.isEmpty()) {
-        appendTerminalLine(tr("[DEV][FAIL] Decrypt returned empty plaintext."));
-        QMessageBox::warning(this, tr("DEV test failed"), tr("Decrypt returned empty plaintext."));
-        return;
-    }
-
-    const QByteArray digest = QCryptographicHash::hash(plain, QCryptographicHash::Sha256).toHex();
-    appendTerminalLine(tr("[DEV][OK] Decrypted plaintext size: %1 bytes").arg(plain.size()));
-    appendTerminalLine(tr("[DEV][OK] Plain SHA256: %1").arg(QString::fromLatin1(digest)));
-
-    if (plain.size() < 2048) {
-        appendTerminalLine(tr("[DEV][WARN] Plaintext is unexpectedly small for Dilithium private key material."));
-    }
-
-    sodium_memzero(plain.data(), (size_t)plain.size());
-
-    QMessageBox::information(this, tr("DEV test OK"),
-                             tr("Decrypt OK.\n\n"
-                                "Validated format + passphrase unlock.\n"
-                                "Details written to the terminal/log."));
-}
 
 void MainWindow::applySavedSettings()
 {

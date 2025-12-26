@@ -8,6 +8,10 @@
         <file alias="user-manual.css">docs/user-manual.css</file>
         <file alias="user-manual_en.html">docs/user-manual_en.html</file>
         <file alias="user-manual_fi.html">docs/user-manual_fi.html</file>
+        <!-- NEW: manual images -->
+        <file alias="img/files.png">docs/img/files.png</file>
+        <file alias="img/profilemanager.png">docs/img/profilemanager.png</file>
+        <file alias="img/auditlog.png">docs/img/auditlog.png</file>
     </qresource>
 
     <qresource prefix="/i18n">
