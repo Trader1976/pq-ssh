@@ -1027,17 +1027,17 @@ Continue?</source>
 <context>
     <name>IdentityManagerDialog</name>
     <message>
-        <location filename="../IdentityManagerDialog.cpp" line="+66"/>
+        <location filename="../IdentityManagerDialog.cpp" line="+53"/>
         <source>Identity Manager</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+113"/>
         <source>word1 word2 ... word24</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>24 words:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1052,17 +1052,13 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
-        <source>Derive global SSH key</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
+        <location line="+4"/>
+        <location line="+234"/>
         <source>Fingerprint:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="-198"/>
         <source>Copy public</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1082,62 +1078,279 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+78"/>
+        <location line="+125"/>
+        <location line="+13"/>
+        <location line="+9"/>
+        <location line="+12"/>
+        <location line="+11"/>
+        <location line="+170"/>
+        <location line="+138"/>
+        <source>Identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-353"/>
+        <source>Failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Failed to derive BIP39 master seed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Failed to derive Ed25519 seed (SHAKE256).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Failed to create Ed25519 key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Failed to extract Ed25519 public key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Words are empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Expected 24 words, got %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Wordlist loaded but seems too small (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Wordlist is too small.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Failed to generate words.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Invalid identities.json</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+32"/>
+        <source>Cannot load identities:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <location line="+136"/>
         <source>Fingerprint: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="-124"/>
+        <location line="+4"/>
+        <location line="+137"/>
         <source>Fingerprint: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="-438"/>
+        <location line="+4"/>
         <location line="+5"/>
-        <location line="+8"/>
-        <location line="+17"/>
+        <location line="+10"/>
         <source>Save private key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30"/>
-        <source>No private key derived yet.</source>
+        <location line="-212"/>
+        <source>Saved identities</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Saved identities.
+Select an identity to view its fingerprint and public key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Remove</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
+        <source>Remove the selected identity from the local store.
+This does not delete any exported key files.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <location line="+355"/>
+        <source>Create identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-354"/>
+        <source>Restore identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+454"/>
+        <location line="+5"/>
+        <location line="+7"/>
+        <location line="+45"/>
+        <location line="+6"/>
+        <source>Save identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-516"/>
+        <source>Derive</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Create a new identity by generating a random 24-word recovery phrase.
+Write the words down and keep them safe.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Restore an existing identity by entering your 24-word recovery phrase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Derive the identity fingerprint and SSH key from the entered words.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Save this identity to the local identity store.
+Only public information is saved (no recovery words).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>Alias:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+24"/>
+        <source>Enter your 24-word recovery phrase.
+Words can be separated by spaces or new lines.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Optional passphrase used together with the recovery words.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Optional human-readable name for this identity.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Comment added to the generated SSH public key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Copy the OpenSSH public key to the clipboard.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Copy the full identity fingerprint to the clipboard.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Save the private SSH key to a file.
+Protect this file and set correct permissions.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Save the public SSH key to a file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+53"/>
+        <source>No private key derived yet.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
         <source>id_ed25519</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
-        <location line="+37"/>
+        <location line="+5"/>
+        <location line="+28"/>
         <source>Cannot write file:
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20"/>
-        <location line="+30"/>
+        <location line="-18"/>
+        <location line="+27"/>
         <source>Write failed (short write).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20"/>
+        <location line="-18"/>
+        <location line="+4"/>
         <location line="+5"/>
-        <location line="+5"/>
-        <location line="+10"/>
+        <location line="+9"/>
         <source>Save public key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-20"/>
+        <location line="-18"/>
         <source>No public key derived yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+4"/>
         <source>id_ed25519.pub</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+266"/>
+        <location line="+5"/>
+        <source>Derive identity first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+58"/>
+        <source>Identity saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <location line="+9"/>
+        <location line="+14"/>
+        <source>Remove identity</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-22"/>
+        <source>Remove selected identity?
+
+This does not delete exported key files.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1687,18 +1900,18 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1306"/>
+        <location line="+1308"/>
         <source>KEX: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1301"/>
-        <location line="+1306"/>
+        <location line="-1303"/>
+        <location line="+1308"/>
         <source>Negotiated KEX: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1300"/>
+        <location line="-1302"/>
         <source>&amp;File</source>
         <translation>&amp;File</translation>
     </message>
@@ -1719,18 +1932,18 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+9"/>
-        <location line="+1191"/>
+        <location line="+1193"/>
         <source>[INFO] Settings updated.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1190"/>
-        <location line="+1191"/>
+        <location line="-1192"/>
+        <location line="+1193"/>
         <source>Settings updated.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1183"/>
+        <location line="-1185"/>
         <source>Import OpenSSH config…</source>
         <translation>Import OpenSSH config…</translation>
     </message>
@@ -1760,7 +1973,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+27"/>
         <source>&amp;Keys</source>
         <translation>&amp;Keys</translation>
     </message>
@@ -1801,20 +2014,20 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+292"/>
+        <location line="+289"/>
         <location line="+10"/>
         <source>Key install failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-301"/>
-        <location line="+993"/>
+        <location line="-298"/>
+        <location line="+990"/>
         <source>Cannot read file:
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-984"/>
+        <location line="-981"/>
         <source>DEV: Test Dilithium key unlock…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1825,23 +2038,23 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+18"/>
-        <location line="+948"/>
+        <location line="+945"/>
         <source>[DEV] PQ debug is OFF. Enable it to use the tester.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-942"/>
+        <location line="-939"/>
         <source>Select encrypted Dilithium key (.enc)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+949"/>
+        <location line="+946"/>
         <source>Encrypted keys (*.enc);;All files (*)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-943"/>
+        <location line="-940"/>
         <source>[TEST] ❌ Cannot read file: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1891,7 +2104,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-143"/>
         <source>Identity manager…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1901,12 +2114,12 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+171"/>
         <source>&amp;Help</source>
         <translation>&amp;Help</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-25"/>
         <source>Audit log viewer…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1926,7 +2139,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+15"/>
         <source>User Manual</source>
         <translation>User Manual</translation>
     </message>
@@ -1936,7 +2149,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="-9"/>
         <source>Open log file</source>
         <translation>Open log file</translation>
     </message>
@@ -1946,7 +2159,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+12"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2504,8 +2717,8 @@ Enter your application password:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1441"/>
-        <location line="+252"/>
+        <location line="-1438"/>
+        <location line="+249"/>
         <location line="+5"/>
         <location line="+7"/>
         <location line="+58"/>
@@ -2513,7 +2726,7 @@ Enter your application password:</source>
         <translation>Key install</translation>
     </message>
     <message>
-        <location line="-862"/>
+        <location line="-864"/>
         <source>%1@%2:%3  [%4]</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2566,8 +2779,8 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+330"/>
-        <location line="+364"/>
+        <location line="+335"/>
+        <location line="+361"/>
         <source>No profile selected.</source>
         <translation>No profile selected.</translation>
     </message>
@@ -2598,7 +2811,7 @@ Disable app lock in Settings or set a password.</source>
 <context>
     <name>ProfilesEditorDialog</name>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="+243"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="+255"/>
         <source>Macro %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2648,7 +2861,17 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+5"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Remove selected key file (sets key type to auto)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Select private key file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2659,12 +2882,12 @@ Disable app lock in Settings or set a password.</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+85"/>
+        <location line="+102"/>
         <source>Name:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-84"/>
+        <location line="-101"/>
         <source>Group:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2719,7 +2942,29 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+3"/>
+        <source>Probe server crypto…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Probe the negotiated SSH crypto with the current User/Host/Port.
+
+Shows:
+• KEX (key exchange)
+• Host key algorithm
+• Ciphers (client→server / server→client)
+
+How it works:
+• Runs the system OpenSSH client (ssh -vvv) with a short timeout.
+• No settings are saved.
+• Authentication is not required; negotiation happens before auth.
+
+Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh output differs.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+41"/>
         <source>Hotkey macros</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2804,7 +3049,7 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+379"/>
+        <location line="+402"/>
         <source>Each profile must have non-empty user and host.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2860,6 +3105,62 @@ Disable app lock in Settings or set a password.</source>
         <source>Imported %1 macros.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location line="+57"/>
+        <location line="+29"/>
+        <source>Server crypto probe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-29"/>
+        <source>Could not start the ssh command.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Target: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Port: %1
+
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>KEX: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <location line="+1"/>
+        <location line="+4"/>
+        <location line="+1"/>
+        <source>(not found)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-5"/>
+        <source>Host key: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Cipher C→S: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Cipher S→C: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -2875,7 +3176,7 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-875"/>
+        <location filename="../MainWindow.cpp" line="-877"/>
         <source>Out of memory while hashing password.</source>
         <translation type="unfinished"></translation>
     </message>

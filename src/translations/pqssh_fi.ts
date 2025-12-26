@@ -1049,17 +1049,17 @@ Tämä tallentaa koko komentomerkkijonon audit-lokitiedostoon ja voi sisältää
 <context>
     <name>IdentityManagerDialog</name>
     <message>
-        <location filename="../IdentityManagerDialog.cpp" line="+66"/>
+        <location filename="../IdentityManagerDialog.cpp" line="+53"/>
         <source>Identity Manager</source>
         <translation>Identiteettien hallinta</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+113"/>
         <source>word1 word2 ... word24</source>
         <translation>sana1 sana2 ... sana24</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+8"/>
         <source>24 words:</source>
         <translation>24 sanaa:</translation>
     </message>
@@ -1074,17 +1074,17 @@ Tämä tallentaa koko komentomerkkijonon audit-lokitiedostoon ja voi sisältää
         <translation>Kommentti:</translation>
     </message>
     <message>
-        <location line="+6"/>
         <source>Derive global SSH key</source>
-        <translation>Johda globaali SSH-avain</translation>
+        <translation type="vanished">Johda globaali SSH-avain</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+4"/>
+        <location line="+234"/>
         <source>Fingerprint:</source>
         <translation>Sormenjälki:</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="-198"/>
         <source>Copy public</source>
         <translation>Kopioi julkinen</translation>
     </message>
@@ -1104,64 +1104,290 @@ Tämä tallentaa koko komentomerkkijonon audit-lokitiedostoon ja voi sisältää
         <translation>Tallenna julkinen…</translation>
     </message>
     <message>
-        <location line="+78"/>
+        <location line="+125"/>
+        <location line="+13"/>
+        <location line="+9"/>
+        <location line="+12"/>
+        <location line="+11"/>
+        <location line="+170"/>
+        <location line="+138"/>
+        <source>Identity</source>
+        <translation>Identiteetti</translation>
+    </message>
+    <message>
+        <location line="-353"/>
+        <source>Failed: %1</source>
+        <translation>Epäonnistui: %1</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Failed to derive BIP39 master seed.</source>
+        <translation>BIP39-pääavaimen johtaminen epäonnistui.</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Failed to derive Ed25519 seed (SHAKE256).</source>
+        <translation>Ed25519-siemenen johtaminen epäonnistui (SHAKE256).</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Failed to create Ed25519 key.</source>
+        <translation>Ed25519-avaimen luominen epäonnistui.</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Failed to extract Ed25519 public key.</source>
+        <translation>Ed25519-julkisen avaimen lukeminen epäonnistui.</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Words are empty.</source>
+        <translation>Sanat puuttuvat.</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Expected 24 words, got %1.</source>
+        <translation>Odotettiin 24 sanaa, mutta saatiin %1.</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Wordlist loaded but seems too small (%1).</source>
+        <translation>Sanaluettelo ladattiin, mutta se vaikuttaa liian pieneltä (%1)</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Wordlist is too small.</source>
+        <translation>Sanaluettelo on liian pieni.</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Failed to generate words.</source>
+        <translation>Sanojen luominen epäonnistui.</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Invalid identities.json</source>
+        <translation>Virheellinen identities.json-tiedosto.</translation>
+    </message>
+    <message>
+        <location line="+32"/>
+        <source>Cannot load identities:
+%1</source>
+        <translation>Identiteettejä ei voitu ladata:
+%1</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <location line="+136"/>
         <source>Fingerprint: %1</source>
         <translation>Sormenjälki: %1</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="-124"/>
+        <location line="+4"/>
+        <location line="+137"/>
         <source>Fingerprint: </source>
         <translation>Sormenjälki: </translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="-438"/>
+        <location line="+4"/>
         <location line="+5"/>
-        <location line="+8"/>
-        <location line="+17"/>
+        <location line="+10"/>
         <source>Save private key</source>
         <translation>Tallenna yksityinen avain</translation>
     </message>
     <message>
-        <location line="-30"/>
+        <location line="-212"/>
+        <source>Saved identities</source>
+        <translation>Tallennetut identiteetit</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Saved identities.
+Select an identity to view its fingerprint and public key.</source>
+        <translation>Tallennetut identiteetit.
+Valitse identiteetti nähdäksesi sen sormenjäljen ja julkisen avaimen.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Remove</source>
+        <translation>Poista</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Remove the selected identity from the local store.
+This does not delete any exported key files.</source>
+        <translation>Poista valittu identiteetti paikallisesta tallennustilasta.
+Tämä ei poista aiemmin vietyjä avaintiedostoja.</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <location line="+355"/>
+        <source>Create identity</source>
+        <translation>Luo identiteetti</translation>
+    </message>
+    <message>
+        <location line="-354"/>
+        <source>Restore identity</source>
+        <translation>Palauta identiteetti</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+454"/>
+        <location line="+5"/>
+        <location line="+7"/>
+        <location line="+45"/>
+        <location line="+6"/>
+        <source>Save identity</source>
+        <translation>Tallenna identiteetti</translation>
+    </message>
+    <message>
+        <location line="-516"/>
+        <source>Derive</source>
+        <translation>Johda identiteetti</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Create a new identity by generating a random 24-word recovery phrase.
+Write the words down and keep them safe.</source>
+        <translation>uo uusi identiteetti luomalla satunnainen 24 sanan palautuslause.
+Kirjoita sanat muistiin ja säilytä ne turvallisesti.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Restore an existing identity by entering your 24-word recovery phrase.</source>
+        <translation>Palauta olemassa oleva identiteetti syöttämällä 24 sanan palautuslause.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Derive the identity fingerprint and SSH key from the entered words.</source>
+        <translation>Johda identiteetin sormenjälki ja SSH-avain annetuista sanoista.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Save this identity to the local identity store.
+Only public information is saved (no recovery words).</source>
+        <translation>Tallenna tämä identiteetti paikalliseen identiteettivarastoon.
+Vain julkiset tiedot tallennetaan (ei palautussanoja).</translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>Alias:</source>
+        <translation>Alias:</translation>
+    </message>
+    <message>
+        <location line="+24"/>
+        <source>Enter your 24-word recovery phrase.
+Words can be separated by spaces or new lines.</source>
+        <translation>Syötä 24 sanan palautuslauseesi.
+Sanat voidaan erottaa välilyönneillä tai rivinvaihdoilla.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Optional passphrase used together with the recovery words.</source>
+        <translation>Valinnainen salasana, jota käytetään yhdessä palautussanojen kanssa.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Optional human-readable name for this identity.</source>
+        <translation>Valinnainen, ihmiselle luettava nimi tälle identiteetille.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Comment added to the generated SSH public key.</source>
+        <translation>Kommentti, joka lisätään luotuun SSH-julkiseen avaimeen.</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Copy the OpenSSH public key to the clipboard.</source>
+        <translation>Kopioi OpenSSH-julkinen avain leikepöydälle.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Copy the full identity fingerprint to the clipboard.</source>
+        <translation>Kopioi koko identiteetin sormenjälki leikepöydälle.</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Save the private SSH key to a file.
+Protect this file and set correct permissions.</source>
+        <translation>Tallenna yksityinen SSH-avain tiedostoon.
+Suojaa tämä tiedosto ja aseta sille oikeat käyttöoikeudet.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Save the public SSH key to a file.</source>
+        <translation>Tallenna julkinen SSH-avain tiedostoon.</translation>
+    </message>
+    <message>
+        <location line="+53"/>
         <source>No private key derived yet.</source>
         <translation>Yksityistä avainta ei ole vielä johdettu.</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+4"/>
         <source>id_ed25519</source>
         <translation>id_ed25519</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <location line="+37"/>
+        <location line="+5"/>
+        <location line="+28"/>
         <source>Cannot write file:
 %1</source>
         <translation>Tiedostoon ei voi kirjoittaa:
 %1</translation>
     </message>
     <message>
-        <location line="-20"/>
-        <location line="+30"/>
+        <location line="-18"/>
+        <location line="+27"/>
         <source>Write failed (short write).</source>
         <translation>Kirjoitus epäonnistui (vajaa kirjoitus).</translation>
     </message>
     <message>
-        <location line="-20"/>
+        <location line="-18"/>
+        <location line="+4"/>
         <location line="+5"/>
-        <location line="+5"/>
-        <location line="+10"/>
+        <location line="+9"/>
         <source>Save public key</source>
         <translation>Tallenna julkinen avain</translation>
     </message>
     <message>
-        <location line="-20"/>
+        <location line="-18"/>
         <source>No public key derived yet.</source>
         <translation>Julkista avainta ei ole vielä johdettu.</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+4"/>
         <source>id_ed25519.pub</source>
         <translation>id_ed25519.pub</translation>
+    </message>
+    <message>
+        <location line="+266"/>
+        <location line="+5"/>
+        <source>Derive identity first.</source>
+        <translation>Johda identiteetti ensin.</translation>
+    </message>
+    <message>
+        <location line="+58"/>
+        <source>Identity saved.</source>
+        <translation>Identiteetti tallennettu</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <location line="+9"/>
+        <location line="+14"/>
+        <source>Remove identity</source>
+        <translation>Poista identiteetti</translation>
+    </message>
+    <message>
+        <location line="-22"/>
+        <source>Remove selected identity?
+
+This does not delete exported key files.</source>
+        <translation>Poista valittu identiteetti?
+
+Tämä ei poista vietyjä avaintiedostoja.</translation>
     </message>
 </context>
 <context>
@@ -1729,18 +1955,18 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1306"/>
+        <location line="+1308"/>
         <source>KEX: %1</source>
         <translation>KEX: %1</translation>
     </message>
     <message>
-        <location line="-1301"/>
-        <location line="+1306"/>
+        <location line="-1303"/>
+        <location line="+1308"/>
         <source>Negotiated KEX: %1</source>
         <translation>Neuvoteltu KEX: %1</translation>
     </message>
     <message>
-        <location line="-1300"/>
+        <location line="-1302"/>
         <source>&amp;File</source>
         <translation>&amp;Tiedosto</translation>
     </message>
@@ -1761,18 +1987,18 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+9"/>
-        <location line="+1191"/>
+        <location line="+1193"/>
         <source>[INFO] Settings updated.</source>
         <translation>[INFO] Asetukset päivitetty.</translation>
     </message>
     <message>
-        <location line="-1190"/>
-        <location line="+1191"/>
+        <location line="-1192"/>
+        <location line="+1193"/>
         <source>Settings updated.</source>
         <translation>Asetukset päivitetty.</translation>
     </message>
     <message>
-        <location line="-1183"/>
+        <location line="-1185"/>
         <source>Import OpenSSH config…</source>
         <translation>Tuo OpenSSH-asetukset…</translation>
     </message>
@@ -1802,7 +2028,7 @@ Profiiliin: %3</translation>
         <translation>Suorita sama tehtävä useissa profiileissa/isännissä (esim. julkaise 10 palvelimelle).</translation>
     </message>
     <message>
-        <location line="+22"/>
+        <location line="+27"/>
         <source>&amp;Keys</source>
         <translation>&amp;Avaimet</translation>
     </message>
@@ -1843,21 +2069,21 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+292"/>
+        <location line="+289"/>
         <location line="+10"/>
         <source>Key install failed</source>
         <translation>Avaimen asennus epäonnistui</translation>
     </message>
     <message>
-        <location line="-301"/>
-        <location line="+993"/>
+        <location line="-298"/>
+        <location line="+990"/>
         <source>Cannot read file:
 %1</source>
         <translation>Tiedostoa ei voi lukea:
 %1</translation>
     </message>
     <message>
-        <location line="-984"/>
+        <location line="-981"/>
         <source>DEV: Test Dilithium key unlock…</source>
         <translation>DEV: Testaa Dilithium-avaimen avaus…</translation>
     </message>
@@ -1868,23 +2094,23 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+18"/>
-        <location line="+948"/>
+        <location line="+945"/>
         <source>[DEV] PQ debug is OFF. Enable it to use the tester.</source>
         <translation>[DEV] PQ-virheenkorjaus on POIS PÄÄLTÄ. Ota se käyttöön käyttääksesi testeria.</translation>
     </message>
     <message>
-        <location line="-942"/>
+        <location line="-939"/>
         <source>Select encrypted Dilithium key (.enc)</source>
         <translation>Valitse salattu Dilithium-avain (.enc)</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+949"/>
+        <location line="+946"/>
         <source>Encrypted keys (*.enc);;All files (*)</source>
         <translation>Salatut avaimet (*.enc);;Kaikki tiedostot (*)</translation>
     </message>
     <message>
-        <location line="-943"/>
+        <location line="-940"/>
         <source>[TEST] ❌ Cannot read file: %1</source>
         <translation>[TEST] ❌ Tiedostoa ei voi lukea: %1</translation>
     </message>
@@ -1934,7 +2160,7 @@ Profiiliin: %3</translation>
         <translation>&amp;Näytä</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-143"/>
         <source>Identity manager…</source>
         <translation>Identiteettien hallinta…</translation>
     </message>
@@ -1944,12 +2170,12 @@ Profiiliin: %3</translation>
         <translation>Palauta globaali SSH-avainpari 24 sanasta (Ed25519).</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+171"/>
         <source>&amp;Help</source>
         <translation>&amp;Ohje</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="-25"/>
         <source>Audit log viewer…</source>
         <translation>Audit-lokin katselin…</translation>
     </message>
@@ -1969,7 +2195,7 @@ Profiiliin: %3</translation>
         <translation>Avaa audit-lokihakemisto</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+15"/>
         <source>User Manual</source>
         <translation>Käyttöohje</translation>
     </message>
@@ -1979,7 +2205,7 @@ Profiiliin: %3</translation>
         <translation>Avaa PQ-SSH:n käyttöohje</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="-9"/>
         <source>Open log file</source>
         <translation>Avaa lokitiedosto</translation>
     </message>
@@ -1989,7 +2215,7 @@ Profiiliin: %3</translation>
         <translation>Avaa pq-ssh-lokitiedosto</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+12"/>
         <source>Ready</source>
         <translation>Valmis</translation>
     </message>
@@ -2589,8 +2815,8 @@ Syötä sovelluksen salasana:</translation>
         <translation>Väärä salasana.</translation>
     </message>
     <message>
-        <location line="-1441"/>
-        <location line="+252"/>
+        <location line="-1438"/>
+        <location line="+249"/>
         <location line="+5"/>
         <location line="+7"/>
         <location line="+58"/>
@@ -2598,7 +2824,7 @@ Syötä sovelluksen salasana:</translation>
         <translation>Avaimen asennus</translation>
     </message>
     <message>
-        <location line="-862"/>
+        <location line="-864"/>
         <source>%1@%2:%3  [%4]</source>
         <translation>%1@%2:%3  [%4]</translation>
     </message>
@@ -2653,8 +2879,8 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>[SECURITY] %1</translation>
     </message>
     <message>
-        <location line="+330"/>
-        <location line="+364"/>
+        <location line="+335"/>
+        <location line="+361"/>
         <source>No profile selected.</source>
         <translation>Profiilia ei ole valittu.</translation>
     </message>
@@ -2685,7 +2911,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
 <context>
     <name>ProfilesEditorDialog</name>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="+243"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="+255"/>
         <source>Macro %1</source>
         <translation>Makro %1</translation>
     </message>
@@ -2735,7 +2961,17 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>esim. /home/timo/.ssh/id_ed25519 (valinnainen)</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+5"/>
+        <source>Remove</source>
+        <translation>Poista</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Remove selected key file (sets key type to auto)</source>
+        <translation>Poista valittu avaintiedosto (asettaa avaintyypin automaattiseksi)</translation>
+    </message>
+    <message>
+        <location line="+21"/>
         <source>Select private key file</source>
         <translation>Valitse yksityisen avaimen tiedosto</translation>
     </message>
@@ -2746,12 +2982,12 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+85"/>
+        <location line="+102"/>
         <source>Name:</source>
         <translation>Nimi:</translation>
     </message>
     <message>
-        <location line="-84"/>
+        <location line="-101"/>
         <source>Group:</source>
         <translation>Ryhmä:</translation>
     </message>
@@ -2806,7 +3042,41 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>Avaintiedosto:</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+3"/>
+        <source>Probe server crypto…</source>
+        <translation>Kartoita palvelimen salaus…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Probe the negotiated SSH crypto with the current User/Host/Port.
+
+Shows:
+• KEX (key exchange)
+• Host key algorithm
+• Ciphers (client→server / server→client)
+
+How it works:
+• Runs the system OpenSSH client (ssh -vvv) with a short timeout.
+• No settings are saved.
+• Authentication is not required; negotiation happens before auth.
+
+Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh output differs.</source>
+        <translation>Tunnista nykyisillä käyttäjä-/isäntä-/porttiasetuksilla neuvoteltu SSH-salaus.
+
+Näyttää:
+• KEX (avaintenvaihto)
+• Isäntäavaimen algoritmi
+• Salaimet (asiakas → palvelin / palvelin → asiakas)
+
+Miten se toimii:
+• Ajaa järjestelmän OpenSSH-asiakasohjelman (ssh -vvv) lyhyellä aikakatkaisulla.
+• Asetuksia ei tallenneta.
+• Todennusta ei vaadita; neuvottelu tapahtuu ennen todennusta.
+
+Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa tai ssh:n tuloste poikkeaa odotetusta.</translation>
+    </message>
+    <message>
+        <location line="+41"/>
         <source>Hotkey macros</source>
         <translation>Pikanäppäinmakrot</translation>
     </message>
@@ -2891,7 +3161,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>Vinkki: Jos [Enter] on käytössä, PQ-SSH lisää rivinvaihdon, jolloin komento suoritetaan heti.</translation>
     </message>
     <message>
-        <location line="+379"/>
+        <location line="+402"/>
         <source>Each profile must have non-empty user and host.</source>
         <translation>Jokaisessa profiilissa on oltava ei-tyhjät käyttäjä ja isäntä.</translation>
     </message>
@@ -2947,6 +3217,63 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <source>Imported %1 macros.</source>
         <translation>Tuotu %1 makroa.</translation>
     </message>
+    <message>
+        <location line="+57"/>
+        <location line="+29"/>
+        <source>Server crypto probe</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-29"/>
+        <source>Could not start the ssh command.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Target: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Port: %1
+
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>KEX: %1
+</source>
+        <translation type="unfinished">KEX: %1
+</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <location line="+1"/>
+        <location line="+4"/>
+        <location line="+1"/>
+        <source>(not found)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-5"/>
+        <source>Host key: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Cipher C→S: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Cipher S→C: %1
+</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>QObject</name>
@@ -2962,7 +3289,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>Ei voida kirjoittaa tiedostoon %1</translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-875"/>
+        <location filename="../MainWindow.cpp" line="-877"/>
         <source>Out of memory while hashing password.</source>
         <translation>Muisti loppui salasanaa hajautettaessa.</translation>
     </message>
