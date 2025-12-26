@@ -18,6 +18,7 @@ private slots:
     void onEdit();
     void onRemove();
     void onToggleEnabled(int row, int col);
+    void onAccept();
 
 private:
     void rebuild();

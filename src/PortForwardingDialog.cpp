@@ -118,7 +118,7 @@ PortForwardingDialog::PortForwardingDialog(const QVector<PortForwardRule> &rules
 
     connect(m_table, &QTableWidget::cellChanged, this, &PortForwardingDialog::onToggleEnabled);
 
-    connect(box, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(box, &QDialogButtonBox::accepted, this, &PortForwardingDialog::onAccept);
     connect(box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     rebuild();
@@ -158,15 +158,19 @@ void PortForwardingDialog::onToggleEnabled(int row, int col)
 void PortForwardingDialog::onAdd()
 {
     PortForwardRule r;
-    r.enabled = true;
-    r.bind = "127.0.0.1";
+    r.enabled    = true;
+    r.type       = PortForwardType::Local;
+
+    r.bind       = "127.0.0.1";
+    r.listenPort = 18080;        // nicer than 0 in the prompt
+
     r.targetHost = "localhost";
+    r.targetPort = 8080;         // nicer than 0 in the prompt
 
     if (!editRule(this, &r)) return;
     m_rules.push_back(r);
     rebuild();
 }
-
 void PortForwardingDialog::onEdit()
 {
     const int row = m_table->currentRow();
@@ -186,4 +190,60 @@ void PortForwardingDialog::onRemove()
 
     m_rules.remove(row);
     rebuild();
+}
+
+void PortForwardingDialog::onAccept()
+{
+    QSet<QString> seen;
+
+    for (int i = 0; i < m_rules.size(); ++i) {
+        const PortForwardRule &f = m_rules[i];
+        if (!f.enabled) continue;
+
+        auto fail = [&](const QString &msg) {
+            QMessageBox::warning(
+                this,
+                tr("Invalid port forwarding rule"),
+                tr("Rule #%1: %2").arg(i + 1).arg(msg)
+            );
+        };
+
+        // listenPort required for all types
+        if (f.listenPort < 1 || f.listenPort > 65535) {
+            fail(tr("Invalid listen port (%1).").arg(f.listenPort));
+            return;
+        }
+
+        const QString bindHost = f.bind.trimmed().isEmpty()
+            ? QStringLiteral("127.0.0.1")
+            : f.bind.trimmed();
+
+        // Local/Remote require target host+port
+        if (f.type != PortForwardType::Dynamic) {
+            if (f.targetHost.trimmed().isEmpty()) {
+                fail(tr("Target host is empty."));
+                return;
+            }
+            if (f.targetPort < 1 || f.targetPort > 65535) {
+                fail(tr("Invalid target port (%1).").arg(f.targetPort));
+                return;
+            }
+        }
+
+        const QString typeStr =
+            (f.type == PortForwardType::Local)  ? "L" :
+            (f.type == PortForwardType::Remote) ? "R" : "D";
+
+        const QString key = QString("%1|%2|%3").arg(typeStr, bindHost).arg(f.listenPort);
+        if (seen.contains(key)) {
+            fail(tr("Duplicate bind %1:%2 (%3).")
+                     .arg(bindHost)
+                     .arg(f.listenPort)
+                     .arg(typeStr));
+            return;
+        }
+        seen.insert(key);
+    }
+
+    accept();
 }

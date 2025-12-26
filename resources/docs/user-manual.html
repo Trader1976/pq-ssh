@@ -147,6 +147,94 @@
             <li><b>Hotkey macros</b> — per-profile macro list (shortcut → command)</li>
         </ul>
 
+        <!-- ===================================================== -->
+        <!-- NEW: Port forwarding                                   -->
+        <!-- ===================================================== -->
+        <h3 id="port-forwarding">Port forwarding</h3>
+        <p>
+            PQ-SSH supports <b>per-profile port forwarding</b>. This lets you securely “tunnel” TCP traffic through your SSH
+            connection. You can enable multiple forwarding rules on a single profile (multi-forward).
+        </p>
+
+        <h4>Where to configure it</h4>
+        <ol>
+            <li>Open <b>Edit profiles…</b></li>
+            <li>Select a profile</li>
+            <li>In the middle column, open <b>Advanced</b></li>
+            <li>Enable <b>Enable port forwarding</b></li>
+            <li>Click <b>Port forwarding…</b> to add/edit rules</li>
+        </ol>
+
+        <h4>Forward types</h4>
+        <ul class="bullets">
+            <li>
+                <b>Local forwarding (-L)</b> — forwards a local port on your computer to a target host/port on the remote side.
+                <div class="note">
+                    Example: access a remote web service locally:
+                    <pre class="codeblock"><code>ssh -L 127.0.0.1:18888:localhost:18080 user@server</code></pre>
+                    Then browse/curl:
+                    <pre class="codeblock"><code>curl http://127.0.0.1:18888/</code></pre>
+                </div>
+            </li>
+            <li>
+                <b>Remote forwarding (-R)</b> — forwards a port on the remote server back to a host/port reachable from your local side.
+                <div class="note">
+                    Example (conceptual):
+                    <pre class="codeblock"><code>ssh -R 0.0.0.0:9000:127.0.0.1:3000 user@server</code></pre>
+                    Remote clients can connect to the remote server’s port <code>9000</code> (subject to server policy).
+                </div>
+            </li>
+            <li>
+                <b>Dynamic forwarding (-D)</b> — creates a local SOCKS proxy.
+                <div class="note">
+                    Example:
+                    <pre class="codeblock"><code>ssh -D 127.0.0.1:1080 user@server</code></pre>
+                    You can then point a browser or tool at SOCKS5 <code>127.0.0.1:1080</code>.
+                </div>
+            </li>
+        </ul>
+
+        <h4>Rule fields (what they mean)</h4>
+        <ul class="bullets">
+            <li><b>Enabled</b> — turns an individual rule on/off (without deleting it)</li>
+            <li><b>Type</b> — Local (-L), Remote (-R), Dynamic (-D)</li>
+            <li><b>Bind address</b> — where the listener is created (default: <code>127.0.0.1</code> for local-only)</li>
+            <li><b>Listen port</b> — the port to open (1–65535)</li>
+            <li><b>Target host / Target port</b> — only used for Local/Remote rules (ignored for Dynamic)</li>
+            <li><b>Description</b> — optional note to remember what the rule is for</li>
+        </ul>
+
+        <div class="warn">
+            <b>Security tip:</b> Prefer binding to <code>127.0.0.1</code> for local forwards.
+            Binding to <code>0.0.0.0</code> can expose the forwarded port to your entire network.
+        </div>
+
+        <h4>How to test forwarding (quick checklist)</h4>
+        <ol>
+            <li>Start a service on the remote host (example: Python test server):<br/>
+                <pre class="codeblock"><code>python3 -m http.server 18080 --bind 127.0.0.1</code></pre>
+            </li>
+            <li>In PQ-SSH, add a Local forward:<br/>
+                <pre class="codeblock"><code>127.0.0.1:18888 → localhost:18080</code></pre>
+            </li>
+            <li>Connect with the profile.</li>
+            <li>On your local machine, test it:<br/>
+                <pre class="codeblock"><code>curl -I http://127.0.0.1:18888/</code></pre>
+            </li>
+        </ol>
+
+        <h4>Troubleshooting forwarding</h4>
+        <ul class="bullets">
+            <li><b>“Address already in use”</b> means the listen port is already taken. Choose another port (e.g. 18890).</li>
+            <li><b>Connection reset / timeout</b> usually means the target service is not running or not reachable from the remote side.</li>
+            <li><b>Remote forwarding (-R) not working</b> can be blocked by the server policy (<code>AllowTcpForwarding</code>, <code>GatewayPorts</code>).</li>
+        </ul>
+
+        <div class="note">
+            PQ-SSH forwards are implemented using your system OpenSSH by passing <code>-L</code>/<code>-R</code>/<code>-D</code>
+            options when launching <code>ssh</code>. No forwarding settings are applied to the server automatically.
+        </div>
+
         <h3>Probe server crypto (diagnostics)</h3>
         <p>
             In <b>Edit profiles…</b>, PQ-SSH provides a <b>Probe server crypto…</b> button to help you inspect

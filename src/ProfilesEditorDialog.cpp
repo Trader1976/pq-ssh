@@ -1014,7 +1014,8 @@ void ProfilesEditorDialog::syncFormToCurrent()
             it->setText(shownName);
     }
 
-    p.name = shownName;
+    //p.name = shownName;
+    //removed this so in case user deletes username, we will not force profile to be user@host
 }
 
 
@@ -1119,10 +1120,10 @@ void ProfilesEditorDialog::deleteProfile()
 // This is the dialog's "commit gate": prevent invalid profiles from being accepted.
 // Persistence happens outside the dialog (MainWindow -> ProfileStore::save()).
 //
-
 bool ProfilesEditorDialog::validateProfiles(QString *errMsg) const
 {
     for (const auto &p : m_working) {
+        // ---- Base profile validation ----
         if (p.user.trimmed().isEmpty() || p.host.trimmed().isEmpty()) {
             if (errMsg) *errMsg = tr("Each profile must have non-empty user and host.");
             return false;
@@ -1133,15 +1134,79 @@ bool ProfilesEditorDialog::validateProfiles(QString *errMsg) const
         const QString kt = p.keyType.trimmed();
         if (!kt.isEmpty() && kt != "auto") {
             if (p.keyFile.trimmed().isEmpty()) {
-                if (errMsg) *errMsg =
-                    tr("Key type is set but key file is empty. Either set a key file or set key type to auto.");
+                if (errMsg) {
+                    *errMsg = tr("Key type is set but key file is empty. Either set a key file or set key type to auto.");
+                }
                 return false;
             }
         }
+
+        // ---- Port forwarding validation ----
+        if (p.portForwardingEnabled) {
+            QSet<QString> seen; // duplicates inside this profile
+
+            const QString prof =
+                p.name.trimmed().isEmpty()
+                    ? QString("%1@%2").arg(p.user, p.host)
+                    : p.name.trimmed();
+
+            for (int i = 0; i < p.portForwards.size(); ++i) {
+                const PortForwardRule &f = p.portForwards[i];
+                if (!f.enabled) continue;
+
+                auto fail = [&](const QString &msg) -> bool {
+                    if (errMsg) {
+                        *errMsg = tr("Profile '%1': %2 (rule #%3)")
+                                      .arg(prof, msg)
+                                      .arg(i + 1);
+                    }
+                    return false;
+                };
+
+                // listenPort must be valid for all types
+                if (f.listenPort < 1 || f.listenPort > 65535)
+                    return fail(tr("Invalid listen port (%1)").arg(f.listenPort));
+
+                const QString bindHost =
+                    f.bind.trimmed().isEmpty()
+                        ? QStringLiteral("127.0.0.1")
+                        : f.bind.trimmed();
+
+                // Local/Remote require targetHost + targetPort
+                if (f.type != PortForwardType::Dynamic) {
+                    if (f.targetHost.trimmed().isEmpty())
+                        return fail(tr("Target host is empty"));
+
+                    if (f.targetPort < 1 || f.targetPort > 65535)
+                        return fail(tr("Invalid target port (%1)").arg(f.targetPort));
+                }
+
+                // Duplicate bind detection: type + bind + listenPort
+                const QString typeStr =
+                    (f.type == PortForwardType::Local)  ? "L" :
+                    (f.type == PortForwardType::Remote) ? "R" : "D";
+
+                const QString key = QString("%1|%2|%3")
+                                        .arg(typeStr, bindHost)
+                                        .arg(f.listenPort);
+
+                if (seen.contains(key)) {
+                    return fail(tr("Duplicate bind %1:%2 (%3)")
+                                    .arg(bindHost)
+                                    .arg(f.listenPort)
+                                    .arg(typeStr));
+                }
+                seen.insert(key);
+            }
+        }
     }
+
     if (errMsg) errMsg->clear();
     return true;
 }
+
+
+
 // Writes the currently visible macro editor fields -> m_working[m_currentRow].macros[m_currentMacroRow]
 void ProfilesEditorDialog::syncMacroEditorToCurrent()
 {

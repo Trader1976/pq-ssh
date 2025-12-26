@@ -119,11 +119,11 @@
             "macro_enter": true,
             "name": "DHT test",
             "port": 1060,
-            "port_forwarding_enabled": true,
+            "port_forwarding_enabled": false,
             "port_forwards": [
                 {
                     "bind": "127.0.0.1",
-                    "enabled": true,
+                    "enabled": false,
                     "listen_port": 18888,
                     "note": "test2",
                     "target_host": "localhost",
@@ -132,7 +132,7 @@
                 },
                 {
                     "bind": "127.0.0.1",
-                    "enabled": true,
+                    "enabled": false,
                     "listen_port": 18889,
                     "note": "test3",
                     "target_host": "localhost",
