@@ -66,6 +66,7 @@ void SettingsDialog::buildUi()
     // Visible name, stored value = locale code you’ll use for qm lookup
     m_languageCombo->addItem(tr("English"), "en");
     m_languageCombo->addItem("Español", "es");
+    m_languageCombo->addItem("Chinese 中文（简体）", "zh");
     m_languageCombo->addItem(tr("Suomi"),   "fi");
     // Later: add more
     // m_languageCombo->addItem(tr("Deutsch"), "de");

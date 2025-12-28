@@ -18,6 +18,7 @@
         <file alias="pqssh_en.qm">i18n/pqssh_en.qm</file>
         <file alias="pqssh_es.qm">i18n/pqssh_es.qm</file>
         <file alias="pqssh_fi.qm">i18n/pqssh_fi.qm</file>
+        <file alias="pqssh_zh.qm">i18n/pqssh_zh.qm</file>
     </qresource>
 
     <qresource prefix="/wordlists">
