@@ -117,59 +117,67 @@ void CpunkTermWidget::setupDropInterceptor()
 // ============================================================================
 
 CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
-    // QTermWidget(0, parent):
-    // The "0" here is important. Some QTermWidget constructors can auto-start a local shell.
-    // We explicitly prevent that, because pq-ssh should never accidentally provide a local shell.
-    : QTermWidget(0, parent)
+    : QTermWidget(0, parent) // always 0: do NOT autostart local shell
 {
     // History buffer: how many lines qtermwidget keeps (scrollback)
+    // NOTE: qtermwidget usually treats 0 as "unlimited" or default; keep it simple.
+    if (historyLines < 0) historyLines = 0;
     setHistorySize(historyLines);
 
-    /*
-        IMPORTANT: protect terminal rendering from global app stylesheet (QSS).
-
-        pq-ssh uses a global dark theme via AppTheme. If we let QSS cascade into the terminal,
-        it can cause:
-        - wrong background (gray) until first repaint
-        - mixed colors (parent background bleeding through)
-        - fonts becoming bold or incorrect weights
-
-        Clearing style sheets here keeps qtermwidget in control of its own painting.
-    */
+    // Protect terminal rendering from global app stylesheet (QSS)
     setStyleSheet(QString());
     for (QWidget *w : findChildren<QWidget*>())
         w->setStyleSheet(QString());
 
-    // Build a "normal" monospace font (no bold, fixed pitch, stable metrics)
-    QFont f(QStringLiteral("DejaVu Sans Mono"));
-    if (!QFontInfo(f).exactMatch()) {
-        // Fallback to system fixed font if preferred font not available
-        f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    // Terminal opacity should always be stable.
+    setTerminalOpacity(1.0);
+
+    // Build a monospace base font BUT do not force a size here.
+    // Size must come from profile (MainWindow / ShellManager).
+    QFont f = getTerminalFont(); // <-- qtermwidget getter (common API)
+
+    // Force monospace family if current isn't fixed pitch / or to your preferred monospace
+    QFont prefer(QStringLiteral("DejaVu Sans Mono"));
+    if (QFontInfo(prefer).exactMatch()) {
+        f.setFamily(prefer.family());
+    } else {
+        const QFont sys = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+        f.setFamily(sys.family());
     }
+
     f.setStyleHint(QFont::TypeWriter);
     f.setFixedPitch(true);
     f.setKerning(false);
     f.setBold(false);
     f.setWeight(QFont::Normal);
-    f.setPointSize(11);
 
-    /*
-        Apply terminal look.
+    // If qtermwidget has no usable size yet, set a sane default ONCE.
+    if (f.pointSize() <= 0 && f.pixelSize() <= 0) {
+        f.setPointSize(11);
+    }
 
-        We apply immediately, and again on the next event loop turn (singleShot 0),
-        because some internal child widgets may not exist until after construction.
-        Re-applying ensures the font/opacity wins over any later initialization.
-    */
-    auto applyTerminalLook = [this, f]() {
+    // Apply base font now (family/weight), without stomping a future profile size.
+    setTerminalFont(f);
+
+    auto applyTerminalLook = [this]() {
         setTerminalOpacity(1.0);
-        setTerminalFont(f);
 
-        // Re-clear any stylesheets that might have been set by parent or qtermwidget init.
+        // Re-apply CURRENT terminal font (whatever caller/profile set),
+        // so we don’t stomp profile font size.
+        QFont cur = getTerminalFont();
+        if (cur.pointSize() <= 0 && cur.pixelSize() <= 0)
+            cur.setPointSize(11);
+
+        cur.setBold(false);
+        cur.setWeight(QFont::Normal);
+        setTerminalFont(cur);
+
+        // Clear any stylesheets that might have been applied later
         setStyleSheet(QString());
         for (QWidget *w : findChildren<QWidget*>()) {
             w->setStyleSheet(QString());
 
-            // Ensure no unexpected bold fonts sneak in from style propagation.
+            // Optional: keep child fonts non-bold (do NOT set sizes here)
             QFont wf = w->font();
             wf.setBold(false);
             wf.setWeight(QFont::Normal);
@@ -183,16 +191,6 @@ CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
     // ------------------------------------------------------------------------
     // Copy / Paste actions
     // ------------------------------------------------------------------------
-    /*
-        We expose actions rather than manually handling key events because:
-        - qtermwidget already handles a lot of input logic
-        - QAction shortcuts integrate nicely with Qt focus/menus
-
-        Terminal-friendly defaults:
-        - Ctrl+Shift+C : Copy selection
-        - Ctrl+Shift+V : Paste clipboard text
-        - Shift+Insert : Paste (classic terminal)
-    */
     setContextMenuPolicy(Qt::ActionsContextMenu);
 
     auto *copyAct = new QAction(tr("Copy"), this);
@@ -222,9 +220,9 @@ CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
     connect(pasteAct,  &QAction::triggered, this, doPaste);
     connect(pasteAct2, &QAction::triggered, this, doPaste);
 
-    // Enable drag & drop file reading (emits fileDropped)
     setupDropInterceptor();
 }
+
 
 // ============================================================================
 // Event filter (DragEnter / Drop)

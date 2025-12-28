@@ -40,7 +40,7 @@ public:
         parent:
         - Standard Qt parent widget.
     */
-    explicit CpunkTermWidget(int startnow = 0, QWidget *parent = nullptr);
+    explicit CpunkTermWidget(int historyLines = 2000, QWidget *parent = nullptr);
 
 signals:
     /*

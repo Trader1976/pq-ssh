@@ -142,7 +142,7 @@
             ],
             "pq_debug": true,
             "term_color_scheme": "WhiteOnBlack",
-            "term_font_size": 11,
+            "term_font_size": 20,
             "term_height": 500,
             "term_width": 1200,
             "user": "timo"
