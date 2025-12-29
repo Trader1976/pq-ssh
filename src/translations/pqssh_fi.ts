@@ -291,7 +291,7 @@
 <context>
     <name>CpunkTermWidget</name>
     <message>
-        <location filename="../CpunkTermWidget.cpp" line="+198"/>
+        <location filename="../CpunkTermWidget.cpp" line="+196"/>
         <source>Copy</source>
         <translation>Kopioi</translation>
     </message>
@@ -1574,17 +1574,17 @@ Tämä ei poista vietyjä avaintiedostoja.</translation>
     <message>
         <location line="-99"/>
         <source>Optional (encrypt private key)</source>
-        <translation type="unfinished"></translation>
+        <translation>Valinnainen (salaa yksityinen avain)</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>If set, ssh-keygen will encrypt the OpenSSH private key (-N).</source>
-        <translation type="unfinished"></translation>
+        <translation>Jos asetettu, ssh-keygen salaa OpenSSH-yksityisen avaimen (-N).</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Repeat the same passphrase to confirm.</source>
-        <translation type="unfinished"></translation>
+        <translation>Toista sama salasana vahvistusta varten.</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -1706,7 +1706,7 @@ Tämä ei poista vietyjä avaintiedostoja.</translation>
     <message>
         <location line="-4"/>
         <source>Please enter the passphrase twice.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ole hyvä ja anna salasana kahdesti.</translation>
     </message>
     <message>
         <location line="+43"/>
@@ -1877,7 +1877,7 @@ Profiiliin: %3</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../MainWindow.cpp" line="+674"/>
+        <location filename="../MainWindow.cpp" line="+680"/>
         <source>Profiles</source>
         <translation>Profiilit</translation>
     </message>
@@ -1912,7 +1912,7 @@ Profiiliin: %3</translation>
         <translation>Katkaise</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+40"/>
         <source>Log</source>
         <translation>Loki</translation>
     </message>
@@ -1968,18 +1968,18 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1223"/>
+        <location line="+1225"/>
         <source>KEX: %1</source>
         <translation>KEX: %1</translation>
     </message>
     <message>
-        <location line="-1218"/>
-        <location line="+1223"/>
+        <location line="-1220"/>
+        <location line="+1225"/>
         <source>Negotiated KEX: %1</source>
         <translation>Neuvoteltu KEX: %1</translation>
     </message>
     <message>
-        <location line="-1217"/>
+        <location line="-1219"/>
         <source>&amp;File</source>
         <translation>&amp;Tiedosto</translation>
     </message>
@@ -2209,12 +2209,12 @@ Profiiliin: %3</translation>
     <message>
         <location line="-147"/>
         <source>[INFO] Settings applied.</source>
-        <translation type="unfinished"></translation>
+        <translation>[INFO] Asetukset otettu käyttöön.</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Settings applied.</source>
-        <translation type="unfinished"></translation>
+        <translation>Asetukset otettu käyttöön.</translation>
     </message>
     <message>
         <location line="+147"/>
@@ -2538,7 +2538,7 @@ Jatketaanko?</translation>
     <message>
         <location line="+49"/>
         <source>User manual was not found in application resources.</source>
-        <translation type="unfinished"></translation>
+        <translation>Käyttöohjetta ei löytynyt sovelluksen resursseista.</translation>
     </message>
     <message>
         <source>[WARN] User manual resource missing: :/docs/user-manual.html</source>
@@ -2648,7 +2648,7 @@ Yksityiskohdat kirjoitettu terminaaliin/lokiin.</translation>
         <translation>Asetusikkuna (tulossa seuraavaksi).</translation>
     </message>
     <message>
-        <location line="+42"/>
+        <location line="+43"/>
         <source>[MACRO] Invalid shortcut &apos;%1&apos; (profile &apos;%2&apos;)</source>
         <translation>[MACRO] Virheellinen pikanäppäin &apos;%1&apos; (profiili &apos;%2&apos;)</translation>
     </message>
@@ -2673,7 +2673,7 @@ Yksityiskohdat kirjoitettu terminaaliin/lokiin.</translation>
         <translation>ei</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+25"/>
         <source>[MACRO] Sent (%1): %2</source>
         <translation>[MACRO] Lähetetty (%1): %2</translation>
     </message>
@@ -2804,7 +2804,7 @@ Syötä sovelluksen salasana:</translation>
         <translation>Väärä salasana.</translation>
     </message>
     <message>
-        <location line="-1343"/>
+        <location line="-1345"/>
         <location line="+178"/>
         <location line="+5"/>
         <location line="+7"/>
@@ -2813,7 +2813,7 @@ Syötä sovelluksen salasana:</translation>
         <translation>Avaimen asennus</translation>
     </message>
     <message>
-        <location line="-836"/>
+        <location line="-835"/>
         <source>%1@%2:%3  [%4]</source>
         <translation>%1@%2:%3  [%4]</translation>
     </message>
@@ -2868,7 +2868,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>[SECURITY] %1</translation>
     </message>
     <message>
-        <location line="+345"/>
+        <location line="+344"/>
         <location line="+290"/>
         <source>No profile selected.</source>
         <translation>Profiilia ei ole valittu.</translation>
@@ -2879,72 +2879,72 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
     <message>
         <location filename="../PortForwardingDialog.cpp" line="+80"/>
         <source>Port forwarding</source>
-        <translation type="unfinished"></translation>
+        <translation>Porttien uudelleenohjaus</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Enabled</source>
-        <translation type="unfinished"></translation>
+        <translation>Käytössä</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Type</source>
-        <translation type="unfinished">Tyyppi</translation>
+        <translation>Tyyppi</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Rule</source>
-        <translation type="unfinished"></translation>
+        <translation>Sääntö</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Note</source>
-        <translation type="unfinished"></translation>
+        <translation>Huomautus</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Add</source>
-        <translation type="unfinished">Lisää</translation>
+        <translation>Lisää</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Muokkaa</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Remove</source>
-        <translation type="unfinished">Poista</translation>
+        <translation>Poista</translation>
     </message>
     <message>
         <location line="+104"/>
         <source>Invalid port forwarding rule</source>
-        <translation type="unfinished"></translation>
+        <translation>Virheellinen porttien uudelleenohjaussääntö</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Rule #%1: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Sääntö #%1: %2</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Invalid listen port (%1).</source>
-        <translation type="unfinished"></translation>
+        <translation>Virheellinen kuunteluportti (%1).</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Target host is empty.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kohdepalvelin on tyhjä.</translation>
     </message>
     <message>
         <location line="+4"/>
         <source>Invalid target port (%1).</source>
-        <translation type="unfinished"></translation>
+        <translation>Virheellinen kohdeportti (%1).</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Duplicate bind %1:%2 (%3).</source>
-        <translation type="unfinished"></translation>
+        <translation>Päällekkäinen sidonta %1:%2 (%3).</translation>
     </message>
 </context>
 <context>
@@ -2973,7 +2973,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
 <context>
     <name>ProfilesEditorDialog</name>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="+287"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="+289"/>
         <source>Macro %1</source>
         <translation>Makro %1</translation>
     </message>
@@ -3106,22 +3106,22 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
     <message>
         <location line="+10"/>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation>Lisäasetukset</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Enable port forwarding</source>
-        <translation type="unfinished"></translation>
+        <translation>Ota porttien uudelleenohjaus käyttöön</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Forwards: L0 R0 D0</source>
-        <translation type="unfinished"></translation>
+        <translation>Uudelleenohjaukset: L0 R0 D0</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Port forwarding…</source>
-        <translation type="unfinished"></translation>
+        <translation>Porttien uudelleenohjaus…</translation>
     </message>
     <message>
         <location line="+12"/>
@@ -3225,24 +3225,30 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
     <message>
         <location line="+4"/>
         <source>e.g. echo &quot;Connected to {USER}@{HOST}:{PORT} ({PROFILE})&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>esim. echo &quot;Yhdistetty käyttäjään {USER}@{HOST}:{PORT} ({PROFILE})&quot;</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Command to send when the shortcut is pressed.
 
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Komento, joka lähetetään, kun pikanäppäintä painetaan.
+
+%1</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>If enabled, PQ-SSH appends a newline so the command runs immediately.</source>
-        <translation type="unfinished"></translation>
+        <translation>Jos käytössä, PQ-SSH lisää rivinvaihdon, jotta komento suoritetaan välittömästi.</translation>
     </message>
     <message>
         <location line="+5"/>
+        <source>Tip: Placeholders supported: {USER}, {HOST}, {PORT}, {PROFILE}, {TARGET}, {KEYFILE}, {HOME}, {DATE}, {TIME}.</source>
+        <translation>Vinkki: Tuetut paikkamerkit: {USER}, {HOST}, {PORT}, {PROFILE}, {TARGET}, {KEYFILE}, {HOME}, {DATE}, {TIME}.</translation>
+    </message>
+    <message>
         <source>Tip: You can use placeholders like {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}.</source>
-        <translation type="unfinished"></translation>
+        <translation type="vanished">Vinkki: Voit käyttää paikkamerkkejä kuten {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}.</translation>
     </message>
     <message>
         <source>e.g. cd stats &amp;&amp; cp stats.txt stats_backup.txt</source>
@@ -3262,7 +3268,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation type="vanished">Vinkki: Jos [Enter] on käytössä, PQ-SSH lisää rivinvaihdon, jolloin komento suoritetaan heti.</translation>
     </message>
     <message>
-        <location line="+427"/>
+        <location line="+428"/>
         <source>Each profile must have non-empty user and host.</source>
         <translation>Jokaisessa profiilissa on oltava ei-tyhjät käyttäjä ja isäntä.</translation>
     </message>
@@ -3274,27 +3280,27 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
     <message>
         <location line="+21"/>
         <source>Profile &apos;%1&apos;: %2 (rule #%3)</source>
-        <translation type="unfinished"></translation>
+        <translation>Profiili &apos;%1&apos;: %2 (sääntö #%3)</translation>
     </message>
     <message>
         <location line="+9"/>
         <source>Invalid listen port (%1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Virheellinen kuunteluportti (%1)</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Target host is empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Kohdepalvelin on tyhjä</translation>
     </message>
     <message>
         <location line="+3"/>
         <source>Invalid target port (%1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Virheellinen kohdeportti (%1)</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Duplicate bind %1:%2 (%3)</source>
-        <translation type="unfinished"></translation>
+        <translation>Päällekkäinen sidonta %1:%2 (%3)</translation>
     </message>
     <message>
         <location line="+59"/>
@@ -3421,7 +3427,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Ei voida kirjoittaa tiedostoon %1</translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-849"/>
+        <location filename="../MainWindow.cpp" line="-848"/>
         <source>Out of memory while hashing password.</source>
         <translation>Muisti loppui salasanaa hajautettaessa.</translation>
     </message>
@@ -3506,65 +3512,64 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
     <message>
         <location filename="../PortForwardingDialog.cpp" line="-201"/>
         <source>Forward type</source>
-        <translation type="unfinished"></translation>
+        <translation>Uudelleenohjauksen tyyppi</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Type:</source>
-        <translation type="unfinished"></translation>
+        <translation>Tyyppi:</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Bind address</source>
-        <translation type="unfinished"></translation>
+        <translation>Sidontaosoite</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Bind address:</source>
-        <translation type="unfinished"></translation>
+        <translation>Sidontaosoite:</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Listen port</source>
-        <translation type="unfinished"></translation>
+        <translation>Kuunteluportti</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Listen port:</source>
-        <translation type="unfinished"></translation>
+        <translation>Kuunteluportti:</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Target host</source>
-        <translation type="unfinished"></translation>
+        <translation>Kohdepalvelin</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Target host:</source>
-        <translation type="unfinished"></translation>
+        <translation>Kohdepalvelin:</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Target port</source>
-        <translation type="unfinished"></translation>
+        <translation>Kohdeportti</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Target port:</source>
-        <translation type="unfinished"></translation>
+        <translation>Kohdeportti:</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Description</source>
-        <translation type="unfinished"></translation>
+        <translation>Kuvaus</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Description (optional):</source>
-        <translation type="unfinished"></translation>
+        <translation>Kuvaus (valinnainen)</translation>
     </message>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="-1484"/>
         <source>You can use placeholders in macro commands:
   {USER}    Username
   {HOST}    Host/IP
@@ -3576,7 +3581,48 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
 Escapes:
   {{  -&gt;  {
   }}  -&gt;  }</source>
-        <translation type="unfinished"></translation>
+        <translation type="vanished">Voit käyttää paikkamerkkejä makrokomentoissa:
+  {USER}    Käyttäjänimi
+  {HOST}    Palvelin/IP
+  {PORT}    SSH-portti
+  {PROFILE} Profiilin nimi
+  {DATE}    Nykyinen päivämäärä (YYYY-MM-DD)
+  {TIME}    Nykyinen aika (HH:MM:SS)
+
+Escape-merkit:
+  {{  -&gt;  {
+  }}  -&gt;  }</translation>
+    </message>
+    <message>
+        <location filename="../ProfilesEditorDialog.cpp" line="-1487"/>
+        <source>You can use placeholders in macro commands:
+  {USER}    Username
+  {HOST}    Host/IP
+  {PORT}    SSH port
+  {PROFILE} Profile name
+  {KEYFILE} Configured key file path (if any)
+  {TARGET}  user@host (or user@host:port if non-22)
+  {HOME}    Home shortcut (~)
+  {DATE}    Current date (YYYY-MM-DD)
+  {TIME}    Current time (HH:MM:SS)
+
+Escapes:
+  {{  -&gt;  {
+  }}  -&gt;  }</source>
+        <translation>Voit käyttää paikkamerkkejä makrokomentoissa:
+  {USER}    Käyttäjänimi
+  {HOST}    Palvelin/IP
+  {PORT}    SSH-portti
+  {PROFILE} Profiilin nimi
+  {KEYFILE} Määritetyn avaintiedoston polku (jos määritetty)
+  {TARGET}  käyttäjä@palvelin (tai käyttäjä@palvelin:portti, jos ei 22)
+  {HOME}    Kotihakemiston oikopolku (~)
+  {DATE}    Nykyinen päivämäärä (YYYY-MM-DD)
+  {TIME}    Nykyinen aika (HH:MM:SS)
+
+Escape-merkit:
+  {{  -&gt;  {
+  }}  -&gt;  }</translation>
     </message>
 </context>
 <context>
@@ -3592,7 +3638,7 @@ Escapes:
         <translation>English</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>Suomi</source>
         <translation>Suomi</translation>
     </message>

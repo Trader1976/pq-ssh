@@ -282,7 +282,7 @@
     <message>
         <source>Cannot write file:
     %1</source>
-        <translation> type="vanished">无法写入文件：
+        <translation type="vanished"> type=&quot;vanished&quot;&gt;无法写入文件：
 %1</translation>
     </message>
     <message>
@@ -3394,7 +3394,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
     <message>
         <location line="+4"/>
         <source>e.g. echo &quot;Connected to {USER}@{HOST}:{PORT} ({PROFILE})&quot;</source>
-        <translation>例如：echo "已连接到 {USER}@{HOST}:{PORT}（{PROFILE}）"</translation>
+        <translation>例如：echo &quot;已连接到 {USER}@{HOST}:{PORT}（{PROFILE}）&quot;</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3734,9 +3734,9 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <source>Description (optional):</source>
         <translation>描述（可选）</translation>
     </message>
-<message>
-    <location filename="../ProfilesEditorDialog.cpp" line="-1487"/>
-    <source>You can use placeholders in macro commands:
+    <message>
+        <location filename="../ProfilesEditorDialog.cpp" line="-1487"/>
+        <source>You can use placeholders in macro commands:
   {USER}    Username
   {HOST}    Host/IP
   {PORT}    SSH port
@@ -3750,7 +3750,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
 Escapes:
   {{  -&gt;  {
   }}  -&gt;  }</source>
-    <translation>你可以在宏命令中使用占位符：
+        <translation>你可以在宏命令中使用占位符：
   {USER}    用户名
   {HOST}    主机/IP
   {PORT}    SSH 端口
@@ -3764,7 +3764,7 @@ Escapes:
 转义：
   {{  -&gt;  {
   }}  -&gt;  }</translation>
-</message>
+    </message>
 </context>
 <context>
     <name>SettingsDialog</name>

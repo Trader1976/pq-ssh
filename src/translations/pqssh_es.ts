@@ -269,13 +269,15 @@
         <location line="-13"/>
         <source>Cannot write file:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>No se puede escribir el archivo:
+%1</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Failed to finalize file:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo finalizar el archivo:
+%1</translation>
     </message>
     <message>
         <source>Cannot write file:
@@ -495,7 +497,9 @@
         <source>Failed to create remote directory:
 %1
 %2</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo crear el directorio remoto:
+    %1
+%2</translation>
     </message>
     <message>
         <location line="+37"/>
@@ -504,7 +508,11 @@
 → %2
 
 %3</source>
-        <translation type="unfinished"></translation>
+        <translation>La carga falló:
+%1
+→ %2
+
+%3</translation>
     </message>
     <message>
         <location line="+75"/>
@@ -520,7 +528,9 @@
         <source>Cannot stat remote path:
 %1
 %2</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo obtener el estado de la ruta remota:
+%1
+%2</translation>
     </message>
     <message>
         <location line="+41"/>
@@ -589,7 +599,9 @@
         <source>Delete %1 local item(s)?
 
 This cannot be undone.</source>
-        <translation type="unfinished"></translation>
+        <translation>¿Eliminar %1 elemento(s) local(es)?
+
+Esto no se puede deshacer.</translation>
     </message>
     <message>
         <location line="+22"/>
@@ -615,7 +627,9 @@ This cannot be undone.</source>
         <source>Delete %1 remote item(s)?
 
 Folders will be deleted recursively.</source>
-        <translation type="unfinished"></translation>
+        <translation>¿Eliminar %1 elemento(s) remoto(s)?
+
+Las carpetas se eliminarán de forma recursiva.</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -677,7 +691,8 @@ Folders will be deleted recursively.</source>
         <location line="+8"/>
         <source>Rename failed:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>El cambio de nombre falló:
+%1</translation>
     </message>
     <message>
         <location line="+19"/>
@@ -719,7 +734,8 @@ Folders will be deleted recursively.</source>
         <location line="+6"/>
         <source>Failed to create folder:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo crear la carpeta:
+%1</translation>
     </message>
 </context>
 <context>
@@ -807,7 +823,10 @@ Folders will be deleted recursively.</source>
 None: no command data
 Safe: logs cmd_head + cmd_hash (recommended)
 Full: logs full command text (may leak secrets!)</source>
-        <translation type="unfinished"></translation>
+        <translation>Controla qué se escribe en los registros de auditoría para los comandos de Fleet.
+Ninguno: no se registra ningún dato del comando
+Seguro: registra cmd_head + cmd_hash (recomendado)
+Completo: registra el texto completo del comando (¡puede filtrar secretos!)</translation>
     </message>
     <message>
         <location line="+35"/>
@@ -840,7 +859,10 @@ Completo: registra el texto completo del comando (¡puede filtrar secretos!)</tr
 
 This can leak secrets (tokens, passwords, private paths) into audit files.
 Recommended setting is: Safe (head + hash).</source>
-        <translation type="unfinished"></translation>
+        <translation>Has habilitado el registro COMPLETO de comandos en los registros de auditoría.
+
+Esto puede filtrar secretos (tokens, contraseñas, rutas privadas) en los archivos de auditoría.
+La configuración recomendada es: Seguro (cabecera + hash).</translation>
     </message>
     <message>
         <location line="+8"/>
@@ -1010,7 +1032,11 @@ Recommended setting is: Safe (head + hash).</source>
 This stores the entire command string into the audit log file and may include secrets (tokens, passwords, etc.).
 
 Continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>Has seleccionado el registro COMPLETO de comandos para los registros de auditoría.
+
+Esto guarda la cadena completa del comando en el archivo de auditoría y puede incluir secretos (tokens, contraseñas, etc.).
+
+¿Deseas continuar?</translation>
     </message>
     <message>
         <source>You selected FULL command logging for audit logs.
@@ -1331,7 +1357,8 @@ Continue?</source>
         <location line="+12"/>
         <source>Saved identities.
 Select an identity to view its fingerprint and public key.</source>
-        <translation type="unfinished"></translation>
+        <translation>Identidades guardadas.
+Selecciona una identidad para ver su huella digital y la clave pública.</translation>
     </message>
     <message>
         <location line="+4"/>
@@ -1342,7 +1369,8 @@ Select an identity to view its fingerprint and public key.</source>
         <location line="+5"/>
         <source>Remove the selected identity from the local store.
 This does not delete any exported key files.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar la identidad seleccionada del almacén local.
+Esto no elimina ningún archivo de clave exportado.</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -1374,7 +1402,8 @@ This does not delete any exported key files.</source>
         <location line="+3"/>
         <source>Create a new identity by generating a random 24-word recovery phrase.
 Write the words down and keep them safe.</source>
-        <translation type="unfinished"></translation>
+        <translation>Crea una nueva identidad generando una frase de recuperación aleatoria de 24 palabras.
+Escribe las palabras y guárdalas en un lugar seguro.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1390,7 +1419,8 @@ Write the words down and keep them safe.</source>
         <location line="+4"/>
         <source>Save this identity to the local identity store.
 Only public information is saved (no recovery words).</source>
-        <translation type="unfinished"></translation>
+        <translation>Guarda esta identidad en el almacén local de identidades.
+Solo se guarda información pública (no las palabras de recuperación).</translation>
     </message>
     <message>
         <location line="+25"/>
@@ -1401,7 +1431,8 @@ Only public information is saved (no recovery words).</source>
         <location line="+24"/>
         <source>Enter your 24-word recovery phrase.
 Words can be separated by spaces or new lines.</source>
-        <translation type="unfinished"></translation>
+        <translation>Introduce tu frase de recuperación de 24 palabras.
+Las palabras pueden separarse por espacios o por saltos de línea.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1432,7 +1463,8 @@ Words can be separated by spaces or new lines.</source>
         <location line="+4"/>
         <source>Save the private SSH key to a file.
 Protect this file and set correct permissions.</source>
-        <translation type="unfinished"></translation>
+        <translation>Guarda la clave SSH privada en un archivo.
+Protege este archivo y establece los permisos correctos.</translation>
     </message>
     <message>
         <location line="+5"/>
@@ -1454,7 +1486,8 @@ Protect this file and set correct permissions.</source>
         <location line="+28"/>
         <source>Cannot write file:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>No se puede escribir el archivo:
+%1</translation>
     </message>
     <message>
         <location line="-18"/>
@@ -1484,14 +1517,17 @@ Protect this file and set correct permissions.</source>
         <location line="+240"/>
         <source>Cannot load identities:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pueden cargar las identidades:
+%1</translation>
     </message>
     <message>
         <location line="+99"/>
         <source>Remove selected identity?
 
 This does not delete exported key files.</source>
-        <translation type="unfinished"></translation>
+        <translation>¿Eliminar la identidad seleccionada?
+
+Esto no elimina los archivos de claves exportados.</translation>
     </message>
     <message>
         <source>Cannot load identities:
@@ -1981,7 +2017,7 @@ Al perfil: %3</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../MainWindow.cpp" line="+674"/>
+        <location filename="../MainWindow.cpp" line="+680"/>
         <source>Profiles</source>
         <translation>Perfiles</translation>
     </message>
@@ -2016,7 +2052,7 @@ Al perfil: %3</translation>
         <translation>Desconectar</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+40"/>
         <source>Log</source>
         <translation>Registro</translation>
     </message>
@@ -2072,18 +2108,18 @@ Al perfil: %3</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1223"/>
+        <location line="+1225"/>
         <source>KEX: %1</source>
         <translation>KEX: %1</translation>
     </message>
     <message>
-        <location line="-1218"/>
-        <location line="+1223"/>
+        <location line="-1220"/>
+        <location line="+1225"/>
         <source>Negotiated KEX: %1</source>
         <translation>KEX negociado: %1</translation>
     </message>
     <message>
-        <location line="-1217"/>
+        <location line="-1219"/>
         <source>&amp;File</source>
         <translation>&amp;Archivo</translation>
     </message>
@@ -2604,7 +2640,7 @@ Vista previa de la clave:
         <translation>Diálogo de configuración (lo próximo).</translation>
     </message>
     <message>
-        <location line="+42"/>
+        <location line="+43"/>
         <source>[MACRO] Invalid shortcut &apos;%1&apos; (profile &apos;%2&apos;)</source>
         <translation>[MACRO] Acceso directo no válido &apos;%1&apos; (perfil &apos;%2&apos;)</translation>
     </message>
@@ -2629,7 +2665,7 @@ Vista previa de la clave:
         <translation>no</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+25"/>
         <source>[MACRO] Sent (%1): %2</source>
         <translation>[MACRO] Enviado (%1): %2</translation>
     </message>
@@ -2760,7 +2796,7 @@ Introduzca la contraseña de la aplicación:</translation>
         <translation>Contraseña incorrecta.</translation>
     </message>
     <message>
-        <location line="-1343"/>
+        <location line="-1345"/>
         <location line="+178"/>
         <location line="+5"/>
         <location line="+7"/>
@@ -2769,7 +2805,7 @@ Introduzca la contraseña de la aplicación:</translation>
         <translation>Instalación de clave</translation>
     </message>
     <message>
-        <location line="-836"/>
+        <location line="-835"/>
         <source>%1@%2:%3  [%4]</source>
         <translation>%1@%2:%3  [%4]</translation>
     </message>
@@ -2824,7 +2860,7 @@ Deshabilite el bloqueo en Configuración o establezca una contraseña.</translat
         <translation>[SECURITY] %1</translation>
     </message>
     <message>
-        <location line="+345"/>
+        <location line="+344"/>
         <location line="+290"/>
         <source>No profile selected.</source>
         <translation>No se seleccionó ningún perfil.</translation>
@@ -2929,7 +2965,7 @@ Deshabilite el bloqueo en Configuración o establezca una contraseña.</translat
 <context>
     <name>ProfilesEditorDialog</name>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="+287"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="+289"/>
         <source>Macro %1</source>
         <translation>Macro %1</translation>
     </message>
@@ -3198,17 +3234,21 @@ Consejo: Si obtiene &apos;(not found)&apos;, el servidor puede no ser accesible 
         <translation>Si está habilitado, PQ-SSH añade un salto de línea para que el comando se ejecute inmediatamente.</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>Tip: You can use placeholders like {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}.</source>
-        <translation>Consejo: Puede usar marcadores como {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}.</translation>
+        <translation type="vanished">Consejo: Puede usar marcadores como {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}.</translation>
     </message>
     <message>
-        <location line="-7"/>
+        <location line="-2"/>
         <source>Send [Enter] automatically after command</source>
         <translation>Enviar [Enter] automáticamente después del comando</translation>
     </message>
     <message>
-        <location line="+427"/>
+        <location line="+7"/>
+        <source>Tip: Placeholders supported: {USER}, {HOST}, {PORT}, {PROFILE}, {TARGET}, {KEYFILE}, {HOME}, {DATE}, {TIME}.</source>
+        <translation>Consejo: Marcadores de posición compatibles: {USER}, {HOST}, {PORT}, {PROFILE}, {TARGET}, {KEYFILE}, {HOME}, {DATE}, {TIME}.</translation>
+    </message>
+    <message>
+        <location line="+421"/>
         <source>Each profile must have non-empty user and host.</source>
         <translation>Cada perfil debe tener usuario y host no vacíos.</translation>
     </message>
@@ -3367,7 +3407,7 @@ Consejo: Si obtiene &apos;(not found)&apos;, el servidor puede no ser accesible 
         <translation>No se puede escribir %1</translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-849"/>
+        <location filename="../MainWindow.cpp" line="-848"/>
         <source>Out of memory while hashing password.</source>
         <translation>Memoria insuficiente al calcular el hash de la contraseña.</translation>
     </message>
@@ -3502,7 +3542,6 @@ Consejo: Si obtiene &apos;(not found)&apos;, el servidor puede no ser accesible 
         <translation>Descripción (opcional):</translation>
     </message>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="-1484"/>
         <source>You can use placeholders in macro commands:
   {USER}    Username
   {HOST}    Host/IP
@@ -3514,12 +3553,43 @@ Consejo: Si obtiene &apos;(not found)&apos;, el servidor puede no ser accesible 
 Escapes:
   {{  -&gt;  {
   }}  -&gt;  }</source>
-        <translation>Puede usar marcadores en los comandos de macros:
+        <translation type="vanished">Puede usar marcadores en los comandos de macros:
   {USER}    Nombre de usuario
   {HOST}    Host/IP
   {PORT}    Puerto SSH
   {PROFILE} Nombre del perfil
   {DATE}    Fecha actual (AAAA-MM-DD)
+  {TIME}    Hora actual (HH:MM:SS)
+
+Escapes:
+  {{  -&gt;  {
+  }}  -&gt;  }</translation>
+    </message>
+    <message>
+        <location filename="../ProfilesEditorDialog.cpp" line="-1487"/>
+        <source>You can use placeholders in macro commands:
+  {USER}    Username
+  {HOST}    Host/IP
+  {PORT}    SSH port
+  {PROFILE} Profile name
+  {KEYFILE} Configured key file path (if any)
+  {TARGET}  user@host (or user@host:port if non-22)
+  {HOME}    Home shortcut (~)
+  {DATE}    Current date (YYYY-MM-DD)
+  {TIME}    Current time (HH:MM:SS)
+
+Escapes:
+  {{  -&gt;  {
+  }}  -&gt;  }</source>
+        <translation>Puedes usar marcadores de posición en los comandos de macros:
+  {USER}    Nombre de usuario
+  {HOST}    Host/IP
+  {PORT}    Puerto SSH
+  {PROFILE} Nombre del perfil
+  {KEYFILE} Ruta del archivo de clave configurado (si existe)
+  {TARGET}  usuario@host (o usuario@host:puerto si no es 22)
+  {HOME}    Acceso directo al directorio personal (~)
+  {DATE}    Fecha actual (YYYY-MM-DD)
   {TIME}    Hora actual (HH:MM:SS)
 
 Escapes:
@@ -3540,7 +3610,7 @@ Escapes:
         <translation>Inglés</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>Suomi</source>
         <translation>Suomi</translation>
     </message>
