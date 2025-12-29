@@ -3722,7 +3722,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
     <message>
         <location line="+1"/>
         <source>Target port:</source>
-        <translation目标端口:</translation>
+        <translation>目标端口:</translation>
     </message>
     <message>
         <location line="+5"/>
