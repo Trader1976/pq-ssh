@@ -129,7 +129,7 @@ static void stopTerm(CpunkTermWidget* term);
 // =====================================================
 //
 // Supported placeholders (case-insensitive):
-//   {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}
+//   {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}, {HOME}, {KEYFILE}, {TARGET}
 // Escapes:
 //   {{ -> "{", }} -> "}"
 // Unknown placeholders are left as-is.
@@ -140,6 +140,7 @@ static bool macroValueForKey(const QString& keyUpper,
                              const QString& host,
                              int port,
                              const QString& profileName,
+                             const QString& keyFile,
                              QString* out)
 {
     if (!out) return false;
@@ -149,25 +150,48 @@ static bool macroValueForKey(const QString& keyUpper,
     if (keyUpper == "PORT")    { *out = QString::number(port); return true; }
     if (keyUpper == "PROFILE") { *out = profileName; return true; }
 
-    // NEW:
     if (keyUpper == "DATE") { *out = QDate::currentDate().toString("yyyy-MM-dd"); return true; }
     if (keyUpper == "TIME") { *out = QTime::currentTime().toString("HH:mm:ss");  return true; }
 
+    // NEW:
+    if (keyUpper == "HOME") {
+        *out = "~"; // keep literal; do NOT expand to /home/...
+        return true;
+    }
+
+    if (keyUpper == "KEYFILE") {
+        *out = keyFile.trimmed();   // empty if none
+        return true;
+    }
+
+    if (keyUpper == "TARGET") {
+        const QString u = user.trimmed();
+        const QString h = host.trimmed();
+        const int p = (port > 0 ? port : 22);
+
+        QString t = u.isEmpty() ? h : (u + "@" + h);
+        if (p != 22) t += ":" + QString::number(p);
+        *out = t;
+        return true;
+    }
+
     return false;
 }
+
 
 // Keep the old signature too (so any other call sites keep working)
 static bool macroValueForKey(const QString& keyUpper, const SshProfile& p, QString* out)
 {
     const int port = (p.port > 0 ? p.port : 22);
-    return macroValueForKey(keyUpper, p.user, p.host, port, p.name, out);
+    return macroValueForKey(keyUpper, p.user, p.host, port, p.name, p.keyFile, out);
 }
 
 static QString expandMacroPlaceholders(const QString& in,
                                        const QString& user,
                                        const QString& host,
                                        int port,
-                                       const QString& profileName)
+                                       const QString& profileName,
+                                       const QString& keyFile)
 {
     QString out;
     out.reserve(in.size() + 16);
@@ -176,39 +200,21 @@ static QString expandMacroPlaceholders(const QString& in,
     for (int i = 0; i < n; ++i) {
         const QChar c = in[i];
 
-        // Escape: "{{" -> "{"
-        if (c == '{' && i + 1 < n && in[i + 1] == '{') {
-            out += '{';
-            ++i;
-            continue;
-        }
+        if (c == '{' && i + 1 < n && in[i + 1] == '{') { out += '{'; ++i; continue; }
+        if (c == '}' && i + 1 < n && in[i + 1] == '}') { out += '}'; ++i; continue; }
 
-        // Escape: "}}" -> "}"
-        if (c == '}' && i + 1 < n && in[i + 1] == '}') {
-            out += '}';
-            ++i;
-            continue;
-        }
-
-        // Placeholder: "{...}"
         if (c == '{') {
             const int end = in.indexOf('}', i + 1);
-            if (end < 0) {
-                out += c;
-                continue;
-            }
+            if (end < 0) { out += c; continue; }
 
             const QString key = in.mid(i + 1, end - (i + 1)).trimmed();
             const QString keyUpper = key.toUpper();
 
             QString val;
-            if (macroValueForKey(keyUpper, user, host, port, profileName, &val)) {
+            if (macroValueForKey(keyUpper, user, host, port, profileName, keyFile, &val)) {
                 out += val;
             } else {
-                // Unknown => keep as-is
-                out += '{';
-                out += key;
-                out += '}';
+                out += '{' + key + '}';
             }
 
             i = end;
@@ -225,7 +231,7 @@ static QString expandMacroPlaceholders(const QString& in,
 static QString expandMacroPlaceholders(const QString& in, const SshProfile& p)
 {
     const int port = (p.port > 0 ? p.port : 22);
-    return expandMacroPlaceholders(in, p.user, p.host, port, p.name);
+    return expandMacroPlaceholders(in, p.user, p.host, port, p.name, p.keyFile);
 }
 
 
@@ -727,7 +733,6 @@ void MainWindow::setupUi()
     auto *logLayout = new QVBoxLayout(logPage);
     logLayout->setContentsMargins(0, 0, 0, 0);
     logLayout->setSpacing(0);
-
     m_terminal = new QPlainTextEdit(logPage);
     m_terminal->setReadOnly(true);
     m_terminal->setFrameShape(QFrame::NoFrame);
@@ -2004,6 +2009,7 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
     const QString macroHost    = p.host;
     const int     macroPort    = (p.port > 0 ? p.port : 22);
     const QString macroProfile = p.name;
+    const QString macroKeyFile = p.keyFile;
 
     for (int i = 0; i < macros.size(); ++i) {
         const ProfileMacro& m = macros[i];
@@ -2038,8 +2044,8 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
                          p.name));
 
         connect(sc, &QShortcut::activated, this,
-                [this, termPtr, cmd, sendEnter, shownName,
-                 macroUser, macroHost, macroPort, macroProfile]()
+        [this, termPtr, cmd, sendEnter, shownName,
+         macroUser, macroHost, macroPort, macroProfile, macroKeyFile]()
         {
             if (!termPtr) return;
 
@@ -2049,7 +2055,8 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
                 macroUser,
                 macroHost,
                 macroPort,
-                macroProfile
+                macroProfile,
+                macroKeyFile
             );
 
             QString out = expanded;

@@ -562,7 +562,28 @@
             <li><code>{TARGET}</code> — <code>user@host</code> (or <code>user@host:port</code> if non-22)</li>
             <li><code>{HOME}</code> — <code>~</code></li>
             <li><code>{KEYFILE}</code> — configured key file path (if any)</li>
+            <li><code>{DATE}</code> — current date (<code>YYYY-MM-DD</code>)</li>
+            <li><code>{TIME}</code> — current time (<code>HH:MM:SS</code>)</li>
         </ul>
+        <div class="note">
+            <b>{KEYFILE}</b> expands to an empty string if no key file is configured in the profile.
+        </div>
+        <div class="note">
+            <b>{TARGET}</b> uses <code>user@host</code> for port 22, and <code>user@host:port</code> for non-22 ports.
+        </div>
+        <h3>Escaping braces</h3>
+        <ul class="bullets">
+            <li><code>{{</code> becomes a literal <code>{</code></li>
+            <li><code>}}</code> becomes a literal <code>}</code></li>
+        </ul>
+
+        <div class="note">
+            Example:
+            <pre class="codeblock"><code>{{{USER}}}</code></pre>
+            becomes:
+            <pre class="codeblock"><code>{root}</code></pre>
+        </div>
+
 
         <div class="warn">
             <b>Important:</b> Unknown placeholders are left as-is.
@@ -702,8 +723,8 @@
         </p>
 
         <div class="badges">
-            <span class="badge ok">PQ: ACTIVE</span>
-            <span class="badge off">PQ: OFF</span>
+            <span class="badge ok">PQ support: YES</span>
+            <span class="badge off">PQ support: NO</span>
             <span class="badge wait">PQ: checking…</span>
         </div>
 
@@ -797,7 +818,7 @@ chmod 700 ~/.ssh</code></pre>
                     </ul>
 
                     <h3>Open the log file</h3>
-                    <p>Use the menu: <b>Help → Open log file</b></p>
+                    <p>Use the menu: <b>View → Open log file</b></p>
                     <pre class="codeblock"><code>~/.local/share/pq-ssh/logs/pq-ssh.log</code></pre>
 
                     <h3>PQ debug mode (UI)</h3>

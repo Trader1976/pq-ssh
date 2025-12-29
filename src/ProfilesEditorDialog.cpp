@@ -90,20 +90,22 @@ static QString macroPlaceholderHelp()
 {
     // Keep this in sync with expandMacroPlaceholders()/macroValueForKey()
     return QObject::tr(
-    "You can use placeholders in macro commands:\n"
-    "  {USER}    Username\n"
-    "  {HOST}    Host/IP\n"
-    "  {PORT}    SSH port\n"
-    "  {PROFILE} Profile name\n"
-    "  {DATE}    Current date (YYYY-MM-DD)\n"
-    "  {TIME}    Current time (HH:MM:SS)\n"
-    "\n"
-    "Escapes:\n"
-    "  {{  ->  {\n"
-    "  }}  ->  }"
+        "You can use placeholders in macro commands:\n"
+        "  {USER}    Username\n"
+        "  {HOST}    Host/IP\n"
+        "  {PORT}    SSH port\n"
+        "  {PROFILE} Profile name\n"
+        "  {KEYFILE} Configured key file path (if any)\n"
+        "  {TARGET}  user@host (or user@host:port if non-22)\n"
+        "  {HOME}    Home shortcut (~)\n"
+        "  {DATE}    Current date (YYYY-MM-DD)\n"
+        "  {TIME}    Current time (HH:MM:SS)\n"
+        "\n"
+        "Escapes:\n"
+        "  {{  ->  {\n"
+        "  }}  ->  }"
     );
 }
-
 static QString extractFirstAfter(const QString &text, const QString &prefix)
 {
     const QStringList lines = text.split('\n');
@@ -731,7 +733,8 @@ void ProfilesEditorDialog::buildUi()
     ));
 
     auto *macroHint = new QLabel(
-        tr("Tip: You can use placeholders like {USER}, {HOST}, {PORT}, {PROFILE}, {DATE}, {TIME}."),
+        tr("Tip: Placeholders supported: {USER}, {HOST}, {PORT}, {PROFILE}, "
+           "{TARGET}, {KEYFILE}, {HOME}, {DATE}, {TIME}."),
         macroPanel
     );
     macroHint->setWordWrap(true);
