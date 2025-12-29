@@ -3,1511 +3,1656 @@
 <TS version="2.1" language="en_US">
 <context>
     <name>AuditLogModel</name>
-<message>
-<location filename="../Audit/AuditLogModel.cpp" line="+19"/>
-<source>Time</source>
-<translation>时间</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Level</source>
-<translation>级别</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Event</source>
-<translation>事件</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Target</source>
-<translation>目标</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Summary</source>
-<translation>摘要</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Session</source>
-<translation>会话</translation>
-</message>
-<message>
-<location line="+17"/>
-<source>OK</source>
-<translation>正常</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>WARN</source>
-<translation>警告</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>ERROR</source>
-<translation>错误</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>SEC</source>
-<translation>安全</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>INFO</source>
-<translation>信息</translation>
-</message>
-<message>
-<location line="+17"/>
-<source>%1
+    <message>
+        <location filename="../Audit/AuditLogModel.cpp" line="+19"/>
+        <source>Time</source>
+        <translation>时间</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Level</source>
+        <translation>级别</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Event</source>
+        <translation>事件</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target</source>
+        <translation>目标</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Summary</source>
+        <translation>摘要</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Session</source>
+        <translation>会话</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>OK</source>
+        <translation>正常</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>WARN</source>
+        <translation>警告</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>ERROR</source>
+        <translation>错误</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>SEC</source>
+        <translation>安全</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>INFO</source>
+        <translation>信息</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>%1
 %2</source>
-<translation>%1
+        <translation>%1
 %2</translation>
-</message>
-<message>
-<location line="+18"/>
-    <source>Cannot open %1: %2</source>
-<translation>无法打开 %1：%2</translation>
-</message>
-<message>
-<location line="+36"/>
-    <source>Invalid JSON</source>
-<translation>无效的 JSON</translation>
-</message>
-<message>
-<location line="+80"/>
-    <source>Fleet started (%1 targets, concurrency %2)</source>
-<translation>批量任务已启动（%1 个目标，并发度 %2）</translation>
-</message>
-<message>
-<location line="+6"/>
-    <source>Target %1 in %2 ms — %3</source>
-<translation>目标 %1 用时 %2 毫秒 — %3</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>done</source>
-<translation>完成</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>Target done in %1 ms</source>
-<translation>目标在 %1 毫秒内完成</translation>
-</message>
-<message>
-<location line="+4"/>
-    <source>Fleet event: %1</source>
-<translation>批量事件：%1</translation>
-</message>
-<message>
-<location line="+6"/>
-    <source>Key install: %1</source>
-<translation>密钥安装：%1</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Key install activity</source>
-<translation>密钥安装活动</translation>
-</message>
-<message>
-<location line="+6"/>
-    <source>%1 (%2)</source>
-<translation>%1（%2）</translation>
-</message>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>Cannot open %1: %2</source>
+        <translation>无法打开 %1：%2</translation>
+    </message>
+    <message>
+        <location line="+36"/>
+        <source>Invalid JSON</source>
+        <translation>无效的 JSON</translation>
+    </message>
+    <message>
+        <location line="+80"/>
+        <source>Fleet started (%1 targets, concurrency %2)</source>
+        <translation>批量任务已启动（%1 个目标，并发度 %2）</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Target %1 in %2 ms — %3</source>
+        <translation>目标 %1 用时 %2 毫秒 — %3</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>done</source>
+        <translation>完成</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Target done in %1 ms</source>
+        <translation>目标在 %1 毫秒内完成</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Fleet event: %1</source>
+        <translation>批量事件：%1</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Key install: %1</source>
+        <translation>密钥安装：%1</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Key install activity</source>
+        <translation>密钥安装活动</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>%1 (%2)</source>
+        <translation>%1（%2）</translation>
+    </message>
 </context>
-
 <context>
-<name>AuditLogViewerDialog</name>
-<message>
-<location filename="../Audit/AuditLogViewerDialog.cpp" line="+59"/>
-    <source>Audit Log Viewer</source>
-<translation>审计日志查看器</translation>
-</message>
-<message>
-<location line="+15"/>
-    <source>Search event/target/session/message…</source>
-<translation>搜索 事件 / 目标 / 会话 / 消息…</translation>
-</message>
-<message>
-<location line="+3"/>
-<source>Reload</source>
-<translation>重新加载</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>Open folder</source>
-<translation>打开文件夹</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>Export HTML…</source>
-<translation>导出 HTML…</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Export the currently filtered audit events to a standalone HTML report</source>
-<translation>将当前筛选的审计事件导出为独立的 HTML 报告</translation>
-</message>
-<message>
-<location line="+74"/>
-    <source>&lt;h3&gt;No audit file for %1&lt;/h3&gt;&lt;p&gt;&lt;code&gt;%2&lt;/code&gt;&lt;/p&gt;&lt;p&gt;%3&lt;/p&gt;</source>
-<translation>&lt;h3&gt;%1 没有审计文件&lt;/h3&gt;&lt;p&gt;&lt;code&gt;%2&lt;/code&gt;&lt;/p&gt;&lt;p&gt;%3&lt;/p&gt;</translation>
-</message>
-<message>
-<location line="+64"/>
-<source>target</source>
-<translation>目标</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>summary</source>
-<translation>摘要</translation>
-</message>
-<message>
-<location line="+17"/>
-<source>&lt;details&gt;&lt;summary style=&apos;cursor:pointer&apos;&gt;Raw JSON&lt;/summary&gt;</source>
-<translation>&lt;details&gt;&lt;summary style=&apos;cursor:pointer&apos;&gt;原始 JSON&lt;/summary&gt;</translation>
-</message>
-<message>
-<location line="+29"/>
-    <source>pq-ssh-audit-%1-%2.html</source>
-<translation>pq-ssh-audit-%1-%2.html</translation>
-</message>
-<message>
-<location line="+6"/>
-    <source>Export audit log (HTML)</source>
-<translation>导出审计日志（HTML）</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>HTML files (*.html);;All files (*)</source>
-<translation>HTML 文件 (*.html);;所有文件 (*)</translation>
-</message>
-<message>
-<location line="+14"/>
-<location line="+31"/>
-    <source>PQ-SSH Audit Report</source>
-<translation>PQ-SSH 审计报告</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Date: %1</source>
-<translation>日期：%1</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Source file:</source>
-<translation>源文件：</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Rows exported (filtered): %1</source>
-<translation>已导出行数（已筛选）：%1</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>Search filter:</source>
-<translation>搜索过滤器：</translation>
-</message>
-<message>
-<location line="+5"/>
-<source>Time</source>
-<translation>时间</translation>
-</message>
-<message>
-<location line="+0"/>
-<source>Severity</source>
-<translation>严重级别</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Event</source>
-<translation>事件</translation>
-</message>
-<message>
-<location line="+0"/>
-<source>Target</source>
-<translation>目标</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Session</source>
-<translation>会话</translation>
-</message>
-<message>
-<location line="+0"/>
-<source>Details</source>
-<translation>详情</translation>
-</message>
-<message>
-<location line="+26"/>
-<source>INFO</source>
-<translation>信息</translation>
-</message>
-<message>
-<location line="+3"/>
-<source>-</source>
-<translation>-</translation>
-</message>
-<message>
-<location line="+6"/>
-    <source>Raw JSON</source>
-<translation>原始 JSON</translation>
-</message>
-<message>
-<location line="+9"/>
-    <source>CPUNK PQ-SSH — audit export</source>
-<translation>CPUNK PQ-SSH — 审计导出</translation>
-</message>
-<message>
-<location line="+5"/>
-<location line="+13"/>
-    <source>Export failed</source>
-<translation>导出失败</translation>
-</message>
-<message>
-<location line="-13"/>
-    <source>Cannot write file:
-    %1</source>
-<translation>无法写入文件：
+    <name>AuditLogViewerDialog</name>
+    <message>
+        <location filename="../Audit/AuditLogViewerDialog.cpp" line="+59"/>
+        <source>Audit Log Viewer</source>
+        <translation>审计日志查看器</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>Search event/target/session/message…</source>
+        <translation>搜索 事件 / 目标 / 会话 / 消息…</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Reload</source>
+        <translation>重新加载</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Open folder</source>
+        <translation>打开文件夹</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Export HTML…</source>
+        <translation>导出 HTML…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Export the currently filtered audit events to a standalone HTML report</source>
+        <translation>将当前筛选的审计事件导出为独立的 HTML 报告</translation>
+    </message>
+    <message>
+        <location line="+74"/>
+        <source>&lt;h3&gt;No audit file for %1&lt;/h3&gt;&lt;p&gt;&lt;code&gt;%2&lt;/code&gt;&lt;/p&gt;&lt;p&gt;%3&lt;/p&gt;</source>
+        <translation>&lt;h3&gt;%1 没有审计文件&lt;/h3&gt;&lt;p&gt;&lt;code&gt;%2&lt;/code&gt;&lt;/p&gt;&lt;p&gt;%3&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location line="+64"/>
+        <source>target</source>
+        <translation>目标</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>summary</source>
+        <translation>摘要</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>&lt;details&gt;&lt;summary style=&apos;cursor:pointer&apos;&gt;Raw JSON&lt;/summary&gt;</source>
+        <translation>&lt;details&gt;&lt;summary style=&apos;cursor:pointer&apos;&gt;原始 JSON&lt;/summary&gt;</translation>
+    </message>
+    <message>
+        <location line="+29"/>
+        <source>pq-ssh-audit-%1-%2.html</source>
+        <translation>pq-ssh-audit-%1-%2.html</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Export audit log (HTML)</source>
+        <translation>导出审计日志（HTML）</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>HTML files (*.html);;All files (*)</source>
+        <translation>HTML 文件 (*.html);;所有文件 (*)</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <location line="+31"/>
+        <source>PQ-SSH Audit Report</source>
+        <translation>PQ-SSH 审计报告</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Date: %1</source>
+        <translation>日期：%1</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Source file:</source>
+        <translation>源文件：</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Rows exported (filtered): %1</source>
+        <translation>已导出行数（已筛选）：%1</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Search filter:</source>
+        <translation>搜索过滤器：</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Time</source>
+        <translation>时间</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Severity</source>
+        <translation>严重级别</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Event</source>
+        <translation>事件</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Target</source>
+        <translation>目标</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Session</source>
+        <translation>会话</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Details</source>
+        <translation>详情</translation>
+    </message>
+    <message>
+        <location line="+26"/>
+        <source>INFO</source>
+        <translation>信息</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>-</source>
+        <translation>-</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Raw JSON</source>
+        <translation>原始 JSON</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>CPUNK PQ-SSH — audit export</source>
+        <translation>CPUNK PQ-SSH — 审计导出</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+13"/>
+        <source>Export failed</source>
+        <translation>导出失败</translation>
+    </message>
+    <message>
+        <location line="-13"/>
+        <source>Cannot write file:
+%1</source>
+        <translation>无法写入文件：
 %1</translation>
-</message>
-<message>
-<location line="+13"/>
-    <source>Failed to finalize file:
-    %1</source>
-<translation>无法完成文件写入：
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Failed to finalize file:
+%1</source>
+        <translation>无法完成文件操作：
 %1</translation>
-</message>
-</context>
-
-<context>
-<name>AuditLogger</name>
-<message>
-<location filename="../AuditLogger.cpp" line="+107"/>
-    <source>AuditLogger: failed to open %1: %2</source>
-<translation>AuditLogger：无法打开 %1：%2</translation>
-</message>
-</context>
-
-<context>
-<name>CpunkTermWidget</name>
-<message>
-<location filename="../CpunkTermWidget.cpp" line="+198"/>
-<source>Copy</source>
-<translation>复制</translation>
-</message>
-<message>
-<location line="+4"/>
-<source>Paste</source>
-<translation>粘贴</translation>
-</message>
-<message>
-<location line="+4"/>
-    <source>Paste (Shift+Insert)</source>
-    <translation>粘贴（Shift+Insert）</translation>
-</message>
+    </message>
+    <message>
+        <source>Cannot write file:
+    %1</source>
+        <translation> type="vanished">无法写入文件：
+%1</translation>
+    </message>
+    <message>
+        <source>Failed to finalize file:
+    %1</source>
+        <translation type="vanished">无法完成文件写入：
+%1</translation>
+    </message>
 </context>
 <context>
-<name>FilesTab</name>
-<message>
-<location filename="../FilesTab.cpp" line="+170"/>
-    <source>Local Up</source>
-<translation>本地向上</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Remote Up</source>
-<translation>远程向上</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Refresh</source>
-<translation>刷新</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Upload…</source>
-<translation>上传…</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Upload folder…</source>
-<translation>上传文件夹…</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Download…</source>
-<translation>下载…</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>Remote: ~</source>
-<translation>远程：~</translation>
-</message>
-<message>
-<location line="+73"/>
-<source>Name</source>
-<translation>名称</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Type</source>
-<translation>类型</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Size</source>
-<translation>大小</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Modified</source>
-<translation>修改时间</translation>
-</message>
-<message>
-<location line="+102"/>
-    <source>Remote: %1</source>
-<translation>远程：%1</translation>
-</message>
-<message>
-<location line="+41"/>
-<source>Files</source>
-<translation>文件</translation>
-</message>
-<message>
-<location line="+0"/>
-<location line="+253"/>
-<location line="+179"/>
-<location line="+137"/>
-<location line="+154"/>
-<location line="+108"/>
-<location line="+77"/>
-    <source>Not connected.</source>
-<translation>未连接。</translation>
-</message>
-<message>
-<location line="-739"/>
-<source>Cancel</source>
-<translation>取消</translation>
-</message>
-<message>
-<location line="+25"/>
-    <source>Transfer failed or cancelled.</source>
-<translation>传输失败或已取消。</translation>
-</message>
-<message>
-<location line="+10"/>
-<source>Transfer</source>
-<translation>传输</translation>
-</message>
-<message>
-<location line="+23"/>
-    <source>Select local files to upload</source>
-<translation>选择要上传的本地文件</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>All files (*)</source>
-<translation>所有文件 (*)</translation>
-</message>
-<message>
-<location line="+9"/>
-    <source>Select folder to upload</source>
-<translation>选择要上传的文件夹</translation>
-</message>
-<message>
-<location line="+15"/>
-<source>Upload</source>
-<translation>上传</translation>
-</message>
-<message>
-<location line="+48"/>
-    <source>Uploading %1 item(s)…</source>
-<translation>正在上传 %1 个项目…</translation>
-</message>
-<message>
-<location line="+19"/>
-    <source>Failed to create remote directory:
-    %1
+    <name>AuditLogger</name>
+    <message>
+        <location filename="../AuditLogger.cpp" line="+107"/>
+        <source>AuditLogger: failed to open %1: %2</source>
+        <translation>AuditLogger：无法打开 %1：%2</translation>
+    </message>
+</context>
+<context>
+    <name>CpunkTermWidget</name>
+    <message>
+        <location filename="../CpunkTermWidget.cpp" line="+196"/>
+        <source>Copy</source>
+        <translation>复制</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Paste</source>
+        <translation>粘贴</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Paste (Shift+Insert)</source>
+        <translation>粘贴（Shift+Insert）</translation>
+    </message>
+</context>
+<context>
+    <name>FilesTab</name>
+    <message>
+        <location filename="../FilesTab.cpp" line="+170"/>
+        <source>Local Up</source>
+        <translation>本地向上</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Remote Up</source>
+        <translation>远程向上</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Refresh</source>
+        <translation>刷新</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Upload…</source>
+        <translation>上传…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Upload folder…</source>
+        <translation>上传文件夹…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Download…</source>
+        <translation>下载…</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Remote: ~</source>
+        <translation>远程：~</translation>
+    </message>
+    <message>
+        <location line="+73"/>
+        <source>Name</source>
+        <translation>名称</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Type</source>
+        <translation>类型</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Size</source>
+        <translation>大小</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Modified</source>
+        <translation>修改时间</translation>
+    </message>
+    <message>
+        <location line="+102"/>
+        <source>Remote: %1</source>
+        <translation>远程：%1</translation>
+    </message>
+    <message>
+        <location line="+41"/>
+        <source>Files</source>
+        <translation>文件</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <location line="+253"/>
+        <location line="+179"/>
+        <location line="+137"/>
+        <location line="+154"/>
+        <location line="+108"/>
+        <location line="+77"/>
+        <source>Not connected.</source>
+        <translation>未连接。</translation>
+    </message>
+    <message>
+        <location line="-739"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>Transfer failed or cancelled.</source>
+        <translation>传输失败或已取消。</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Transfer</source>
+        <translation>传输</translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>Select local files to upload</source>
+        <translation>选择要上传的本地文件</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>All files (*)</source>
+        <translation>所有文件 (*)</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Select folder to upload</source>
+        <translation>选择要上传的文件夹</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>Upload</source>
+        <translation>上传</translation>
+    </message>
+    <message>
+        <location line="+48"/>
+        <source>Uploading %1 item(s)…</source>
+        <translation>正在上传 %1 个项目…</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>Failed to create remote directory:
+%1
 %2</source>
-<translation>创建远程目录失败：
+        <translation>无法创建远程目录：
 %1
 %2</translation>
-</message>
-<message>
-<location line="+37"/>
-    <source>Upload failed:
-    %1
+    </message>
+    <message>
+        <location line="+37"/>
+        <source>Upload failed:
+%1
 → %2
 
 %3</source>
-<translation>上传失败：
+        <translation>上传失败：
 %1
 → %2
 
 %3</translation>
-</message>
-<message>
-<location line="+75"/>
-<location line="+27"/>
-<location line="+20"/>
-<location line="+90"/>
-<location line="+6"/>
-<source>Download</source>
-<translation>下载</translation>
-</message>
-<message>
-<location line="-115"/>
-    <source>Cannot stat remote path:
-    %1
+    </message>
+    <message>
+        <location line="+103"/>
+        <source>Cannot stat remote path:
+%1
 %2</source>
-<translation>无法获取远程路径状态：
+        <translation>无法获取远程路径状态：
 %1
 %2</translation>
-</message>
-<message>
-<location line="+41"/>
-    <source>Downloading %1 file(s)…</source>
-<translation>正在下载 %1 个文件…</translation>
-</message>
-<message>
-<location line="+47"/>
-    <source>Integrity check failed for download:
-%1
+    </message>
+    <message>
+        <location line="+219"/>
+        <source>Delete %1 local item(s)?
 
-%2</source>
-<translation>下载的完整性校验失败：
-%1
-
-%2</translation>
-</message>
-<message>
-<location line="+27"/>
-    <source>Select file(s) or folder(s) first.</source>
-<translation>请先选择文件或文件夹。</translation>
-</message>
-<message>
-<location line="+6"/>
-    <source>Select local destination folder</source>
-<translation>选择本地目标文件夹</translation>
-</message>
-<message>
-<location line="+20"/>
-<location line="+32"/>
-    <source>Rename…</source>
-<translation>重命名…</translation>
-</message>
-<message>
-<location line="-31"/>
-<location line="+32"/>
-    <source>New folder…</source>
-<translation>新建文件夹…</translation>
-</message>
-<message>
-<location line="-30"/>
-<location line="+32"/>
-    <source>Copy path</source>
-<translation>复制路径</translation>
-</message>
-<message>
-<location line="-30"/>
-<location line="+32"/>
-<location line="+25"/>
-<location line="+21"/>
-<location line="+16"/>
-<location line="+9"/>
-<location line="+14"/>
-<location line="+6"/>
-<location line="+25"/>
-<source>Delete</source>
-<translation>删除</translation>
-</message>
-<message>
-<location line="-91"/>
-    <source>Select one or more local items first.</source>
-<translation>请先选择一个或多个本地项目。</translation>
-</message>
-<message>
-<location line="+16"/>
-    <source>Delete %1 local item(s)?
-
-    This cannot be undone.</source>
-<translation>删除 %1 个本地项目？
+This cannot be undone.</source>
+        <translation>删除 %1 个本地项目？
 
 此操作无法撤销。</translation>
-</message>
-<message>
-<location line="+22"/>
-    <source>Failed to delete folder:
-%1</source>
-<translation>删除文件夹失败：
-%1</translation>
-</message>
-<message>
-<location line="+9"/>
-    <source>Failed to delete file:
-%1</source>
-<translation>删除文件失败：
-%1</translation>
-</message>
-<message>
-<location line="+19"/>
-    <source>Select one or more remote items first.</source>
-<translation>请先选择一个或多个远程项目。</translation>
-</message>
-<message>
-<location line="+22"/>
-    <source>Delete %1 remote item(s)?
+    </message>
+    <message>
+        <location line="+72"/>
+        <source>Delete %1 remote item(s)?
 
-    Folders will be deleted recursively.</source>
-<translation>删除 %1 个远程项目？
+Folders will be deleted recursively.</source>
+        <translation>删除 %1 个远程项目？
 
 文件夹将被递归删除。</translation>
-</message>
-<message>
-<location line="+8"/>
-    <source>Deleting %1 item(s)…</source>
-<translation>正在删除 %1 个项目…</translation>
-</message>
-<message>
-<location line="+11"/>
-    <source>Remote delete failed:
-%1
+    </message>
+    <message>
+        <location line="+115"/>
+        <source>Rename failed:
+%1</source>
+        <translation>重命名失败：
+%1</translation>
+    </message>
+    <message>
+        <location line="+62"/>
+        <source>Failed to create folder:
+%1</source>
+        <translation>创建文件夹失败：
+%1</translation>
+    </message>
+    <message>
+        <source>Failed to create remote directory:
+    %1
 %2</source>
-<translation>远程删除失败：
+        <translation type="vanished">创建远程目录失败：
 %1
 %2</translation>
-</message>
-<message>
-<location line="+17"/>
-<location line="+10"/>
-<location line="+10"/>
-<location line="+13"/>
-<location line="+11"/>
-<location line="+6"/>
-<location line="+12"/>
-<source>Rename</source>
-<translation>重命名</translation>
-</message>
-<message>
-<location line="-62"/>
-    <source>Select exactly one local item.</source>
-<translation>请仅选择一个本地项目。</translation>
-</message>
-<message>
-<location line="+10"/>
-<location line="+52"/>
-    <source>New name:</source>
-<translation>新名称：</translation>
-</message>
-<message>
-<location line="-42"/>
-    <source>Target name already exists.</source>
-<translation>目标名称已存在。</translation>
-</message>
-<message>
-<location line="+13"/>
-    <source>Rename failed.</source>
-<translation>重命名失败。</translation>
-</message>
-<message>
-<location line="+17"/>
-    <source>Select exactly one remote item.</source>
-<translation>请仅选择一个远程项目。</translation>
-</message>
-<message>
-<location line="+21"/>
-    <source>Renaming %1…</source>
-<translation>正在重命名 %1…</translation>
-</message>
-<message>
-<location line="+8"/>
-    <source>Rename failed:
-    %1</source>
-<translation>重命名失败：
-%1</translation>
-</message>
-<message>
-<location line="+19"/>
-<location line="+8"/>
-<location line="+5"/>
-<location line="+10"/>
-<location line="+6"/>
-    <source>New folder</source>
-<translation>新建文件夹</translation>
-</message>
-<message>
-<location line="-29"/>
-<location line="+29"/>
-    <source>Folder name:</source>
-<translation>文件夹名称：</translation>
-</message>
-<message>
-<location line="-29"/>
-<location line="+29"/>
-<source>NewFolder</source>
-<translation>新文件夹</translation>
-</message>
-<message>
-<location line="-21"/>
-    <source>That name already exists.</source>
-<translation>该名称已存在。</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Failed to create folder.</source>
-<translation>创建文件夹失败。</translation>
-</message>
-<message>
-<location line="+24"/>
-    <source>Creating folder %1…</source>
-<translation>正在创建文件夹 %1…</translation>
-</message>
-<message>
-<location line="+6"/>
-    <source>Failed to create folder:
-    %1</source>
-<translation>创建文件夹失败：
-%1</translation>
-</message>
-</context>
+    </message>
+    <message>
+        <source>Upload failed:
+    %1
+→ %2
 
+%3</source>
+        <translation type="vanished">上传失败：
+%1
+→ %2
+
+%3</translation>
+    </message>
+    <message>
+        <location line="-496"/>
+        <location line="+27"/>
+        <location line="+20"/>
+        <location line="+90"/>
+        <location line="+6"/>
+        <source>Download</source>
+        <translation>下载</translation>
+    </message>
+    <message>
+        <source>Cannot stat remote path:
+    %1
+%2</source>
+        <translation type="vanished">无法获取远程路径状态：
+%1
+%2</translation>
+    </message>
+    <message>
+        <location line="-74"/>
+        <source>Downloading %1 file(s)…</source>
+        <translation>正在下载 %1 个文件…</translation>
+    </message>
+    <message>
+        <location line="+47"/>
+        <source>Integrity check failed for download:
+%1
+
+%2</source>
+        <translation>下载的完整性校验失败：
+%1
+
+%2</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <source>Select file(s) or folder(s) first.</source>
+        <translation>请先选择文件或文件夹。</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Select local destination folder</source>
+        <translation>选择本地目标文件夹</translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <location line="+32"/>
+        <source>Rename…</source>
+        <translation>重命名…</translation>
+    </message>
+    <message>
+        <location line="-31"/>
+        <location line="+32"/>
+        <source>New folder…</source>
+        <translation>新建文件夹…</translation>
+    </message>
+    <message>
+        <location line="-30"/>
+        <location line="+32"/>
+        <source>Copy path</source>
+        <translation>复制路径</translation>
+    </message>
+    <message>
+        <location line="-30"/>
+        <location line="+32"/>
+        <location line="+25"/>
+        <location line="+21"/>
+        <location line="+16"/>
+        <location line="+9"/>
+        <location line="+14"/>
+        <location line="+6"/>
+        <location line="+25"/>
+        <source>Delete</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <location line="-91"/>
+        <source>Select one or more local items first.</source>
+        <translation>请先选择一个或多个本地项目。</translation>
+    </message>
+    <message>
+        <source>Delete %1 local item(s)?
+
+    This cannot be undone.</source>
+        <translation type="vanished">删除 %1 个本地项目？
+
+此操作无法撤销。</translation>
+    </message>
+    <message>
+        <location line="+38"/>
+        <source>Failed to delete folder:
+%1</source>
+        <translation>删除文件夹失败：
+%1</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Failed to delete file:
+%1</source>
+        <translation>删除文件失败：
+%1</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>Select one or more remote items first.</source>
+        <translation>请先选择一个或多个远程项目。</translation>
+    </message>
+    <message>
+        <source>Delete %1 remote item(s)?
+
+    Folders will be deleted recursively.</source>
+        <translation type="vanished">删除 %1 个远程项目？
+
+文件夹将被递归删除。</translation>
+    </message>
+    <message>
+        <location line="+30"/>
+        <source>Deleting %1 item(s)…</source>
+        <translation>正在删除 %1 个项目…</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Remote delete failed:
+%1
+%2</source>
+        <translation>远程删除失败：
+%1
+%2</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <location line="+10"/>
+        <location line="+10"/>
+        <location line="+13"/>
+        <location line="+11"/>
+        <location line="+6"/>
+        <location line="+12"/>
+        <source>Rename</source>
+        <translation>重命名</translation>
+    </message>
+    <message>
+        <location line="-62"/>
+        <source>Select exactly one local item.</source>
+        <translation>请仅选择一个本地项目。</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <location line="+52"/>
+        <source>New name:</source>
+        <translation>新名称：</translation>
+    </message>
+    <message>
+        <location line="-42"/>
+        <source>Target name already exists.</source>
+        <translation>目标名称已存在。</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Rename failed.</source>
+        <translation>重命名失败。</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Select exactly one remote item.</source>
+        <translation>请仅选择一个远程项目。</translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>Renaming %1…</source>
+        <translation>正在重命名 %1…</translation>
+    </message>
+    <message>
+        <source>Rename failed:
+    %1</source>
+        <translation type="vanished">重命名失败：
+%1</translation>
+    </message>
+    <message>
+        <location line="+27"/>
+        <location line="+8"/>
+        <location line="+5"/>
+        <location line="+10"/>
+        <location line="+6"/>
+        <source>New folder</source>
+        <translation>新建文件夹</translation>
+    </message>
+    <message>
+        <location line="-29"/>
+        <location line="+29"/>
+        <source>Folder name:</source>
+        <translation>文件夹名称：</translation>
+    </message>
+    <message>
+        <location line="-29"/>
+        <location line="+29"/>
+        <source>NewFolder</source>
+        <translation>新文件夹</translation>
+    </message>
+    <message>
+        <location line="-21"/>
+        <source>That name already exists.</source>
+        <translation>该名称已存在。</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Failed to create folder.</source>
+        <translation>创建文件夹失败。</translation>
+    </message>
+    <message>
+        <location line="+24"/>
+        <source>Creating folder %1…</source>
+        <translation>正在创建文件夹 %1…</translation>
+    </message>
+    <message>
+        <source>Failed to create folder:
+    %1</source>
+        <translation type="vanished">创建文件夹失败：
+%1</translation>
+    </message>
+</context>
 <context>
-<name>FleetWindow</name>
-<message>
-<location filename="../Fleet/FleetWindow.cpp" line="+35"/>
-    <source>CPUNK PQ-SSH — Fleet Jobs</source>
-<translation>CPUNK PQ-SSH — 批量任务</translation>
-</message>
-<message>
-<location line="+31"/>
-    <source>Filter targets (name, host, group) ...</source>
-<translation>筛选目标（名称、主机、组）...</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>Select all</source>
-<translation>全选</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Select none</source>
-<translation>全不选</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>Targets:</source>
-<translation>目标：</translation>
-</message>
-<message>
-<location line="+28"/>
-    <source>Fleet action</source>
-<translation>批量操作</translation>
-</message>
-<message>
-<location line="+9"/>
-<location line="+456"/>
-    <source>Run command</source>
-<translation>运行命令</translation>
-</message>
-<message>
-<location line="-455"/>
-    <source>Check service (systemd)</source>
-<translation>检查服务（systemd）</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Restart service (systemd)</source>
-<translation>重启服务（systemd）</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Max parallel targets</source>
-<translation>最大并行目标数</translation>
-</message>
-<message>
-<location line="+6"/>
-<source> s</source>
-<translation> 秒</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Per-target command timeout (seconds).</source>
-<translation>每个目标的命令超时（秒）。</translation>
-</message>
-<message>
-<location line="+4"/>
-<location line="+476"/>
-<source>None</source>
-<translation>无</translation>
-</message>
-<message>
-<location line="-475"/>
-    <source>Safe (head + hash)</source>
-    <translation>安全（命令头 + 哈希）</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Full (risky)</source>
-    <translation>完整（有风险）</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>Controls what gets written to Audit Logs for Fleet commands.
+    <name>FleetWindow</name>
+    <message>
+        <location filename="../Fleet/FleetWindow.cpp" line="+35"/>
+        <source>CPUNK PQ-SSH — Fleet Jobs</source>
+        <translation>CPUNK PQ-SSH — 批量任务</translation>
+    </message>
+    <message>
+        <location line="+31"/>
+        <source>Filter targets (name, host, group) ...</source>
+        <translation>筛选目标（名称、主机、组）...</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Select all</source>
+        <translation>全选</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Select none</source>
+        <translation>全不选</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Targets:</source>
+        <translation>目标：</translation>
+    </message>
+    <message>
+        <location line="+28"/>
+        <source>Fleet action</source>
+        <translation>批量操作</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <location line="+456"/>
+        <source>Run command</source>
+        <translation>运行命令</translation>
+    </message>
+    <message>
+        <location line="-455"/>
+        <source>Check service (systemd)</source>
+        <translation>检查服务（systemd）</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Restart service (systemd)</source>
+        <translation>重启服务（systemd）</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Max parallel targets</source>
+        <translation>最大并行目标数</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source> s</source>
+        <translation> 秒</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Per-target command timeout (seconds).</source>
+        <translation>每个目标的命令超时（秒）。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <location line="+476"/>
+        <source>None</source>
+        <translation>无</translation>
+    </message>
+    <message>
+        <location line="-475"/>
+        <source>Safe (head + hash)</source>
+        <translation>安全（命令头 + 哈希）</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Full (risky)</source>
+        <translation>完整（有风险）</translation>
+    </message>
+    <message>
+        <source>Controls what gets written to Audit Logs for Fleet commands.
     None: no command data
 Safe: logs cmd_head + cmd_hash (recommended)
 Full: logs full command text (may leak secrets!)</source>
-<translation>控制批量命令写入审计日志的内容。
+        <translation type="vanished">控制批量命令写入审计日志的内容。
 无：不记录命令数据
 安全：记录 cmd_head + cmd_hash（推荐）
 完整：记录完整命令文本（可能泄露机密！）</translation>
-</message>
-<message>
-<location line="+35"/>
-    <source>Audit logging: Full commands</source>
-<translation>审计日志：完整命令</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>You enabled FULL command logging in audit logs.
+    </message>
+    <message>
+        <location line="+37"/>
+        <source>Audit logging: Full commands</source>
+        <translation>审计日志：完整命令</translation>
+    </message>
+    <message>
+        <source>You enabled FULL command logging in audit logs.
 
     This can leak secrets (tokens, passwords, private paths) into audit files.
     Recommended setting is: Safe (head + hash).</source>
-<translation>你已在审计日志中启用“完整命令”记录。
+        <translation type="vanished">你已在审计日志中启用“完整命令”记录。
 
 这可能会将机密（令牌、密码、私有路径）泄露到审计文件中。
 建议设置为：安全（命令头 + 哈希）。</translation>
-</message>
-<message>
-<location line="+8"/>
-    <source>Action:</source>
-<translation>操作：</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>Concurrency:</source>
-<translation>并发度：</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>Timeout:</source>
-<translation>超时：</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>Audit cmd log:</source>
-<translation>审计命令记录：</translation>
-</message>
-<message>
-<location line="+13"/>
-    <source>e.g. uname -a</source>
-    <translation>例如：uname -a</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Command:</source>
-<translation>命令：</translation>
-</message>
-<message>
-<location line="+12"/>
-<location line="+14"/>
-    <source>e.g. nginx</source>
-    <translation>例如：nginx</translation>
-</message>
-<message>
-<location line="-13"/>
-<location line="+24"/>
-    <source>Service:</source>
-<translation>服务：</translation>
-</message>
-<message>
-<location line="-1"/>
-    <source>I understand this is disruptive (restart).</source>
-<translation>我理解这会造成中断（重启）。</translation>
-</message>
-<message>
-<location line="+16"/>
-    <source>Run fleet job</source>
-<translation>运行批量任务</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Cancel</source>
-<translation>取消</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>Ready.</source>
-    <translation>就绪。</translation>
-</message>
-<message>
-<location line="+11"/>
-<source>Profile</source>
-<translation>配置</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Group</source>
-<translation>组</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Target</source>
-<translation>目标</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Status</source>
-<translation>状态</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Duration</source>
-<translation>耗时</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Stdout (preview)</source>
-    <translation>标准输出（预览）</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Error (preview)</source>
-    <translation>错误（预览）</translation>
-</message>
-<message>
-<location line="+14"/>
-    <source>Fleet log…</source>
-<translation>批量日志…</translation>
-</message>
-<message>
-<location line="+44"/>
-<source>QUEUED</source>
-<translation>排队中</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>RUNNING</source>
-<translation>运行中</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>OK</source>
-<translation>正常</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>FAIL</source>
-<translation>失败</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>CANCELED</source>
-<translation>已取消</translation>
-</message>
-<message>
-<location line="+2"/>
-<source>UNKNOWN</source>
-<translation>未知</translation>
-</message>
-<message>
-<location line="+56"/>
-    <source>%1@%2:%3  [%4]</source>
-<translation>%1@%2:%3  [%4]</translation>
-</message>
-<message>
-<location line="+73"/>
-    <source>%1 ms</source>
-<translation>%1 毫秒</translation>
-</message>
-<message>
-<location line="+63"/>
-<location line="+40"/>
-<location line="+7"/>
-<location line="+7"/>
-<location line="+4"/>
-<source>Fleet</source>
-<translation>批量任务</translation>
-</message>
-<message>
-<location line="-58"/>
-    <source>Select at least one target profile.</source>
-<translation>请至少选择一个目标配置。</translation>
-</message>
-<message>
-<location line="+21"/>
-    <source>Audit logging: FULL commands</source>
-<translation>审计日志：完整命令</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>You selected FULL command logging for audit logs.
+    </message>
+    <message>
+        <location line="-35"/>
+        <source>Controls what gets written to Audit Logs for Fleet commands.
+None: no command data
+Safe: logs cmd_head + cmd_hash (recommended)
+Full: logs full command text (may leak secrets!)</source>
+        <translation>控制 Fleet 命令写入审计日志的内容。
+无（None）： 不记录任何命令数据
+安全（Safe）： 记录 cmd_head + cmd_hash（推荐）
+完整（Full）： 记录完整命令文本（可能泄露敏感信息！）</translation>
+    </message>
+    <message>
+        <location line="+36"/>
+        <source>You enabled FULL command logging in audit logs.
+
+This can leak secrets (tokens, passwords, private paths) into audit files.
+Recommended setting is: Safe (head + hash).</source>
+        <translation>你已启用审计日志中的“完整（FULL）命令记录”。
+
+这可能会将敏感信息（令牌、密码、私有路径）泄露到审计文件中。
+推荐设置： 安全（头部 + 哈希）。</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Action:</source>
+        <translation>操作：</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Concurrency:</source>
+        <translation>并发度：</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Timeout:</source>
+        <translation>超时：</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Audit cmd log:</source>
+        <translation>审计命令记录：</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>e.g. uname -a</source>
+        <translation>例如：uname -a</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Command:</source>
+        <translation>命令：</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <location line="+14"/>
+        <source>e.g. nginx</source>
+        <translation>例如：nginx</translation>
+    </message>
+    <message>
+        <location line="-13"/>
+        <location line="+24"/>
+        <source>Service:</source>
+        <translation>服务：</translation>
+    </message>
+    <message>
+        <location line="-1"/>
+        <source>I understand this is disruptive (restart).</source>
+        <translation>我理解这会造成中断（重启）。</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Run fleet job</source>
+        <translation>运行批量任务</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Ready.</source>
+        <translation>就绪。</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Profile</source>
+        <translation>配置</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Group</source>
+        <translation>组</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target</source>
+        <translation>目标</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Status</source>
+        <translation>状态</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Duration</source>
+        <translation>耗时</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Stdout (preview)</source>
+        <translation>标准输出（预览）</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Error (preview)</source>
+        <translation>错误（预览）</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Fleet log…</source>
+        <translation>批量日志…</translation>
+    </message>
+    <message>
+        <location line="+44"/>
+        <source>QUEUED</source>
+        <translation>排队中</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>RUNNING</source>
+        <translation>运行中</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>OK</source>
+        <translation>正常</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>FAIL</source>
+        <translation>失败</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>CANCELED</source>
+        <translation>已取消</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>UNKNOWN</source>
+        <translation>未知</translation>
+    </message>
+    <message>
+        <location line="+56"/>
+        <source>%1@%2:%3  [%4]</source>
+        <translation>%1@%2:%3  [%4]</translation>
+    </message>
+    <message>
+        <location line="+73"/>
+        <source>%1 ms</source>
+        <translation>%1 毫秒</translation>
+    </message>
+    <message>
+        <location line="+63"/>
+        <location line="+40"/>
+        <location line="+7"/>
+        <location line="+7"/>
+        <location line="+4"/>
+        <source>Fleet</source>
+        <translation>批量任务</translation>
+    </message>
+    <message>
+        <location line="-58"/>
+        <source>Select at least one target profile.</source>
+        <translation>请至少选择一个目标配置。</translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>Audit logging: FULL commands</source>
+        <translation>审计日志：完整命令</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>You selected FULL command logging for audit logs.
+
+This stores the entire command string into the audit log file and may include secrets (tokens, passwords, etc.).
+
+Continue?</source>
+        <translation>你选择了在审计日志中启用“完整（FULL）命令记录”。
+
+这将把完整的命令字符串写入审计日志文件，其中可能包含敏感信息（令牌、密码等）。
+
+是否继续？</translation>
+    </message>
+    <message>
+        <source>You selected FULL command logging for audit logs.
 
     This stores the entire command string into the audit log file and may include secrets (tokens, passwords, etc.).
 
     Continue?</source>
-    <translation>你为审计日志选择了“完整命令”记录。
+        <translation type="vanished">你为审计日志选择了“完整命令”记录。
 
 这会将完整的命令字符串写入审计日志文件，并可能包含机密信息（令牌、密码等）。
 
 继续？</translation>
-</message>
-<message>
-<location line="+18"/>
-    <source>Command is empty.</source>
-<translation>命令为空。</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Check service</source>
-<translation>检查服务</translation>
-</message>
-<message>
-<location line="+2"/>
-<location line="+7"/>
-    <source>Service name is empty.</source>
-<translation>服务名称为空。</translation>
-</message>
-<message>
-<location line="-2"/>
-    <source>Restart service</source>
-<translation>重启服务</translation>
-</message>
-<message>
-<location line="+6"/>
-    <source>Confirm the disruptive action checkbox to proceed.</source>
-<translation>请勾选“确认中断性操作”复选框以继续。</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Confirm restart</source>
-<translation>确认重启</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Restart service &apos;%1&apos; on %2 target(s)?</source>
-    <translation>在 %2 个目标上重启服务“%1”？</translation>
-</message>
-<message>
-<location line="+13"/>
-<location line="+3"/>
-<source>Safe</source>
-<translation>安全</translation>
-</message>
-<message>
-<location line="-2"/>
-<source>Full</source>
-<translation>完整</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Starting job on %1 target(s), concurrency=%2, timeout=%3s, auditCmd=%4</source>
-<translation>正在在 %1 个目标上启动任务，并发度=%2，超时=%3 秒，审计命令=%4</translation>
-</message>
-<message>
-<location line="+28"/>
-    <source>Cancel requested.</source>
-<translation>已请求取消。</translation>
-</message>
-<message>
-<location line="+7"/>
-    <source>Running: %1</source>
-<translation>运行中：%1</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>JOB %1 started: %2</source>
-<translation>任务 %1 已启动：%2</translation>
-</message>
-<message>
-<location line="+11"/>
-    <source>Progress: %1/%2</source>
-<translation>进度：%1/%2</translation>
-</message>
-<message>
-<location line="+16"/>
-    <source>Finished: OK=%1  FAIL=%2  CANCELED=%3  (targets=%4)</source>
-<translation>完成：正常=%1  失败=%2  已取消=%3  （目标=%4）</translation>
-</message>
-<message>
-<location line="+24"/>
-    <source>Fleet result</source>
-<translation>批量结果</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>Fleet result — %1</source>
-<translation>批量结果 — %1</translation>
-</message>
-<message>
-<location line="+12"/>
-    <source>&lt;b&gt;%1&lt;/b&gt; — %2@%3:%4 — group: %5</source>
-<translation>&lt;b&gt;%1&lt;/b&gt; — %2@%3:%4 — 组：%5</translation>
-</message>
-<message>
-<location line="+21"/>
-<source>Stdout</source>
-<translation>标准输出</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Stderr</source>
-<translation>标准错误</translation>
-</message>
-<message>
-<location line="+1"/>
-<source>Error</source>
-<translation>错误</translation>
-</message>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>Command is empty.</source>
+        <translation>命令为空。</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Check service</source>
+        <translation>检查服务</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+7"/>
+        <source>Service name is empty.</source>
+        <translation>服务名称为空。</translation>
+    </message>
+    <message>
+        <location line="-2"/>
+        <source>Restart service</source>
+        <translation>重启服务</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Confirm the disruptive action checkbox to proceed.</source>
+        <translation>请勾选“确认中断性操作”复选框以继续。</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Confirm restart</source>
+        <translation>确认重启</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Restart service &apos;%1&apos; on %2 target(s)?</source>
+        <translation>在 %2 个目标上重启服务“%1”？</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <location line="+3"/>
+        <source>Safe</source>
+        <translation>安全</translation>
+    </message>
+    <message>
+        <location line="-2"/>
+        <source>Full</source>
+        <translation>完整</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Starting job on %1 target(s), concurrency=%2, timeout=%3s, auditCmd=%4</source>
+        <translation>正在在 %1 个目标上启动任务，并发度=%2，超时=%3 秒，审计命令=%4</translation>
+    </message>
+    <message>
+        <location line="+28"/>
+        <source>Cancel requested.</source>
+        <translation>已请求取消。</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Running: %1</source>
+        <translation>运行中：%1</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>JOB %1 started: %2</source>
+        <translation>任务 %1 已启动：%2</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Progress: %1/%2</source>
+        <translation>进度：%1/%2</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Finished: OK=%1  FAIL=%2  CANCELED=%3  (targets=%4)</source>
+        <translation>完成：正常=%1  失败=%2  已取消=%3  （目标=%4）</translation>
+    </message>
+    <message>
+        <location line="+24"/>
+        <source>Fleet result</source>
+        <translation>批量结果</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Fleet result — %1</source>
+        <translation>批量结果 — %1</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>&lt;b&gt;%1&lt;/b&gt; — %2@%3:%4 — group: %5</source>
+        <translation>&lt;b&gt;%1&lt;/b&gt; — %2@%3:%4 — 组：%5</translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>Stdout</source>
+        <translation>标准输出</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Stderr</source>
+        <translation>标准错误</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Error</source>
+        <translation>错误</translation>
+    </message>
 </context>
-
 <context>
-<name>IdentityManagerDialog</name>
-<message>
-<location filename="../IdentityManagerDialog.cpp" line="+53"/>
-    <source>Identity Manager</source>
-<translation>身份管理器</translation>
-</message>
-<message>
-<location line="+113"/>
-    <source>word1 word2 ... word24</source>
-<translation>word1 word2 ... word24</translation>
-</message>
-<message>
-<location line="+8"/>
-    <source>24 words:</source>
-<translation>24 个单词：</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Passphrase:</source>
-<translation>口令：</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Comment:</source>
-<translation>备注：</translation>
-</message>
-<message>
-<location line="+4"/>
-<location line="+234"/>
-    <source>Fingerprint:</source>
-<translation>指纹：</translation>
-</message>
-<message>
-<location line="-198"/>
-    <source>Copy public</source>
-<translation>复制公钥</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Copy fingerprint</source>
-<translation>复制指纹</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Save private…</source>
-<translation>保存私钥…</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Save public…</source>
-<translation>保存公钥…</translation>
-</message>
-<message>
-<location line="+125"/>
-<location line="+13"/>
-<location line="+9"/>
-<location line="+12"/>
-<location line="+11"/>
-<location line="+170"/>
-<location line="+138"/>
-<source>Identity</source>
-<translation>身份</translation>
-</message>
-<message>
-<location line="-353"/>
-    <source>Failed: %1</source>
-<translation>失败：%1</translation>
-</message>
-<message>
-<location line="+13"/>
-    <source>Failed to derive BIP39 master seed.</source>
-<translation>派生 BIP39 主种子失败。</translation>
-</message>
-<message>
-<location line="+9"/>
-    <source>Failed to derive Ed25519 seed (SHAKE256).</source>
-<translation>派生 Ed25519 种子（SHAKE256）失败。</translation>
-</message>
-<message>
-<location line="+12"/>
-    <source>Failed to create Ed25519 key.</source>
-<translation>创建 Ed25519 密钥失败。</translation>
-</message>
-<message>
-<location line="+11"/>
-    <source>Failed to extract Ed25519 public key.</source>
-<translation>提取 Ed25519 公钥失败。</translation>
-</message>
-<message>
-<location line="+43"/>
-    <source>Words are empty.</source>
-<translation>单词为空。</translation>
-</message>
-<message>
-<location line="+2"/>
-    <source>Expected 24 words, got %1.</source>
-<translation>期望 24 个单词，但得到 %1 个。</translation>
-</message>
-<message>
-<location line="+17"/>
-    <source>Wordlist loaded but seems too small (%1).</source>
-<translation>已加载词表，但似乎太小（%1）。</translation>
-</message>
-<message>
-<location line="+16"/>
-    <source>Wordlist is too small.</source>
-<translation>词表太小。</translation>
-</message>
-<message>
-<location line="+17"/>
-    <source>Failed to generate words.</source>
-<translation>生成单词失败。</translation>
-</message>
-<message>
-<location line="+43"/>
-    <source>Invalid identities.json</source>
-<translation>无效的 identities.json</translation>
-</message>
-<message>
-<location line="+32"/>
-    <source>Cannot load identities:
-    %1</source>
-<translation>无法加载身份：
-%1</translation>
-</message>
-<message>
-<location line="+13"/>
-<location line="+136"/>
-    <source>Fingerprint: %1</source>
-<translation>指纹：%1</translation>
-</message>
-<message>
-<location line="-124"/>
-<location line="+4"/>
-<location line="+137"/>
-    <source>Fingerprint: </source>
-<translation>指纹：</translation>
-</message>
-<message>
-<location line="-438"/>
-<location line="+4"/>
-<location line="+5"/>
-<location line="+10"/>
-    <source>Save private key</source>
-<translation>保存私钥</translation>
-</message>
-<message>
-<location line="-212"/>
-    <source>Saved identities</source>
-<translation>已保存的身份</translation>
-</message>
-<message>
-<location line="+12"/>
-    <source>Saved identities.
-    Select an identity to view its fingerprint and public key.</source>
-<translation>已保存的身份。
-请选择一个身份以查看其指纹和公钥。</translation>
-</message>
-<message>
-<location line="+4"/>
-<source>Remove</source>
-<translation>移除</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Remove the selected identity from the local store.
-    This does not delete any exported key files.</source>
-<translation>从本地存储中移除所选身份。
+    <name>IdentityManagerDialog</name>
+    <message>
+        <location filename="../IdentityManagerDialog.cpp" line="+53"/>
+        <source>Identity Manager</source>
+        <translation>身份管理器</translation>
+    </message>
+    <message>
+        <location line="+53"/>
+        <source>Saved identities.
+Select an identity to view its fingerprint and public key.</source>
+        <translation>已保存的身份。
+选择一个身份以查看其指纹和公钥。</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Remove the selected identity from the local store.
+This does not delete any exported key files.</source>
+        <translation>从本地存储中移除所选身份。
 这不会删除任何已导出的密钥文件。</translation>
-</message>
-<message>
-<location line="+14"/>
-<location line="+355"/>
-    <source>Create identity</source>
-<translation>创建身份</translation>
-</message>
-<message>
-<location line="-354"/>
-    <source>Restore identity</source>
-<translation>恢复身份</translation>
-</message>
-<message>
-<location line="+1"/>
-<location line="+454"/>
-<location line="+5"/>
-<location line="+7"/>
-<location line="+45"/>
-<location line="+6"/>
-    <source>Save identity</source>
-<translation>保存身份</translation>
-</message>
-<message>
-<location line="-516"/>
-<source>Derive</source>
-<translation>派生</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>Create a new identity by generating a random 24-word recovery phrase.
-    Write the words down and keep them safe.</source>
-<translation>通过生成随机的 24 个单词恢复短语来创建新身份。
-请将这些单词写下来并妥善保管。</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Restore an existing identity by entering your 24-word recovery phrase.</source>
-<translation>通过输入你的 24 个单词恢复短语来恢复现有身份。</translation>
-</message>
-<message>
-<location line="+4"/>
-    <source>Derive the identity fingerprint and SSH key from the entered words.</source>
-<translation>从输入的单词派生身份指纹和 SSH 密钥。</translation>
-</message>
-<message>
-<location line="+4"/>
-    <source>Save this identity to the local identity store.
-    Only public information is saved (no recovery words).</source>
-<translation>将此身份保存到本地身份存储。
-仅保存公开信息（不保存恢复单词）。</translation>
-</message>
-<message>
-<location line="+25"/>
-    <source>Alias:</source>
-<translation>别名：</translation>
-</message>
-<message>
-<location line="+24"/>
-    <source>Enter your 24-word recovery phrase.
-    Words can be separated by spaces or new lines.</source>
-<translation>输入你的 24 个单词恢复短语。
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Create a new identity by generating a random 24-word recovery phrase.
+Write the words down and keep them safe.</source>
+        <translation>通过生成随机的 24 个单词恢复短语来创建新的身份。
+请将这些单词记录下来并妥善保管。</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Save this identity to the local identity store.
+Only public information is saved (no recovery words).</source>
+        <translation>将此身份保存到本地身份存储中。
+仅保存公开信息（不包含恢复词）。</translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>word1 word2 ... word24</source>
+        <translation>word1 word2 ... word24</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>24 words:</source>
+        <translation>24 个单词：</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Passphrase:</source>
+        <translation>口令：</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Comment:</source>
+        <translation>备注：</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <location line="+234"/>
+        <source>Fingerprint:</source>
+        <translation>指纹：</translation>
+    </message>
+    <message>
+        <location line="-217"/>
+        <source>Enter your 24-word recovery phrase.
+Words can be separated by spaces or new lines.</source>
+        <translation>请输入你的 24 个单词恢复短语。
 单词可以用空格或换行分隔。</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Optional passphrase used together with the recovery words.</source>
-<translation>可选口令，与恢复单词一起使用。</translation>
-</message>
-<message>
-<location line="+4"/>
-    <source>Optional human-readable name for this identity.</source>
-<translation>该身份的可选可读名称。</translation>
-</message>
-<message>
-<location line="+4"/>
-    <source>Comment added to the generated SSH public key.</source>
-<translation>添加到生成的 SSH 公钥中的备注。</translation>
-</message>
-<message>
-<location line="+11"/>
-    <source>Copy the OpenSSH public key to the clipboard.</source>
-<translation>将 OpenSSH 公钥复制到剪贴板。</translation>
-</message>
-<message>
-<location line="+4"/>
-    <source>Copy the full identity fingerprint to the clipboard.</source>
-<translation>将完整的身份指纹复制到剪贴板。</translation>
-</message>
-<message>
-<location line="+4"/>
-    <source>Save the private SSH key to a file.
-    Protect this file and set correct permissions.</source>
-<translation>将 SSH 私钥保存到文件。
-请保护该文件并设置正确的权限。</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Save the public SSH key to a file.</source>
-<translation>将 SSH 公钥保存到文件。</translation>
-</message>
-<message>
-<location line="+53"/>
-    <source>No private key derived yet.</source>
-<translation>尚未派生私钥。</translation>
-</message>
-<message>
-<location line="+4"/>
-<source>id_ed25519</source>
-<translation>id_ed25519</translation>
-</message>
-<message>
-<location line="+5"/>
-<location line="+28"/>
-    <source>Cannot write file:
-    %1</source>
-<translation>无法写入文件：
+    </message>
+    <message>
+        <location line="+19"/>
+        <source>Copy public</source>
+        <translation>复制公钥</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Copy fingerprint</source>
+        <translation>复制指纹</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Save private…</source>
+        <translation>保存私钥…</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Save public…</source>
+        <translation>保存公钥…</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Save the private SSH key to a file.
+Protect this file and set correct permissions.</source>
+        <translation>将私有 SSH 密钥保存到文件中。
+请保护好该文件并设置正确的权限。</translation>
+    </message>
+    <message>
+        <location line="+67"/>
+        <location line="+28"/>
+        <source>Cannot write file:
+%1</source>
+        <translation>无法写入文件：
 %1</translation>
-</message>
-<message>
-<location line="-18"/>
-<location line="+27"/>
-    <source>Write failed (short write).</source>
-<translation>写入失败（写入不完整）。</translation>
-</message>
-<message>
-<location line="-18"/>
-<location line="+4"/>
-<location line="+5"/>
-<location line="+9"/>
-    <source>Save public key</source>
-<translation>保存公钥</translation>
-</message>
-<message>
-<location line="-18"/>
-    <source>No public key derived yet.</source>
-<translation>尚未派生公钥。</translation>
-</message>
-<message>
-<location line="+4"/>
-<source>id_ed25519.pub</source>
-<translation>id_ed25519.pub</translation>
-</message>
-<message>
-<location line="+266"/>
-<location line="+5"/>
-    <source>Derive identity first.</source>
-<translation>请先派生身份。</translation>
-</message>
-<message>
-<location line="+58"/>
-    <source>Identity saved.</source>
-<translation>身份已保存。</translation>
-</message>
-<message>
-<location line="+9"/>
-<location line="+9"/>
-<location line="+14"/>
-    <source>Remove identity</source>
-<translation>移除身份</translation>
-</message>
-<message>
-<location line="-22"/>
-    <source>Remove selected identity?
+    </message>
+    <message>
+        <location line="+20"/>
+        <location line="+13"/>
+        <location line="+9"/>
+        <location line="+12"/>
+        <location line="+11"/>
+        <location line="+170"/>
+        <location line="+138"/>
+        <source>Identity</source>
+        <translation>身份</translation>
+    </message>
+    <message>
+        <location line="-353"/>
+        <source>Failed: %1</source>
+        <translation>失败：%1</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Failed to derive BIP39 master seed.</source>
+        <translation>派生 BIP39 主种子失败。</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Failed to derive Ed25519 seed (SHAKE256).</source>
+        <translation>派生 Ed25519 种子（SHAKE256）失败。</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Failed to create Ed25519 key.</source>
+        <translation>创建 Ed25519 密钥失败。</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Failed to extract Ed25519 public key.</source>
+        <translation>提取 Ed25519 公钥失败。</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Words are empty.</source>
+        <translation>单词为空。</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Expected 24 words, got %1.</source>
+        <translation>期望 24 个单词，但得到 %1 个。</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Wordlist loaded but seems too small (%1).</source>
+        <translation>已加载词表，但似乎太小（%1）。</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Wordlist is too small.</source>
+        <translation>词表太小。</translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>Failed to generate words.</source>
+        <translation>生成单词失败。</translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <source>Invalid identities.json</source>
+        <translation>无效的 identities.json</translation>
+    </message>
+    <message>
+        <location line="+131"/>
+        <source>Remove selected identity?
 
-    This does not delete exported key files.</source>
-<translation>移除所选身份？
+This does not delete exported key files.</source>
+        <translation>移除所选身份？
 
 这不会删除已导出的密钥文件。</translation>
-</message>
-</context>
-
-<context>
-<name>KeyGeneratorDialog</name>
-<message>
-<location filename="../KeyGeneratorDialog.cpp" line="+304"/>
-    <source>Key Generator</source>
-<translation>密钥生成器</translation>
-</message>
-<message>
-<location line="+20"/>
-    <source>Algorithm:</source>
-<translation>算法：</translation>
-</message>
-<message>
-<location line="+3"/>
-<source>id_ed25519_pqssh</source>
-<translation>id_ed25519_pqssh</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Key filename:</source>
-<translation>密钥文件名：</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>Label:</source>
-<translation>标签：</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Owner:</source>
-<translation>所有者：</translation>
-</message>
-<message>
-<location line="+3"/>
-    <source>e.g. admin, prod-access, ci-deployment</source>
-<translation>例如：admin、prod-access、ci-deployment</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Purpose:</source>
-<translation>用途：</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Rotation policy (days):</source>
-<translation>轮换策略（天）：</translation>
-</message>
-<message>
-<location line="+5"/>
-    <source>Status:</source>
-<translation>状态：</translation>
-</message>
-<message>
-<location line="+6"/>
-<source>Enable</source>
-<translation>启用</translation>
-</message>
-<message>
-<location line="+12"/>
-    <source>Expire date:</source>
-<translation>到期日期：</translation>
-</message>
-<message>
-<location line="+6"/>
-    <source>Passphrase:</source>
-<translation>口令：</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Passphrase (again):</source>
-<translation>口令（再次输入）：</translation>
-</message>
-<message>
-<location line="+8"/>
-    <source>Encrypt Dilithium5 private key (required)</source>
-<translation>加密 Dilithium5 私钥（必需）</translation>
-</message>
-<message>
-<location line="+1"/>
-    <source>Repeat passphrase</source>
-<translation>重复口令</translation>
-</message>
-<message>
-<location line="+1"/>
-<location line="+1"/>
-    <source>Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305).</source>
-<translation>用于加密 Dilithium5 私钥（Argon2id + XChaCha20-Poly1305）。</translation>
-</message>
-<message>
-<location line="+17"/>
-    <source>Keys are saved under:
+    </message>
+    <message>
+        <source>Cannot load identities:
     %1</source>
-<translation>密钥保存路径：
+        <translation type="vanished">无法加载身份：
 %1</translation>
-</message>
-<message>
-<location line="+5"/>
-<location line="+6"/>
-<source>Generate</source>
-<translation>生成</translation>
-</message>
-<message>
-<location line="+10"/>
-    <source>Inventory:
+    </message>
+    <message>
+        <location line="-86"/>
+        <location line="+136"/>
+        <source>Fingerprint: %1</source>
+        <translation>指纹：%1</translation>
+    </message>
+    <message>
+        <location line="-124"/>
+        <location line="+4"/>
+        <location line="+137"/>
+        <source>Fingerprint: </source>
+        <translation>指纹：</translation>
+    </message>
+    <message>
+        <location line="-438"/>
+        <location line="+4"/>
+        <location line="+5"/>
+        <location line="+10"/>
+        <source>Save private key</source>
+        <translation>保存私钥</translation>
+    </message>
+    <message>
+        <location line="-212"/>
+        <source>Saved identities</source>
+        <translation>已保存的身份</translation>
+    </message>
+    <message>
+        <source>Saved identities.
+    Select an identity to view its fingerprint and public key.</source>
+        <translation type="vanished">已保存的身份。
+请选择一个身份以查看其指纹和公钥。</translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>Remove</source>
+        <translation>移除</translation>
+    </message>
+    <message>
+        <source>Remove the selected identity from the local store.
+    This does not delete any exported key files.</source>
+        <translation type="vanished">从本地存储中移除所选身份。
+这不会删除任何已导出的密钥文件。</translation>
+    </message>
+    <message>
+        <location line="+19"/>
+        <location line="+355"/>
+        <source>Create identity</source>
+        <translation>创建身份</translation>
+    </message>
+    <message>
+        <location line="-354"/>
+        <source>Restore identity</source>
+        <translation>恢复身份</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+454"/>
+        <location line="+5"/>
+        <location line="+7"/>
+        <location line="+45"/>
+        <location line="+6"/>
+        <source>Save identity</source>
+        <translation>保存身份</translation>
+    </message>
+    <message>
+        <location line="-516"/>
+        <source>Derive</source>
+        <translation>派生</translation>
+    </message>
+    <message>
+        <source>Create a new identity by generating a random 24-word recovery phrase.
+    Write the words down and keep them safe.</source>
+        <translation type="vanished">通过生成随机的 24 个单词恢复短语来创建新身份。
+请将这些单词写下来并妥善保管。</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Restore an existing identity by entering your 24-word recovery phrase.</source>
+        <translation>通过输入你的 24 个单词恢复短语来恢复现有身份。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Derive the identity fingerprint and SSH key from the entered words.</source>
+        <translation>从输入的单词派生身份指纹和 SSH 密钥。</translation>
+    </message>
+    <message>
+        <source>Save this identity to the local identity store.
+    Only public information is saved (no recovery words).</source>
+        <translation type="vanished">将此身份保存到本地身份存储。
+仅保存公开信息（不保存恢复单词）。</translation>
+    </message>
+    <message>
+        <location line="+29"/>
+        <source>Alias:</source>
+        <translation>别名：</translation>
+    </message>
+    <message>
+        <source>Enter your 24-word recovery phrase.
+    Words can be separated by spaces or new lines.</source>
+        <translation type="vanished">输入你的 24 个单词恢复短语。
+单词可以用空格或换行分隔。</translation>
+    </message>
+    <message>
+        <location line="+29"/>
+        <source>Optional passphrase used together with the recovery words.</source>
+        <translation>可选口令，与恢复单词一起使用。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Optional human-readable name for this identity.</source>
+        <translation>该身份的可选可读名称。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Comment added to the generated SSH public key.</source>
+        <translation>添加到生成的 SSH 公钥中的备注。</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Copy the OpenSSH public key to the clipboard.</source>
+        <translation>将 OpenSSH 公钥复制到剪贴板。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Copy the full identity fingerprint to the clipboard.</source>
+        <translation>将完整的身份指纹复制到剪贴板。</translation>
+    </message>
+    <message>
+        <source>Save the private SSH key to a file.
+    Protect this file and set correct permissions.</source>
+        <translation type="vanished">将 SSH 私钥保存到文件。
+请保护该文件并设置正确的权限。</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Save the public SSH key to a file.</source>
+        <translation>将 SSH 公钥保存到文件。</translation>
+    </message>
+    <message>
+        <location line="+53"/>
+        <source>No private key derived yet.</source>
+        <translation>尚未派生私钥。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>id_ed25519</source>
+        <translation>id_ed25519</translation>
+    </message>
+    <message>
+        <source>Cannot write file:
+    %1</source>
+        <translation type="vanished">无法写入文件：
+%1</translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+27"/>
+        <source>Write failed (short write).</source>
+        <translation>写入失败（写入不完整）。</translation>
+    </message>
+    <message>
+        <location line="-18"/>
+        <location line="+4"/>
+        <location line="+5"/>
+        <location line="+9"/>
+        <source>Save public key</source>
+        <translation>保存公钥</translation>
+    </message>
+    <message>
+        <location line="-18"/>
+        <source>No public key derived yet.</source>
+        <translation>尚未派生公钥。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>id_ed25519.pub</source>
+        <translation>id_ed25519.pub</translation>
+    </message>
+    <message>
+        <location line="+240"/>
+        <source>Cannot load identities:
+%1</source>
+        <translation>无法加载身份：</translation>
+    </message>
+    <message>
+        <location line="+26"/>
+        <location line="+5"/>
+        <source>Derive identity first.</source>
+        <translation>请先派生身份。</translation>
+    </message>
+    <message>
+        <location line="+58"/>
+        <source>Identity saved.</source>
+        <translation>身份已保存。</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <location line="+9"/>
+        <location line="+14"/>
+        <source>Remove identity</source>
+        <translation>移除身份</translation>
+    </message>
+    <message>
+        <source>Remove selected identity?
+
+    This does not delete exported key files.</source>
+        <translation type="vanished">移除所选身份？
+
+这不会删除已导出的密钥文件。</translation>
+    </message>
+</context>
+<context>
+    <name>KeyGeneratorDialog</name>
+    <message>
+        <location filename="../KeyGeneratorDialog.cpp" line="+242"/>
+        <source>Key Generator</source>
+        <translation>密钥生成器</translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Algorithm:</source>
+        <translation>算法：</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>id_ed25519_pqssh</source>
+        <translation>id_ed25519_pqssh</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Key filename:</source>
+        <translation>密钥文件名：</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Label:</source>
+        <translation>标签：</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Owner:</source>
+        <translation>所有者：</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>e.g. admin, prod-access, ci-deployment</source>
+        <translation>例如：admin、prod-access、ci-deployment</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Purpose:</source>
+        <translation>用途：</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Rotation policy (days):</source>
+        <translation>轮换策略（天）：</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Status:</source>
+        <translation>状态：</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Enable</source>
+        <translation>启用</translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Expire date:</source>
+        <translation>到期日期：</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Passphrase:</source>
+        <translation>口令：</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Passphrase (again):</source>
+        <translation>口令（再次输入）：</translation>
+    </message>
+    <message>
+        <source>Encrypt Dilithium5 private key (required)</source>
+        <translation type="vanished">加密 Dilithium5 私钥（必需）</translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>Repeat passphrase</source>
+        <translation>重复口令</translation>
+    </message>
+    <message>
+        <source>Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305).</source>
+        <translation type="vanished">用于加密 Dilithium5 私钥（Argon2id + XChaCha20-Poly1305）。</translation>
+    </message>
+    <message>
+        <source>Keys are saved under:
+    %1</source>
+        <translation type="vanished">密钥保存路径：
+%1</translation>
+    </message>
+    <message>
+        <location line="+38"/>
+        <location line="+6"/>
+        <source>Generate</source>
+        <translation>生成</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Inventory:
 - metadata: %1
 - key files: %2/*.pub</source>
         <translation>清单：
@@ -1581,12 +1726,12 @@ Full: logs full command text (may leak secrets!)</source>
     </message>
     <message>
         <location line="+4"/>
-        <location line="+889"/>
+        <location line="+863"/>
         <source>Install selected key…</source>
         <translation>安装所选密钥…</translation>
     </message>
     <message>
-        <location line="-888"/>
+        <location line="-862"/>
         <source>Choose a profile and install this public key into ~/.ssh/authorized_keys on that server.</source>
         <translation>选择一个配置，并将此公钥安装到该服务器的 ~/.ssh/authorized_keys 中。</translation>
     </message>
@@ -1596,7 +1741,29 @@ Full: logs full command text (may leak secrets!)</source>
         <translation>导出公钥…</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="-99"/>
+        <source>Optional (encrypt private key)</source>
+        <translation>可选（加密私钥）</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>If set, ssh-keygen will encrypt the OpenSSH private key (-N).</source>
+        <translation>如果设置，ssh-keygen 将使用 (-N) 加密 OpenSSH 私钥。</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Repeat the same passphrase to confirm.</source>
+        <translation>重复相同的密码短语以确认。</translation>
+    </message>
+    <message>
+        <location line="+30"/>
+        <source>Keys are saved under:
+%1</source>
+        <translation>密钥保存在：
+%1</translation>
+    </message>
+    <message>
+        <location line="+71"/>
         <source>Edit metadata.…</source>
         <translation>编辑元数据…</translation>
     </message>
@@ -1626,17 +1793,18 @@ Full: logs full command text (may leak secrets!)</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+38"/>
         <source>Failed to create keys directory: %1</source>
         <translation>创建密钥目录失败：%1</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+20"/>
+        <location line="+276"/>
         <source>Unsupported algorithm: %1</source>
         <translation>不支持的算法：%1</translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="-262"/>
         <source>ssh-keygen timed out.</source>
         <translation>ssh-keygen 超时。</translation>
     </message>
@@ -1672,45 +1840,45 @@ Full: logs full command text (may leak secrets!)</source>
     <message>
         <location line="+18"/>
         <location line="+45"/>
-        <location line="+511"/>
+        <location line="+489"/>
         <location line="+68"/>
         <location line="+39"/>
         <source>Cannot read metadata.json</source>
         <translation>无法读取 metadata.json</translation>
     </message>
     <message>
-        <location line="-643"/>
+        <location line="-621"/>
         <source>Cannot write metadata.json</source>
         <translation>无法写入 metadata.json</translation>
     </message>
     <message>
-        <location line="+168"/>
         <source>Dilithium5 keys require a passphrase.</source>
-        <translation>Dilithium5 密钥需要口令。</translation>
+        <translation type="vanished">Dilithium5 密钥需要口令。</translation>
     </message>
     <message>
-        <location line="+4"/>
-        <location line="+26"/>
+        <location line="+203"/>
         <source>Passphrases do not match.</source>
         <translation>两次输入的口令不一致。</translation>
     </message>
     <message>
-        <location line="+20"/>
         <source>Failed to read generated Dilithium private key.</source>
-        <translation>读取生成的 Dilithium 私钥失败。</translation>
+        <translation type="vanished">读取生成的 Dilithium 私钥失败。</translation>
     </message>
     <message>
-        <location line="+10"/>
         <source>Encryption failed: %1</source>
-        <translation>加密失败：%1</translation>
+        <translation type="vanished">加密失败：%1</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>Failed to write encrypted Dilithium key.</source>
-        <translation>写入加密的 Dilithium 密钥失败。</translation>
+        <translation type="vanished">写入加密的 Dilithium 密钥失败。</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="-4"/>
+        <source>Please enter the passphrase twice.</source>
+        <translation>请输入密码短语两次。</translation>
+    </message>
+    <message>
+        <location line="+43"/>
         <source>✅ Key generated
 
 Fingerprint: %1
@@ -1878,7 +2046,7 @@ To profile: %3</source>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../MainWindow.cpp" line="+503"/>
+        <location filename="../MainWindow.cpp" line="+680"/>
         <source>Profiles</source>
         <translation>配置</translation>
     </message>
@@ -1913,7 +2081,7 @@ To profile: %3</source>
         <translation>断开连接</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+40"/>
         <source>Log</source>
         <translation>日志</translation>
     </message>
@@ -1969,18 +2137,18 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1308"/>
+        <location line="+1225"/>
         <source>KEX: %1</source>
         <translation>KEX：%1</translation>
     </message>
     <message>
-        <location line="-1303"/>
-        <location line="+1308"/>
+        <location line="-1220"/>
+        <location line="+1225"/>
         <source>Negotiated KEX: %1</source>
         <translation>已协商的 KEX：%1</translation>
     </message>
     <message>
-        <location line="-1302"/>
+        <location line="-1219"/>
         <source>&amp;File</source>
         <translation>文件(&amp;F)</translation>
     </message>
@@ -2000,19 +2168,19 @@ To profile: %3</source>
         <translation>CPUNK PQ-SSH — 设置</translation>
     </message>
     <message>
-        <location line="+9"/>
-        <location line="+1193"/>
+        <location line="+19"/>
+        <location line="+1079"/>
         <source>[INFO] Settings updated.</source>
         <translation>[信息] 设置已更新。</translation>
     </message>
     <message>
-        <location line="-1192"/>
-        <location line="+1193"/>
+        <location line="-1078"/>
+        <location line="+1079"/>
         <source>Settings updated.</source>
         <translation>设置已更新。</translation>
     </message>
     <message>
-        <location line="-1185"/>
+        <location line="-1071"/>
         <source>Import OpenSSH config…</source>
         <translation>导入 OpenSSH 配置…</translation>
     </message>
@@ -2083,98 +2251,81 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+289"/>
+        <location line="+218"/>
         <location line="+10"/>
         <source>Key install failed</source>
         <translation>密钥安装失败</translation>
     </message>
     <message>
-        <location line="-298"/>
-        <location line="+990"/>
+        <location line="-227"/>
         <source>Cannot read file:
 %1</source>
         <translation>无法读取文件：
 %1</translation>
     </message>
     <message>
-        <location line="-981"/>
         <source>DEV: Test Dilithium key unlock…</source>
-        <translation>开发：测试 Dilithium 密钥解锁…</translation>
+        <translation type="vanished">开发：测试 Dilithium 密钥解锁…</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Dev tool: decrypt .enc key and validate format (only visible when PQ debug is ON).</source>
-        <translation>开发工具：解密 .enc 密钥并验证格式（仅在开启 PQ 调试时可见）。</translation>
+        <translation type="vanished">开发工具：解密 .enc 密钥并验证格式（仅在开启 PQ 调试时可见）。</translation>
     </message>
     <message>
-        <location line="+18"/>
-        <location line="+945"/>
         <source>[DEV] PQ debug is OFF. Enable it to use the tester.</source>
-        <translation>[开发] PQ 调试已关闭。请启用后再使用测试工具。</translation>
+        <translation type="vanished">[开发] PQ 调试已关闭。请启用后再使用测试工具。</translation>
     </message>
     <message>
-        <location line="-939"/>
         <source>Select encrypted Dilithium key (.enc)</source>
-        <translation>选择加密的 Dilithium 密钥（.enc）</translation>
+        <translation type="vanished">选择加密的 Dilithium 密钥（.enc）</translation>
     </message>
     <message>
-        <location line="+2"/>
-        <location line="+946"/>
         <source>Encrypted keys (*.enc);;All files (*)</source>
-        <translation>加密密钥 (*.enc);;所有文件 (*)</translation>
+        <translation type="vanished">加密密钥 (*.enc);;所有文件 (*)</translation>
     </message>
     <message>
-        <location line="-940"/>
         <source>[TEST] ❌ Cannot read file: %1</source>
-        <translation>[测试] ❌ 无法读取文件：%1</translation>
+        <translation type="vanished">[测试] ❌ 无法读取文件：%1</translation>
     </message>
     <message>
-        <location line="+6"/>
         <source>[TEST] File: %1</source>
-        <translation>[测试] 文件：%1</translation>
+        <translation type="vanished">[测试] 文件：%1</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>[TEST] Enc size: %1 bytes</source>
-        <translation>[测试] 加密文件大小：%1 字节</translation>
+        <translation type="vanished">[测试] 加密文件大小：%1 字节</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>[TEST] ❌ Too small to be valid (need &gt;= %1 bytes)</source>
-        <translation>[测试] ❌ 太小，无法有效（需要 &gt;= %1 字节）</translation>
+        <translation type="vanished">[测试] ❌ 太小，无法有效（需要 &gt;= %1 字节）</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>[TEST] Magic: &apos;%1&apos;</source>
-        <translation>[测试] 魔数：&apos;%1&apos;</translation>
+        <translation type="vanished">[测试] 魔数：&apos;%1&apos;</translation>
     </message>
     <message>
-        <location line="+2"/>
         <source>[TEST] ⚠ WARN: Magic mismatch (expected &apos;PQSSH1&apos;). Will still try decrypt.</source>
-        <translation>[测试] ⚠ 警告：魔数不匹配（期望 &apos;PQSSH1&apos;）。仍将尝试解密。</translation>
+        <translation type="vanished">[测试] ⚠ 警告：魔数不匹配（期望 &apos;PQSSH1&apos;）。仍将尝试解密。</translation>
     </message>
     <message>
-        <location line="+6"/>
         <source>[TEST] ✅ Unlock OK: %1</source>
-        <translation>[测试] ✅ 解锁成功：%1</translation>
+        <translation type="vanished">[测试] ✅ 解锁成功：%1</translation>
     </message>
     <message>
-        <location line="+3"/>
         <source>[TEST] Enc SHA256: %1</source>
-        <translation>[测试] 加密文件 SHA256：%1</translation>
+        <translation type="vanished">[测试] 加密文件 SHA256：%1</translation>
     </message>
     <message>
-        <location line="+2"/>
         <source>[TEST] ❌ Unlock FAILED: %1</source>
-        <translation>[测试] ❌ 解锁失败：%1</translation>
+        <translation type="vanished">[测试] ❌ 解锁失败：%1</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+10"/>
         <source>&amp;View</source>
         <translation>查看(&amp;V)</translation>
     </message>
     <message>
-        <location line="-143"/>
+        <location line="-74"/>
         <source>Identity manager…</source>
         <translation>身份管理器…</translation>
     </message>
@@ -2184,7 +2335,7 @@ To profile: %3</source>
         <translation>从 24 个单词恢复全局 SSH 密钥对（Ed25519）。</translation>
     </message>
     <message>
-        <location line="+171"/>
+        <location line="+100"/>
         <source>&amp;Help</source>
         <translation>帮助(&amp;H)</translation>
     </message>
@@ -2210,11 +2361,12 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+15"/>
+        <location line="+886"/>
         <source>User Manual</source>
         <translation>用户手册</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-885"/>
         <source>Open PQ-SSH user manual</source>
         <translation>打开 PQ-SSH 用户手册</translation>
     </message>
@@ -2224,7 +2376,17 @@ To profile: %3</source>
         <translation>打开日志文件</translation>
     </message>
     <message>
+        <location line="-147"/>
+        <source>[INFO] Settings applied.</source>
+        <translation>[信息] 设置已应用。</translation>
+    </message>
+    <message>
         <location line="+1"/>
+        <source>Settings applied.</source>
+        <translation>设置已应用。</translation>
+    </message>
+    <message>
+        <location line="+147"/>
         <source>Open pq-ssh log file</source>
         <translation>打开 pq-ssh 日志文件</translation>
     </message>
@@ -2378,7 +2540,7 @@ Proceed?</source>
         <translation>[连接] %1 → %2:%3</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+17"/>
         <source>PQ: checking…</source>
         <translation>PQ：正在检查…</translation>
     </message>
@@ -2478,17 +2640,17 @@ Proceed?</source>
         <translation>[下载] Shell 尚未实现（没有选择来源）。</translation>
     </message>
     <message>
-        <location line="+71"/>
+        <location line="+104"/>
         <source>[SSH] key_type=&apos;%1&apos; not implemented yet → falling back to password auth.</source>
         <translation>[SSH] key_type=&apos;%1&apos; 尚未实现 → 回退到密码认证。</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+28"/>
         <source>[SSH-CMD] ssh %1</source>
         <translation>[SSH-命令] ssh %1</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>[SSH-WRAP] %1</source>
         <translation>[SSH-封装] %1</translation>
     </message>
@@ -2508,7 +2670,7 @@ Proceed?</source>
         <translation>[终端] ssh 已启动（封装）；ssh 退出时终端将关闭。</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+49"/>
         <source>[TERM] profile=%1 scheme=&apos;%2&apos; (raw=&apos;%3&apos;)</source>
         <translation>[终端] 配置=%1 方案=&apos;%2&apos;（原始=&apos;%3&apos;）</translation>
     </message>
@@ -2518,7 +2680,7 @@ Proceed?</source>
         <translation>[终端] 可用方案：%1</translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+35"/>
         <source>PQ-SSH: %1 (%2)</source>
         <translation>PQ-SSH：%1（%2）</translation>
     </message>
@@ -2543,9 +2705,13 @@ Proceed?</source>
         <translation>[日志] 日志文件路径不可用。</translation>
     </message>
     <message>
-        <location line="+46"/>
+        <location line="+49"/>
+        <source>User manual was not found in application resources.</source>
+        <translation>在应用程序资源中未找到用户手册。</translation>
+    </message>
+    <message>
         <source>[WARN] User manual resource missing: :/docs/user-manual.html</source>
-        <translation>[警告] 用户手册资源缺失：:/docs/user-manual.html</translation>
+        <translation type="vanished">[警告] 用户手册资源缺失：:/docs/user-manual.html</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2553,117 +2719,95 @@ Proceed?</source>
         <translation>PQ-SSH 用户手册</translation>
     </message>
     <message>
-        <location line="+40"/>
         <source>Select encrypted Dilithium private key</source>
-        <translation>选择加密的 Dilithium 私钥</translation>
+        <translation type="vanished">选择加密的 Dilithium 私钥</translation>
     </message>
     <message>
-        <location line="+9"/>
-        <location line="+8"/>
-        <location line="+37"/>
-        <location line="+6"/>
         <source>DEV test failed</source>
-        <translation>开发测试失败</translation>
+        <translation type="vanished">开发测试失败</translation>
     </message>
     <message>
-        <location line="-42"/>
         <source>File is too small to be a valid PQSSH encrypted key.
 Expected: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...).</source>
-        <translation>文件太小，无法作为有效的 PQSSH 加密密钥。
+        <translation type="vanished">文件太小，无法作为有效的 PQSSH 加密密钥。
 期望格式：MAGIC(6)+SALT(16)+NONCE(24)+密文（含 tag...）。</translation>
     </message>
     <message>
-        <location line="+6"/>
         <source>[DEV] Selected: %1</source>
-        <translation>[开发] 已选择：%1</translation>
+        <translation type="vanished">[开发] 已选择：%1</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>[DEV] Enc size: %1 bytes</source>
-        <translation>[开发] 加密文件大小：%1 字节</translation>
+        <translation type="vanished">[开发] 加密文件大小：%1 字节</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>[DEV] Magic: &apos;%1&apos;</source>
-        <translation>[开发] 魔数：&apos;%1&apos;</translation>
+        <translation type="vanished">[开发] 魔数：&apos;%1&apos;</translation>
     </message>
     <message>
-        <location line="+3"/>
         <source>[DEV][WARN] Magic mismatch. Expected &apos;PQSSH1&apos;. Continuing anyway to test decrypt...</source>
-        <translation>[开发][警告] 魔数不匹配。期望 &apos;PQSSH1&apos;。仍将继续测试解密...</translation>
+        <translation type="vanished">[开发][警告] 魔数不匹配。期望 &apos;PQSSH1&apos;。仍将继续测试解密...</translation>
     </message>
     <message>
-        <location line="+8"/>
         <source>Dilithium Key Passphrase</source>
-        <translation>Dilithium 密钥口令</translation>
+        <translation type="vanished">Dilithium 密钥口令</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Enter passphrase for:
 %1</source>
-        <translation>请输入以下对象的口令：
+        <translation type="vanished">请输入以下对象的口令：
 %1</translation>
     </message>
     <message>
-        <location line="+8"/>
         <source>[DEV] Cancelled by user.</source>
-        <translation>[开发] 用户已取消。</translation>
+        <translation type="vanished">[开发] 用户已取消。</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>[DEV][FAIL] Decrypt failed: %1</source>
-        <translation>[开发][失败] 解密失败：%1</translation>
+        <translation type="vanished">[开发][失败] 解密失败：%1</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Decrypt failed:
 %1</source>
-        <translation>解密失败：
+        <translation type="vanished">解密失败：
 %1</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>[DEV][FAIL] Decrypt returned empty plaintext.</source>
-        <translation>[开发][失败] 解密返回空明文。</translation>
+        <translation type="vanished">[开发][失败] 解密返回空明文。</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Decrypt returned empty plaintext.</source>
-        <translation>解密返回空明文。</translation>
+        <translation type="vanished">解密返回空明文。</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>[DEV][OK] Decrypted plaintext size: %1 bytes</source>
-        <translation>[开发][成功] 解密明文大小：%1 字节</translation>
+        <translation type="vanished">[开发][成功] 解密明文大小：%1 字节</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>[DEV][OK] Plain SHA256: %1</source>
-        <translation>[开发][成功] 明文 SHA256：%1</translation>
+        <translation type="vanished">[开发][成功] 明文 SHA256：%1</translation>
     </message>
     <message>
-        <location line="+3"/>
         <source>[DEV][WARN] Plaintext is unexpectedly small for Dilithium private key material.</source>
-        <translation>[开发][警告] 对于 Dilithium 私钥材料而言，明文大小异常偏小。</translation>
+        <translation type="vanished">[开发][警告] 对于 Dilithium 私钥材料而言，明文大小异常偏小。</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>DEV test OK</source>
-        <translation>开发测试通过</translation>
+        <translation type="vanished">开发测试通过</translation>
     </message>
     <message>
-        <location line="+1"/>
         <source>Decrypt OK.
 
 Validated format + passphrase unlock.
 Details written to the terminal/log.</source>
-        <translation>解密成功。
+        <translation type="vanished">解密成功。
 
 已验证格式并通过口令解锁。
 详细信息已写入终端/日志。</translation>
     </message>
     <message>
-        <location line="+35"/>
+        <location line="+44"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
@@ -2673,7 +2817,7 @@ Details written to the terminal/log.</source>
         <translation>设置对话框（即将推出）。</translation>
     </message>
     <message>
-        <location line="+36"/>
+        <location line="+43"/>
         <source>[MACRO] Invalid shortcut &apos;%1&apos; (profile &apos;%2&apos;)</source>
         <translation>[宏] 无效的快捷键 &apos;%1&apos;（配置 &apos;%2&apos;）</translation>
     </message>
@@ -2698,12 +2842,12 @@ Details written to the terminal/log.</source>
         <translation>否</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+25"/>
         <source>[MACRO] Sent (%1): %2</source>
         <translation>[宏] 已发送（%1）：%2</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>PQ KEX: %1</source>
         <translation>PQ KEX：%1</translation>
     </message>
@@ -2829,8 +2973,8 @@ Enter your application password:</source>
         <translation>密码不正确。</translation>
     </message>
     <message>
-        <location line="-1438"/>
-        <location line="+249"/>
+        <location line="-1345"/>
+        <location line="+178"/>
         <location line="+5"/>
         <location line="+7"/>
         <location line="+58"/>
@@ -2838,12 +2982,12 @@ Enter your application password:</source>
         <translation>密钥安装</translation>
     </message>
     <message>
-        <location line="-864"/>
+        <location line="-835"/>
         <source>%1@%2:%3  [%4]</source>
         <translation>%1@%2:%3  [%4]</translation>
     </message>
     <message>
-        <location line="+117"/>
+        <location line="+150"/>
         <source>CPUNK PQ-SSH</source>
         <translation>CPUNK PQ-SSH</translation>
     </message>
@@ -2893,22 +3037,94 @@ Disable app lock in Settings or set a password.</source>
         <translation>[安全] %1</translation>
     </message>
     <message>
-        <location line="+335"/>
-        <location line="+361"/>
+        <location line="+344"/>
+        <location line="+290"/>
         <source>No profile selected.</source>
         <translation>未选择配置。</translation>
     </message>
 </context>
-
+<context>
+    <name>PortForwardingDialog</name>
+    <message>
+        <location filename="../PortForwardingDialog.cpp" line="+80"/>
+        <source>Port forwarding</source>
+        <translation>端口转发</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Enabled</source>
+        <translation>已启用</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Type</source>
+        <translation>类型</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Rule</source>
+        <translation>规则</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Note</source>
+        <translation>备注</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Add</source>
+        <translation>添加</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Edit</source>
+        <translation>编辑</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Remove</source>
+        <translation>移除</translation>
+    </message>
+    <message>
+        <location line="+104"/>
+        <source>Invalid port forwarding rule</source>
+        <translation>无效的端口转发规则</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Rule #%1: %2</source>
+        <translation>规则 #%1：%2</translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Invalid listen port (%1).</source>
+        <translation>无效的监听端口（%1）。</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Target host is empty.</source>
+        <translation>目标主机为空。</translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Invalid target port (%1).</source>
+        <translation>无效的目标端口（%1）。</translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Duplicate bind %1:%2 (%3).</source>
+        <translation>重复绑定 %1:%2（%3）。</translation>
+    </message>
+</context>
 <context>
     <name>ProfileStore</name>
     <message>
-        <location filename="../ProfileStore.cpp" line="+151"/>
+        <location filename="../ProfileStore.cpp" line="+242"/>
         <source>Localhost</source>
         <translation>本地主机</translation>
     </message>
     <message>
-        <location line="+133"/>
+        <location line="+144"/>
         <source>Could not write profiles.json: %1</source>
         <translation>无法写入 profiles.json：%1</translation>
     </message>
@@ -2926,17 +3142,17 @@ Disable app lock in Settings or set a password.</source>
 <context>
     <name>ProfilesEditorDialog</name>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="+255"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="+289"/>
         <source>Macro %1</source>
         <translation>宏 %1</translation>
     </message>
     <message>
-        <location line="+116"/>
+        <location line="+81"/>
         <source>Manage SSH Profiles</source>
         <translation>管理 SSH 配置</translation>
     </message>
     <message>
-        <location line="+54"/>
+        <location line="+53"/>
         <source>Profiles</source>
         <translation>配置</translation>
     </message>
@@ -2986,7 +3202,7 @@ Disable app lock in Settings or set a password.</source>
         <translation>移除所选密钥文件（将密钥类型设为自动）</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Select private key file</source>
         <translation>选择私钥文件</translation>
     </message>
@@ -2997,12 +3213,12 @@ Disable app lock in Settings or set a password.</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+102"/>
+        <location line="+135"/>
         <source>Name:</source>
         <translation>名称：</translation>
     </message>
     <message>
-        <location line="-101"/>
+        <location line="-134"/>
         <source>Group:</source>
         <translation>分组：</translation>
     </message>
@@ -3057,7 +3273,27 @@ Disable app lock in Settings or set a password.</source>
         <translation>密钥文件：</translation>
     </message>
     <message>
+        <location line="+10"/>
+        <source>Advanced</source>
+        <translation>高级</translation>
+    </message>
+    <message>
         <location line="+3"/>
+        <source>Enable port forwarding</source>
+        <translation>启用端口转发</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Forwards: L0 R0 D0</source>
+        <translation>转发：L0 R0 D0</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Port forwarding…</source>
+        <translation>端口转发…</translation>
+    </message>
+    <message>
+        <location line="+12"/>
         <source>Probe server crypto…</source>
         <translation>探测服务器加密参数…</translation>
     </message>
@@ -3091,7 +3327,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
 提示：如果显示 &apos;(not found)&apos;，服务器可能不可达，或 ssh 输出格式不同。</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+42"/>
         <source>Hotkey macros</source>
         <translation>快捷键宏</translation>
     </message>
@@ -3131,7 +3367,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation>例如：备份统计</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>Shortcut:</source>
         <translation>快捷键：</translation>
     </message>
@@ -3157,26 +3393,47 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
     </message>
     <message>
         <location line="+4"/>
-        <source>e.g. cd stats &amp;&amp; cp stats.txt stats_backup.txt</source>
-        <translation>例如：cd stats &amp;&amp; cp stats.txt stats_backup.txt</translation>
+        <source>e.g. echo &quot;Connected to {USER}@{HOST}:{PORT} ({PROFILE})&quot;</source>
+        <translation>例如：echo "已连接到 {USER}@{HOST}:{PORT}（{PROFILE}）"</translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Command to send when the shortcut is pressed</source>
-        <translation>按下快捷键时要发送的命令</translation>
+        <source>Command to send when the shortcut is pressed.
+
+%1</source>
+        <translation>按下快捷键时发送的命令。
+
+%1</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+11"/>
+        <source>If enabled, PQ-SSH appends a newline so the command runs immediately.</source>
+        <translation>如果启用，PQ-SSH 会自动追加换行符，使命令立即执行。</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Tip: Placeholders supported: {USER}, {HOST}, {PORT}, {PROFILE}, {TARGET}, {KEYFILE}, {HOME}, {DATE}, {TIME}.</source>
+        <translation>支持占位符：{USER}、{HOST}、{PORT}、{PROFILE}、{TARGET}、{KEYFILE}、{HOME}、{DATE}、{TIME}。</translation>
+    </message>
+    <message>
+        <source>e.g. cd stats &amp;&amp; cp stats.txt stats_backup.txt</source>
+        <translation type="vanished">例如：cd stats &amp;&amp; cp stats.txt stats_backup.txt</translation>
+    </message>
+    <message>
+        <source>Command to send when the shortcut is pressed</source>
+        <translation type="vanished">按下快捷键时要发送的命令</translation>
+    </message>
+    <message>
+        <location line="-7"/>
         <source>Send [Enter] automatically after command</source>
         <translation>命令后自动发送 [Enter]</translation>
     </message>
     <message>
-        <location line="+4"/>
         <source>Tip: If [Enter] is enabled, PQ-SSH appends a newline so the command runs immediately.</source>
-        <translation>提示：若启用 [Enter]，PQ-SSH 会追加换行，使命令立即执行。</translation>
+        <translation type="vanished">提示：若启用 [Enter]，PQ-SSH 会追加换行，使命令立即执行。</translation>
     </message>
     <message>
-        <location line="+402"/>
+        <location line="+428"/>
         <source>Each profile must have non-empty user and host.</source>
         <translation>每个配置的用户和主机都不能为空。</translation>
     </message>
@@ -3186,7 +3443,32 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation>已设置密钥类型但密钥文件为空。请设置密钥文件，或将密钥类型设为自动。</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+21"/>
+        <source>Profile &apos;%1&apos;: %2 (rule #%3)</source>
+        <translation>配置文件 &apos;%1&apos;：%2（规则 #%3）</translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Invalid listen port (%1)</source>
+        <translation>无效的监听端口（%1）</translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Target host is empty</source>
+        <translation>目标主机为空</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Invalid target port (%1)</source>
+        <translation>无效的目标端口（%1）</translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Duplicate bind %1:%2 (%3)</source>
+        <translation>重复绑定 %1:%2（%3）</translation>
+    </message>
+    <message>
+        <location line="+59"/>
         <source>Invalid profile</source>
         <translation>无效的配置</translation>
     </message>
@@ -3310,27 +3592,25 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation>无法写入 %1</translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-877"/>
+        <location filename="../MainWindow.cpp" line="-848"/>
         <source>Out of memory while hashing password.</source>
         <translation>哈希密码时内存不足。</translation>
     </message>
     <message>
-        <location filename="../KeyGeneratorDialog.cpp" line="-1341"/>
+        <location filename="../KeyGeneratorDialog.cpp" line="-1280"/>
         <source>libsodium init failed (sodium_init).</source>
         <translation>libsodium 初始化失败（sodium_init）。</translation>
     </message>
     <message>
-        <location line="+71"/>
         <source>Failed to write private key: %1</source>
-        <translation>写入私钥失败：%1</translation>
+        <translation type="vanished">写入私钥失败：%1</translation>
     </message>
     <message>
-        <location line="+11"/>
         <source>Failed to write public key: %1</source>
-        <translation>写入公钥失败：%1</translation>
+        <translation type="vanished">写入公钥失败：%1</translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+55"/>
         <source>Edit Key Metadata</source>
         <translation>编辑密钥元数据</translation>
     </message>
@@ -3394,11 +3674,102 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <source>sftp_init failed: %1</source>
         <translation>sftp_init 失败：%1</translation>
     </message>
+    <message>
+        <location filename="../PortForwardingDialog.cpp" line="-201"/>
+        <source>Forward type</source>
+        <translation>转发类型</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Type:</source>
+        <translation>类型：</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Bind address</source>
+        <translation>绑定地址</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Bind address:</source>
+        <translation>绑定地址:</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Listen port</source>
+        <translation>监听端口</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Listen port:</source>
+        <translation>监听端口:</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Target host</source>
+        <translation>目标主机</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target host:</source>
+        <translation>目标主机:</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Target port</source>
+        <translation>目标端口</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target port:</source>
+        <translation目标端口:</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Description</source>
+        <translation>描述</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Description (optional):</source>
+        <translation>描述（可选）</translation>
+    </message>
+<message>
+    <location filename="../ProfilesEditorDialog.cpp" line="-1487"/>
+    <source>You can use placeholders in macro commands:
+  {USER}    Username
+  {HOST}    Host/IP
+  {PORT}    SSH port
+  {PROFILE} Profile name
+  {KEYFILE} Configured key file path (if any)
+  {TARGET}  user@host (or user@host:port if non-22)
+  {HOME}    Home shortcut (~)
+  {DATE}    Current date (YYYY-MM-DD)
+  {TIME}    Current time (HH:MM:SS)
+
+Escapes:
+  {{  -&gt;  {
+  }}  -&gt;  }</source>
+    <translation>你可以在宏命令中使用占位符：
+  {USER}    用户名
+  {HOST}    主机/IP
+  {PORT}    SSH 端口
+  {PROFILE} 配置文件名称
+  {KEYFILE} 已配置的密钥文件路径（如果有）
+  {TARGET}  user@host（如果端口不是 22，则为 user@host:port）
+  {HOME}    主目录快捷方式（~）
+  {DATE}    当前日期（YYYY-MM-DD）
+  {TIME}    当前时间（HH:MM:SS）
+
+转义：
+  {{  -&gt;  {
+  }}  -&gt;  }</translation>
+</message>
 </context>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <location filename="../SettingsDialog.cpp" line="+56"/>
+        <location filename="../SettingsDialog.cpp" line="+55"/>
         <source>Settings</source>
         <translation>设置</translation>
     </message>
@@ -3408,7 +3779,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation>英语</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>Suomi</source>
         <translation>芬兰语</translation>
     </message>
@@ -3533,31 +3904,31 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation>应用锁：</translation>
     </message>
     <message>
-        <location line="+30"/>
-        <location line="+89"/>
+        <location line="+33"/>
+        <location line="+91"/>
         <source>Restart required</source>
         <translation>需要重启</translation>
     </message>
     <message>
-        <location line="-88"/>
-        <location line="+89"/>
+        <location line="-90"/>
+        <location line="+91"/>
         <source>Language change will take effect after restarting the application.</source>
         <translation>语言更改将在重启应用后生效。</translation>
     </message>
     <message>
-        <location line="-36"/>
-        <location line="+172"/>
+        <location line="-38"/>
+        <location line="+174"/>
         <source>Password set</source>
         <translation>密码已设置</translation>
     </message>
     <message>
-        <location line="-171"/>
+        <location line="-173"/>
         <source>Enabled, but no password set!</source>
         <translation>已启用，但尚未设置密码！</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+198"/>
+        <location line="+200"/>
         <source>Off</source>
         <translation>关闭</translation>
     </message>
@@ -3652,37 +4023,32 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
     <message>
         <location filename="../SshClient.cpp" line="+45"/>
         <location line="+2"/>
-        <location line="+92"/>
+        <location line="+47"/>
         <source>No host specified.</source>
         <translation>未指定主机。</translation>
     </message>
     <message>
-        <location line="-48"/>
         <source>Cannot read key file: %1</source>
-        <translation>无法读取密钥文件：%1</translation>
+        <translation type="vanished">无法读取密钥文件：%1</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>No passphrase provider set (UI callback missing).</source>
-        <translation>未设置口令提供者（缺少 UI 回调）。</translation>
+        <translation type="vanished">未设置口令提供者（缺少 UI 回调）。</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>Cancelled by user.</source>
-        <translation>用户已取消。</translation>
+        <translation type="vanished">用户已取消。</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>Decrypt failed: %1</source>
-        <translation>解密失败：%1</translation>
+        <translation type="vanished">解密失败：%1</translation>
+    </message>
+    <message>
+        <source>Decrypt returned empty plaintext.</source>
+        <translation type="vanished">解密返回空明文。</translation>
     </message>
     <message>
         <location line="+5"/>
-        <source>Decrypt returned empty plaintext.</source>
-        <translation>解密返回空明文。</translation>
-    </message>
-    <message>
-        <location line="+27"/>
         <source>No user specified.</source>
         <translation>未指定用户。</translation>
     </message>
@@ -4002,4 +4368,3 @@ Error: %3</source>
     </message>
 </context>
 </TS>
-

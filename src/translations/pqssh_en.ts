@@ -288,7 +288,7 @@
 <context>
     <name>CpunkTermWidget</name>
     <message>
-        <location filename="../CpunkTermWidget.cpp" line="+198"/>
+        <location filename="../CpunkTermWidget.cpp" line="+196"/>
         <source>Copy</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1357,7 +1357,7 @@ This does not delete exported key files.</source>
 <context>
     <name>KeyGeneratorDialog</name>
     <message>
-        <location filename="../KeyGeneratorDialog.cpp" line="+304"/>
+        <location filename="../KeyGeneratorDialog.cpp" line="+242"/>
         <source>Key Generator</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1417,7 +1417,7 @@ This does not delete exported key files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="+11"/>
         <source>Passphrase:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1427,23 +1427,12 @@ This does not delete exported key files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
-        <source>Encrypt Dilithium5 private key (required)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
+        <location line="+14"/>
         <source>Repeat passphrase</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+1"/>
-        <location line="+1"/>
-        <source>Used to encrypt Dilithium5 private key (Argon2id + XChaCha20-Poly1305).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+17"/>
+        <location line="+33"/>
         <source>Keys are saved under:
 %1</source>
         <translation type="unfinished"></translation>
@@ -1528,12 +1517,12 @@ This does not delete exported key files.</source>
     </message>
     <message>
         <location line="+4"/>
-        <location line="+889"/>
+        <location line="+863"/>
         <source>Install selected key…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-888"/>
+        <location line="-862"/>
         <source>Choose a profile and install this public key into ~/.ssh/authorized_keys on that server.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1543,7 +1532,22 @@ This does not delete exported key files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="-99"/>
+        <source>Optional (encrypt private key)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>If set, ssh-keygen will encrypt the OpenSSH private key (-N).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Repeat the same passphrase to confirm.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+101"/>
         <source>Edit metadata.…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1573,17 +1577,18 @@ This does not delete exported key files.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+38"/>
         <source>Failed to create keys directory: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+20"/>
+        <location line="+276"/>
         <source>Unsupported algorithm: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="-262"/>
         <source>ssh-keygen timed out.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1617,45 +1622,29 @@ This does not delete exported key files.</source>
     <message>
         <location line="+18"/>
         <location line="+45"/>
-        <location line="+511"/>
+        <location line="+489"/>
         <location line="+68"/>
         <location line="+39"/>
         <source>Cannot read metadata.json</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-643"/>
+        <location line="-621"/>
         <source>Cannot write metadata.json</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+168"/>
-        <source>Dilithium5 keys require a passphrase.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <location line="+26"/>
+        <location line="+203"/>
         <source>Passphrases do not match.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+20"/>
-        <source>Failed to read generated Dilithium private key.</source>
+        <location line="-4"/>
+        <source>Please enter the passphrase twice.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
-        <source>Encryption failed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Failed to write encrypted Dilithium key.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+29"/>
+        <location line="+43"/>
         <source>✅ Key generated
 
 Fingerprint: %1
@@ -1809,7 +1798,7 @@ To profile: %3</source>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../MainWindow.cpp" line="+503"/>
+        <location filename="../MainWindow.cpp" line="+680"/>
         <source>Profiles</source>
         <translation>Profiles</translation>
     </message>
@@ -1844,7 +1833,7 @@ To profile: %3</source>
         <translation>Disconnect</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+40"/>
         <source>Log</source>
         <translation>Log</translation>
     </message>
@@ -1900,18 +1889,18 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+1308"/>
+        <location line="+1225"/>
         <source>KEX: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1303"/>
-        <location line="+1308"/>
+        <location line="-1220"/>
+        <location line="+1225"/>
         <source>Negotiated KEX: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1302"/>
+        <location line="-1219"/>
         <source>&amp;File</source>
         <translation>&amp;File</translation>
     </message>
@@ -1931,19 +1920,19 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
-        <location line="+1193"/>
+        <location line="+19"/>
+        <location line="+1079"/>
         <source>[INFO] Settings updated.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1192"/>
-        <location line="+1193"/>
+        <location line="-1078"/>
+        <location line="+1079"/>
         <source>Settings updated.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1185"/>
+        <location line="-1071"/>
         <source>Import OpenSSH config…</source>
         <translation>Import OpenSSH config…</translation>
     </message>
@@ -2014,97 +2003,24 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+289"/>
+        <location line="+218"/>
         <location line="+10"/>
         <source>Key install failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-298"/>
-        <location line="+990"/>
+        <location line="-227"/>
         <source>Cannot read file:
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-981"/>
-        <source>DEV: Test Dilithium key unlock…</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Dev tool: decrypt .enc key and validate format (only visible when PQ debug is ON).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <location line="+945"/>
-        <source>[DEV] PQ debug is OFF. Enable it to use the tester.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-939"/>
-        <source>Select encrypted Dilithium key (.enc)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <location line="+946"/>
-        <source>Encrypted keys (*.enc);;All files (*)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-940"/>
-        <source>[TEST] ❌ Cannot read file: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>[TEST] File: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>[TEST] Enc size: %1 bytes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>[TEST] ❌ Too small to be valid (need &gt;= %1 bytes)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>[TEST] Magic: &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>[TEST] ⚠ WARN: Magic mismatch (expected &apos;PQSSH1&apos;). Will still try decrypt.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>[TEST] ✅ Unlock OK: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>[TEST] Enc SHA256: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>[TEST] ❌ Unlock FAILED: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
+        <location line="+10"/>
         <source>&amp;View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-143"/>
+        <location line="-74"/>
         <source>Identity manager…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2114,7 +2030,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+171"/>
+        <location line="+100"/>
         <source>&amp;Help</source>
         <translation>&amp;Help</translation>
     </message>
@@ -2140,11 +2056,12 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+15"/>
+        <location line="+886"/>
         <source>User Manual</source>
         <translation>User Manual</translation>
     </message>
     <message>
-        <location line="+1"/>
+        <location line="-885"/>
         <source>Open PQ-SSH user manual</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2154,7 +2071,17 @@ To profile: %3</source>
         <translation>Open log file</translation>
     </message>
     <message>
+        <location line="-147"/>
+        <source>[INFO] Settings applied.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+1"/>
+        <source>Settings applied.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+147"/>
         <source>Open pq-ssh log file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2290,7 +2217,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+17"/>
         <source>PQ: checking…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2390,17 +2317,17 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+71"/>
+        <location line="+104"/>
         <source>[SSH] key_type=&apos;%1&apos; not implemented yet → falling back to password auth.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+28"/>
         <source>[SSH-CMD] ssh %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>[SSH-WRAP] %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2420,7 +2347,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+49"/>
         <source>[TERM] profile=%1 scheme=&apos;%2&apos; (raw=&apos;%3&apos;)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2430,7 +2357,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+35"/>
         <source>PQ-SSH: %1 (%2)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2455,8 +2382,8 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+46"/>
-        <source>[WARN] User manual resource missing: :/docs/user-manual.html</source>
+        <location line="+49"/>
+        <source>User manual was not found in application resources.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2465,111 +2392,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+40"/>
-        <source>Select encrypted Dilithium private key</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <location line="+8"/>
-        <location line="+37"/>
-        <location line="+6"/>
-        <source>DEV test failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-42"/>
-        <source>File is too small to be a valid PQSSH encrypted key.
-Expected: MAGIC(6)+SALT(16)+NONCE(24)+CIPHERTEXT(tag...).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>[DEV] Selected: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>[DEV] Enc size: %1 bytes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>[DEV] Magic: &apos;%1&apos;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>[DEV][WARN] Magic mismatch. Expected &apos;PQSSH1&apos;. Continuing anyway to test decrypt...</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>Dilithium Key Passphrase</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Enter passphrase for:
-%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>[DEV] Cancelled by user.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>[DEV][FAIL] Decrypt failed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Decrypt failed:
-%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>[DEV][FAIL] Decrypt returned empty plaintext.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Decrypt returned empty plaintext.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>[DEV][OK] Decrypted plaintext size: %1 bytes</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>[DEV][OK] Plain SHA256: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>[DEV][WARN] Plaintext is unexpectedly small for Dilithium private key material.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>DEV test OK</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Decrypt OK.
-
-Validated format + passphrase unlock.
-Details written to the terminal/log.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+35"/>
+        <location line="+44"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2579,7 +2402,7 @@ Details written to the terminal/log.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+36"/>
+        <location line="+43"/>
         <source>[MACRO] Invalid shortcut &apos;%1&apos; (profile &apos;%2&apos;)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2604,12 +2427,12 @@ Details written to the terminal/log.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+25"/>
         <source>[MACRO] Sent (%1): %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>PQ KEX: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2717,8 +2540,8 @@ Enter your application password:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1438"/>
-        <location line="+249"/>
+        <location line="-1345"/>
+        <location line="+178"/>
         <location line="+5"/>
         <location line="+7"/>
         <location line="+58"/>
@@ -2726,12 +2549,12 @@ Enter your application password:</source>
         <translation>Key install</translation>
     </message>
     <message>
-        <location line="-864"/>
+        <location line="-835"/>
         <source>%1@%2:%3  [%4]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+117"/>
+        <location line="+150"/>
         <source>CPUNK PQ-SSH</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2779,21 +2602,94 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+335"/>
-        <location line="+361"/>
+        <location line="+344"/>
+        <location line="+290"/>
         <source>No profile selected.</source>
         <translation>No profile selected.</translation>
     </message>
 </context>
 <context>
+    <name>PortForwardingDialog</name>
+    <message>
+        <location filename="../PortForwardingDialog.cpp" line="+80"/>
+        <source>Port forwarding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Rule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Note</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+104"/>
+        <source>Invalid port forwarding rule</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Rule #%1: %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Invalid listen port (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Target host is empty.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Invalid target port (%1).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Duplicate bind %1:%2 (%3).</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>ProfileStore</name>
     <message>
-        <location filename="../ProfileStore.cpp" line="+151"/>
+        <location filename="../ProfileStore.cpp" line="+242"/>
         <source>Localhost</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+133"/>
+        <location line="+144"/>
         <source>Could not write profiles.json: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2811,17 +2707,17 @@ Disable app lock in Settings or set a password.</source>
 <context>
     <name>ProfilesEditorDialog</name>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="+255"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="+289"/>
         <source>Macro %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+116"/>
+        <location line="+81"/>
         <source>Manage SSH Profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+54"/>
+        <location line="+53"/>
         <source>Profiles</source>
         <translation type="unfinished">Profiles</translation>
     </message>
@@ -2871,7 +2767,7 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>Select private key file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2882,12 +2778,12 @@ Disable app lock in Settings or set a password.</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+102"/>
+        <location line="+135"/>
         <source>Name:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-101"/>
+        <location line="-134"/>
         <source>Group:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2942,7 +2838,27 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location line="+10"/>
+        <source>Advanced</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location line="+3"/>
+        <source>Enable port forwarding</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Forwards: L0 R0 D0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Port forwarding…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
         <source>Probe server crypto…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2964,7 +2880,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+42"/>
         <source>Hotkey macros</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3004,7 +2920,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>Shortcut:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3030,26 +2946,33 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
     </message>
     <message>
         <location line="+4"/>
-        <source>e.g. cd stats &amp;&amp; cp stats.txt stats_backup.txt</source>
+        <source>e.g. echo &quot;Connected to {USER}@{HOST}:{PORT} ({PROFILE})&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <source>Command to send when the shortcut is pressed</source>
+        <source>Command to send when the shortcut is pressed.
+
+%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+11"/>
+        <source>If enabled, PQ-SSH appends a newline so the command runs immediately.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Tip: Placeholders supported: {USER}, {HOST}, {PORT}, {PROFILE}, {TARGET}, {KEYFILE}, {HOME}, {DATE}, {TIME}.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-7"/>
         <source>Send [Enter] automatically after command</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
-        <source>Tip: If [Enter] is enabled, PQ-SSH appends a newline so the command runs immediately.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+402"/>
+        <location line="+428"/>
         <source>Each profile must have non-empty user and host.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3059,7 +2982,32 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+21"/>
+        <source>Profile &apos;%1&apos;: %2 (rule #%3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>Invalid listen port (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Target host is empty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Invalid target port (%1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Duplicate bind %1:%2 (%3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+59"/>
         <source>Invalid profile</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3176,27 +3124,17 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-877"/>
+        <location filename="../MainWindow.cpp" line="-848"/>
         <source>Out of memory while hashing password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../KeyGeneratorDialog.cpp" line="-1341"/>
+        <location filename="../KeyGeneratorDialog.cpp" line="-1280"/>
         <source>libsodium init failed (sodium_init).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+71"/>
-        <source>Failed to write private key: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>Failed to write public key: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+32"/>
+        <location line="+55"/>
         <source>Edit Key Metadata</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3260,11 +3198,89 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <source>sftp_init failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../PortForwardingDialog.cpp" line="-201"/>
+        <source>Forward type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Type:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Bind address</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Bind address:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Listen port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Listen port:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Target host</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target host:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Target port</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Target port:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Description</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Description (optional):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../ProfilesEditorDialog.cpp" line="-1487"/>
+        <source>You can use placeholders in macro commands:
+  {USER}    Username
+  {HOST}    Host/IP
+  {PORT}    SSH port
+  {PROFILE} Profile name
+  {KEYFILE} Configured key file path (if any)
+  {TARGET}  user@host (or user@host:port if non-22)
+  {HOME}    Home shortcut (~)
+  {DATE}    Current date (YYYY-MM-DD)
+  {TIME}    Current time (HH:MM:SS)
+
+Escapes:
+  {{  -&gt;  {
+  }}  -&gt;  }</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <location filename="../SettingsDialog.cpp" line="+56"/>
+        <location filename="../SettingsDialog.cpp" line="+55"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3274,7 +3290,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>Suomi</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3399,31 +3415,31 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+30"/>
-        <location line="+89"/>
+        <location line="+33"/>
+        <location line="+91"/>
         <source>Restart required</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-88"/>
-        <location line="+89"/>
+        <location line="-90"/>
+        <location line="+91"/>
         <source>Language change will take effect after restarting the application.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-36"/>
-        <location line="+172"/>
+        <location line="-38"/>
+        <location line="+174"/>
         <source>Password set</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-171"/>
+        <location line="-173"/>
         <source>Enabled, but no password set!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+198"/>
+        <location line="+200"/>
         <source>Off</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3518,37 +3534,12 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
     <message>
         <location filename="../SshClient.cpp" line="+45"/>
         <location line="+2"/>
-        <location line="+92"/>
+        <location line="+47"/>
         <source>No host specified.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-48"/>
-        <source>Cannot read key file: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>No passphrase provider set (UI callback missing).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Cancelled by user.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>Decrypt failed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location line="+5"/>
-        <source>Decrypt returned empty plaintext.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+27"/>
         <source>No user specified.</source>
         <translation type="unfinished"></translation>
     </message>
