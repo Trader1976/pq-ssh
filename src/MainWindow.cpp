@@ -114,6 +114,8 @@ static void forceBlackBackground(CpunkTermWidget *term);
 static void protectTermFromAppStyles(CpunkTermWidget *term);
 static void stopTerm(CpunkTermWidget* term);
 
+/// Set a small status “badge” label (text, color, optional tooltip).
+/// Used for KEX status, PQ probe status, and similar compact indicators.
 void MainWindow::setBadge(QLabel *label,
                           const QString &text,
                           const QString &color,
@@ -130,16 +132,7 @@ void MainWindow::setBadge(QLabel *label,
     if (!tooltip.isEmpty())
         label->setToolTip(tooltip);
 }
-// =====================================================
-// Macro placeholder expansion
-// =====================================================
-//
-// Supported placeholders (case-insensitive):
-//   {USER}, {HOST}, {PORT}, {PROFILE}
-// Escapes:
-//   {{ -> "{", }} -> "}"
-// Unknown placeholders are left as-is.
-//
+
 // =====================================================
 // Macro placeholder expansion
 // =====================================================
@@ -151,6 +144,8 @@ void MainWindow::setBadge(QLabel *label,
 // Unknown placeholders are left as-is.
 //
 
+/// Map a placeholder key (already uppercased) into its runtime value.
+/// Returns true if the key is known and *out is set.
 static bool macroValueForKey(const QString& keyUpper,
                              const QString& user,
                              const QString& host,
@@ -194,6 +189,7 @@ static bool macroValueForKey(const QString& keyUpper,
     return false;
 }
 
+/// Convert raw KEX string into a human-friendly label for UI.
 static QString prettyKexName(const QString& raw)
 {
     const QString r = raw.trimmed();
@@ -206,20 +202,22 @@ static QString prettyKexName(const QString& raw)
     return r.isEmpty() ? "unknown" : r;
 }
 
+/// Detect whether a KEX name indicates PQ/hybrid (best-effort string match).
 static bool isPqKex(const QString& raw)
 {
     return raw.contains("mlkem", Qt::CaseInsensitive) ||
            raw.contains("sntrup", Qt::CaseInsensitive);
 }
 
-
-// Keep the old signature too (so any other call sites keep working)
+/// Back-compat overload: resolve placeholder values from an SshProfile.
 static bool macroValueForKey(const QString& keyUpper, const SshProfile& p, QString* out)
 {
     const int port = (p.port > 0 ? p.port : 22);
     return macroValueForKey(keyUpper, p.user, p.host, port, p.name, p.keyFile, out);
 }
 
+/// Expand placeholders in a macro command right before sending.
+/// Supports escapes {{ and }}.
 static QString expandMacroPlaceholders(const QString& in,
                                        const QString& user,
                                        const QString& host,
@@ -261,17 +259,19 @@ static QString expandMacroPlaceholders(const QString& in,
     return out;
 }
 
-// Keep old API as wrapper
+/// Back-compat wrapper: expand placeholders using SshProfile fields.
 static QString expandMacroPlaceholders(const QString& in, const SshProfile& p)
 {
     const int port = (p.port > 0 ? p.port : 22);
     return expandMacroPlaceholders(in, p.user, p.host, port, p.name, p.keyFile);
 }
 
-
 // =====================================================
 // Helpers for clean command logging
 // =====================================================
+
+/// Shell-quote a single argument for logging / constructing safe bash -lc strings.
+/// Uses POSIX single-quote strategy with '\'' escapes.
 static QString shellQuote(const QString &s)
 {
     if (s.isEmpty())
@@ -281,6 +281,10 @@ static QString shellQuote(const QString &s)
     out.replace('\'', "'\"'\"'");
     return "'" + out + "'";
 }
+
+/// Resolve the QRC URL to the user manual based on ui/language,
+/// falling back to English if the localized manual is missing.
+/// If debugOut is provided, writes a human-readable diagnostics string.
 static QUrl resolveUserManualUrl(QString *debugOut = nullptr)
 {
     QSettings s;
@@ -302,6 +306,8 @@ static QUrl resolveUserManualUrl(QString *debugOut = nullptr)
     if (debugOut) *debugOut = dbg;
     return {};
 }
+
+/// Create a pretty, shell-quoted command line for logs/debug UI.
 static QString prettyCommandLine(const QString &exe, const QStringList &args)
 {
     QStringList parts;
@@ -313,6 +319,9 @@ static QString prettyCommandLine(const QString &exe, const QStringList &args)
 
 // Focus quirks: terminals sometimes need delayed focus to become type-ready.
 // Using two singleShots is a pragmatic workaround for window manager timing.
+
+/// Bring a terminal window to front and ensure the terminal widget receives focus.
+/// Two delayed focus calls work around WM timing issues.
 static void focusTerminalWindow(QWidget *window, QWidget *termWidget)
 {
     if (!window || !termWidget) return;
@@ -330,8 +339,7 @@ static void focusTerminalWindow(QWidget *window, QWidget *termWidget)
     });
 }
 
-// Helper to enforce background colors on containers so terminal does not show “gutters”
-// caused by Qt widget backgrounds or style sheets bleeding into parents.
+/// Force a background color on a widget via palette + stylesheet (visual only).
 static void applyBg(QWidget* w, const QColor& bg)
 {
     if (!w) return;
@@ -342,8 +350,7 @@ static void applyBg(QWidget* w, const QColor& bg)
     w->setStyleSheet(QString("background:%1;").arg(bg.name()));
 }
 
-// Terminal background inference: qtermwidget uses palette roles; we attempt to
-// derive a stable background color for surrounding widgets.
+/// Best-effort guess of terminal background color (prefers Base role, else Window).
 static QColor guessTermBg(QWidget* term)
 {
     if (!term) return QColor(0,0,0);
@@ -358,8 +365,8 @@ static QColor guessTermBg(QWidget* term)
     return QColor(0,0,0);
 }
 
-// Keep the container + tab page synced with terminal background.
-// This is purely visual; does not affect terminal content rendering.
+/// Keep terminal container widgets visually aligned with the terminal background
+/// (avoid “gutters” caused by style bleed).
 static void syncTerminalSurroundingsToTerm(CpunkTermWidget* term)
 {
     if (!term) return;
@@ -382,18 +389,23 @@ static void syncTerminalSurroundingsToTerm(CpunkTermWidget* term)
 // =====================================================
 // Profile list grouping helpers
 // =====================================================
+
+/// Normalize group name for display/sorting. Empty -> "Ungrouped".
 static QString normalizedGroupName(const QString& g)
 {
     const QString s = g.trimmed();
     return s.isEmpty() ? QStringLiteral("Ungrouped") : s;
 }
 
+/// Detect whether a QListWidgetItem is a group header entry (non-selectable marker).
 static bool isGroupHeaderItem(const QListWidgetItem* it)
 {
     if (!it) return false;
     return (it->data(Qt::UserRole).toInt() == -1);
 }
 
+/// Rebuild the left profile list UI with group headers and sorted profiles.
+/// Keeps m_profiles storage order unchanged (sorts indices only).
 void MainWindow::rebuildProfileList()
 {
     if (!m_profileList) return;
@@ -456,6 +468,8 @@ void MainWindow::rebuildProfileList()
     }
 }
 
+/// Hash and persist the application lock password using libsodium (interactive limits).
+/// Stores the hash in QSettings under "appLock/hash".
 bool saveNewAppPassword(const QString& newPass, QString* errOut)
 {
     QByteArray pw = newPass.toUtf8();
@@ -476,6 +490,9 @@ bool saveNewAppPassword(const QString& newPass, QString* errOut)
 }
 
 // Returns the selected profile index in m_profiles, or -1 if none / header selected.
+
+/// Read the currently selected profile index (m_profiles index), ignoring group headers.
+/// Returns -1 if selection is empty or invalid.
 int MainWindow::currentProfileIndex() const
 {
     if (!m_profileList) return -1;
@@ -488,6 +505,9 @@ int MainWindow::currentProfileIndex() const
 }
 
 // If user clicks a header, move selection to nearest real profile item.
+
+/// Ensure a real profile item is selected (not a group header).
+/// If a header is selected, moves selection to the nearest profile item.
 void MainWindow::ensureProfileItemSelected()
 {
     if (!m_profileList) return;
@@ -517,6 +537,8 @@ void MainWindow::ensureProfileItemSelected()
     }
 }
 
+/// Build OpenSSH port-forwarding arguments (-L/-R/-D ...) from profile settings.
+/// Invalid/disabled rules are skipped.
 static QStringList buildPortForwardArgs(const SshProfile &p)
 {
     QStringList out;
@@ -549,7 +571,8 @@ static QStringList buildPortForwardArgs(const SshProfile &p)
     return out;
 }
 
-
+/// Apply the current theme (from QSettings) to the application.
+/// Resets palette/stylesheet then applies the selected AppTheme stylesheet.
 void MainWindow::applyCurrentTheme()
 {
     QSettings s;
@@ -574,6 +597,9 @@ void MainWindow::applyCurrentTheme()
 // =====================================================
 // MainWindow lifecycle
 // =====================================================
+
+/// Construct the main application window, load settings/profiles, wire menus,
+/// set up passphrase provider, and run startup checks (app lock, key expiry).
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -688,6 +714,8 @@ MainWindow::MainWindow(QWidget *parent)
     qInfo() << "MainWindow constructed OK";
 }
 
+/// Run an OpenSSH process probe (-vv) to extract the negotiated KEX algorithm
+/// and update the SSH KEX badge. This is separate from libssh/SFTP KEX reporting.
 void MainWindow::startOpenSshKexProbe(const SshProfile& p)
 {
     // Kill any previous probe
@@ -793,7 +821,7 @@ void MainWindow::startOpenSshKexProbe(const SshProfile& p)
     proc->start("ssh", args);
 }
 
-
+/// Destroy the window and ensure libssh is disconnected.
 MainWindow::~MainWindow()
 {
     m_ssh.disconnect();
@@ -802,6 +830,9 @@ MainWindow::~MainWindow()
 // ========================
 // UI construction
 // ========================
+
+/// Build the main window UI: profile list, connect bar, tabbed log/files,
+/// input bar (placeholder), and status/badge widgets. Wires UI signals to slots.
 void MainWindow::setupUi()
 {
     auto *splitter = new QSplitter(Qt::Horizontal, this);
@@ -995,7 +1026,7 @@ void MainWindow::setupUi()
             });
 }
 
-
+/// Create the application menus (File/Tools/Keys/View/Help) and wire actions.
 void MainWindow::setupMenus()
 {
     auto *fileMenu = menuBar()->addMenu(tr("&File"));
@@ -1197,6 +1228,8 @@ void MainWindow::setupMenus()
     m_versionLabel->setToolTip(tr("CPUNK PQ-SSH %1").arg(v.isEmpty() ? tr("v0.0.0") : (tr("v") + v)));
 }
 
+/// Append a line to the Log tab with optional verbosity filtering.
+/// Certain noisy debug lines are hidden unless PQ debug is enabled.
 void MainWindow::appendTerminalLine(const QString &line)
 {
     const bool verbose = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
@@ -1216,6 +1249,8 @@ void MainWindow::appendTerminalLine(const QString &line)
         m_terminal->appendPlainText(line);
 }
 
+/// Update the main PQ status label text and set its color.
+/// If colorHex is empty, uses the app highlight color.
 void MainWindow::updatePqStatusLabel(const QString &text, const QString &colorHex)
 {
     if (!m_pqStatusLabel) return;
@@ -1229,6 +1264,8 @@ void MainWindow::updatePqStatusLabel(const QString &text, const QString &colorHe
 
     m_pqStatusLabel->setStyleSheet(QString("color:%1; font-weight:bold;").arg(col));
 }
+
+/// Local helper variant used in some older call sites (kept for convenience).
 static void setBadge(QLabel *lbl, const QString &text, const QString &color, const QString &tooltip = QString())
 {
     if (!lbl) return;
@@ -1240,6 +1277,9 @@ static void setBadge(QLabel *lbl, const QString &text, const QString &color, con
 // ========================
 // Profiles
 // ========================
+
+/// Load profiles from disk via ProfileStore.
+/// If empty, creates and saves defaults. Rebuilds the profile list UI.
 void MainWindow::loadProfiles()
 {
     QString err;
@@ -1259,6 +1299,7 @@ void MainWindow::loadProfiles()
         appendTerminalLine(tr("[WARN] ProfileStore: %1").arg(err));
 }
 
+/// Persist current in-memory profiles to disk and notify UI/log on failure.
 void MainWindow::saveProfilesToDisk()
 {
     QString err;
@@ -1269,6 +1310,7 @@ void MainWindow::saveProfilesToDisk()
     }
 }
 
+/// Open the Profiles editor window (non-modal). On accept, replace profiles, save, rebuild list.
 void MainWindow::onEditProfilesClicked()
 {
     if (m_profilesEditor) {
@@ -1307,6 +1349,8 @@ void MainWindow::onEditProfilesClicked()
     m_profilesEditor->activateWindow();
 }
 
+/// Install an OpenSSH-format public key line into ~/.ssh/authorized_keys on the selected profile host.
+/// Prompts user for confirmation and connects via libssh if needed.
 void MainWindow::onInstallPublicKeyRequested(const QString& pubKeyLine, int profileIndex)
 {
     if (pubKeyLine.trimmed().isEmpty()) {
@@ -1389,6 +1433,9 @@ void MainWindow::onInstallPublicKeyRequested(const QString& pubKeyLine, int prof
 // ========================
 // Connect / disconnect
 // ========================
+
+/// When profile selection changes, update host field display and PQ debug checkbox
+/// based on selected profile.
 void MainWindow::onProfileSelectionChanged(int /*row*/)
 {
     ensureProfileItemSelected();
@@ -1410,6 +1457,10 @@ void MainWindow::onProfileSelectionChanged(int /*row*/)
         m_pqDebugCheck->setChecked(p.pqDebug);
 }
 
+/// Main "Connect" handler:
+/// - Opens terminal (OpenSSH) in new window or tabbed container
+/// - Starts PQ capability probe (OpenSSH KexAlgorithms forcing)
+/// - Starts libssh connect (for Files/SFTP) if supported by key_type
 void MainWindow::onConnectClicked()
 {
     m_sessionId = QUuid::createUuid().toString(QUuid::WithoutBraces);
@@ -1452,11 +1503,9 @@ void MainWindow::onConnectClicked()
     const bool newWindow =
         (m_openInNewWindowCheck && m_openInNewWindowCheck->isChecked());
 
-
     const QStringList pfArgs = buildPortForwardArgs(p);
 
     openShellForProfile(p, shownTarget, newWindow, pfArgs);
-
 
     updatePqStatusLabel(tr("PQ: checking…"), "#888");
 
@@ -1569,6 +1618,7 @@ void MainWindow::onConnectClicked()
         m_statusLabel->setText(tr("Connected: %1").arg(shownTarget));
 }
 
+/// Double-click convenience: connect using the currently selected profile.
 void MainWindow::onProfileDoubleClicked()
 {
     ensureProfileItemSelected();
@@ -1576,6 +1626,7 @@ void MainWindow::onProfileDoubleClicked()
     onConnectClicked();
 }
 
+/// Disconnect handler: tear down libssh/SFTP, update Files tab, and restore UI button state.
 void MainWindow::onDisconnectClicked()
 {
     logSessionInfo("Disconnect clicked (user requested)");
@@ -1587,6 +1638,7 @@ void MainWindow::onDisconnectClicked()
     if (m_statusLabel) m_statusLabel->setText(tr("Disconnected."));
 }
 
+/// Placeholder "Send" handler (shell input not wired to terminal yet).
 void MainWindow::onSendInput()
 {
     const QString text = m_inputField ? m_inputField->text().trimmed() : QString();
@@ -1601,6 +1653,9 @@ void MainWindow::onSendInput()
 // ========================
 // Drag-drop upload
 // ========================
+
+/// Handle file drops from the terminal widget.
+/// If not connected (libssh), saves locally; otherwise uploads to current remote working directory.
 void MainWindow::onFileDropped(const QString &path, const QByteArray &data)
 {
     QFileInfo info(path);
@@ -1643,11 +1698,14 @@ void MainWindow::onFileDropped(const QString &path, const QByteArray &data)
     appendTerminalLine(tr("[UPLOAD] OK → %1").arg(remotePath));
 }
 
+/// Placeholder for future “download selection” UI action.
 void MainWindow::downloadSelectionTriggered()
 {
     appendTerminalLine(tr("[DOWNLOAD] Shell not implemented yet (no selection source)."));
 }
 
+/// Synchronous OpenSSH PQ support probe for a target (best-effort).
+/// Returns true if the forced hybrid KEX does not error with “no matching key exchange”.
 bool MainWindow::probePqSupport(const QString &target)
 {
     QProcess proc;
@@ -1675,7 +1733,7 @@ bool MainWindow::probePqSupport(const QString &target)
     return true;
 }
 
-
+/// Redact sensitive parts of ssh args for UI logging (e.g., port forward specs, key file path).
 static QStringList redactSshArgsForUi(const QStringList &args)
 {
     QStringList out;
@@ -1710,7 +1768,11 @@ static QStringList redactSshArgsForUi(const QStringList &args)
     return out;
 }
 
-
+/// Create and configure a terminal widget for a profile, including:
+/// - profile font/colors/history
+/// - ssh command construction (with optional key file and port forwards)
+/// - launching via bash -lc "exec ssh ..."
+/// - wiring finished/drop events and starting KEX probe
 CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent, const QStringList& extraSshArgs)
 {
     auto *term = new CpunkTermWidget(0, parent);
@@ -1840,16 +1902,18 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent, co
     return term;
 }
 
-
-
 // ========================
 // Terminal creation
 // ========================
+
+/// Convenience overload: create terminal with no extra ssh args.
 CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent)
 {
     return createTerm(p, parent, QStringList());
 }
 
+/// Force a true black background on the terminal and all its child widgets.
+/// Used for the "WhiteOnBlack" scheme to avoid style/palette bleed.
 static void forceBlackBackground(CpunkTermWidget *term)
 {
     if (!term) return;
@@ -1878,6 +1942,7 @@ static void forceBlackBackground(CpunkTermWidget *term)
     term->update();
 }
 
+/// Apply profile terminal settings (scheme/font/opacity/bold handling) and sync surrounding backgrounds.
 void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
 {
     if (!term) return;
@@ -1913,7 +1978,8 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
     syncTerminalSurroundingsToTerm(term);
 }
 
-
+/// Open an SSH terminal session for a profile, either in a new standalone window
+/// or within a shared tabbed shell window. Installs macro shortcuts for that scope.
 void MainWindow::openShellForProfile(const SshProfile &p,
                                      const QString &target,
                                      bool newWindow,
@@ -2008,6 +2074,8 @@ void MainWindow::openShellForProfile(const SshProfile &p,
     focusTerminalWindow(m_tabbedShellWindow, term);
 }
 
+/// Shield terminal widget (and children) from app-wide styles that might force bold fonts
+/// or modify palette roles. Also enforces normal-weight font at the qtermwidget level.
 static void protectTermFromAppStyles(CpunkTermWidget *term)
 {
     if (!term) return;
@@ -2034,7 +2102,7 @@ static void protectTermFromAppStyles(CpunkTermWidget *term)
     term->setTerminalFont(tf);
 }
 
-
+/// Open the current log file in the system file handler (file://).
 void MainWindow::onOpenLogFile()
 {
     const QString path = Logger::logFilePath();
@@ -2051,24 +2119,28 @@ void MainWindow::onOpenLogFile()
     qInfo() << "Opened log file:" << path;
 }
 
+/// Add a structured line to app logs with the current session id prefix.
 void MainWindow::logSessionInfo(const QString& msg)
 {
     const QString sid = m_sessionId.isEmpty() ? "-" : m_sessionId;
     qInfo().noquote() << QString("[SESSION %1] %2").arg(sid, msg);
 }
 
+/// UI info helper: appends to UI log and also logs to qInfo().
 void MainWindow::uiInfo(const QString& msg)
 {
     appendTerminalLine(msg);
     qInfo().noquote() << "[UI]" << msg;
 }
 
+/// UI warning helper: appends to UI log and also logs to qWarning().
 void MainWindow::uiWarn(const QString& msg)
 {
     appendTerminalLine(msg);
     qWarning().noquote() << "[UI]" << msg;
 }
 
+/// UI debug helper: always logs to qInfo(); appends to UI log only when PQ debug is enabled.
 void MainWindow::uiDebug(const QString& msg)
 {
     const bool verbose = (m_pqDebugCheck && m_pqDebugCheck->isChecked());
@@ -2076,11 +2148,14 @@ void MainWindow::uiDebug(const QString& msg)
     if (verbose) appendTerminalLine(msg);
 }
 
+/// True if PQ debug checkbox is enabled (UI verbosity gate).
 bool MainWindow::uiVerbose() const
 {
     return (m_pqDebugCheck && m_pqDebugCheck->isChecked());
 }
 
+/// Open the embedded user manual (QTextBrowser) from QRC, using language fallback.
+/// Shows debug info in UI log if missing.
 void MainWindow::onOpenUserManual()
 {
     QString dbg;
@@ -2108,7 +2183,8 @@ void MainWindow::onOpenUserManual()
     dlg->show();
 }
 
-
+/// Apply settings that can be changed at runtime: theme, logging, audit paths.
+/// Note: applyCurrentTheme() also refreshes the profile list (header accent colors).
 void MainWindow::applySavedSettings()
 {
     QSettings s;
@@ -2124,6 +2200,7 @@ void MainWindow::applySavedSettings()
     AuditLogger::setAuditDirOverride(auditDir);
 }
 
+/// Legacy modal settings dialog entry point (kept for compatibility).
 void MainWindow::onOpenSettingsDialog()
 {
     SettingsDialog dlg(this);
@@ -2137,11 +2214,14 @@ void MainWindow::onOpenSettingsDialog()
     if (m_statusLabel) m_statusLabel->setText(tr("Settings updated."));
 }
 
+/// Placeholder settings action for older menus/flows.
 void MainWindow::onOpenSettings()
 {
     QMessageBox::information(this, tr("Settings"), tr("Settings dialog (coming next)."));
 }
 
+/// Install profile macro shortcuts into the given shortcut scope (window or tabbed window).
+/// Supports placeholder expansion right before sending to the terminal.
 void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScope, const SshProfile& p)
 {
     if (!term || !shortcutScope) return;
@@ -2227,7 +2307,7 @@ void MainWindow::installHotkeyMacro(CpunkTermWidget* term, QWidget* shortcutScop
     }
 }
 
-
+/// Slot for negotiated KEX (pretty+raw) to update the PQ status label (best-effort PQ detection).
 void MainWindow::onKexNegotiated(const QString& prettyText, const QString& rawKex)
 {
     const bool pq =
@@ -2243,6 +2323,7 @@ void MainWindow::onKexNegotiated(const QString& prettyText, const QString& rawKe
         m_pqStatusLabel->setToolTip(tr("Negotiated KEX: %1").arg(rawKex));
 }
 
+/// Open the Identity Manager dialog (singleton per main window).
 void MainWindow::onIdentityManagerRequested()
 {
     if (m_identityDlg) {
@@ -2264,6 +2345,10 @@ void MainWindow::onIdentityManagerRequested()
     m_identityDlg->activateWindow();
 }
 
+/// Import OpenSSH config (~/.ssh/config) by:
+/// - ensuring file exists (optionally create starter)
+/// - parsing it
+/// - showing plan dialog for creates/updates (currently applies creates only)
 void MainWindow::onImportOpenSshConfig()
 {
     if (m_sshPlanDlg) {
@@ -2367,6 +2452,8 @@ void MainWindow::onImportOpenSshConfig()
     m_sshPlanDlg->activateWindow();
 }
 
+/// Apply imported profiles from the import plan.
+/// Currently uses creates only (updates ignored).
 void MainWindow::onApplyImportedProfiles(const QVector<ImportedProfile>& creates,
                                         const QVector<ImportedProfile>& updates)
 {
@@ -2396,6 +2483,7 @@ void MainWindow::onApplyImportedProfiles(const QVector<ImportedProfile>& creates
     }
 }
 
+/// Ensure terminals are stopped and audit is written on application close.
 void MainWindow::closeEvent(QCloseEvent* e)
 {
     if (m_tabWidget) {
@@ -2410,6 +2498,8 @@ void MainWindow::closeEvent(QCloseEvent* e)
     QMainWindow::closeEvent(e);
 }
 
+/// Event filter used to detect closes of spawned terminal windows and tabbed container,
+/// to ensure terminal processes are terminated cleanly.
 bool MainWindow::eventFilter(QObject* obj, QEvent* ev)
 {
     if (ev->type() == QEvent::Close) {
@@ -2434,6 +2524,8 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* ev)
     return QMainWindow::eventFilter(obj, ev);
 }
 
+/// Stop a terminal by sending "exit" and closing the widget.
+/// Best-effort: does not guarantee remote cleanup.
 static void stopTerm(CpunkTermWidget* term)
 {
     if (!term) return;
@@ -2441,6 +2533,8 @@ static void stopTerm(CpunkTermWidget* term)
     term->close();
 }
 
+/// Verify app lock password against stored libsodium hash in QSettings.
+/// Returns true on successful verification.
 bool MainWindow::verifyAppPassword(const QString& pass) const
 {
     if (pass.isEmpty())
@@ -2458,6 +2552,8 @@ bool MainWindow::verifyAppPassword(const QString& pass) const
            ) == 0;
 }
 
+/// Show the startup unlock dialog for app lock.
+/// Returns true if unlocked; false if cancelled/failed.
 bool MainWindow::showStartupUnlockDialog()
 {
     QDialog dlg(nullptr);

@@ -34,6 +34,9 @@
 // -----------------------------
 // Helpers: macros <-> JSON
 // -----------------------------
+
+// Returns true if a macro has no meaningful user-provided content.
+// Used to avoid persisting blank rows created by UI tables/editors.
 static bool isMacroEmpty(const ProfileMacro &m)
 {
     return m.name.trimmed().isEmpty()
@@ -41,6 +44,9 @@ static bool isMacroEmpty(const ProfileMacro &m)
         && m.command.trimmed().isEmpty();
 }
 
+// Serialize a single macro into a JSON object.
+// - Trims name/shortcut for storage stability.
+// - Always stores send_enter for schema stability.
 static QJsonObject macroToJson(const ProfileMacro &m)
 {
     QJsonObject o;
@@ -58,6 +64,8 @@ static QJsonObject macroToJson(const ProfileMacro &m)
     return o;
 }
 
+// Deserialize a single macro from JSON.
+// Missing fields are treated as empty strings; send_enter defaults to true.
 static ProfileMacro macroFromJson(const QJsonObject &o)
 {
     ProfileMacro m;
@@ -68,6 +76,8 @@ static ProfileMacro macroFromJson(const QJsonObject &o)
     return m;
 }
 
+// Serialize a list of macros into a JSON array.
+// Blank macros are skipped to keep profiles.json compact and stable.
 static QJsonArray macrosToJsonArray(const QVector<ProfileMacro> &macros)
 {
     QJsonArray a;
@@ -78,6 +88,8 @@ static QJsonArray macrosToJsonArray(const QVector<ProfileMacro> &macros)
     return a;
 }
 
+// Deserialize a list of macros from a JSON array.
+// Non-object entries and empty macros are ignored.
 static QVector<ProfileMacro> macrosFromJsonArray(const QJsonArray &a)
 {
     QVector<ProfileMacro> out;
@@ -92,6 +104,7 @@ static QVector<ProfileMacro> macrosFromJsonArray(const QJsonArray &a)
 }
 
 // If macros[] is empty, try migrating legacy single macro fields into macros[0].
+// This preserves behavior for profiles created by older app versions.
 static void migrateLegacyMacroToListIfNeeded(SshProfile &p)
 {
     if (!p.macros.isEmpty())
@@ -113,6 +126,7 @@ static void migrateLegacyMacroToListIfNeeded(SshProfile &p)
 }
 
 // Keep backward-compat fields filled from first macro (if present).
+// This ensures older app versions can still read "macro_*" fields.
 static void syncLegacyMacroFromList(SshProfile &p)
 {
     if (p.macros.isEmpty())
@@ -127,11 +141,16 @@ static void syncLegacyMacroFromList(SshProfile &p)
 // -----------------------------
 // Helpers: port forwards <-> JSON
 // -----------------------------
+
+// Returns true if a forwarding rule is "blank" (typically an empty UI row).
+// Used to avoid persisting empty rows.
 static bool isForwardEmpty(const PortForwardRule &r)
 {
     return r.listenPort <= 0;
 }
 
+// Lightweight validation for a port forwarding rule.
+// Invalid rules are kept but should be disabled on load to avoid accidental use.
 static bool isForwardValid(const PortForwardRule &r)
 {
     if (r.listenPort <= 0 || r.listenPort > 65535) return false;
@@ -146,6 +165,8 @@ static bool isForwardValid(const PortForwardRule &r)
     return true;
 }
 
+// Serialize a forwarding rule to JSON.
+// For Dynamic rules, only bind/listen_port/enabled/note are stored.
 static QJsonObject forwardToJson(const PortForwardRule &r)
 {
     QJsonObject o;
@@ -169,6 +190,11 @@ static QJsonObject forwardToJson(const PortForwardRule &r)
     return o;
 }
 
+// Deserialize a forwarding rule from JSON.
+// Applies sensible defaults for missing fields:
+// - type: "local"
+// - bind: "127.0.0.1"
+// - enabled: true
 static PortForwardRule forwardFromJson(const QJsonObject &o)
 {
     PortForwardRule r;
@@ -189,6 +215,8 @@ static PortForwardRule forwardFromJson(const QJsonObject &o)
     return r;
 }
 
+// Serialize a vector of forwarding rules to JSON.
+// Blank rows are skipped.
 static QJsonArray forwardsToJsonArray(const QVector<PortForwardRule> &rules)
 {
     QJsonArray a;
@@ -199,6 +227,8 @@ static QJsonArray forwardsToJsonArray(const QVector<PortForwardRule> &rules)
     return a;
 }
 
+// Deserialize forwarding rules from JSON.
+// Invalid rules are kept but force-disabled to avoid data loss.
 static QVector<PortForwardRule> forwardsFromJsonArray(const QJsonArray &a)
 {
     QVector<PortForwardRule> out;
@@ -214,7 +244,9 @@ static QVector<PortForwardRule> forwardsFromJsonArray(const QJsonArray &a)
     return out;
 }
 
-
+// Return the absolute path to profiles.json.
+// Current implementation uses a project-root-relative "profiles/profiles.json"
+// derived from the application directory (two levels up).
 QString ProfileStore::configPath()
 {
     QString baseDir = QCoreApplication::applicationDirPath();
@@ -232,6 +264,8 @@ QString ProfileStore::configPath()
     return profilesDir + "/profiles.json";
 }
 
+// Return a default profile set used for first-run or when profiles.json is missing.
+// The defaults are intentionally minimal and safe (localhost, no port forwarding, etc.).
 QVector<SshProfile> ProfileStore::defaults()
 {
     QVector<SshProfile> out;
@@ -277,7 +311,10 @@ QVector<SshProfile> ProfileStore::defaults()
     return out;
 }
 
-
+// Persist profiles to disk as JSON.
+// - Writes profiles.json atomically via truncate+write (simple approach).
+// - Keeps schema backward compatible by also writing legacy macro_* fields
+//   mirrored from macros[0] when present.
 bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
 {
     /*
@@ -298,6 +335,12 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
               "history_lines": 2000,
               "key_file": "...",             // optional
               "key_type": "auto",            // always stored
+
+              // NEW: Port forwarding
+              "port_forwarding_enabled": false,
+              "port_forwards": [
+                { "type":"local", "bind":"127.0.0.1", "listen_port":8080, "target_host":"localhost", "target_port":80, "enabled":true }
+              ],
 
               // NEW: Hotkey macros (multi)
               "macros": [
@@ -396,6 +439,10 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
     return true;
 }
 
+// Load profiles from profiles.json.
+// - Returns an empty vector if file does not exist.
+// - Performs schema evolution/migrations (legacy macro_* -> macros[0]).
+// - Skips profiles missing required user/host fields.
 QVector<SshProfile> ProfileStore::load(QString* err)
 {
     QVector<SshProfile> out;

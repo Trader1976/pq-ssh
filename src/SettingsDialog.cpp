@@ -22,6 +22,24 @@
 #include <sodium.h>
 
 // SettingsDialog.cpp
+//
+// SettingsDialog is the preferences UI for PQ-SSH.
+// It is responsible for:
+// - Presenting editable settings (theme, language, log/audit paths, app lock)
+// - Reading/writing those values through QSettings
+// - Emitting a signal when settings are applied so the caller can react
+//
+// It is NOT responsible for:
+// - Applying themes globally (caller/MainWindow does that)
+// - Starting/stopping logging/audit subsystems directly (caller does that)
+// - Implementing the app unlock flow (MainWindow owns startup gating)
+//
+// Notes:
+// - Language changes typically require app restart to reload translators cleanly.
+// - Empty path fields intentionally mean “use default location”.
+
+// Apply current UI state into QSettings and return whether language changed.
+// This is used by Apply/OK handlers to decide whether to show a restart notice.
 bool SettingsDialog::applySettings()
 {
     QSettings s;
@@ -34,12 +52,15 @@ bool SettingsDialog::applySettings()
     return (newLang != oldLang);
 }
 
+// Construct the dialog, build widgets, and initialize UI state from QSettings.
 SettingsDialog::SettingsDialog(QWidget* parent) : QDialog(parent)
 {
     buildUi();
     loadFromSettings();
 }
 
+// Create a small toolbutton with an icon and tooltip.
+// Used for browse/open-directory buttons next to path edits.
 static QToolButton* makeIconBtn(QWidget* parent, const QIcon& icon, const QString& tooltip)
 {
     auto* b = new QToolButton(parent);
@@ -50,6 +71,8 @@ static QToolButton* makeIconBtn(QWidget* parent, const QIcon& icon, const QStrin
     return b;
 }
 
+// Build all widgets and wire signals.
+// The dialog supports Apply (non-modal updates) as well as OK/Cancel.
 void SettingsDialog::buildUi()
 {
     setWindowTitle(tr("Settings"));
@@ -93,7 +116,7 @@ void SettingsDialog::buildUi()
     const QIcon browseIcon  = style()->standardIcon(QStyle::SP_DialogOpenButton);
     const QIcon openDirIcon = style()->standardIcon(QStyle::SP_DirOpenIcon);
 
-    // Log file path row
+    // Log file path row: free-form path (empty = default), plus browse + open-dir.
     {
         auto* row = new QWidget(this);
         auto* h = new QHBoxLayout(row);
@@ -120,7 +143,7 @@ void SettingsDialog::buildUi()
         connect(m_logOpenDirBtn, &QToolButton::clicked, this, &SettingsDialog::onOpenLogDir);
     }
 
-    // Audit dir path row
+    // Audit directory row: directory picker (empty = default), plus browse + open-dir.
     {
         auto* row = new QWidget(this);
         auto* h = new QHBoxLayout(row);
@@ -146,6 +169,11 @@ void SettingsDialog::buildUi()
     // -------------------------
     // App lock (startup password)
     // -------------------------
+    // Stores:
+    // - appLock/enabled (bool)
+    // - appLock/hash    (libsodium crypto_pwhash_str output)
+    //
+    // The checkbox only toggles enabled state. Hash is managed by Set/Disable buttons.
     {
         auto* row = new QWidget(this);
         auto* h = new QHBoxLayout(row);
@@ -161,6 +189,7 @@ void SettingsDialog::buildUi()
         m_disableAppLockBtn->setToolTip(tr("Disable app lock and remove stored password hash"));
 
         m_appLockStatus = new QLabel(row);
+        // Status label is informational only; keep it subtle.
         m_appLockStatus->setStyleSheet("color:#888;");
 
         h->addWidget(m_appLockCheck, 1);
@@ -173,6 +202,7 @@ void SettingsDialog::buildUi()
         connect(m_setAppPassBtn, &QPushButton::clicked, this, &SettingsDialog::onSetAppPasswordClicked);
         connect(m_disableAppLockBtn, &QPushButton::clicked, this, &SettingsDialog::onDisableAppLockClicked);
 
+        // Disable button only makes sense if lock is enabled.
         connect(m_appLockCheck, &QCheckBox::toggled, this, [this](bool on) {
             if (m_setAppPassBtn) m_setAppPassBtn->setEnabled(true);        // always allow setting
             if (m_disableAppLockBtn) m_disableAppLockBtn->setEnabled(on);  // only makes sense if enabled
@@ -181,7 +211,7 @@ void SettingsDialog::buildUi()
 
     outer->addLayout(form);
 
-    // Buttons
+    // Buttons: OK applies + closes, Apply applies without closing, Cancel closes.
     m_buttons = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Apply | QDialogButtonBox::Cancel,
         this
@@ -191,11 +221,12 @@ void SettingsDialog::buildUi()
     connect(m_buttons, &QDialogButtonBox::accepted, this, &SettingsDialog::onAccepted);
     connect(m_buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
+    // Apply button handler: write settings, emit signal, and optionally show restart info.
     if (auto* applyBtn = m_buttons->button(QDialogButtonBox::Apply)) {
         connect(applyBtn, &QPushButton::clicked, this, [this]() {
             const bool langChanged = applySettings();
 
-            emit settingsApplied(langChanged); // <-- NEW
+            emit settingsApplied(langChanged);
 
             if (langChanged && !m_restartWarned) {
                 m_restartWarned = true;
@@ -209,6 +240,8 @@ void SettingsDialog::buildUi()
     }
 }
 
+// Populate UI widgets from QSettings.
+// This is called once after buildUi(), and can be reused if you ever add “Reset”.
 void SettingsDialog::loadFromSettings()
 {
     QSettings s;
@@ -264,6 +297,8 @@ void SettingsDialog::loadFromSettings()
         m_disableAppLockBtn->setEnabled(enabled);
 }
 
+// Write current UI values into QSettings.
+// This does not call sync(); callers decide when to commit (Apply/OK).
 void SettingsDialog::saveToSettings()
 {
     QSettings s;
@@ -282,11 +317,13 @@ void SettingsDialog::saveToSettings()
     s.setValue("appLock/enabled", enabled);
 }
 
+// OK button handler: apply settings and close dialog.
+// Emits settingsApplied(langChanged) so the caller can re-apply theme/logging immediately.
 void SettingsDialog::onAccepted()
 {
     const bool langChanged = applySettings();
 
-    emit settingsApplied(langChanged); // <-- NEW (optional but nice)
+    emit settingsApplied(langChanged);
 
     if (langChanged && !m_restartWarned) {
         m_restartWarned = true;
@@ -300,6 +337,10 @@ void SettingsDialog::onAccepted()
     accept();
 }
 
+// Utility: return the directory for a given file/dir path.
+// - If the input is a directory path, returns it.
+// - If the input is a file path, returns its parent directory.
+// - Empty input returns empty.
 QString SettingsDialog::dirOfPathOrEmpty(const QString& path) const
 {
     const QString p = path.trimmed();
@@ -310,6 +351,8 @@ QString SettingsDialog::dirOfPathOrEmpty(const QString& path) const
 
 // ---- Buttons ----
 
+// Browse for a log file path (save file dialog).
+// Choosing a path overrides the default log directory; empty means revert to default.
 void SettingsDialog::onBrowseLogFile()
 {
     const QString cur = m_logFileEdit ? m_logFileEdit->text().trimmed() : QString();
@@ -328,6 +371,8 @@ void SettingsDialog::onBrowseLogFile()
         m_logFileEdit->setText(QDir::cleanPath(chosen));
 }
 
+// Open the directory containing the currently configured log file.
+// If no custom log file is set, open the default logs directory.
 void SettingsDialog::onOpenLogDir()
 {
     if (!m_logFileEdit) return;
@@ -341,6 +386,8 @@ void SettingsDialog::onOpenLogDir()
         ));
 }
 
+// Browse for an audit directory.
+// Empty means revert to default AppLocalDataLocation/audit.
 void SettingsDialog::onBrowseAuditDir()
 {
     const QString cur = m_auditDirEdit ? m_auditDirEdit->text().trimmed() : QString();
@@ -359,6 +406,7 @@ void SettingsDialog::onBrowseAuditDir()
         m_auditDirEdit->setText(QDir::cleanPath(chosen));
 }
 
+// Open the configured audit directory, or fall back to default audit dir if empty.
 void SettingsDialog::onOpenAuditDir()
 {
     if (!m_auditDirEdit) return;
@@ -372,6 +420,12 @@ void SettingsDialog::onOpenAuditDir()
         ));
 }
 
+// Set/change the application startup password.
+// Stores a libsodium password hash into QSettings and enables appLock/enabled.
+//
+// Security notes:
+// - We never store the plaintext password.
+// - crypto_pwhash_str embeds salt and parameters in the output string.
 void SettingsDialog::onSetAppPasswordClicked()
 {
     // Prompt new password twice
@@ -428,6 +482,7 @@ void SettingsDialog::onSetAppPasswordClicked()
     s.setValue("appLock/hash", QString::fromLatin1(out));
     s.setValue("appLock/enabled", true);
 
+    // Reflect immediately in UI
     if (m_appLockCheck) m_appLockCheck->setChecked(true);
     if (m_appLockStatus) m_appLockStatus->setText(tr("Password set"));
     if (m_disableAppLockBtn) m_disableAppLockBtn->setEnabled(true);
@@ -439,6 +494,8 @@ void SettingsDialog::onSetAppPasswordClicked()
     );
 }
 
+// Disable app lock and remove the stored password hash.
+// This is a destructive operation; confirm with the user first.
 void SettingsDialog::onDisableAppLockClicked()
 {
     const auto ans = QMessageBox::question(
@@ -456,6 +513,7 @@ void SettingsDialog::onDisableAppLockClicked()
     s.setValue("appLock/enabled", false);
     s.remove("appLock/hash");
 
+    // Reflect immediately in UI
     if (m_appLockCheck) m_appLockCheck->setChecked(false);
     if (m_appLockStatus) m_appLockStatus->setText(tr("Off"));
     if (m_disableAppLockBtn) m_disableAppLockBtn->setEnabled(false);

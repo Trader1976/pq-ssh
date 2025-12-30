@@ -38,11 +38,11 @@
 #include <cstring>   // memset, memcpy
 #include <algorithm> // std::min, std::fill
 
-
-
 // ------------------------------------------------------------
-// Small helper to turn libssh's last error into QString
+// libsshError()
 // ------------------------------------------------------------
+// Convert libssh "last error" for a session into a human-readable QString.
+// Safe to call with null session (returns a translated placeholder).
 static QString libsshError(ssh_session s)
 {
     if (!s) return QObject::tr("libssh: null session");
@@ -50,8 +50,11 @@ static QString libsshError(ssh_session s)
 }
 
 // ------------------------------------------------------------
-// Small helper: open+init SFTP for current session
+// openSftp()
 // ------------------------------------------------------------
+// Open and initialize an SFTP session for an existing connected ssh_session.
+// On success, returns true and sets *out to a valid sftp_session.
+// On failure, returns false, leaves *out null, and optionally sets *err.
 static bool openSftp(ssh_session session, sftp_session *out, QString *err)
 {
     if (err) err->clear();
@@ -82,17 +85,23 @@ SshClient::~SshClient()
 }
 
 // ------------------------------------------------------------
-// Cancel flag support (best-effort)
+// requestCancelTransfer()
 // ------------------------------------------------------------
+// Best-effort cancellation flag used by streaming SFTP operations.
+// Note: libssh doesn't provide a universal "cancel" primitive mid-read/write,
+// so we cooperatively check this flag in our loops and stop early.
 void SshClient::requestCancelTransfer()
 {
     m_cancelRequested.store(true);
 }
 
 // ------------------------------------------------------------
-// Backwards-compatible entry point: connect using "user@host"
-// This builds a temporary SshProfile and forwards to connectProfile().
+// connectPublicKey()
 // ------------------------------------------------------------
+// Backwards-compatible entry point: connect using "user@host" (user optional).
+// Builds a temporary SshProfile and forwards to connectProfile().
+//
+// This exists to keep older call sites working while UI migrates to profiles.
 bool SshClient::connectPublicKey(const QString& target, QString* err)
 {
     if (err) err->clear();
@@ -133,9 +142,13 @@ bool SshClient::connectPublicKey(const QString& target, QString* err)
 }
 
 // ------------------------------------------------------------
-// Passphrase provider: injected from UI (MainWindow) so this
-// class stays UI-agnostic.
+// requestPassphrase()
 // ------------------------------------------------------------
+// UI-agnostic passphrase request helper.
+// The UI injects a callback into this class (via setPassphraseProvider in header)
+// so SshClient can remain independent of dialogs/widgets.
+//
+// Returns empty QString on failure/cancel; sets *ok accordingly when provided.
 QString SshClient::requestPassphrase(const QString& keyFile, bool *ok)
 {
     if (!m_passphraseProvider) {
@@ -145,11 +158,17 @@ QString SshClient::requestPassphrase(const QString& keyFile, bool *ok)
     return m_passphraseProvider(keyFile, ok);
 }
 
-
-
 // ------------------------------------------------------------
-// connectProfile(): establish libssh session suitable for SFTP + exec
+// connectProfile()
 // ------------------------------------------------------------
+// Establish and authenticate a libssh session suitable for:
+// - SFTP operations
+// - small exec() commands
+//
+// Notes:
+// - This does NOT provide an interactive terminal (OpenSSH+qtermwidget does that).
+// - Tries agent first, then publickey_auto.
+// - Optionally sets a preferred KEX list to favor hybrid PQ where supported.
 bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 {
     if (err) err->clear();
@@ -170,6 +189,8 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     }
 
     // Key-type gate:
+    // pq-ssh currently supports OpenSSH-compatible public keys only (auto/openssh).
+    // PQ key types are intentionally rejected until implemented end-to-end.
     const QString kt = profile.keyType.trimmed().isEmpty()
                            ? QStringLiteral("auto")
                            : profile.keyType.trimmed();
@@ -203,6 +224,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
         return false;
     }
 
+    // Local helper: set error + free session on failure paths.
     auto failAndFree = [&](const QString &msg) -> bool {
         if (err) *err = msg;
         qWarning().noquote() << QString("[SSH] connectProfile FAILED user='%1' host='%2': %3")
@@ -211,6 +233,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
         return false;
     };
 
+    // Local helper: set libssh option and log if it fails.
     auto optSet = [&](enum ssh_options_e opt, const void *val, const char *what) -> bool {
         const int r = ssh_options_set(s, opt, val);
         if (r != SSH_OK) {
@@ -223,6 +246,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     };
 
     // --- Small local helper: raw KEX -> pretty label for UI ---
+    // Used to display negotiated KEX in a friendly way (e.g., “Hybrid PQ”).
     auto prettyKexName = [](const QString& raw) -> QString {
         const QString r = raw.trimmed();
 
@@ -240,7 +264,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
         return r.isEmpty() ? QStringLiteral("unknown") : r;
     };
 
-    // Options
+    // Options: host/user/port must be set before ssh_connect()
     optSet(SSH_OPTIONS_HOST, host.toUtf8().constData(), "HOST");
     optSet(SSH_OPTIONS_USER, user.toUtf8().constData(), "USER");
     optSet(SSH_OPTIONS_PORT, &port, "PORT");
@@ -256,13 +280,14 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 #endif
     }
 
+    // Optional explicit key identity file
     if (hasIdentity) {
         const QByteArray p = QFile::encodeName(profile.keyFile.trimmed());
         optSet(SSH_OPTIONS_IDENTITY, p.constData(), "IDENTITY");
     }
 
     // --- Prefer PQ hybrid KEX when available (libssh 0.11.x+) ---
-    // NOTE: must be set BEFORE ssh_connect().
+    // Must be set BEFORE ssh_connect().
     const char *kexPref =
         "sntrup761x25519-sha512@openssh.com,"
         "curve25519-sha256";
@@ -275,6 +300,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     }
 
     // Passphrase callback (UI supplies passphrase)
+    // NOTE: libssh callback API gives us prompt/buffer; key path may not be available here.
     static ssh_callbacks_struct cb;
     std::memset(&cb, 0, sizeof(cb));
     cb.userdata = this;
@@ -319,10 +345,10 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 
     qInfo().noquote() << QString("[SSH] ssh_connect OK host='%1' port=%2").arg(host).arg(port);
 
-    // Negotiated algorithms (now valid)
-    const char *kexAlgoC = ssh_get_kex_algo(s);
-    const char *cipherInC  = ssh_get_cipher_in(s);   // server->client
-    const char *cipherOutC = ssh_get_cipher_out(s);  // client->server
+    // Negotiated algorithms (now valid post-connect)
+    const char *kexAlgoC    = ssh_get_kex_algo(s);
+    const char *cipherInC   = ssh_get_cipher_in(s);   // server->client
+    const char *cipherOutC  = ssh_get_cipher_out(s);  // client->server
 
     const QString rawKex = kexAlgoC ? QString::fromLatin1(kexAlgoC) : QString();
     const QString pretty = prettyKexName(rawKex);
@@ -332,10 +358,12 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
                               cipherInC ? cipherInC : "?",
                               cipherOutC ? cipherOutC : "?");
 
-    // Emit to UI (MainWindow can print something cool)
+    // Inform UI about negotiated key exchange algorithm
     emit kexNegotiated(pretty, rawKex);
 
     // Authentication strategy:
+    // 1) agent (ssh-agent)
+    // 2) publickey_auto (auto-discover keys)
     rc = ssh_userauth_agent(s, nullptr);
     if (rc == SSH_AUTH_SUCCESS) {
         qInfo().noquote() << QString("[SSH] auth OK via agent user='%1' host='%2'").arg(user, host);
@@ -374,8 +402,9 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 }
 
 // ------------------------------------------------------------
-// Disconnect and free session (safe to call multiple times).
+// disconnect()
 // ------------------------------------------------------------
+// Disconnect and free current session. Safe to call multiple times.
 void SshClient::disconnect()
 {
     if (m_session) {
@@ -386,14 +415,19 @@ void SshClient::disconnect()
     }
 }
 
+// ------------------------------------------------------------
+// isConnected()
+// ------------------------------------------------------------
+// Returns true if a live libssh session is currently held by this client.
 bool SshClient::isConnected() const
 {
     return m_session != nullptr;
 }
 
 // ------------------------------------------------------------
-// Remote pwd helper (executes `pwd` over a fresh channel).
+// remotePwd()
 // ------------------------------------------------------------
+// Convenience helper: run `pwd` over a short-lived channel and return stdout.
 QString SshClient::remotePwd(QString* err) const
 {
     if (err) err->clear();
@@ -441,8 +475,10 @@ QString SshClient::remotePwd(QString* err) const
 }
 
 // ------------------------------------------------------------
-// SFTP: list remote directory (non-recursive).
+// listRemoteDir()
 // ------------------------------------------------------------
+// List a remote directory via SFTP (non-recursive). Populates outItems with
+// RemoteEntry structures used by the file manager UI.
 bool SshClient::listRemoteDir(const QString& remotePath,
                               QVector<RemoteEntry>* outItems,
                               QString* err)
@@ -500,8 +536,9 @@ bool SshClient::listRemoteDir(const QString& remotePath,
 }
 
 // ------------------------------------------------------------
-// SFTP: stat remote path (file or directory).
+// statRemotePath()
 // ------------------------------------------------------------
+// Stat a remote path via SFTP (file or directory). Populates outInfo.
 bool SshClient::statRemotePath(const QString& remotePath,
                                RemoteEntry* outInfo,
                                QString* err)
@@ -546,11 +583,13 @@ bool SshClient::statRemotePath(const QString& remotePath,
 }
 
 // ------------------------------------------------------------
-// SFTP: streaming upload local file -> remote file.
-//   - writes to <remote>.pqssh.part
-//   - rename to final
-//   - cancel removes temp
+// uploadFile()
 // ------------------------------------------------------------
+// Streaming upload local file -> remote file via SFTP.
+// Safety strategy:
+// - write to <remote>.pqssh.part
+// - rename to final (retry with unlink if needed)
+// - on cancel/error, remove temp file
 bool SshClient::uploadFile(const QString& localPath,
                            const QString& remotePath,
                            QString* err,
@@ -649,11 +688,13 @@ bool SshClient::uploadFile(const QString& localPath,
 }
 
 // ------------------------------------------------------------
-// SFTP: streaming download remote file -> local file.
-//   - writes to <local>.pqssh.part then rename to final
-//   - creates local dirs
-//   - cancel removes temp
+// downloadFile()
 // ------------------------------------------------------------
+// Streaming download remote file -> local file via SFTP.
+// Safety strategy:
+// - write to <local>.pqssh.part then rename to final
+// - ensure local directory exists
+// - on cancel/error, remove temp file
 bool SshClient::downloadFile(const QString& remotePath,
                              const QString& localPath,
                              QString* err,
@@ -765,8 +806,10 @@ bool SshClient::downloadFile(const QString& remotePath,
 }
 
 // ------------------------------------------------------------
-// Upload raw bytes to a remote file via SFTP.
+// uploadBytes()
 // ------------------------------------------------------------
+// Upload in-memory bytes to a remote file via SFTP.
+// Intended for small/medium buffers (config files, authorized_keys, etc.).
 bool SshClient::uploadBytes(const QString& remotePath, const QByteArray& data, QString* err)
 {
     if (err) err->clear();
@@ -816,9 +859,10 @@ bool SshClient::uploadBytes(const QString& remotePath, const QByteArray& data, Q
 }
 
 // ------------------------------------------------------------
-// Download remote file via SFTP and write to local file.
-// NOTE: reads whole file into memory (small files).
+// downloadToFile()
 // ------------------------------------------------------------
+// Download remote file via SFTP and write to local file.
+// NOTE: reads whole file into memory -> intended for small files.
 bool SshClient::downloadToFile(const QString& remotePath, const QString& localPath, QString* err)
 {
     if (err) err->clear();
@@ -877,8 +921,10 @@ bool SshClient::downloadToFile(const QString& remotePath, const QString& localPa
 }
 
 // ------------------------------------------------------------
-// SHA-256 helpers (local + remote via SFTP streaming)
+// sha256LocalFile()
 // ------------------------------------------------------------
+// Compute SHA-256 of a local file using streaming reads.
+// Returns 32-byte digest on success, empty on error/cancel.
 QByteArray SshClient::sha256LocalFile(const QString& localPath, QString* err) const
 {
     if (err) err->clear();
@@ -913,6 +959,11 @@ QByteArray SshClient::sha256LocalFile(const QString& localPath, QString* err) co
     return h.result(); // 32 bytes
 }
 
+// ------------------------------------------------------------
+// sha256RemoteFile()
+// ------------------------------------------------------------
+// Compute SHA-256 of a remote file via SFTP streaming reads.
+// Returns 32-byte digest on success, empty on error/cancel.
 QByteArray SshClient::sha256RemoteFile(const QString& remotePath, QString* err)
 {
     if (err) err->clear();
@@ -969,6 +1020,12 @@ QByteArray SshClient::sha256RemoteFile(const QString& remotePath, QString* err)
     return h.result(); // 32 bytes
 }
 
+// ------------------------------------------------------------
+// verifyLocalVsRemoteSha256()
+// ------------------------------------------------------------
+// Compare local file SHA-256 vs remote file SHA-256.
+// Returns true on match, false on mismatch or error.
+// On mismatch, *err includes both hex digests for debugging.
 bool SshClient::verifyLocalVsRemoteSha256(const QString& localPath,
                                          const QString& remotePath,
                                          QString* err)
@@ -1000,6 +1057,11 @@ bool SshClient::verifyLocalVsRemoteSha256(const QString& localPath,
     return true;
 }
 
+// ------------------------------------------------------------
+// verifyRemoteVsLocalSha256()
+// ------------------------------------------------------------
+// Compare remote file SHA-256 vs local file SHA-256.
+// Same as verifyLocalVsRemoteSha256 but parameter order is swapped.
 bool SshClient::verifyRemoteVsLocalSha256(const QString& remotePath,
                                          const QString& localPath,
                                          QString* err)
@@ -1032,10 +1094,11 @@ bool SshClient::verifyRemoteVsLocalSha256(const QString& remotePath,
 }
 
 // ------------------------------------------------------------
-// Execute a remote command and capture stdout/stderr.
-// Returns false if exit status != 0.
-// Overload supports timeout (ms). timeoutMs <= 0 means "no timeout".
+// exec() overloads
 // ------------------------------------------------------------
+// Execute a remote command and capture stdout/stderr.
+// Returns false if exit status != 0 or if there is a transport error.
+// timeoutMs <= 0 means "no timeout".
 bool SshClient::exec(const QString& command, QString* out, QString* err)
 {
     // Backward compatible: no timeout
@@ -1058,6 +1121,7 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
         return false;
     }
 
+    // Ensure we always close/free the channel on all paths.
     auto cleanup = [&]() {
         if (ch) {
             if (ssh_channel_is_open(ch)) {
@@ -1087,6 +1151,7 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
     QElapsedTimer timer;
     timer.start();
 
+    // Drain any currently available data on stdout/stderr.
     auto readAvailable = [&](int isStderr) -> bool {
         while (true) {
             const int n = ssh_channel_read(ch, buf, sizeof(buf), isStderr);
@@ -1107,6 +1172,7 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
         return true;
     };
 
+    // Poll loop with timeout support.
     while (true) {
         if (timeoutMs > 0 && timer.elapsed() > timeoutMs) {
             if (err) *err = tr("Remote command timed out after %1 ms.").arg(timeoutMs);
@@ -1132,6 +1198,7 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
                 return fail(tr("ssh_channel_read(stderr) failed: %1").arg(libsshError(m_session)));
         }
 
+        // On EOF, drain any remaining bytes and exit.
         if (ssh_channel_is_eof(ch)) {
             const int drainOut = ssh_channel_poll_timeout(ch, 0, 0);
             const int drainErr = ssh_channel_poll_timeout(ch, 0, 1);
@@ -1177,8 +1244,10 @@ bool SshClient::exec(const QString& command, QString* out, QString* err, int tim
 }
 
 // ------------------------------------------------------------
-// Ensure remote directory exists and apply permissions.
+// ensureRemoteDir()
 // ------------------------------------------------------------
+// Ensure a remote directory exists (mkdir -p) and apply permissions.
+// permsOctal should be provided as standard octal (e.g. 0700, 0755).
 bool SshClient::ensureRemoteDir(const QString& path, int permsOctal, QString* err)
 {
     QString out;
@@ -1189,8 +1258,10 @@ bool SshClient::ensureRemoteDir(const QString& path, int permsOctal, QString* er
 }
 
 // ------------------------------------------------------------
-// Read a remote text file via SFTP (small files).
+// readRemoteTextFile()
 // ------------------------------------------------------------
+// Read a remote file via SFTP and return it as UTF-8 text.
+// Intended for small files (authorized_keys, config snippets, etc.).
 bool SshClient::readRemoteTextFile(const QString& remotePath, QString* textOut, QString* err)
 {
     if (textOut) textOut->clear();
@@ -1222,8 +1293,13 @@ bool SshClient::readRemoteTextFile(const QString& remotePath, QString* textOut, 
 }
 
 // ------------------------------------------------------------
-// Atomic-ish remote write using SFTP temp + rename + chmod.
+// writeRemoteTextFileAtomic()
 // ------------------------------------------------------------
+// “Atomic-ish” remote text write using SFTP temp + rename.
+// Strategy:
+// - write to <remote>.pqssh.tmp
+// - rename to final (unlink destination and retry if necessary)
+// - apply chmod afterwards (server may ignore create perms)
 bool SshClient::writeRemoteTextFileAtomic(const QString& remotePath, const QString& text, int permsOctal, QString* err)
 {
     if (err) err->clear();
@@ -1285,8 +1361,11 @@ bool SshClient::writeRemoteTextFileAtomic(const QString& remotePath, const QStri
 }
 
 // ------------------------------------------------------------
-// authorized_keys helpers
+// authorized_keys helpers (static)
 // ------------------------------------------------------------
+
+// normalizeKeyLine()
+// Normalize whitespace so keys can be compared reliably.
 static QString normalizeKeyLine(const QString& line)
 {
     QString s = line.trimmed();
@@ -1294,6 +1373,8 @@ static QString normalizeKeyLine(const QString& line)
     return s;
 }
 
+// looksLikeOpenSshPubKey()
+// Very small heuristic to avoid writing garbage into authorized_keys.
 static bool looksLikeOpenSshPubKey(const QString& line)
 {
     const QString s = line.trimmed();
@@ -1301,6 +1382,8 @@ static bool looksLikeOpenSshPubKey(const QString& line)
            s.startsWith("ecdsa-sha2-") || s.startsWith("sk-ssh-ed25519");
 }
 
+// shQuote()
+// Shell-quote helper for safe single-argument commands in /bin/sh.
 static QString shQuote(const QString& s)
 {
     QString out = s;
@@ -1309,8 +1392,21 @@ static QString shQuote(const QString& s)
 }
 
 // ------------------------------------------------------------
-// installAuthorizedKey(): Idempotent authorized_keys installer.
+// installAuthorizedKey()
 // ------------------------------------------------------------
+// Idempotent OpenSSH authorized_keys installer.
+//
+// Behavior:
+// - Validates input looks like a public key line
+// - Ensures ~/.ssh exists with 0700 perms
+// - Reads existing authorized_keys (if present) and checks for duplicate
+// - If existing file exists, makes a timestamped backup under ~/.ssh/pqssh_backups/
+// - Appends key with newline and writes atomically (temp + rename), chmod 0600
+// - On write failure, attempts to restore from backup (best-effort)
+//
+// Outputs:
+// - alreadyPresent: set true if key already existed
+// - backupPathOut: filled when a backup was made (existing file case)
 bool SshClient::installAuthorizedKey(const QString& pubKeyLine,
                                      QString* err,
                                      bool* alreadyPresent,
@@ -1362,6 +1458,7 @@ bool SshClient::installAuthorizedKey(const QString& pubKeyLine,
 
     const QString normKey = normalizeKeyLine(key);
 
+    // Check for exact normalized match (idempotent)
     if (hasExisting) {
         const QStringList lines = existing.split('\n', Qt::SkipEmptyParts);
         for (const QString& ln : lines) {
@@ -1411,6 +1508,7 @@ bool SshClient::installAuthorizedKey(const QString& pubKeyLine,
 
     // Write atomically and chmod 600
     if (!writeRemoteTextFileAtomic(akPath, newText, 0600, &e)) {
+        // Best-effort rollback: restore from backup if we made one.
         if (!backupPath.isEmpty()) {
             QString out;
             exec(QString("cp -f %1 %2").arg(shQuote(backupPath), shQuote(akPath)), &out, nullptr);

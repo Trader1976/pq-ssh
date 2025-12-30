@@ -24,6 +24,8 @@
     </qresource>
 
     <qresource prefix="/wordlists">
-        <file>bip39_english.txt</file>
+        <file alias="bip39_english.txt">wordlists/bip39_english.txt</file>
     </qresource>
+
+
 </RCC>
