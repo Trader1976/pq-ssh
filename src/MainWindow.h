@@ -6,6 +6,8 @@
 #include <QString>
 #include <QByteArray>
 #include <QUuid>
+#include <QPointer>
+#include <QProcess>
 #include <QAction>
 
 #include "SshProfile.h"
@@ -23,6 +25,7 @@ class QLineEdit;
 class QLabel;
 class QCheckBox;
 class QTabWidget;
+class QProcess;   // <-- add this
 
 class CpunkTermWidget;
 class FilesTab;
@@ -150,6 +153,16 @@ private:
     bool showStartupUnlockDialog();
     bool verifyAppPassword(const QString& pass) const;
     QLabel *m_versionLabel = nullptr;
+    void startOpenSshKexProbe(const SshProfile& p);
+    QPointer<QProcess> m_kexProbeProc;
+    QLabel *m_sshKexLabel  = nullptr;   // OpenSSH (terminal/probe)
+    QLabel *m_sftpKexLabel = nullptr;   // libssh (SFTP)
+    void setBadge(QLabel *label,
+              const QString &text,
+              const QString &color,
+              const QString &tooltip = QString());
+
+
 
 };
 

@@ -81,6 +81,7 @@
 #include "SettingsDialog.h"
 #include "Fleet/FleetWindow.h"
 #include "AuditLogger.h"
+#include "SshProfile.h"
 
 //
 // ARCHITECTURE NOTES (MainWindow.cpp)
@@ -113,7 +114,22 @@ static void forceBlackBackground(CpunkTermWidget *term);
 static void protectTermFromAppStyles(CpunkTermWidget *term);
 static void stopTerm(CpunkTermWidget* term);
 
+void MainWindow::setBadge(QLabel *label,
+                          const QString &text,
+                          const QString &color,
+                          const QString &tooltip)
+{
+    if (!label)
+        return;
 
+    label->setText(text);
+    label->setStyleSheet(
+        QString("color: %1; font-weight: bold;").arg(color)
+    );
+
+    if (!tooltip.isEmpty())
+        label->setToolTip(tooltip);
+}
 // =====================================================
 // Macro placeholder expansion
 // =====================================================
@@ -176,6 +192,24 @@ static bool macroValueForKey(const QString& keyUpper,
     }
 
     return false;
+}
+
+static QString prettyKexName(const QString& raw)
+{
+    const QString r = raw.trimmed();
+    if (r.contains("mlkem768x25519", Qt::CaseInsensitive))
+        return "ML-KEM-768 + X25519 (Hybrid PQ)";
+    if (r.contains("sntrup761x25519", Qt::CaseInsensitive))
+        return "sntrup761 + X25519 (Hybrid PQ)";
+    if (r.contains("curve25519", Qt::CaseInsensitive))
+        return "X25519 (Curve25519)";
+    return r.isEmpty() ? "unknown" : r;
+}
+
+static bool isPqKex(const QString& raw)
+{
+    return raw.contains("mlkem", Qt::CaseInsensitive) ||
+           raw.contains("sntrup", Qt::CaseInsensitive);
 }
 
 
@@ -654,6 +688,112 @@ MainWindow::MainWindow(QWidget *parent)
     qInfo() << "MainWindow constructed OK";
 }
 
+void MainWindow::startOpenSshKexProbe(const SshProfile& p)
+{
+    // Kill any previous probe
+    if (m_kexProbeProc) {
+        m_kexProbeProc->kill();
+        m_kexProbeProc->deleteLater();
+        m_kexProbeProc = nullptr;
+    }
+
+    // Show "probing" immediately
+    setBadge(m_sshKexLabel,
+             tr("SSH KEX: probing…"),
+             "#9AA0A6",
+             tr("Running OpenSSH probe to detect negotiated KEX"));
+
+    auto *proc = new QProcess(this);
+    m_kexProbeProc = proc;
+
+    auto stderrBuf = QSharedPointer<QByteArray>::create();
+    auto stdoutBuf = QSharedPointer<QByteArray>::create();
+
+    // Build args
+    QStringList args;
+
+    // IMPORTANT: need debug output to see negotiated KEX lines
+    args << "-vv";
+
+    args << "-o" << "KexAlgorithms=sntrup761x25519-sha512@openssh.com"
+         << "-o" << "PreferredAuthentications=none"
+         << "-o" << "PasswordAuthentication=no"
+         << "-o" << "BatchMode=yes"
+         << "-o" << "NumberOfPasswordPrompts=0"
+         << "-o" << "ConnectTimeout=3"
+         << "-o" << "ConnectionAttempts=1";
+
+    if (p.port > 0) args << "-p" << QString::number(p.port);
+    args << (p.user + "@" + p.host) << "true";
+
+    // capture QPointer, not raw pointer
+    QPointer<QProcess> pp(proc);
+
+    connect(proc, &QProcess::readyReadStandardError, this,
+            [pp, stderrBuf]() {
+                if (!pp) return;
+                stderrBuf->append(pp->readAllStandardError());
+            });
+
+    connect(proc, &QProcess::readyReadStandardOutput, this,
+            [pp, stdoutBuf]() {
+                if (!pp) return;
+                stdoutBuf->append(pp->readAllStandardOutput());
+            });
+
+    connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this,
+            [this, pp, stderrBuf, stdoutBuf](int exitCode, QProcess::ExitStatus /*st*/) {
+
+                if (!pp) return;
+
+                const QString errText = QString::fromUtf8(*stderrBuf);
+                const QString outText = QString::fromUtf8(*stdoutBuf);
+                Q_UNUSED(outText);
+
+                // Try to extract negotiated KEX from OpenSSH debug stderr
+                // Typical line: "debug1: kex: algorithm: sntrup761x25519-sha512@openssh.com"
+                QRegularExpression re(R"(kex:\s*algorithm:\s*([^\r\n]+))",
+                                      QRegularExpression::CaseInsensitiveOption);
+
+                QString kexAlg;
+                auto it = re.globalMatch(errText);
+                while (it.hasNext()) {
+                    auto m = it.next();
+                    kexAlg = m.captured(1).trimmed(); // keep last match (most relevant)
+                }
+
+                if (!kexAlg.isEmpty()) {
+                    const bool pq =
+                        kexAlg.contains("sntrup", Qt::CaseInsensitive) ||
+                        kexAlg.contains("mlkem",  Qt::CaseInsensitive);
+
+                    setBadge(
+                        m_sshKexLabel,
+                        pq ? tr("SSH KEX: PQ / hybrid") : tr("SSH KEX: classical"),
+                        pq ? "#00FF99" : "#9AA0A6",
+                        tr("OpenSSH negotiated KEX: %1").arg(kexAlg)
+                    );
+                } else {
+                    // Could not parse KEX (still show something useful)
+                    const QString tip = errText.left(2000); // don’t explode tooltips
+                    setBadge(
+                        m_sshKexLabel,
+                        tr("SSH KEX: unknown"),
+                        "#9AA0A6",
+                        tip.isEmpty() ? tr("No OpenSSH debug output captured.") : tip
+                    );
+                }
+
+                pp->deleteLater();
+                if (m_kexProbeProc == pp)
+                    m_kexProbeProc = nullptr;
+            });
+
+    proc->start("ssh", args);
+}
+
+
 MainWindow::~MainWindow()
 {
     m_ssh.disconnect();
@@ -733,6 +873,7 @@ void MainWindow::setupUi()
     auto *logLayout = new QVBoxLayout(logPage);
     logLayout->setContentsMargins(0, 0, 0, 0);
     logLayout->setSpacing(0);
+
     m_terminal = new QPlainTextEdit(logPage);
     m_terminal->setReadOnly(true);
     m_terminal->setFrameShape(QFrame::NoFrame);
@@ -782,8 +923,11 @@ void MainWindow::setupUi()
     m_statusLabel = new QLabel(tr("Ready."), bottomBar);
     m_statusLabel->setStyleSheet("color: gray;");
 
-    m_pqStatusLabel = new QLabel(tr("PQ: unknown"), bottomBar);
-    m_pqStatusLabel->setStyleSheet("color: #888; font-weight: bold;");
+    m_sshKexLabel = new QLabel(tr("SSH KEX: unknown"), bottomBar);
+    m_sshKexLabel->setStyleSheet("color: #888; font-weight: bold;");
+
+    m_sftpKexLabel = new QLabel(tr("SFTP KEX: unknown"), bottomBar);
+    m_sftpKexLabel->setStyleSheet("color: #888; font-weight: bold;");
 
     m_pqDebugCheck = new QCheckBox(tr("PQ debug"), bottomBar);
     m_pqDebugCheck->setChecked(true);
@@ -793,8 +937,10 @@ void MainWindow::setupUi()
 
     bottomLayout->addWidget(m_statusLabel, 1);
     bottomLayout->addWidget(m_openInNewWindowCheck, 0);
-    bottomLayout->addWidget(m_pqStatusLabel, 0);
+    bottomLayout->addWidget(m_sshKexLabel, 0);
+    bottomLayout->addWidget(m_sftpKexLabel, 0);
     bottomLayout->addWidget(m_pqDebugCheck, 0);
+
     bottomBar->setLayout(bottomLayout);
 
     outer->addWidget(topBar);
@@ -831,35 +977,24 @@ void MainWindow::setupUi()
     connect(m_editProfilesBtn, &QPushButton::clicked,
             this, &MainWindow::onEditProfilesClicked);
 
+    // IMPORTANT: This is libssh/SFTP session KEX, not the terminal OpenSSH process KEX.
     connect(&m_ssh, &SshClient::kexNegotiated, this,
             [this](const QString& pretty, const QString& raw) {
 
-                const bool pq =
-                    raw.contains("mlkem", Qt::CaseInsensitive) ||
-                    raw.contains("sntrup", Qt::CaseInsensitive);
-
-                if (pq) {
-                    appendTerminalLine(
-                        tr("[PQ] 🧬 Post-Quantum key exchange established → %1")
-                            .arg(pretty)
-                    );
-                } else {
-                    appendTerminalLine(
-                        tr("[KEX] Classical key exchange negotiated → %1")
-                            .arg(pretty)
-                    );
-                }
-
-                updatePqStatusLabel(
-                    pq ? (tr("Post-Quantum KEX: %1").arg(pretty))
-                       : (tr("KEX: %1").arg(pretty)),
-                    pq ? "#00FF99" : "#9AA0A6"
+                // libssh is classical-only today (no OpenSSH hybrid sntrup/mlkem)
+                appendTerminalLine(
+                    tr("[SFTP-KEX] Classical (libssh limitation) → %1").arg(pretty)
                 );
 
-                if (m_pqStatusLabel)
-                    m_pqStatusLabel->setToolTip(tr("Negotiated KEX: %1").arg(raw));
+                setBadge(
+                    m_sftpKexLabel,
+                    tr("SFTP KEX: %1").arg(pretty),
+                    "#9AA0A6",
+                    tr("SFTP negotiated KEX (libssh): %1").arg(raw)
+                );
             });
 }
+
 
 void MainWindow::setupMenus()
 {
@@ -1093,6 +1228,13 @@ void MainWindow::updatePqStatusLabel(const QString &text, const QString &colorHe
     }
 
     m_pqStatusLabel->setStyleSheet(QString("color:%1; font-weight:bold;").arg(col));
+}
+static void setBadge(QLabel *lbl, const QString &text, const QString &color, const QString &tooltip = QString())
+{
+    if (!lbl) return;
+    lbl->setText(text);
+    lbl->setStyleSheet(QString("color: %1; font-weight: bold;").arg(color));
+    if (!tooltip.isEmpty()) lbl->setToolTip(tooltip);
 }
 
 // ========================
@@ -1656,6 +1798,7 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent, co
 
     term->setAutoClose(true);
     term->startShellProgram();
+    startOpenSshKexProbe(p);
 
     QTimer::singleShot(0,  term, [term]() { protectTermFromAppStyles(term); });
     QTimer::singleShot(50, term, [term]() { protectTermFromAppStyles(term); });

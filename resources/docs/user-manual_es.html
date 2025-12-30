@@ -729,10 +729,24 @@
     <section id="pq-status" class="card">
         <h2>Indicador de estado PQ</h2>
         <p>
-            PQ-SSH ejecuta un sondeo rápido para detectar si el servidor remoto soporta un intercambio de claves con capacidad PQ.
-            Esto <b>no</b> cambia la configuración del servidor; es informativo.
+            PQ-SSH ejecuta una prueba rápida para detectar si el servidor remoto
+            admite un intercambio de claves compatible con PQ.
+            Esto <b>no</b> modifica la configuración del servidor; es solo informativo.
         </p>
 
+        <h3>Qué significan las insignias</h3>
+
+        <div class="note">
+            <b>Importante:</b> PQ-SSH puede utilizar <b>dos pilas SSH diferentes</b> al mismo tiempo:
+            <ul class="bullets">
+                <li><b>Terminal SSH</b> usa el <b>OpenSSH</b> del sistema (la sesión interactiva principal).</li>
+                <li><b>SFTP</b> usa una sesión opcional basada en <b>libssh</b> (solo para la pestaña Archivos / transferencias).</li>
+            </ul>
+            Debido a que estas pilas son distintas, pueden negociar
+            <b>algoritmos diferentes</b>.
+        </div>
+
+        <h4>Soporte PQ</h4>
         <div class="badges">
             <span class="badge ok">Soporte PQ: SÍ</span>
             <span class="badge off">Soporte PQ: NO</span>
@@ -740,15 +754,52 @@
         </div>
 
         <ul class="bullets">
-            <li><b>PQ: ACTIVE</b> — se detectó KEX seguro PQ (sondeo correcto).</li>
-            <li><b>PQ: OFF</b> — el servidor probablemente no ofrece el KEX PQ/híbrido sondeado.</li>
-            <li><b>PQ: comprobando…</b> — sondeo en curso.</li>
+            <li><b>Soporte PQ: SÍ</b> — la prueba detectó un intercambio de claves PQ/híbrido ofrecido por el servidor.</li>
+            <li><b>Soporte PQ: NO</b> — es probable que el servidor no ofrezca el KEX PQ/híbrido probado.</li>
+            <li><b>PQ: comprobando…</b> — prueba en curso.</li>
+        </ul>
+
+        <h4>SSH KEX vs SFTP KEX</h4>
+        <p>
+            PQ-SSH muestra el intercambio de claves negociado por separado para ambas conexiones:
+        </p>
+
+        <ul class="bullets">
+            <li>
+                <b>SSH KEX</b> — negociado por <b>OpenSSH</b> (la sesión de terminal).
+                Es el más importante para tu shell interactivo.
+            </li>
+            <li>
+                <b>SFTP KEX</b> — negociado por <b>libssh</b> (la sesión SFTP usada por la pestaña Archivos).
+            </li>
         </ul>
 
         <div class="note">
-            El indicador es una pista de UI “best-effort”; no fuerza modo PQ y no modifica la configuración del servidor SSH.
+            <b>Limitación de libssh:</b> incluso si la sesión de terminal negocia un KEX PQ/híbrido,
+            la sesión SFTP basada en libssh puede seguir mostrando algoritmos <b>clásicos</b>
+            debido a limitaciones de la biblioteca.
+            Esto es esperado y no “degrada” la sesión de terminal OpenSSH.
+        </div>
+
+        <h4>Diagnósticos en la pestaña Registro</h4>
+        <p>
+            Con <b>PQ debug</b> habilitado, pueden aparecer líneas como:
+        </p>
+        <pre class="codeblock"><code>[PQ-PROBE] ... ssh ... true
+[SFTP-KEX] Classical (libssh limitation) → X25519 (Curve25519)</code></pre>
+
+        <div class="tip">
+            Consejo: Si <b>SSH KEX</b> muestra PQ/híbrido pero <b>SFTP KEX</b> muestra clásico,
+            normalmente significa que el servidor admite PQ/híbrido en OpenSSH,
+            pero la ruta de la biblioteca SFTP no puede negociarlo.
+        </div>
+
+        <div class="note">
+            Los indicadores son pistas visuales de mejor esfuerzo;
+            PQ-SSH no modifica la configuración del servidor SSH ni impone el modo PQ.
         </div>
     </section>
+
 
     <section class="card" id="key-install">
         <h2>Instalar una clave pública en un servidor</h2>

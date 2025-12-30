@@ -726,12 +726,26 @@
     </section>
 
     <section id="pq-status" class="card">
-        <h2>PQ-tilan indikaattori</h2>
+        <h2>PQ-tilan ilmaisin</h2>
         <p>
-            PQ-SSH ajaa nopean probe-tarkistuksen havaitakseen, tukeeko etäpalvelin PQ-kyvykästä avaintenvaihtoa.
-            Tämä <b>ei</b> muuta palvelimen asetuksia; se on informatiivinen.
+            PQ-SSH suorittaa nopean testin selvittääkseen, tukeeko etäpalvelin
+            PQ-yhteensopivaa avainvaihtoa.
+            Tämä <b>ei</b> muuta palvelimen asetuksia; tieto on vain informatiivinen.
         </p>
 
+        <h3>Mitä tunnisteet tarkoittavat</h3>
+
+        <div class="note">
+            <b>Tärkeää:</b> PQ-SSH voi käyttää <b>kahta eri SSH-pinoa</b> samanaikaisesti:
+            <ul class="bullets">
+                <li><b>Terminal SSH</b> käyttää järjestelmän <b>OpenSSH</b>:ta (pääasiallinen interaktiivinen istunto).</li>
+                <li><b>SFTP</b> käyttää valinnaista <b>libssh</b>-istuntoa (vain Tiedostot-välilehti / siirrot).</li>
+            </ul>
+            Koska nämä pinot ovat eri toteutuksia, ne voivat neuvotella
+            <b>eri algoritmeista</b>.
+        </div>
+
+        <h4>PQ-tuki</h4>
         <div class="badges">
             <span class="badge ok">PQ-tuki: KYLLÄ</span>
             <span class="badge off">PQ-tuki: EI</span>
@@ -739,13 +753,49 @@
         </div>
 
         <ul class="bullets">
-            <li><b>PQ: AKTIIVINEN</b> — PQ-turvallinen KEX havaittu (probe onnistui).</li>
-            <li><b>PQ: POIS</b> — palvelin ei todennäköisesti tarjoa probattua PQ/hybridi-KEX:ää.</li>
-            <li><b>PQ: tarkistetaan…</b> — probe on käynnissä.</li>
+            <li><b>PQ-tuki: KYLLÄ</b> — testi havaitsi palvelimen tarjoavan PQ-/hybrid-avainvaihdon.</li>
+            <li><b>PQ-tuki: EI</b> — palvelin ei todennäköisesti tarjoa testattua PQ-/hybrid-KEX:iä.</li>
+            <li><b>PQ: tarkistetaan…</b> — testi on käynnissä.</li>
+        </ul>
+
+        <h4>SSH KEX vs SFTP KEX</h4>
+        <p>
+            PQ-SSH näyttää neuvotellun avainvaihdon erikseen molemmille yhteyksille:
+        </p>
+
+        <ul class="bullets">
+            <li>
+                <b>SSH KEX</b> — neuvoteltu <b>OpenSSH</b>:n kautta (terminaali-istunto).
+                Tämä on tärkein interaktiivisen komentotulkin kannalta.
+            </li>
+            <li>
+                <b>SFTP KEX</b> — neuvoteltu <b>libssh</b>:n kautta (Tiedostot-välilehden SFTP-istunto).
+            </li>
         </ul>
 
         <div class="note">
-            Indikaattori on best-effort UI-vihje; se ei pakota PQ-tilaa eikä muuta SSH-palvelimen asetuksia.
+            <b>libssh-rajoitus:</b> vaikka terminaali-istunto neuvottelisi PQ-/hybrid-KEX:n,
+            libssh-pohjainen SFTP-istunto voi silti näyttää <b>klassisia</b> algoritmeja
+            kirjaston rajoitusten vuoksi.
+            Tämä on odotettua eikä “alenna” OpenSSH-terminaaliyhteyttä.
+        </div>
+
+        <h4>Diagnostiikka Lokit-välilehdessä</h4>
+        <p>
+            Kun <b>PQ-debug</b> on käytössä, lokissa voi näkyä esimerkiksi:
+        </p>
+        <pre class="codeblock"><code>[PQ-PROBE] ... ssh ... true
+[SFTP-KEX] Classical (libssh limitation) → X25519 (Curve25519)</code></pre>
+
+        <div class="tip">
+            Vinkki: Jos <b>SSH KEX</b> näyttää PQ-/hybrid-tilan mutta <b>SFTP KEX</b> näyttää klassisen,
+            tämä tarkoittaa yleensä, että palvelin tukee PQ-/hybridiä OpenSSH:ssa,
+            mutta SFTP-kirjastopolku ei pysty neuvottelemaan sitä.
+        </div>
+
+        <div class="note">
+            Ilmaisimet ovat parhaaseen arvioon perustuvia käyttöliittymävihjeitä;
+            PQ-SSH ei muuta SSH-palvelimen asetuksia eikä pakota PQ-tilaa.
         </div>
     </section>
 

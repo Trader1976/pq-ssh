@@ -729,10 +729,24 @@
     <section id="pq-status" class="card">
         <h2>PQ 状态指示器</h2>
         <p>
-            PQ-SSH 会进行一次快速探测，用于判断远端服务器是否支持 PQ 能力的密钥交换。
-            这 <b>不会</b> 更改服务器设置，仅用于提示。
+            PQ-SSH 会执行一次快速探测，用于判断远程服务器是否支持
+            具备 PQ 能力的密钥交换。
+            此操作 <b>不会</b> 更改服务器配置，仅用于信息显示。
         </p>
 
+        <h3>标识的含义</h3>
+
+        <div class="note">
+            <b>重要说明：</b> PQ-SSH 可以同时使用 <b>两套不同的 SSH 栈</b>：
+            <ul class="bullets">
+                <li><b>终端 SSH</b> 使用系统的 <b>OpenSSH</b>（主要的交互式会话）。</li>
+                <li><b>SFTP</b> 使用可选的 <b>libssh</b> 会话（仅用于“文件”标签页 / 传输）。</li>
+            </ul>
+            由于这两套实现不同，它们可能协商出
+            <b>不同的算法</b>。
+        </div>
+
+        <h4>PQ 支持</h4>
         <div class="badges">
             <span class="badge ok">PQ 支持：是</span>
             <span class="badge off">PQ 支持：否</span>
@@ -740,13 +754,49 @@
         </div>
 
         <ul class="bullets">
-            <li><b>PQ：ACTIVE</b> — 检测到 PQ 安全 KEX（探测成功）。</li>
-            <li><b>PQ：OFF</b> — 服务器可能不提供所探测的 PQ/混合 KEX。</li>
+            <li><b>PQ 支持：是</b> — 探测发现服务器提供了 PQ / 混合型密钥交换。</li>
+            <li><b>PQ 支持：否</b> — 服务器很可能未提供所探测的 PQ / 混合 KEX。</li>
             <li><b>PQ：检测中…</b> — 探测正在进行。</li>
         </ul>
 
+        <h4>SSH KEX 与 SFTP KEX</h4>
+        <p>
+            PQ-SSH 会分别显示两种连接所协商的密钥交换方式：
+        </p>
+
+        <ul class="bullets">
+            <li>
+                <b>SSH KEX</b> — 由 <b>OpenSSH</b> 协商（终端会话）。
+                这是交互式 Shell 最重要的部分。
+            </li>
+            <li>
+                <b>SFTP KEX</b> — 由 <b>libssh</b> 协商（文件标签页使用的 SFTP 会话）。
+            </li>
+        </ul>
+
         <div class="note">
-            该指示器是尽力而为的 UI 提示；不会强制启用 PQ 模式，也不会修改 SSH 服务器配置。
+            <b>libssh 限制：</b> 即使终端会话成功协商了 PQ / 混合 KEX，
+            基于 libssh 的 SFTP 会话仍可能显示为 <b>经典</b> 算法，
+            这是由于库本身的支持限制。
+            这是正常现象，并不会“降级”你的 OpenSSH 终端会话。
+        </div>
+
+        <h4>日志标签页中的诊断信息</h4>
+        <p>
+            启用 <b>PQ 调试</b> 后，你可能会看到如下日志：
+        </p>
+        <pre class="codeblock"><code>[PQ-PROBE] ... ssh ... true
+[SFTP-KEX] Classical (libssh limitation) → X25519 (Curve25519)</code></pre>
+
+        <div class="tip">
+            提示：如果 <b>SSH KEX</b> 显示为 PQ / 混合，而 <b>SFTP KEX</b> 显示为经典，
+            通常意味着服务器在 OpenSSH 中支持 PQ / 混合算法，
+            但 SFTP 所使用的库路径无法协商该算法。
+        </div>
+
+        <div class="note">
+            这些指示器仅为尽力而为的界面提示；
+            PQ-SSH 不会修改 SSH 服务器配置，也不会强制启用 PQ 模式。
         </div>
     </section>
 

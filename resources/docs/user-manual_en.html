@@ -143,11 +143,10 @@
         .card { padding: 12px 14px; }
         .card h2 { margin-top: 0; }
 
-        <style>
-             /* --- Readability spacing (Windows Classic friendly) --- */
+        /* --- Readability spacing (Windows Classic friendly) --- */
 
-             /* Space between cards (Getting started, Profiles, Connect...) */
-         main.content > section.card { margin: 0 0 16px 0; }
+        /* Space between cards (Getting started, Profiles, Connect...) */
+        main.content > section.card { margin: 0 0 16px 0; }
 
         /* Paragraph spacing inside cards */
         .card p { margin: 10px 0; line-height: 1.45; }
@@ -168,9 +167,6 @@
 
         /* Troubleshooting details spacing */
         details { margin: 10px 0; }
-
-    </style>
-
     </style>
 </head>
 
@@ -613,7 +609,6 @@
             <pre class="codeblock"><code>{root}</code></pre>
         </div>
 
-
         <div class="warn">
             <b>Important:</b> Unknown placeholders are left as-is.
         </div>
@@ -751,6 +746,18 @@
             This does <b>not</b> change server settings; it is informational.
         </p>
 
+        <h3>What the badges mean</h3>
+
+        <div class="note">
+            <b>Important:</b> PQ-SSH can use <b>two different SSH stacks</b> at the same time:
+            <ul class="bullets">
+                <li><b>Terminal SSH</b> uses your system <b>OpenSSH</b> (this is the main interactive session).</li>
+                <li><b>SFTP</b> uses an optional <b>libssh</b> session (only for Files tab / transfers).</li>
+            </ul>
+            Because these stacks are different, they can negotiate <b>different algorithms</b>.
+        </div>
+
+        <h4>PQ support</h4>
         <div class="badges">
             <span class="badge ok">PQ support: YES</span>
             <span class="badge off">PQ support: NO</span>
@@ -758,13 +765,46 @@
         </div>
 
         <ul class="bullets">
-            <li><b>PQ: ACTIVE</b> — PQ-safe KEX detected (probe succeeded).</li>
-            <li><b>PQ: OFF</b> — server likely does not offer the probed PQ/hybrid KEX.</li>
+            <li><b>PQ support: YES</b> — the probe detected a PQ/hybrid-capable key exchange offered by the server.</li>
+            <li><b>PQ support: NO</b> — the server likely does not offer the probed PQ/hybrid KEX.</li>
             <li><b>PQ: checking…</b> — probe in progress.</li>
         </ul>
 
+        <h4>SSH KEX vs SFTP KEX</h4>
+        <p>
+            PQ-SSH shows the negotiated key exchange separately for the two connections:
+        </p>
+
+        <ul class="bullets">
+            <li>
+                <b>SSH KEX</b> — negotiated by <b>OpenSSH</b> (the terminal session).
+                This is the most important one for your interactive shell.
+            </li>
+            <li>
+                <b>SFTP KEX</b> — negotiated by <b>libssh</b> (the SFTP session used by the Files tab).
+            </li>
+        </ul>
+
         <div class="note">
-            The indicator is a best-effort UI hint; it does not enforce PQ mode and does not modify SSH server configuration.
+            <b>libssh limitation:</b> even if your terminal session negotiates a PQ/hybrid KEX,
+            the libssh SFTP session may still show <b>classical</b> algorithms due to library support limitations.
+            This is expected and does not “downgrade” your OpenSSH terminal session.
+        </div>
+
+        <h4>Diagnostics in the Log tab</h4>
+        <p>
+            With <b>PQ debug</b> enabled, you may see lines like:
+        </p>
+        <pre class="codeblock"><code>[PQ-PROBE] ... ssh ... true
+[SFTP-KEX] Classical (libssh limitation) → X25519 (Curve25519)</code></pre>
+
+        <div class="tip">
+            Tip: If <b>SSH KEX</b> shows PQ/hybrid but <b>SFTP KEX</b> shows classical, this typically means:
+            the server supports PQ/hybrid in OpenSSH, but the SFTP library path cannot negotiate it.
+        </div>
+
+        <div class="note">
+            The indicators are best-effort UI hints; PQ-SSH does not modify SSH server configuration and does not enforce PQ mode.
         </div>
     </section>
 

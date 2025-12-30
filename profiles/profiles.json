@@ -22,16 +22,8 @@
             "host": "83.146.239.12",
             "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
             "key_type": "auto",
-            "macro_command": "clear",
-            "macro_enter": false,
-            "macro_shortcut": "Ctrl+L",
+            "macro_enter": true,
             "macros": [
-                {
-                    "command": "clear",
-                    "name": "Clear screen",
-                    "send_enter": false,
-                    "shortcut": "Ctrl+L"
-                },
                 {
                     "command": "df -h",
                     "name": "Disk usage",
@@ -60,7 +52,7 @@
             "name": "DHT Server",
             "port": 1060,
             "port_forwarding_enabled": false,
-            "pq_debug": true,
+            "pq_debug": false,
             "term_color_scheme": "WhiteOnBlack",
             "term_font_size": 11,
             "term_height": 500,
