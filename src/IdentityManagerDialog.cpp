@@ -542,24 +542,32 @@ QStringList IdentityManagerDialog::generateRandom24(QString *err) const
 void IdentityManagerDialog::onCreateIdentity()
 {
     QString err;
-    const QStringList words = generateRandom24(&err);
-    if (words.isEmpty()) {
-        QMessageBox::warning(this, tr("Create identity"), err.isEmpty() ? tr("Failed to generate words.") : err);
+    const QString mnemonic =
+        DnaIdentityDerivation::generateBip39Mnemonic24(&err);
+
+    if (mnemonic.isEmpty()) {
+        QMessageBox::warning(
+            this,
+            tr("Create identity"),
+            err.isEmpty()
+                ? tr("Failed to generate BIP39 recovery phrase.")
+                : err
+        );
         return;
     }
 
-    // Make it readable: one per line
-    if (m_words) m_words->setPlainText(words.join("\n"));
+    // Display as one word per line (UX-friendly)
+    if (m_words)
+        m_words->setPlainText(mnemonic.split(' ').join('\n'));
 
     if (m_alias) m_alias->clear();
     if (m_savedList) m_savedList->clearSelection();
 
-    // COMMENT: clearDerivedUi also clears m_selectedFp and disables Remove.
-    // That matches "new identity" state.
     clearDerivedUi();
 
     if (m_alias) m_alias->setFocus();
 }
+
 
 void IdentityManagerDialog::onRestoreIdentity()
 {
