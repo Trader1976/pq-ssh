@@ -131,7 +131,7 @@ CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
 
     // Terminal opacity should always be stable.
     setTerminalOpacity(1.0);
-
+    setBoldIntense(false);
     // Build a monospace base font BUT do not force a size here.
     // Size must come from profile (MainWindow / ShellManager).
     QFont f = getTerminalFont(); // <-- qtermwidget getter (common API)

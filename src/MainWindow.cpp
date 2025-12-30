@@ -1742,21 +1742,25 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
     const QString scheme =
         p.termColorScheme.isEmpty() ? "WhiteOnBlack" : p.termColorScheme;
 
-    appendTerminalLine(tr("[TERM] profile=%1 scheme='%2' (raw='%3')")
-                       .arg(p.name, scheme, p.termColorScheme));
-    appendTerminalLine(tr("[TERM] available schemes: %1")
-                       .arg(term->availableColorSchemes().join(", ")));
-
     term->setColorScheme(scheme);
 
-    protectTermFromAppStyles(term);
-
-    QFont f("Monospace");
+    // IMPORTANT: set a deterministic monospace font and force NORMAL weight
+    QFont f = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     f.setStyleHint(QFont::TypeWriter);
-    f.setPointSize(p.termFontSize > 0 ? p.termFontSize : 11);
-    term->setTerminalFont(f);
+    f.setFixedPitch(true);
+    f.setKerning(false);
 
+    const int sz = (p.termFontSize > 0 ? p.termFontSize : 11);
+    if (sz > 0) f.setPointSize(sz);
+
+    f.setBold(false);
+    f.setWeight(QFont::Normal);
+
+    term->setTerminalFont(f);
+    term->setBoldIntense(false);
     term->setTerminalOpacity(1.0);
+
+    protectTermFromAppStyles(term);
 
     if (scheme == "WhiteOnBlack") {
         forceBlackBackground(term);
@@ -1765,6 +1769,7 @@ void MainWindow::applyProfileToTerm(CpunkTermWidget *term, const SshProfile &p)
 
     syncTerminalSurroundingsToTerm(term);
 }
+
 
 void MainWindow::openShellForProfile(const SshProfile &p,
                                      const QString &target,
@@ -1865,17 +1870,27 @@ static void protectTermFromAppStyles(CpunkTermWidget *term)
     if (!term) return;
 
     const QString shield =
-        "QWidget { background-color: palette(Base); color: palette(Text); }";
+        "QWidget { "
+        "  background-color: palette(Base); "
+        "  color: palette(Text); "
+        "  font-weight: normal; "
+        "}";
 
     term->setAutoFillBackground(true);
     term->setStyleSheet(shield);
 
-    const auto kids = term->findChildren<QWidget*>();
-    for (QWidget *w : kids) {
+    for (QWidget *w : term->findChildren<QWidget*>()) {
         w->setAutoFillBackground(true);
         w->setStyleSheet(shield);
     }
+
+    // Also hammer it at QFont level (because qtermwidget paints text from its own font)
+    QFont tf = term->getTerminalFont();
+    tf.setBold(false);
+    tf.setWeight(QFont::Normal);
+    term->setTerminalFont(tf);
 }
+
 
 void MainWindow::onOpenLogFile()
 {
