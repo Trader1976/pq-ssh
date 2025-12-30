@@ -116,6 +116,20 @@ static QStringList splitMnemonicWordsNormalized(const QString& mnemonicNfkdLower
 
 namespace DnaIdentityDerivation {
 
+
+QByteArray deriveEd25519Seed32FromMaster(const QByteArray& masterSeed64)
+{
+    if (masterSeed64.size() != 64)
+        return {};
+
+    // Domain separation: must stay stable forever
+    const QByteArray ctx = QByteArrayLiteral("cpunk-pqssh-ed25519-v1");
+
+    // SHAKE256(master || ctx) -> 32 bytes
+    const QByteArray in = masterSeed64 + ctx;
+    return shake256_32(in);
+}
+
 // -----------------------------------------------------------------------------
 // normalizeMnemonic (BIP39: NFKD + lowercase + single spaces)
 // -----------------------------------------------------------------------------

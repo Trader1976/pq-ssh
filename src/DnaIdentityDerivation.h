@@ -16,6 +16,10 @@ struct DerivedDnaIdentity {
     bool ok = false;
 };
 
+// Derive a deterministic 32-byte Ed25519 seed from an already-derived BIP39 master seed (64 bytes).
+// Domain-separated and stable forever.
+QByteArray deriveEd25519Seed32FromMaster(const QByteArray& masterSeed64);
+
 // True BIP39 wants NFKD normalization. We'll do it.
 QString normalizeMnemonic(const QString& words);
 

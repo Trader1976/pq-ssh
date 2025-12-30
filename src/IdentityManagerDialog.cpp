@@ -50,8 +50,12 @@
 static void bestEffortZero(QByteArray &b)
 {
     if (b.isEmpty()) return;
-    // Best-effort wipe (Qt containers aren’t guaranteed secure)
-    memset(b.data(), 0, static_cast<size_t>(b.size()));
+
+    volatile unsigned char *p =
+        reinterpret_cast<volatile unsigned char*>(b.data());
+    size_t n = static_cast<size_t>(b.size());
+    while (n--) *p++ = 0;
+
     b.clear();
 }
 
@@ -354,7 +358,7 @@ void IdentityManagerDialog::onDerive()
     const QString wordsRaw = m_words ? m_words->toPlainText() : QString();
     const QString pass     = m_pass  ? m_pass->text()         : QString();
 
-    // ✅ Minimal validation: exactly 24 words (real BIP39 checksum validation optional/future)
+    // 1) Basic UI validation: exactly 24 words
     QString parseErr;
     const QStringList w24 = parseWords24(wordsRaw, &parseErr);
     if (w24.isEmpty()) {
@@ -362,51 +366,56 @@ void IdentityManagerDialog::onDerive()
         return;
     }
 
-    // Use a stable normalized representation for derivation
+    // Stable normalized representation: single spaces
     const QString words = w24.join(' ');
 
-    // 1) Derive DNA identity (PQ fingerprint, etc.)
+    // 2) Strong validation: must be a REAL BIP39 mnemonic (wordlist + checksum)
+    {
+        QString vErr;
+        if (!DnaIdentityDerivation::validateBip39Mnemonic24(words, &vErr)) {
+            QMessageBox::warning(this, tr("Identity"), vErr.isEmpty()
+                                 ? tr("Invalid BIP39 recovery phrase.")
+                                 : vErr);
+            return;
+        }
+    }
+
+    // 3) Derive DNA identity (ML-DSA-87 keypair + fingerprint) from words+pass
     const auto r = DnaIdentityDerivation::deriveFromWords(words, pass);
     if (!r.ok) {
         QMessageBox::warning(this, tr("Identity"), tr("Failed: %1").arg(r.error));
         return;
     }
 
+    // Fingerprint UI
     m_fullFingerprint = r.fingerprintHex128;
     updateFingerprintUi();
 
-    // ✅ IMPORTANT FIX:
-    // Do NOT set m_selectedFp here and do NOT enable "Remove" for a freshly derived (unsaved) identity.
-    // Remove should be enabled only when a saved identity is selected from the list.
+    // Remove button should only be enabled if a SAVED identity is selected
     if (m_removeIdBtn) m_removeIdBtn->setEnabled(!m_selectedFp.isEmpty());
 
-    // 2) Derive Ed25519 SSH key (seed32 = SHAKE256(master64 || ctx))
-    QByteArray master64 = DnaIdentityDerivation::bip39Seed64(words, pass);
+    // 4) Derive Ed25519 SSH key from the SAME validated master seed (no second PBKDF2)
+    QByteArray master64 = r.masterSeed64; // copy so we can wipe locally
 
-    // Make sure we wipe temporaries on ALL exit paths
     auto wipeTemps = [&]() {
         bestEffortZero(master64);
-        // 'in' and 'edSeed32' are wiped below where they exist
     };
 
     if (master64.size() != 64) {
-        QMessageBox::critical(this, tr("Identity"), tr("Failed to derive BIP39 master seed."));
+        QMessageBox::critical(this, tr("Identity"), tr("Internal error: missing master seed."));
         wipeTemps();
         return;
     }
 
-    const QByteArray ctx = QByteArrayLiteral("cpunk-pqssh-ed25519-v1"); // must stay stable forever
-    QByteArray in = master64 + ctx;
-
-    QByteArray edSeed32 = DnaIdentityDerivation::shake256_32(in);
+    QByteArray edSeed32 = DnaIdentityDerivation::deriveEd25519Seed32FromMaster(master64);
     if (edSeed32.size() != 32) {
         QMessageBox::critical(this, tr("Identity"), tr("Failed to derive Ed25519 seed (SHAKE256)."));
-        bestEffortZero(in);
         bestEffortZero(edSeed32);
         wipeTemps();
         return;
     }
 
+    // Create Ed25519 key from raw 32-byte seed
     EVP_PKEY *pkey = EVP_PKEY_new_raw_private_key(
         EVP_PKEY_ED25519, nullptr,
         reinterpret_cast<const unsigned char*>(edSeed32.constData()),
@@ -414,7 +423,6 @@ void IdentityManagerDialog::onDerive()
     );
     if (!pkey) {
         QMessageBox::critical(this, tr("Identity"), tr("Failed to create Ed25519 key."));
-        bestEffortZero(in);
         bestEffortZero(edSeed32);
         wipeTemps();
         return;
@@ -425,38 +433,47 @@ void IdentityManagerDialog::onDerive()
     if (EVP_PKEY_get_raw_public_key(pkey, pub, &pubLen) != 1 || pubLen != 32) {
         EVP_PKEY_free(pkey);
         QMessageBox::critical(this, tr("Identity"), tr("Failed to extract Ed25519 public key."));
-        bestEffortZero(in);
         bestEffortZero(edSeed32);
         wipeTemps();
         return;
     }
     EVP_PKEY_free(pkey);
 
+    // Store derived key material for export
     m_pub32  = QByteArray(reinterpret_cast<const char*>(pub), 32);
-    m_priv64 = edSeed32 + m_pub32;
+    m_priv64 = edSeed32 + m_pub32; // OpenSSH ed25519 private format expects seed||pub
 
     const QString comment = m_comment ? m_comment->text() : QStringLiteral("pq-ssh");
+
     if (m_pubOut)
         m_pubOut->setPlainText(OpenSshEd25519Key::publicKeyLine(m_pub32, comment));
+
     m_privFile = OpenSshEd25519Key::privateKeyFile(m_pub32, m_priv64, comment);
 
-    // wipe sensitive temps
-    bestEffortZero(in);
+    // Wipe sensitive temps
     bestEffortZero(edSeed32);
     wipeTemps();
 }
 
-
 void IdentityManagerDialog::clearDerivedUi()
 {
-    // COMMENT: Good to clear derived outputs; but you may want to keep m_selectedFp if user selected
-    // a saved identity (so Remove stays available) vs "clear derived" for restore/create actions.
+    // If you want "Remove" to only be enabled when a saved identity is selected,
+    // clearing derived UI should also clear the current selection marker.
     m_selectedFp.clear();
-    if (m_fp) m_fp->setText(tr("Fingerprint:"));
-    if (m_pubOut) m_pubOut->clear();
+
+    // Wipe sensitive derived key material BEFORE clearing containers.
+    // (m_pub32 is public key bytes; wiping is optional, but harmless.)
+    bestEffortZero(m_priv64);
+    bestEffortZero(m_privFile);
+
+    // If you want to be extra tidy, you can also clear pub bytes.
+    // Not secret, but avoids leaving identity material lying around.
     m_pub32.clear();
-    m_priv64.clear();
-    m_privFile.clear();
+
+    // Clear UI outputs
+    if (m_fp)     m_fp->setText(tr("Fingerprint:"));
+    if (m_pubOut) m_pubOut->clear();
+
     if (m_removeIdBtn) m_removeIdBtn->setEnabled(false);
 }
 
