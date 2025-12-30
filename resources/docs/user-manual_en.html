@@ -142,6 +142,35 @@
         /* Tighten sections */
         .card { padding: 12px 14px; }
         .card h2 { margin-top: 0; }
+
+        <style>
+             /* --- Readability spacing (Windows Classic friendly) --- */
+
+             /* Space between cards (Getting started, Profiles, Connect...) */
+         main.content > section.card { margin: 0 0 16px 0; }
+
+        /* Paragraph spacing inside cards */
+        .card p { margin: 10px 0; line-height: 1.45; }
+
+        /* Lists */
+        .card ul, .card ol { margin: 10px 0 12px 22px; }
+
+        /* Headings inside cards: spacing ABOVE headings, not huge */
+        .card h2 { margin: 50px 0 12px 0; }
+        .card h3 { margin: 18px 0 8px 0; }
+        .card h4 { margin: 14px 0 6px 0; }
+
+        /* Notes/tips/warnings */
+        .note, .tip, .warn { margin: 12px 0; padding: 10px 12px; }
+
+        /* Code blocks */
+        pre, .codeblock { margin: 10px 0 12px 0; padding: 10px; }
+
+        /* Troubleshooting details spacing */
+        details { margin: 10px 0; }
+
+    </style>
+
     </style>
 </head>
 
@@ -860,7 +889,7 @@ chmod 700 ~/.ssh</code></pre>
         <details>
             <summary>Fleet job failed on one host</summary>
             <ul class="bullets">
-                <li>Open <b>Help → Open log file</b> for detailed errors.</li>
+                <li>Open <b>View → Open log file</b> for detailed errors.</li>
                 <li>Try running the same job against that single host to reproduce.</li>
                 <li>Reduce <b>Concurrency</b> if many hosts fail at once.</li>
                 <li>Increase <b>Timeout</b> if the command is slow on that host.</li>

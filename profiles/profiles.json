@@ -60,7 +60,7 @@
             "name": "DHT Server",
             "port": 1060,
             "port_forwarding_enabled": false,
-            "pq_debug": false,
+            "pq_debug": true,
             "term_color_scheme": "WhiteOnBlack",
             "term_font_size": 11,
             "term_height": 500,

@@ -1953,7 +1953,7 @@ void MainWindow::onOpenUserManual()
     auto *dlg = new QDialog(this);
     dlg->setAttribute(Qt::WA_DeleteOnClose, true);
     dlg->setWindowTitle(tr("PQ-SSH User Manual"));
-    dlg->resize(980, 720);
+    dlg->resize(1100, 720);
 
     auto *layout = new QVBoxLayout(dlg);
     auto *browser = new QTextBrowser(dlg);
