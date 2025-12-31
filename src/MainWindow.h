@@ -14,6 +14,8 @@
 #include "SshClient.h"
 #include "SshConfigImportPlan.h"
 #include "SshConfigParser.h"
+#include "ScheduledJob.h"
+
 
 
 
@@ -25,7 +27,7 @@ class QLineEdit;
 class QLabel;
 class QCheckBox;
 class QTabWidget;
-class QProcess;   // <-- add this
+class QProcess;
 
 class CpunkTermWidget;
 class FilesTab;
@@ -35,6 +37,7 @@ class SettingsDialog;
 class IdentityManagerDialog;
 class SshConfigImportDialog;
 class SshConfigImportPlanDialog;
+class ScheduledJobsDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -65,6 +68,8 @@ private slots:
     void onKexNegotiated(const QString& prettyText, const QString& rawKex);
     void onIdentityManagerRequested();
     void onImportOpenSshConfig();
+
+    void onOpenScheduledJobsDialog();
 
 protected:
     void closeEvent(QCloseEvent* e) override;
@@ -161,6 +166,9 @@ private:
               const QString &text,
               const QString &color,
               const QString &tooltip = QString());
+
+    QVector<ScheduledJob> m_scheduledJobs;
+    ScheduledJobsDialog* m_jobsDlg = nullptr;
 
 
 

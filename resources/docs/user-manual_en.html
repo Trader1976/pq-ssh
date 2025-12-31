@@ -186,6 +186,7 @@
             <a class="btn" href="#profiles">Profiles</a>
             <a class="btn" href="#connect">Connect</a>
             <a class="btn" href="#fleet-jobs">Fleet jobs</a>
+            <a class="btn" href="#scheduled-jobs">Scheduled jobs</a>
             <a class="btn" href="#macros">Macros</a>
             <a class="btn" href="#settings">Settings</a>
             <a class="btn" href="#themes">Themes</a>
@@ -529,6 +530,129 @@
         <div class="warn">
             <b>Privacy:</b> Avoid storing full command payloads in audit logs if commands may contain secrets.
             Prefer hashes and minimal metadata.
+        </div>
+    </section>
+
+    <!-- ✅ NEW / UPDATED SECTION: Scheduled jobs -->
+    <section id="scheduled-jobs" class="card">
+        <h2>Scheduled jobs (run commands later or on a schedule)</h2>
+
+        <p>
+            <b>Scheduled jobs</b> let you define a command and a schedule, then install it on a selected server profile.
+            This is useful for routine maintenance, delayed actions, and recurring tasks (daily checks, weekly restarts, etc.).
+        </p>
+
+        <div class="note">
+            Scheduled jobs are configured locally in PQ-SSH, but they only execute after you explicitly
+            click <b>Install on server</b>. Creating or editing a job does <b>not</b> affect the remote
+            system until it is installed.
+        </div>
+
+        <div class="tip">
+            Scheduled jobs are ideal for delayed or recurring tasks on a single server.
+            For immediate execution across many servers, use <b>Tools → Fleet jobs…</b>.
+        </div>
+
+        <h3>Where to find Scheduled jobs</h3>
+        <ul class="bullets">
+            <li>Open from the menu: <b>Tools → Scheduled jobs…</b></li>
+        </ul>
+
+        <h3>What you see</h3>
+        <p>
+            The Scheduled jobs window shows a list of jobs and their status. Each row includes:
+        </p>
+        <ul class="bullets">
+            <li><b>Name</b> — friendly label for the job</li>
+            <li><b>Profile</b> — which server (profile) the job is intended for</li>
+            <li><b>Type</b> — One-shot or Recurring</li>
+            <li><b>When</b> — the run time (one-shot) or schedule string (recurring)</li>
+            <li><b>Command</b> — the command that will run on the server</li>
+            <li><b>Installed</b> — whether the job is installed on the remote server</li>
+            <li><b>Enabled</b> — whether the job is enabled locally (future use)</li>
+        </ul>
+
+        <h3>Install, Cancel, and Delete (what each action means)</h3>
+        <ul class="bullets">
+            <li>
+                <b>Install on server</b> —
+                creates or updates the scheduler entry on the remote server.
+                No remote changes happen before this step.
+            </li>
+            <li>
+                <b>Cancel on server</b> —
+                removes the scheduler entry that PQ-SSH previously installed on the remote server.
+            </li>
+            <li>
+                <b>Delete</b> —
+                removes the job from PQ-SSH only.
+                It does <b>not</b> modify the remote server.
+            </li>
+        </ul>
+
+        <div class="warn">
+            <b>Important:</b> Deleting a job without canceling it first may leave the job active
+            on the remote server.
+        </div>
+
+        <h3>Job types</h3>
+
+        <h4>One-shot (run once)</h4>
+        <p>
+            A one-shot job runs once at a specific local time (entered in the dialog as <code>YYYY-MM-DD HH:MM</code>).
+            PQ-SSH installs it using the best available backend on the server.
+        </p>
+
+        <h4>Recurring (OnCalendar)</h4>
+        <p>
+            A recurring job runs repeatedly according to a schedule. When systemd is available, PQ-SSH uses
+            systemd’s <b>OnCalendar</b> format (examples: <code>daily</code>, <code>Mon..Fri 02:00</code>).
+            If systemd-user timers are not usable, PQ-SSH falls back to cron.
+        </p>
+
+        <h3>Backend selection (automatic)</h3>
+        <p>
+            When installing a job, PQ-SSH probes the remote server to determine which scheduling
+            backends are available. The best available backend is chosen automatically.
+        </p>
+        <ul class="bullets">
+            <li><b>Preferred:</b> systemd <b>user</b> timers (<code>systemctl --user</code>)</li>
+            <li><b>Recurring fallback:</b> cron (<code>crontab</code>)</li>
+            <li><b>One-shot fallback:</b> at (<code>at</code>), or cron if <code>at</code> is unavailable</li>
+        </ul>
+
+        <div class="note">
+            Some servers have <code>systemctl</code> installed but do not provide a user DBus session for non-interactive SSH logins.
+            In that case, systemd user timers may fail and PQ-SSH will fall back to cron/at when possible.
+        </div>
+
+        <h3>Command execution environment</h3>
+        <p>
+            Scheduled job commands run non-interactively on the remote server using:
+        </p>
+        <pre class="codeblock"><code>/bin/sh -lc 'your command'</code></pre>
+
+        <div class="note">
+            No interactive terminal is allocated. Commands requiring TTY interaction
+            (such as editors or password prompts) will fail.
+        </div>
+
+        <h3>Examples</h3>
+        <ul class="bullets">
+            <li><b>Daily disk usage snapshot</b>
+                <pre class="codeblock"><code>df -h &gt; ~/disk-usage.txt</code></pre>
+            </li>
+            <li><b>Restart a service at night (be careful)</b>
+                <pre class="codeblock"><code>sudo systemctl restart nginx</code></pre>
+            </li>
+            <li><b>One-shot delayed command</b>
+                <pre class="codeblock"><code>echo "hello" &gt;&gt; ~/hello.log</code></pre>
+            </li>
+        </ul>
+
+        <div class="warn">
+            <b>Security note:</b> Avoid embedding secrets in scheduled job commands.
+            Prefer reading secrets from protected files or secret managers.
         </div>
     </section>
 
@@ -925,6 +1049,26 @@ chmod 700 ~/.ssh</code></pre>
 
     <section id="troubleshooting" class="card">
         <h2>Troubleshooting</h2>
+
+        <details>
+            <summary>Install failed: “Failed to connect to bus” / “No medium found”</summary>
+            <ul class="bullets">
+                <li>
+                    This indicates that <code>systemctl --user</code> is present, but no user DBus session
+                    is available on the server.
+                </li>
+                <li>
+                    Common on headless or minimal servers without user lingering enabled.
+                </li>
+                <li>
+                    Fix once on the server (recommended):
+                    <pre class="codeblock"><code>sudo loginctl enable-linger &lt;user&gt;</code></pre>
+                </li>
+                <li>
+                    Alternatively, PQ-SSH will fall back to cron or at if available.
+                </li>
+            </ul>
+        </details>
 
         <details>
             <summary>Fleet job failed on one host</summary>

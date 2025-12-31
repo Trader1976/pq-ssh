@@ -155,6 +155,11 @@ add_executable(pq-ssh
         src/dna_vendor/crypto/dsa/symmetric.c
         src/PortForwardingDialog.h
         src/PortForwardingDialog.cpp
+        src/ScheduledJob.h
+        src/ScheduledJobStore.h
+        src/ScheduledJobStore.cpp
+        src/ScheduledJobsDialog.h
+        src/ScheduledJobsDialog.cpp
 )
 target_include_directories(pq-ssh PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src

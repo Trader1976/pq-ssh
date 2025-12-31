@@ -82,7 +82,8 @@
 #include "Fleet/FleetWindow.h"
 #include "AuditLogger.h"
 #include "SshProfile.h"
-
+#include "ScheduledJobStore.h"
+#include "ScheduledJobsDialog.h"
 //
 // ARCHITECTURE NOTES (MainWindow.cpp)
 //
@@ -618,6 +619,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     setupUi();
     loadProfiles();      // loadProfiles() calls rebuildProfileList()
+
+    {
+        QString e;
+        m_scheduledJobs = ScheduledJobStore::load(&e);
+        if (!e.isEmpty()) uiWarn(tr("Scheduled jobs load failed: %1").arg(e));
+    }
+
     setupMenus();
 
     // Passphrase prompt provider for libssh when an OpenSSH private key is encrypted.
@@ -1107,6 +1115,10 @@ void MainWindow::setupMenus()
         g_fleetWin->activateWindow();
     });
 
+    auto* jobsAct = new QAction(tr("Scheduled jobs…"), this);
+    connect(jobsAct, &QAction::triggered, this, &MainWindow::onOpenScheduledJobsDialog);
+    toolsMenu->addAction(jobsAct);
+
     QAction *identityAct = new QAction(tr("Identity manager…"), this);
     identityAct->setToolTip(tr("Recover a global SSH keypair from 24 words (Ed25519)."));
     toolsMenu->addAction(identityAct);
@@ -1320,8 +1332,12 @@ void MainWindow::loadProfiles()
                 : tr("profiles.json exists but could not be loaded: %1").arg(err);
 
         appendTerminalLine(tr("[WARN] %1").arg(msg));
-        QMessageBox::warning(this, tr("Profiles"), msg + "\n\n" +
-                             tr("Defaults will be used for this session, and your file will NOT be overwritten."));
+        QMessageBox::warning(
+            this,
+            tr("Profiles"),
+            msg + "\n\n" +
+            tr("Defaults will be used for this session, and your file will NOT be overwritten.")
+        );
 
         m_profiles = ProfileStore::defaults();
         rebuildProfileList();
@@ -1331,9 +1347,43 @@ void MainWindow::loadProfiles()
     // Normal case: loaded something (or user intentionally has none)
     rebuildProfileList();
 
+    // Load jobs after profiles (so we can resolve legacy index -> profileId)
+    {
+        QString e;
+        m_scheduledJobs = ScheduledJobStore::load(&e);
+        if (!e.isEmpty())
+            uiWarn(tr("Scheduled jobs load failed: %1").arg(e));
+
+        bool changed = false;
+
+        for (auto &j : m_scheduledJobs) {
+            // Already migrated / new schema
+            if (!j.profileId.trimmed().isEmpty())
+                continue;
+
+            // Legacy migration path
+            if (j.legacyProfileIndex >= 0 && j.legacyProfileIndex < m_profiles.size()) {
+                // NOTE: requires SshProfile::id (stable id) to exist and be populated.
+                j.profileId = m_profiles[j.legacyProfileIndex].id;
+                j.legacyProfileIndex = -1;
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            QString se;
+            if (!ScheduledJobStore::save(m_scheduledJobs, &se)) {
+                if (!se.isEmpty())
+                    uiWarn(tr("Scheduled jobs migration save failed: %1").arg(se));
+            }
+        }
+    }
+
     if (!err.isEmpty())
         appendTerminalLine(tr("[WARN] ProfileStore: %1").arg(err));
 }
+
+
 
 
 /// Persist current in-memory profiles to disk and notify UI/log on failure.
@@ -2638,4 +2688,41 @@ bool MainWindow::showStartupUnlockDialog()
 
     edit->setFocus();
     return (dlg.exec() == QDialog::Accepted);
+}
+
+void MainWindow::onOpenScheduledJobsDialog()
+{
+    if (m_jobsDlg) {
+        m_jobsDlg->raise();
+        m_jobsDlg->activateWindow();
+        return;
+    }
+
+    // m_scheduledJobs must be QVector<ScheduledJob> (and ScheduledJob must be visible in MainWindow.h)
+    m_jobsDlg = new ScheduledJobsDialog(m_profiles, m_scheduledJobs, &m_ssh, this);
+    m_jobsDlg->setAttribute(Qt::WA_DeleteOnClose, true);
+
+    // NOTE: finished() is emitted before the dialog is destroyed (WA_DeleteOnClose deletes after close event),
+    // so it's safe to read resultJobs() here.
+    connect(m_jobsDlg, &QDialog::finished, this, [this](int result) {
+        Q_UNUSED(result);
+
+        // Dialog is still alive at this point, but may be closing.
+        if (!m_jobsDlg) return;
+
+        // Pull results before we null the pointer (and before deleteLater runs)
+        m_scheduledJobs = m_jobsDlg->resultJobs();
+
+        QString e;
+        if (!ScheduledJobStore::save(m_scheduledJobs, &e)) {
+            uiWarn(tr("Scheduled jobs save failed: %1").arg(e));
+        }
+
+        // Avoid dangling pointer; dialog will delete itself due to WA_DeleteOnClose.
+        m_jobsDlg = nullptr;
+    });
+
+    m_jobsDlg->show();
+    m_jobsDlg->raise();
+    m_jobsDlg->activateWindow();
 }

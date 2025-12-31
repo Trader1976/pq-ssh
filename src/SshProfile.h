@@ -2,6 +2,13 @@
 
 #include <QString>
 #include <QVector>
+#include <QUuid>
+
+
+static inline QString newProfileId()
+{
+    return QUuid::createUuid().toString(QUuid::WithoutBraces);
+}
 
 // -----------------------------
 // Hotkey macros (multi)
@@ -54,6 +61,10 @@ static inline PortForwardType portForwardTypeFromString(const QString &s)
 }
 
 struct SshProfile {
+
+    // Stable identity
+    QString id;   // UUID string (never shown; used for linking jobs, etc.)
+
     // Connection
     QString name;
     QString user;

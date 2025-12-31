@@ -1074,6 +1074,7 @@ void ProfilesEditorDialog::addProfile()
     // New profile defaults. Keep aligned with ProfileStore::defaults().
     SshProfile p;
 
+    p.id = newProfileId();
     p.user    = qEnvironmentVariable("USER", "user");
     p.host    = "localhost";
     p.port    = 22;

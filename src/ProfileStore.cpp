@@ -32,7 +32,7 @@
 #include <QJsonParseError>
 #include <QStandardPaths>
 #include <QSaveFile>
-
+#include <QSet>
 // -----------------------------
 // Helpers: macros <-> JSON
 // -----------------------------
@@ -325,6 +325,7 @@ QVector<SshProfile> ProfileStore::defaults()
     const QString user = qEnvironmentVariable("USER", "user");
 
     SshProfile p;
+    p.id = newProfileId();
     p.name = QCoreApplication::translate("ProfileStore", "Localhost");
     p.user = user;
     p.host = "localhost";
@@ -407,13 +408,19 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
           ]
         }
     */
-
     QJsonArray arr;
     for (auto prof : profiles) {
         // Ensure legacy single is in sync with macros[0] (if macros exist)
         syncLegacyMacroFromList(prof);
 
         QJsonObject obj;
+
+        // ✅ IMPORTANT: persist stable profile id so Scheduled Jobs can link by profileId
+        QString pid = prof.id.trimmed();
+        if (pid.isEmpty())
+            pid = newProfileId();
+        obj["id"] = pid;
+        prof.id = pid;
 
         // Connection identity
         obj["name"] = prof.name;
@@ -451,13 +458,11 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
             obj["port_forwards"] = fwArr;
 
         // ---- NEW: Hotkey macros (multi) ----
-        // Store only non-empty macros
         const QJsonArray macrosArr = macrosToJsonArray(prof.macros);
         if (!macrosArr.isEmpty())
             obj["macros"] = macrosArr;
 
         // ---- Backward-compat (OLD: single) ----
-        // Write first macro also into legacy keys so older versions still see something.
         const QString sc = prof.macroShortcut.trimmed();
         if (!sc.isEmpty())
             obj["macro_shortcut"] = sc;
@@ -497,6 +502,7 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
     return true;
 }
 
+
 // Load profiles from profiles.json.
 // - Returns an empty vector if file does not exist.
 // - Performs schema evolution/migrations (legacy macro_* -> macros[0]).
@@ -533,6 +539,9 @@ QVector<SshProfile> ProfileStore::load(QString* err)
     const QJsonObject root = doc.object();
     const QJsonArray arr = root.value("profiles").toArray();
 
+    // ✅ Optional-but-recommended robustness: ensure profile IDs are unique
+    QSet<QString> usedIds;
+
     for (const QJsonValue &val : arr) {
         if (!val.isObject())
             continue;
@@ -542,6 +551,12 @@ QVector<SshProfile> ProfileStore::load(QString* err)
         SshProfile p;
 
         // Connection identity
+        p.id = obj.value("id").toString().trimmed();
+        while (p.id.isEmpty() || usedIds.contains(p.id)) {
+            p.id = newProfileId();
+        }
+        usedIds.insert(p.id);
+
         p.name = obj.value("name").toString();
         p.user = obj.value("user").toString();
         p.host = obj.value("host").toString();
@@ -575,11 +590,10 @@ QVector<SshProfile> ProfileStore::load(QString* err)
             p.portForwards.clear();
 
         // ---- NEW: macros (multi) ----
-        if (obj.contains("macros") && obj.value("macros").isArray()) {
+        if (obj.contains("macros") && obj.value("macros").isArray())
             p.macros = macrosFromJsonArray(obj.value("macros").toArray());
-        } else {
+        else
             p.macros.clear();
-        }
 
         // ---- Legacy: single macro (backward compat) ----
         p.macroShortcut = obj.value("macro_shortcut").toString().trimmed();
