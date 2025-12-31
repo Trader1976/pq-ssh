@@ -280,7 +280,7 @@
 <context>
     <name>AuditLogger</name>
     <message>
-        <location filename="../AuditLogger.cpp" line="+107"/>
+        <location filename="../AuditLogger.cpp" line="+132"/>
         <source>AuditLogger: failed to open %1: %2</source>
         <translation type="unfinished"></translation>
     </message>
@@ -306,7 +306,7 @@
 <context>
     <name>FilesTab</name>
     <message>
-        <location filename="../FilesTab.cpp" line="+170"/>
+        <location filename="../FilesTab.cpp" line="+250"/>
         <source>Local Up</source>
         <translation type="unfinished"></translation>
     </message>
@@ -336,12 +336,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>Remote: ~</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+73"/>
+        <location line="+79"/>
         <source>Name</source>
         <translation type="unfinished"></translation>
     </message>
@@ -361,28 +361,28 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+102"/>
+        <location line="+122"/>
         <source>Remote: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+65"/>
         <source>Files</source>
         <translation type="unfinished">Files</translation>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+253"/>
-        <location line="+179"/>
-        <location line="+137"/>
-        <location line="+154"/>
-        <location line="+108"/>
-        <location line="+77"/>
+        <location line="+328"/>
+        <location line="+208"/>
+        <location line="+145"/>
+        <location line="+183"/>
+        <location line="+120"/>
+        <location line="+87"/>
         <source>Not connected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-739"/>
+        <location line="-857"/>
         <source>Cancel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -397,7 +397,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+29"/>
         <source>Select local files to upload</source>
         <translation type="unfinished"></translation>
     </message>
@@ -407,17 +407,23 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+15"/>
         <source>Select folder to upload</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+33"/>
+        <location line="+34"/>
         <source>Upload</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+48"/>
+        <location line="+0"/>
+        <source>No files found to upload.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
         <source>Uploading %1 item(s)…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -429,7 +435,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+37"/>
+        <location line="+38"/>
         <source>Upload failed:
 %1
 → %2
@@ -438,28 +444,36 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+75"/>
+        <location line="+15"/>
+        <source>Integrity check failed for upload:
+%1
+
+%2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+85"/>
         <location line="+27"/>
-        <location line="+20"/>
-        <location line="+90"/>
+        <location line="+21"/>
+        <location line="+97"/>
         <location line="+6"/>
         <source>Download</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-115"/>
+        <location line="-123"/>
         <source>Cannot stat remote path:
 %1
 %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+42"/>
         <source>Downloading %1 file(s)…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+47"/>
+        <location line="+48"/>
         <source>Integrity check failed for download:
 %1
 
@@ -467,7 +481,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+33"/>
         <source>Select file(s) or folder(s) first.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -477,38 +491,38 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+20"/>
-        <location line="+32"/>
+        <location line="+26"/>
+        <location line="+39"/>
         <source>Rename…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-31"/>
-        <location line="+32"/>
+        <location line="-38"/>
+        <location line="+39"/>
         <source>New folder…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30"/>
-        <location line="+32"/>
+        <location line="-37"/>
+        <location line="+39"/>
         <source>Copy path</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-30"/>
-        <location line="+32"/>
-        <location line="+25"/>
+        <location line="-37"/>
+        <location line="+39"/>
+        <location line="+31"/>
         <location line="+21"/>
         <location line="+16"/>
         <location line="+9"/>
-        <location line="+14"/>
+        <location line="+24"/>
         <location line="+6"/>
         <location line="+25"/>
         <source>Delete</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-91"/>
+        <location line="-101"/>
         <source>Select one or more local items first.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -532,7 +546,7 @@ This cannot be undone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+29"/>
         <source>Select one or more remote items first.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -556,29 +570,29 @@ Folders will be deleted recursively.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+23"/>
         <location line="+10"/>
         <location line="+10"/>
         <location line="+13"/>
-        <location line="+11"/>
+        <location line="+17"/>
         <location line="+6"/>
         <location line="+12"/>
         <source>Rename</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-62"/>
+        <location line="-68"/>
         <source>Select exactly one local item.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+52"/>
+        <location line="+58"/>
         <source>New name:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-42"/>
+        <location line="-48"/>
         <source>Target name already exists.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -588,7 +602,7 @@ Folders will be deleted recursively.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+23"/>
         <source>Select exactly one remote item.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -604,28 +618,28 @@ Folders will be deleted recursively.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+24"/>
         <location line="+8"/>
         <location line="+5"/>
-        <location line="+10"/>
+        <location line="+15"/>
         <location line="+6"/>
         <source>New folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-29"/>
-        <location line="+29"/>
+        <location line="-34"/>
+        <location line="+34"/>
         <source>Folder name:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-29"/>
-        <location line="+29"/>
+        <location line="-34"/>
+        <location line="+34"/>
         <source>NewFolder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="-26"/>
         <source>That name already exists.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -635,7 +649,7 @@ Folders will be deleted recursively.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+29"/>
         <source>Creating folder %1…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1027,12 +1041,12 @@ Continue?</source>
 <context>
     <name>IdentityManagerDialog</name>
     <message>
-        <location filename="../IdentityManagerDialog.cpp" line="+53"/>
+        <location filename="../IdentityManagerDialog.cpp" line="+66"/>
         <source>Identity Manager</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+113"/>
+        <location line="+119"/>
         <source>word1 word2 ... word24</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1053,12 +1067,12 @@ Continue?</source>
     </message>
     <message>
         <location line="+4"/>
-        <location line="+234"/>
+        <location line="+275"/>
         <source>Fingerprint:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-198"/>
+        <location line="-239"/>
         <source>Copy public</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1078,43 +1092,40 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+125"/>
-        <location line="+13"/>
-        <location line="+9"/>
-        <location line="+12"/>
+        <location line="+127"/>
         <location line="+11"/>
-        <location line="+170"/>
-        <location line="+138"/>
+        <location line="+10"/>
+        <location line="+19"/>
+        <location line="+7"/>
+        <location line="+13"/>
+        <location line="+10"/>
+        <location line="+225"/>
+        <location line="+153"/>
         <source>Identity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-353"/>
+        <location line="-427"/>
         <source>Failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
-        <source>Failed to derive BIP39 master seed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
+        <location line="+26"/>
         <source>Failed to derive Ed25519 seed (SHAKE256).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>Failed to create Ed25519 key.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+10"/>
         <source>Failed to extract Ed25519 public key.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+60"/>
         <source>Words are empty.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1124,59 +1135,51 @@ Continue?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+18"/>
         <source>Wordlist loaded but seems too small (%1).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+21"/>
         <source>Wordlist is too small.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+17"/>
-        <source>Failed to generate words.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+43"/>
+        <location line="+89"/>
         <source>Invalid identities.json</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+35"/>
         <source>Cannot load identities:
 %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+13"/>
-        <location line="+136"/>
+        <location line="+15"/>
         <source>Fingerprint: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-124"/>
-        <location line="+4"/>
-        <location line="+137"/>
+        <location line="+174"/>
         <source>Fingerprint: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-438"/>
-        <location line="+4"/>
+        <location line="-548"/>
+        <location line="+6"/>
         <location line="+5"/>
-        <location line="+10"/>
+        <location line="+12"/>
         <source>Save private key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-212"/>
+        <location line="-219"/>
         <source>Saved identities</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>Saved identities.
 Select an identity to view its fingerprint and public key.</source>
         <translation type="unfinished"></translation>
@@ -1194,38 +1197,37 @@ This does not delete any exported key files.</source>
     </message>
     <message>
         <location line="+14"/>
-        <location line="+355"/>
+        <location line="+427"/>
         <source>Create identity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-354"/>
+        <location line="-426"/>
         <source>Restore identity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+454"/>
-        <location line="+5"/>
+        <location line="+557"/>
         <location line="+7"/>
-        <location line="+45"/>
-        <location line="+6"/>
+        <location line="+47"/>
+        <location line="+7"/>
         <source>Save identity</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-516"/>
+        <location line="-617"/>
         <source>Derive</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+4"/>
         <source>Create a new identity by generating a random 24-word recovery phrase.
 Write the words down and keep them safe.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+11"/>
         <source>Restore an existing identity by entering your 24-word recovery phrase.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1246,7 +1248,7 @@ Only public information is saved (no recovery words).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+25"/>
         <source>Enter your 24-word recovery phrase.
 Words can be separated by spaces or new lines.</source>
         <translation type="unfinished"></translation>
@@ -1267,39 +1269,39 @@ Words can be separated by spaces or new lines.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+13"/>
         <source>Copy the OpenSSH public key to the clipboard.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+1"/>
         <source>Copy the full identity fingerprint to the clipboard.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+1"/>
         <source>Save the private SSH key to a file.
 Protect this file and set correct permissions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+1"/>
         <source>Save the public SSH key to a file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+55"/>
         <source>No private key derived yet.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+6"/>
         <source>id_ed25519</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+5"/>
-        <location line="+28"/>
+        <location line="+30"/>
         <source>Cannot write file:
 %1</source>
         <translation type="unfinished"></translation>
@@ -1329,18 +1331,32 @@ Protect this file and set correct permissions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+266"/>
-        <location line="+5"/>
+        <location line="+40"/>
+        <source>Invalid BIP39 recovery phrase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+28"/>
+        <source>Internal error: missing master seed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+165"/>
+        <source>Failed to generate BIP39 recovery phrase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+130"/>
         <source>Derive identity first.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+61"/>
         <source>Identity saved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+11"/>
         <location line="+9"/>
         <location line="+14"/>
         <source>Remove identity</source>
@@ -1798,12 +1814,13 @@ To profile: %3</source>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../MainWindow.cpp" line="+680"/>
+        <location filename="../MainWindow.cpp" line="+859"/>
+        <location line="+478"/>
         <source>Profiles</source>
         <translation>Profiles</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="-472"/>
         <source>Edit profiles…</source>
         <translation>Edit profiles…</translation>
     </message>
@@ -1833,7 +1850,7 @@ To profile: %3</source>
         <translation>Disconnect</translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+41"/>
         <source>Log</source>
         <translation>Log</translation>
     </message>
@@ -1858,12 +1875,11 @@ To profile: %3</source>
         <translation>Ready.</translation>
     </message>
     <message>
-        <location line="+3"/>
         <source>PQ: unknown</source>
-        <translation>PQ: unknown</translation>
+        <translation type="vanished">PQ: unknown</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+9"/>
         <source>PQ debug</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1873,34 +1889,17 @@ To profile: %3</source>
         <translation>Open new connection in NEW window</translation>
     </message>
     <message>
-        <location line="+52"/>
-        <source>[PQ] 🧬 Post-Quantum key exchange established → %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>[KEX] Classical key exchange negotiated → %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Post-Quantum KEX: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <location line="+1225"/>
+        <location line="+1431"/>
         <source>KEX: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1220"/>
-        <location line="+1225"/>
+        <location line="+5"/>
         <source>Negotiated KEX: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1219"/>
+        <location line="-1370"/>
         <source>&amp;File</source>
         <translation>&amp;File</translation>
     </message>
@@ -1921,18 +1920,18 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+19"/>
-        <location line="+1079"/>
+        <location line="+1227"/>
         <source>[INFO] Settings updated.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1078"/>
-        <location line="+1079"/>
+        <location line="-1226"/>
+        <location line="+1227"/>
         <source>Settings updated.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1071"/>
+        <location line="-1219"/>
         <source>Import OpenSSH config…</source>
         <translation>Import OpenSSH config…</translation>
     </message>
@@ -1962,7 +1961,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+31"/>
         <source>&amp;Keys</source>
         <translation>&amp;Keys</translation>
     </message>
@@ -2003,13 +2002,13 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+218"/>
+        <location line="+313"/>
         <location line="+10"/>
         <source>Key install failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-227"/>
+        <location line="-322"/>
         <source>Cannot read file:
 %1</source>
         <translation type="unfinished"></translation>
@@ -2056,12 +2055,12 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+15"/>
-        <location line="+886"/>
+        <location line="+1028"/>
         <source>User Manual</source>
         <translation>User Manual</translation>
     </message>
     <message>
-        <location line="-885"/>
+        <location line="-1027"/>
         <source>Open PQ-SSH user manual</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2071,7 +2070,69 @@ To profile: %3</source>
         <translation>Open log file</translation>
     </message>
     <message>
-        <location line="-147"/>
+        <location line="-591"/>
+        <location line="+729"/>
+        <source>Scheduled jobs load failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-617"/>
+        <source>SSH KEX: probing…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Running OpenSSH probe to detect negotiated KEX</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+69"/>
+        <source>SSH KEX: PQ / hybrid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>SSH KEX: classical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>OpenSSH negotiated KEX: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <location line="+147"/>
+        <source>SSH KEX: unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-145"/>
+        <source>No OpenSSH debug output captured.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+148"/>
+        <source>SFTP KEX: unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>[SFTP-KEX] Classical (libssh limitation) → %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>SFTP KEX: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>SFTP negotiated KEX (libssh): %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+34"/>
         <source>[INFO] Settings applied.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2081,7 +2142,12 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+147"/>
+        <location line="+51"/>
+        <source>Scheduled jobs…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+100"/>
         <source>Open pq-ssh log file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2108,8 +2174,38 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+49"/>
+        <location line="+62"/>
+        <source>[INFO] profiles.json path: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
         <source>[WARN] Could not save default profiles: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>[INFO] Created default profiles.json</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>profiles.json exists but no profiles were loaded (empty or unsupported format).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>profiles.json exists but could not be loaded: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Defaults will be used for this session, and your file will NOT be overwritten.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+38"/>
+        <source>Scheduled jobs migration save failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2118,7 +2214,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+11"/>
         <source>[ERROR] %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2128,7 +2224,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+30"/>
         <source>Profiles updated.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2138,7 +2234,7 @@ To profile: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+17"/>
         <source>Public key is empty.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2149,12 +2245,12 @@ To profile: %3</source>
     </message>
     <message>
         <location line="+7"/>
-        <location line="+108"/>
+        <location line="+115"/>
         <source>Profile has empty user/host.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-89"/>
+        <location line="-96"/>
         <source>You are about to install a public key to this host:
 
 Target profile:
@@ -2197,7 +2293,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+48"/>
         <source>[WARN] No profile selected.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2217,7 +2313,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+15"/>
         <source>PQ: checking…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2267,12 +2363,12 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+20"/>
         <source>Disconnected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>&gt; %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2282,7 +2378,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+18"/>
         <source>[DROP] %1 (%2 bytes)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2312,12 +2408,12 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>[DOWNLOAD] Shell not implemented yet (no selection source).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+104"/>
+        <location line="+110"/>
         <source>[SSH] key_type=&apos;%1&apos; not implemented yet → falling back to password auth.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2337,7 +2433,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>[TERM] ssh ended; closing terminal tab/window and disconnecting.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2347,17 +2443,12 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+49"/>
-        <source>[TERM] profile=%1 scheme=&apos;%2&apos; (raw=&apos;%3&apos;)</source>
+        <location line="+730"/>
+        <source>Scheduled jobs save failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+2"/>
-        <source>[TERM] available schemes: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+35"/>
+        <location line="-635"/>
         <source>PQ-SSH: %1 (%2)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2377,12 +2468,12 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+42"/>
         <source>[LOG] Log file path not available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+49"/>
+        <location line="+56"/>
         <source>User manual was not found in application resources.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2392,7 +2483,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+47"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2402,7 +2493,7 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+45"/>
         <source>[MACRO] Invalid shortcut &apos;%1&apos; (profile &apos;%2&apos;)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2437,12 +2528,12 @@ Proceed?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+19"/>
         <source>CPUNK PQ-SSH — Identity Manager</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+31"/>
         <source>OpenSSH config not found</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2493,7 +2584,7 @@ Then try Import again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+35"/>
+        <location line="+37"/>
         <source>[INFO] Imported %1 profile(s) from ~/.ssh/config</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2513,7 +2604,7 @@ Then try Import again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+69"/>
+        <location line="+78"/>
         <source>Unlock CPUNK PQ-SSH</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2540,8 +2631,8 @@ Enter your application password:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1345"/>
-        <location line="+178"/>
+        <location line="-1508"/>
+        <location line="+273"/>
         <location line="+5"/>
         <location line="+7"/>
         <location line="+58"/>
@@ -2549,17 +2640,17 @@ Enter your application password:</source>
         <translation>Key install</translation>
     </message>
     <message>
-        <location line="-835"/>
+        <location line="-1061"/>
         <source>%1@%2:%3  [%4]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+150"/>
+        <location line="+164"/>
         <source>CPUNK PQ-SSH</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+16"/>
         <source>SSH Key Passphrase</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2588,11 +2679,12 @@ Disable app lock in Settings or set a password.</source>
     <message>
         <location line="+28"/>
         <location line="+8"/>
+        <location line="+633"/>
         <source>[WARN] %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="-625"/>
         <source>⚠ WARNING: You have %1 expired SSH key(s). Open Key Generator → Keys tab to review/rotate.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2602,8 +2694,8 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+344"/>
-        <location line="+290"/>
+        <location line="+454"/>
+        <location line="+392"/>
         <source>No profile selected.</source>
         <translation>No profile selected.</translation>
     </message>
@@ -2611,12 +2703,12 @@ Disable app lock in Settings or set a password.</source>
 <context>
     <name>PortForwardingDialog</name>
     <message>
-        <location filename="../PortForwardingDialog.cpp" line="+80"/>
+        <location filename="../PortForwardingDialog.cpp" line="+114"/>
         <source>Port forwarding</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+10"/>
         <source>Enabled</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2636,7 +2728,7 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Add</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2651,7 +2743,7 @@ Disable app lock in Settings or set a password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+104"/>
+        <location line="+122"/>
         <source>Invalid port forwarding rule</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2684,17 +2776,18 @@ Disable app lock in Settings or set a password.</source>
 <context>
     <name>ProfileStore</name>
     <message>
-        <location filename="../ProfileStore.cpp" line="+242"/>
+        <location filename="../ProfileStore.cpp" line="+329"/>
         <source>Localhost</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+144"/>
+        <location line="+157"/>
+        <location line="+9"/>
         <source>Could not write profiles.json: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+26"/>
         <source>Could not open profiles.json: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2972,7 +3065,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+428"/>
+        <location line="+429"/>
         <source>Each profile must have non-empty user and host.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3124,7 +3217,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-848"/>
+        <location filename="../MainWindow.cpp" line="-1079"/>
         <source>Out of memory while hashing password.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3174,12 +3267,12 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../SshClient.cpp" line="+48"/>
+        <location filename="../SshClient.cpp" line="+49"/>
         <source>libssh: null session</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+13"/>
         <source>openSftp: out is null.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3199,7 +3292,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../PortForwardingDialog.cpp" line="-201"/>
+        <location filename="../PortForwardingDialog.cpp" line="-227"/>
         <source>Forward type</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3209,7 +3302,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Bind address</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3219,7 +3312,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Listen port</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3229,7 +3322,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Target host</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3249,7 +3342,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Description</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3259,7 +3352,7 @@ Tip: If you get &apos;(not found)&apos;, the server may be unreachable or ssh ou
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="-1487"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="-1488"/>
         <source>You can use placeholders in macro commands:
   {USER}    Username
   {HOST}    Host/IP
@@ -3276,11 +3369,388 @@ Escapes:
   }}  -&gt;  }</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../ScheduledJobsDialog.cpp" line="+26"/>
+        <source>One-shot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Recurring</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+282"/>
+        <source>(missing)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ScheduledJobStore</name>
+    <message>
+        <location filename="../ScheduledJobStore.cpp" line="+100"/>
+        <source>Could not open scheduled-jobs.json: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Invalid JSON in scheduled-jobs.json: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+34"/>
+        <location line="+8"/>
+        <source>Could not write scheduled-jobs.json: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ScheduledJobsDialog</name>
+    <message>
+        <location filename="../ScheduledJobsDialog.cpp" line="-237"/>
+        <location line="+84"/>
+        <location line="+71"/>
+        <location line="+51"/>
+        <location line="+192"/>
+        <location line="+58"/>
+        <location line="+43"/>
+        <source>SSH client missing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-487"/>
+        <location line="+89"/>
+        <location line="+305"/>
+        <source>Run time not set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-391"/>
+        <source>OnCalendar not set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <location line="+471"/>
+        <source>Could not determine remote uid.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-465"/>
+        <location line="+472"/>
+        <source>Invalid remote uid output: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-439"/>
+        <source>Cron backend requires a 5-field cron schedule, e.g. &quot;0 2 * * 1-5&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+41"/>
+        <source>Failed to install cron job.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+91"/>
+        <source>Could not determine remote home directory.
+Neither $HOME nor getent passwd returned a usable path.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+34"/>
+        <source>Scheduled jobs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+332"/>
+        <location line="+5"/>
+        <location line="+97"/>
+        <source>Profile</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-433"/>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>When</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+343"/>
+        <location line="+58"/>
+        <source>Command</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-400"/>
+        <location line="+474"/>
+        <source>Installed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-473"/>
+        <source>Enabled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Install on server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Cancel on server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+37"/>
+        <location line="+2"/>
+        <source>(not set)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>(unnamed)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <location line="+1"/>
+        <source>Yes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-1"/>
+        <location line="+1"/>
+        <source>No</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+24"/>
+        <source>The &apos;at&apos; backend supports one-shot jobs only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <location line="+106"/>
+        <source>Could not resolve remote home directory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-73"/>
+        <source>Failed to enqueue at job.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+42"/>
+        <source>Profile not found (missing).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-24"/>
+        <source>No supported scheduler found on the remote.
+
+Details:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Unsupported scheduler backend.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>This server does not have a user systemd/DBus session available for this SSH login.
+
+systemctl --user needs /run/user/%1/bus, but it was not found.
+
+Fix options:
+  1) (Recommended) Enable lingering once:
+     sudo loginctl enable-linger %2
+  2) Log in with a full desktop/session that provides a user bus.
+  3) Use a cron/at backend instead of systemd user timers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+40"/>
+        <source>No profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>No SSH profiles exist. Create a profile first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>New job</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <location line="+102"/>
+        <source>Run on server:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-97"/>
+        <source>Invalid profile selection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+58"/>
+        <source>Job name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-58"/>
+        <location line="+58"/>
+        <source>Name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-54"/>
+        <source>Command to run on server:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>One-shot (run once)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Recurring (OnCalendar)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Schedule type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Type:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <location line="+50"/>
+        <source>OnCalendar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-49"/>
+        <source>systemd OnCalendar (e.g. daily, Mon..Fri 02:00):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <location line="+10"/>
+        <location line="+32"/>
+        <location line="+6"/>
+        <source>Run at</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-47"/>
+        <location line="+41"/>
+        <source>Local time (YYYY-MM-DD HH:MM):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-32"/>
+        <location line="+38"/>
+        <source>Invalid time format. Use YYYY-MM-DD HH:MM.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-15"/>
+        <source>Command:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>OnCalendar:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+41"/>
+        <source>Delete job</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Delete this scheduled job from PQ-SSH?
+
+This does NOT cancel it on the server.
+Use &apos;Cancel on server&apos; first if needed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Install failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Job installed on server.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Cancel failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Cancelled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Job cancelled on server.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <location filename="../SettingsDialog.cpp" line="+55"/>
+        <location filename="../SettingsDialog.cpp" line="+78"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3385,7 +3855,7 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+20"/>
         <source>Require password on startup</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3410,41 +3880,41 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>App lock:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+33"/>
-        <location line="+91"/>
+        <location line="+35"/>
+        <location line="+97"/>
         <source>Restart required</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-90"/>
-        <location line="+91"/>
+        <location line="-96"/>
+        <location line="+97"/>
         <source>Language change will take effect after restarting the application.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-38"/>
-        <location line="+174"/>
+        <location line="-42"/>
+        <location line="+196"/>
         <source>Password set</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-173"/>
+        <location line="-195"/>
         <source>Enabled, but no password set!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+200"/>
+        <location line="+225"/>
         <source>Off</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-138"/>
+        <location line="-153"/>
         <source>Choose log file</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3454,12 +3924,12 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+33"/>
         <source>Choose audit directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+28"/>
+        <location line="+35"/>
         <source>Set application password</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3499,7 +3969,7 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+16"/>
         <source>App lock enabled</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3509,7 +3979,7 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+10"/>
         <source>Disable app lock</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3519,7 +3989,7 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+19"/>
         <source>App lock disabled</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3532,9 +4002,9 @@ Escapes:
 <context>
     <name>SshClient</name>
     <message>
-        <location filename="../SshClient.cpp" line="+45"/>
+        <location filename="../SshClient.cpp" line="+51"/>
         <location line="+2"/>
-        <location line="+47"/>
+        <location line="+58"/>
         <source>No host specified.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3544,7 +4014,7 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+13"/>
         <source>Unsupported key_type &apos;%1&apos; (PQ keys not implemented yet).</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3554,45 +4024,70 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+117"/>
+        <location line="+49"/>
+        <source>Failed to set SSH host.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Failed to set SSH user.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Failed to set SSH port.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Failed to set SSH timeout.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Failed to set SSH identity file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+58"/>
         <source>ssh_connect failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+41"/>
         <source>Public-key auth failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+46"/>
         <location line="+52"/>
-        <location line="+60"/>
-        <location line="+49"/>
-        <location line="+103"/>
-        <location line="+109"/>
-        <location line="+52"/>
-        <location line="+94"/>
-        <location line="+130"/>
-        <location line="+147"/>
-        <location line="+32"/>
-        <location line="+94"/>
+        <location line="+54"/>
+        <location line="+65"/>
+        <location line="+70"/>
+        <location line="+174"/>
+        <location line="+158"/>
+        <location line="+53"/>
+        <location line="+101"/>
+        <location line="+142"/>
+        <location line="+155"/>
+        <location line="+37"/>
+        <location line="+114"/>
         <source>Not connected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-916"/>
-        <location line="+649"/>
+        <location line="-1117"/>
+        <location line="+817"/>
         <source>ssh_channel_new failed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-644"/>
-        <location line="+666"/>
+        <location line="-812"/>
+        <location line="+835"/>
         <source>ssh_channel_open_session failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-660"/>
+        <location line="-829"/>
         <source>ssh_channel_request_exec(pwd) failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3602,67 +4097,77 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+29"/>
         <source>sftp_opendir failed for &apos;%1&apos;: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+45"/>
+        <location line="+50"/>
         <source>statRemotePath: outInfo is null.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
-        <location line="+261"/>
-        <location line="+52"/>
+        <location line="+10"/>
+        <location line="+400"/>
+        <location line="+53"/>
         <source>Remote path is empty.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-304"/>
+        <location line="-444"/>
         <source>sftp_stat failed for &apos;%1&apos;: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+63"/>
         <source>uploadFile: localPath/remotePath empty.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+46"/>
         <source>Cannot open remote temp file &apos;%1&apos;: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+14"/>
-        <location line="+115"/>
-        <location line="+178"/>
-        <location line="+51"/>
+        <location line="+187"/>
+        <location line="+204"/>
+        <location line="+56"/>
         <source>Cancelled by user</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-335"/>
+        <location line="-441"/>
+        <source>Local read failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
         <source>SFTP write failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+52"/>
         <source>SFTP rename failed &apos;%1&apos; -&gt; &apos;%2&apos;: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+46"/>
         <source>downloadFile: remotePath/localPath empty.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+20"/>
+        <location line="+11"/>
+        <source>Failed to create local directory: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+30"/>
         <source>Cannot open remote file &apos;%1&apos;: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+40"/>
         <source>SFTP read failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3672,25 +4177,30 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+20"/>
-        <source>Failed to rename downloaded temp file to final path.</source>
+        <location line="+25"/>
+        <source>Failed to move existing file aside before replacing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+35"/>
-        <location line="+59"/>
-        <location line="+391"/>
+        <location line="+12"/>
+        <source>Failed to move downloaded temp file to final path.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+41"/>
+        <location line="+60"/>
+        <location line="+423"/>
         <source>sftp_open failed for &apos;%1&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-440"/>
-        <location line="+452"/>
+        <location line="-473"/>
+        <location line="+485"/>
         <source>sftp_write failed for &apos;%1&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-421"/>
+        <location line="-453"/>
         <source>Local path is empty.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3700,7 +4210,7 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+20"/>
         <source>Cannot open local file for hashing: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3710,7 +4220,7 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+36"/>
         <source>Cannot open remote file for hashing.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3720,38 +4230,38 @@ Escapes:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+24"/>
-        <location line="+37"/>
+        <location line="+30"/>
+        <location line="+42"/>
         <source>Local SHA-256 failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-31"/>
-        <location line="+25"/>
+        <location line="-36"/>
+        <location line="+30"/>
         <source>Remote SHA-256 failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-19"/>
+        <location line="-24"/>
         <source>Checksum mismatch (SHA-256)
 Local : %1
 Remote: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+36"/>
         <source>Checksum mismatch (SHA-256)
 Remote: %1
 Local : %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>ssh_channel_request_exec failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+32"/>
         <source>Remote command timed out after %1 ms.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3776,7 +4286,7 @@ Local : %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
         <source>ssh_channel_poll_timeout(stdout/drain) failed: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3806,17 +4316,17 @@ Local : %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+34"/>
+        <location line="+38"/>
         <source>sftp_open failed for &apos;%1&apos; (may not exist).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+66"/>
+        <location line="+71"/>
         <source>sftp_rename failed for &apos;%1&apos; → &apos;%2&apos;.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+59"/>
+        <location line="+79"/>
         <source>Public key line is empty.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3836,7 +4346,7 @@ Local : %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+34"/>
+        <location line="+35"/>
         <source>Failed to create backup dir: %1</source>
         <translation type="unfinished"></translation>
     </message>

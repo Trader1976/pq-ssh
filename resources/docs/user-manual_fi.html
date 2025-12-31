@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CPUNK PQ-SSH — Käyttöohje</title>
-    <meta name="description" content="Käyttöohje CPUNK PQ-SSH:lle (profiilipohjainen SSH-asiakas PQ-tilalla, asetuksilla, tiedostonsiirrolla, makroilla ja lokituksella)." />
+    <meta name="description" content="CPUNK PQ-SSH -käyttöohje (profiilipohjainen SSH-asiakas, PQ-tila, asetukset, tiedostonsiirto, makrot ja lokitus)." />
 
     <!-- IMPORTANT for QTextBrowser + QRC -->
     <link rel="stylesheet" href="qrc:/docs/user-manual.css" />
@@ -144,14 +144,28 @@
         .card h2 { margin-top: 0; }
 
         /* --- Readability spacing (Windows Classic friendly) --- */
+
+        /* Space between cards (Getting started, Profiles, Connect...) */
         main.content > section.card { margin: 0 0 16px 0; }
+
+        /* Paragraph spacing inside cards */
         .card p { margin: 10px 0; line-height: 1.45; }
+
+        /* Lists */
         .card ul, .card ol { margin: 10px 0 12px 22px; }
-        .card h2 { margin: 0 0 12px 0; }
+
+        /* Headings inside cards: spacing ABOVE headings, not huge */
+        .card h2 { margin: 50px 0 12px 0; }
         .card h3 { margin: 18px 0 8px 0; }
         .card h4 { margin: 14px 0 6px 0; }
+
+        /* Notes/tips/warnings */
         .note, .tip, .warn { margin: 12px 0; padding: 10px 12px; }
+
+        /* Code blocks */
         pre, .codeblock { margin: 10px 0 12px 0; padding: 10px; }
+
+        /* Troubleshooting details spacing */
         details { margin: 10px 0; }
     </style>
 </head>
@@ -171,7 +185,8 @@
             <a class="btn" href="#getting-started">Aloitus</a>
             <a class="btn" href="#profiles">Profiilit</a>
             <a class="btn" href="#connect">Yhdistä</a>
-            <a class="btn" href="#fleet-jobs">Fleet-työt</a>
+            <a class="btn" href="#fleet-jobs">Laajotyöt</a>
+            <a class="btn" href="#scheduled-jobs">Ajastetut työt</a>
             <a class="btn" href="#macros">Makrot</a>
             <a class="btn" href="#settings">Asetukset</a>
             <a class="btn" href="#themes">Teemat</a>
@@ -179,7 +194,7 @@
             <a class="btn" href="#pq-status">PQ-tila</a>
             <a class="btn" href="#key-install">Avaimen asennus</a>
             <a class="btn" href="#logging">Lokitus</a>
-            <a class="btn" href="#troubleshooting">Vianetsintä</a>
+            <a class="btn" href="#troubleshooting">Vianmääritys</a>
         </nav>
     </div>
 </header>
@@ -191,12 +206,12 @@
         <div class="hero">
             <h2>Mikä PQ-SSH on</h2>
             <p>
-                <b>CPUNK PQ-SSH</b> on profiilipohjainen SSH-asiakas, joka keskittyy selkeään
-                terminaalityöskentelyyn, vahvoihin oletusasetuksiin ja <b>post-kvantti (PQ) -valmiusindikaattoriin</b>.
+                <b>CPUNK PQ-SSH</b> on profiilipohjainen SSH-asiakas, joka keskittyy siistiin terminaalityöskentelyyn,
+                vahvoihin tietoturvaoletuksiin ja <b>post-kvanttivalmiuden (PQ) tilailmaisimeen</b>.
             </p>
 
             <div>
-                <span class="pill">Terminaalikeskeinen</span>
+                <span class="pill">Terminaali ensin</span>
                 <span class="pill">Profiilit</span>
                 <span class="pill">Makrot</span>
                 <span class="pill">SFTP</span>
@@ -205,20 +220,20 @@
 
             <div class="callouts">
                 <div class="callout">
-                    <div class="callout-title">Terminaalikeskeinen</div>
-                    <p>Yhteydet avautuvat oikeaan SSH-terminaaliin, jota ohjaa järjestelmäsi OpenSSH.</p>
+                    <div class="callout-title">Terminaali ensin</div>
+                    <p>Yhteydet avautuvat oikeaan SSH-terminaaliin, jota käyttää järjestelmäsi OpenSSH.</p>
                 </div>
                 <div class="callout">
                     <div class="callout-title">Profiilit</div>
-                    <p>Tallenna host/user/port ja asetukset. Yhdistä yhdellä klikkauksella.</p>
+                    <p>Tallenna host/käyttäjä/portti ja asetukset. Yhdistä yhdellä klikkauksella.</p>
                 </div>
                 <div class="callout">
                     <div class="callout-title">Makrot</div>
-                    <p>Sido pikanäppäimiin komentoja ja lähetä ne aktiiviseen SSH-terminaaliin heti.</p>
+                    <p>Sido pikanäppäimet komentoihin ja lähetä ne aktiiviseen SSH-terminaaliin heti.</p>
                 </div>
                 <div class="callout">
-                    <div class="callout-title">SFTP-työskentely</div>
-                    <p>Valinnainen libssh-istunto mahdollistaa selaamisen ja siirrot rikkomatta terminaalikokemusta.</p>
+                    <div class="callout-title">SFTP-työnkulut</div>
+                    <p>Valinnainen libssh-istunto mahdollistaa selaamisen ja tiedostosiirrot rikkomatta terminaalikokemusta.</p>
                 </div>
             </div>
         </div>
@@ -228,9 +243,9 @@
         <h2>Aloitus</h2>
         <ol>
             <li>Avaa <b>PQ-SSH</b>.</li>
-            <li>Valitse <b>Muokkaa profiileja…</b>.</li>
+            <li>Napsauta <b>Muokkaa profiileja…</b>.</li>
             <li>Luo profiili (Nimi, Käyttäjä, Host/IP, Portti).</li>
-            <li>Valitse profiili ja klikkaa <b>Yhdistä</b> (tai tuplaklikkaa profiilia).</li>
+            <li>Valitse profiili ja napsauta <b>Yhdistä</b> (tai tuplaklikkaa profiilia).</li>
         </ol>
 
         <div class="note">
@@ -244,37 +259,37 @@
         <table class="twocol" role="presentation">
             <tr>
                 <td class="colText">
-                    <p>Profiili tallentaa yhteystiedot ja käyttöliittymäasetukset:</p>
+                    <p>Profiili tallentaa yhteyden tiedot ja käyttöliittymän asetukset:</p>
                     <ul class="bullets">
-                        <li><b>Nimi</b> — selite (esim. “Server#1”)</li>
+                        <li><b>Nimi</b> — selkeä nimi (esim. “Palvelin#1”)</li>
                         <li><b>Käyttäjä</b> — SSH-käyttäjänimi (esim. <code>root</code>)</li>
-                        <li><b>Host</b> — hostname tai IP (esim. <code>192.168.0.1</code>)</li>
-                        <li><b>Portti</b> — oletus <code>22</code></li>
-                        <li><b>Ryhmä</b> — valinnainen tunniste profiilien järjestämiseen listassa</li>
+                        <li><b>Host</b> — isäntänimi tai IP (esim. <code>192.168.0.1</code>)</li>
+                        <li><b>Portti</b> — oletus on <code>22</code></li>
+                        <li><b>Ryhmä</b> — valinnainen tunniste profiilien järjestelyyn listassa</li>
                         <li><b>Avaintyyppi</b> — yleensä <code>auto</code> tai <code>openssh</code></li>
                         <li><b>Terminaaliteema</b> — terminaalin väriteema</li>
                         <li><b>Pikanäppäinmakrot</b> — profiilikohtainen makrolista (pikanäppäin → komento)</li>
                     </ul>
 
                     <div class="tip">
-                        Vinkki: Pidä profiilinimet lyhyinä ja yhtenäisinä (Prod, Staging, Home…) ja käytä Ryhmiä, jotta lista pysyy selkeänä.
+                        Vinkki: Pidä profiilinimet lyhyinä ja yhdenmukaisina (Prod, Staging, Home, jne.) ja käytä ryhmiä, jotta lista pysyy luettavana.
                     </div>
                 </td>
 
                 <td class="colImg">
                     <div class="figure">
-                        <img src="qrc:/docs/img/profilemanager.png" alt="Profiilien hallinta" width="450"/>
-                        <div class="figcap"><b>Profiilien hallinta</b> — luo ja järjestä profiileja (myös Lisäasetuksilla).</div>
+                        <img src="qrc:/docs/img/profilemanager.png" alt="Profiilihallinta" width="450"/>
+                        <div class="figcap"><b>Profiilihallinta</b> — luo ja järjestä profiileja (lisäasetuksilla).</div>
                     </div>
                 </td>
             </tr>
         </table>
 
         <!-- Port forwarding -->
-        <h3 id="port-forwarding">Porttien välitys</h3>
+        <h3 id="port-forwarding">Porttiohjaus (tunnelointi)</h3>
         <p>
-            PQ-SSH tukee <b>profiilikohtaista porttien välitystä</b>. Tällä voit “tunneloida” TCP-liikennettä turvallisesti SSH-yhteyden läpi.
-            Voit ottaa käyttöön useita välityssääntöjä samassa profiilissa (multi-forward).
+            PQ-SSH tukee <b>profiilikohtaista porttiohjausta</b>. Tämän avulla voit “tunneloida” TCP-liikennettä turvallisesti SSH-yhteyden läpi.
+            Voit ottaa käyttöön useita ohjaussääntöjä samassa profiilissa (multi-forward).
         </p>
 
         <h4>Mistä se asetetaan</h4>
@@ -282,101 +297,101 @@
             <li>Avaa <b>Muokkaa profiileja…</b></li>
             <li>Valitse profiili</li>
             <li>Avaa keskisarakkeesta <b>Lisäasetukset</b></li>
-            <li>Ota käyttöön <b>Ota porttien välitys käyttöön</b></li>
-            <li>Klikkaa <b>Porttien välitys…</b> lisätäksesi/muuttaaksesi sääntöjä</li>
+            <li>Ota käyttöön <b>Ota porttiohjaus käyttöön</b></li>
+            <li>Napsauta <b>Porttiohjaus…</b> lisätäksesi/muokataksesi sääntöjä</li>
         </ol>
 
-        <h4>Välitystyypit</h4>
+        <h4>Ohjaustyypit</h4>
         <ul class="bullets">
             <li>
-                <b>Paikallinen välitys (-L)</b> — välittää paikallisen portin tietokoneeltasi etäpuolen kohdehostiin/-porttiin.
+                <b>Paikallinen ohjaus (-L)</b> — ohjaa koneesi paikallisen portin kohdehostiin/-porttiin etäpäässä.
                 <div class="note">
                     Esimerkki: käytä etäpalvelua paikallisesti:
                     <pre class="codeblock"><code>ssh -L 127.0.0.1:18888:localhost:18080 user@server</code></pre>
-                    Sitten selaa/curl:
+                    Selaa/curl:
                     <pre class="codeblock"><code>curl http://127.0.0.1:18888/</code></pre>
                 </div>
             </li>
             <li>
-                <b>Etävälitys (-R)</b> — avaa portin etäpalvelimelle ja välittää sen takaisin paikallispuolen hostiin/-porttiin.
+                <b>Etäohjaus (-R)</b> — ohjaa etäpalvelimen portin takaisin paikalliseen kohteeseen (johon etäpäästä on reitti).
                 <div class="note">
-                    Esimerkki (periaatteellinen):
+                    Esimerkki (periaate):
                     <pre class="codeblock"><code>ssh -R 0.0.0.0:9000:127.0.0.1:3000 user@server</code></pre>
-                    Etäasiakkaat voivat yhdistää etäpalvelimen porttiin <code>9000</code> (palvelimen politiikasta riippuen).
+                    Etäasiakkaat voivat yhdistää etäpalvelimen porttiin <code>9000</code> (palvelimen käytännöistä riippuen).
                 </div>
             </li>
             <li>
-                <b>Dynaaminen välitys (-D)</b> — luo paikallisen SOCKS-proxyn.
+                <b>Dynaaminen ohjaus (-D)</b> — luo paikallisen SOCKS-välityspalvelimen.
                 <div class="note">
                     Esimerkki:
                     <pre class="codeblock"><code>ssh -D 127.0.0.1:1080 user@server</code></pre>
-                    Voit ohjata selaimen/työkalun SOCKS5-proxyyn <code>127.0.0.1:1080</code>.
+                    Voit ohjata selaimen/työkalun SOCKS5-osoitteeseen <code>127.0.0.1:1080</code>.
                 </div>
             </li>
         </ul>
 
-        <h4>Sääntökentät (mitä ne tarkoittavat)</h4>
+        <h4>Sääntöjen kentät (mitä ne tarkoittavat)</h4>
         <ul class="bullets">
             <li><b>Käytössä</b> — kytkee yksittäisen säännön päälle/pois (poistamatta sitä)</li>
             <li><b>Tyyppi</b> — Paikallinen (-L), Etä (-R), Dynaaminen (-D)</li>
             <li><b>Sitomisosoite</b> — mihin kuuntelija luodaan (oletus: <code>127.0.0.1</code> vain paikalliseksi)</li>
             <li><b>Kuunteluportti</b> — avattava portti (1–65535)</li>
             <li><b>Kohdehost / Kohdeportti</b> — vain Paikallinen/Etä-säännöissä (ohitetaan Dynaamisessa)</li>
-            <li><b>Kuvaus</b> — valinnainen muistiinpano säännön tarkoituksesta</li>
+            <li><b>Kuvaus</b> — valinnainen muistiinpano</li>
         </ul>
 
         <div class="warn">
-            <b>Turvavinkki:</b> Suosi sitomista osoitteeseen <code>127.0.0.1</code> paikallisissa välityksissä.
-            Sitominen <code>0.0.0.0</code>:aan voi altistaa välitetyn portin koko verkollesi.
+            <b>Tietoturvavinkki:</b> Suosi <code>127.0.0.1</code>-sidontaa paikallisissa ohjauksissa.
+            Sidonta <code>0.0.0.0</code>-osoitteeseen voi altistaa ohjatun portin koko verkollesi.
         </div>
 
-        <h4>Välityksen testaaminen (pikachecklista)</h4>
+        <h4>Näin testaat ohjauksen (pikatarkistus)</h4>
         <ol>
-            <li>Käynnistä palvelu etäkoneella (esim. Python-testiserveri):<br/>
+            <li>Käynnistä palvelu etäkoneella (esim. Python-testipalvelin):<br/>
                 <pre class="codeblock"><code>python3 -m http.server 18080 --bind 127.0.0.1</code></pre>
             </li>
-            <li>Lisää PQ-SSH:ssä paikallinen välitys:<br/>
+            <li>Lisää PQ-SSH:ssa paikallinen ohjaus:<br/>
                 <pre class="codeblock"><code>127.0.0.1:18888 → localhost:18080</code></pre>
             </li>
             <li>Yhdistä profiililla.</li>
-            <li>Testaa paikallisesti:<br/>
+            <li>Testaa paikallisella koneella:<br/>
                 <pre class="codeblock"><code>curl -I http://127.0.0.1:18888/</code></pre>
             </li>
         </ol>
 
-        <h4>Vianetsintä: välitys</h4>
+        <h4>Porttiohjauksen vianmääritys</h4>
         <ul class="bullets">
-            <li><b>“Address already in use”</b> tarkoittaa, että kuunteluportti on jo käytössä. Valitse toinen portti (esim. 18890).</li>
-            <li><b>Connection reset / timeout</b> tarkoittaa usein, ettei kohdepalvelu ole käynnissä tai se ei ole saavutettavissa etäpuolelta.</li>
-            <li><b>Etävälitys (-R) ei toimi</b> voi olla estetty palvelinpolitiikalla (<code>AllowTcpForwarding</code>, <code>GatewayPorts</code>).</li>
+            <li><b>“Address already in use”</b> tarkoittaa, että kuunteluportti on jo varattu. Valitse toinen portti (esim. 18890).</li>
+            <li><b>Connection reset / timeout</b> tarkoittaa usein, että kohdepalvelu ei ole käynnissä tai ei ole saavutettavissa etäpäästä.</li>
+            <li><b>Etäohjaus (-R) ei toimi</b> voi olla estetty palvelimen asetuksilla (<code>AllowTcpForwarding</code>, <code>GatewayPorts</code>).</li>
         </ul>
 
         <div class="note">
-            PQ-SSH toteuttaa välitykset käyttämällä järjestelmäsi OpenSSH:ta ja välittämällä <code>-L</code>/<code>-R</code>/<code>-D</code>
-            -optiot, kun <code>ssh</code> käynnistetään. Mitään välitysasetuksia ei muuteta palvelimella automaattisesti.
+            PQ-SSH toteuttaa ohjaukset käyttämällä järjestelmän OpenSSH:ta ja välittämällä <code>-L</code>/<code>-R</code>/<code>-D</code>-valinnat
+            <code>ssh</code>-komentoa käynnistettäessä. Mitään ohjausasetuksia ei aseteta palvelimelle automaattisesti.
         </div>
 
-        <h3>Palvelimen krypton probe (diagnostiikka)</h3>
+        <h3>Palvelimen krypton tarkistus (diagnostiikka)</h3>
         <p>
-            Valikossa <b>Muokkaa profiileja…</b> PQ-SSH tarjoaa <b>Probe server crypto…</b> -painikkeen, jolla voit tarkistaa,
-            mitä SSH-kättely neuvottelee palvelimen kanssa.
+            <b>Muokkaa profiileja…</b> -näkymässä PQ-SSH tarjoaa <b>Tarkista palvelimen crypto…</b> -painikkeen,
+            jolla voit tarkastella, mitä SSH-kättely neuvottelee palvelimen kanssa.
         </p>
 
         <ul class="bullets">
-            <li><b>Milloin se on käytettävissä:</b> aktivoituu, kun <b>Käyttäjä</b> ja <b>Host</b> on asetettu (Portti on valinnainen).</li>
-            <li><b>Mitä se näyttää:</b> neuvotellun <b>KEX</b>:n, <b>host key -algoritmin</b> ja <b>salaimet</b>.</li>
-            <li><b>Miten se toimii:</b> ajaa järjestelmäsi <b>OpenSSH</b>-asiakkaan verbose-tilassa (<code>ssh -vvv</code>) lyhyellä timeoutilla.</li>
-            <li><b>Autentikointia ei tarvita:</b> neuvottelu tapahtuu ennen kirjautumista.</li>
-            <li><b>Vain luku:</b> ei muuta palvelinta eikä profiilia.</li>
+            <li><b>Milloin se aktivoituu:</b> käytettävissä, kun olet asettanut sekä <b>Käyttäjän</b> että <b>Hostin</b> (Portti on valinnainen).</li>
+            <li><b>Mitä se näyttää:</b> neuvotellun <b>KEX</b>:n, <b>host key -algoritmin</b> ja <b>salaukset</b>.</li>
+            <li><b>Miten se toimii:</b> ajaa järjestelmäsi <b>OpenSSH</b>-asiakkaan verbose-tilassa (<code>ssh -vvv</code>) lyhyellä aikakatkaisulla.</li>
+            <li><b>Ei vaadi tunnistautumista:</b> neuvottelu tapahtuu ennen autentikointia.</li>
+            <li><b>Vain luku:</b> ei muuta palvelinta tai profiilia.</li>
         </ul>
 
         <div class="note">
-            Jos probe näyttää <b>(not found)</b>, yleisiä syitä ovat: host ei ole saavutettavissa, portti estetty, DNS-virhe tai tulosteen parsinta ei täsmää.
-            Avaa probe-ikkunan yksityiskohdat nähdäksesi raakatulosteen.
+            Jos tarkistus näyttää <b>(not found)</b>, yleisiä syitä ovat: host ei ole saavutettavissa, portti estetty, DNS-ongelma tai tuloksen jäsennys ei täsmää.
+            Avaa tarkistusikkunan lisätiedot nähdäksesi raakatekstin.
         </div>
 
         <div class="tip">
-            Vinkki: Käytä probea varmistaaksesi modernit algoritmit (esim. <code>curve25519-sha256</code>, <code>ssh-ed25519</code>) ja havaitaaksesi legacy-asennukset.
+            Vinkki: Käytä tarkistusta varmistaaksesi modernit algoritmit (esim. <code>curve25519-sha256</code>, <code>ssh-ed25519</code>) ja havaitaksesi vanhat asennukset.
         </div>
     </section>
 
@@ -384,79 +399,79 @@
         <h2>Yhdistäminen</h2>
         <ol>
             <li>Valitse profiili listasta.</li>
-            <li>Klikkaa <b>Yhdistä</b> (tai tuplaklikkaa profiilia).</li>
+            <li>Napsauta <b>Yhdistä</b> (tai tuplaklikkaa profiilia).</li>
             <li>Terminaali-ikkuna avautuu ja SSH käynnistyy automaattisesti.</li>
         </ol>
 
         <div class="note">
-            Terminaali-istunnot perustuvat OpenSSH:hen. Samalla PQ-SSH voi muodostaa libssh-istunnon SFTP-ominaisuuksia varten.
+            Terminaali-istunnot hoitaa OpenSSH. Samanaikaisesti PQ-SSH voi avata libssh-istunnon SFTP-toimintoja varten.
         </div>
     </section>
 
     <section id="fleet-jobs" class="card">
-        <h2>Fleet-työt (aja toimintoja useille palvelimille)</h2>
+        <h2>Laajotyöt (Fleet jobs) — suorita toimintoja monelle palvelimelle</h2>
 
         <p>
-            <b>Fleet-työt</b> mahdollistavat saman toiminnon ajamisen useille tallennetuille profiileille yhdellä kertaa.
-            Tämä on hyödyllistä rutiiniadminiin: terveystarkistuksiin, palvelujen tilan tarkistukseen ja hallittuihin uudelleenkäynnistyksiin.
+            <b>Laajotyöt</b> mahdollistavat saman toiminnon ajamisen useille tallennetuille profiileille yhdellä kertaa.
+            Tämä on hyödyllistä rutiiniadmin-työssä: terveystarkistukset, palveluiden tilan tarkistukset ja hallitut uudelleenkäynnistykset.
         </p>
 
         <div class="callouts">
             <div class="callout">
                 <div class="callout-title">Yksi toiminto → monta kohdetta</div>
-                <p>Valitse 5–50 profiilia ja aja sama työ rinnakkain.</p>
+                <p>Valitse 5–50 profiilia ja suorita sama työ rinnakkain.</p>
             </div>
             <div class="callout">
                 <div class="callout-title">Rinnakkaisuuden hallinta</div>
-                <p>Rajoita kuinka monta hostia ajetaan kerralla (oletus: 4) ylikuorman välttämiseksi.</p>
+                <p>Rajoita, kuinka monta hostia ajetaan yhtä aikaa (oletus: 4), jotta kuorma pysyy hallinnassa.</p>
             </div>
             <div class="callout">
-                <div class="callout-title">Timeout-turva</div>
-                <p>Jokaisella kohteella on komennon timeout, jotta “jää ikuisesti” -tilanteet vältetään.</p>
+                <div class="callout-title">Aikakatkaisun turva</div>
+                <p>Jokaisella kohteella on komennon aikakatkaisu, jotta “jää ikuisesti” -tilanteet vältetään.</p>
             </div>
             <div class="callout">
                 <div class="callout-title">Audit-jälki</div>
-                <p>Fleet-toiminnot voidaan kirjata audit-lokiin vastuun ja jäljitettävyyden vuoksi.</p>
+                <p>Laajotyöt voidaan kirjata audit-lokiin vastuun ja jäljitettävyyden vuoksi.</p>
             </div>
         </div>
 
-        <h3>Mistä Fleet-työt löytyvät</h3>
+        <h3>Mistä Laajotyöt löytyvät</h3>
         <ul class="bullets">
-            <li>Avaa valikosta: <b>Tools → Fleet jobs…</b></li>
+            <li>Avaa valikosta: <b>Työkalut → Laajotyöt…</b></li>
         </ul>
 
         <h3>Käsitteet</h3>
         <ul class="bullets">
             <li><b>Kohde</b> — yksi profiili/host, jota vasten työ ajetaan</li>
             <li><b>Toiminto</b> — mitä haluat tehdä (Aja komento, Tarkista palvelu, Käynnistä palvelu uudelleen)</li>
-            <li><b>Rinnakkaisuus</b> — enimmäismäärä samanaikaisia kohteita</li>
-            <li><b>Timeout</b> — kauanko yksittäinen kohde saa kestää ennen kuin se merkitään epäonnistuneeksi</li>
+            <li><b>Rinnakkaisuus</b> — enimmäismäärä kohteita, jotka ajavat yhtä aikaa</li>
+            <li><b>Aikakatkaisu</b> — kuinka kauan yksittäinen kohde saa ajaa ennen kuin se tulkitaan epäonnistuneeksi</li>
         </ul>
 
-        <h3>Vaihe vaiheelta: Fleet-työn ajaminen</h3>
+        <h3>Vaihe vaiheelta: Laajotyön ajaminen</h3>
         <ol>
-            <li>Avaa <b>Tools → Fleet jobs…</b></li>
+            <li>Avaa <b>Työkalut → Laajotyöt…</b></li>
             <li>Valitse yksi tai useampi kohdeprofiili listasta.</li>
             <li>Valitse <b>Toiminto</b>:
                 <ul class="bullets">
                     <li><b>Aja komento</b> — suorittaa shell-komennon jokaisella hostilla</li>
                     <li><b>Tarkista palvelu</b> — tarkistaa, onko systemd-palvelu aktiivinen</li>
-                    <li><b>Käynnistä palvelu uudelleen</b> — uudelleenkäynnistää systemd-palvelun (häiritsevä)</li>
+                    <li><b>Käynnistä palvelu uudelleen</b> — käynnistää systemd-palvelun uudelleen (häiritsevä)</li>
                 </ul>
             </li>
-            <li>Syötä <b>Komento</b> (tai <b>Palvelun nimi</b>) toiminnosta riippuen.</li>
+            <li>Syötä <b>Komento</b> (tai <b>Palvelun nimi</b>) toiminnon mukaan.</li>
             <li>Aseta <b>Rinnakkaisuus</b> (suositus: 2–8).</li>
-            <li>(Jos näkyy) aseta <b>Timeout</b> (suositus: 60–180 sekuntia).</li>
-            <li>Klikkaa <b>Aja</b>.</li>
+            <li>(Jos näkyy) aseta <b>Aikakatkaisu</b> (suositus: 60–180 sekuntia).</li>
+            <li>Napsauta <b>Suorita</b>.</li>
         </ol>
 
         <div class="note">
-            Fleet-työt luovat erillisen SSH-yhteyden jokaiseen kohteeseen, jotta yhteyksiä ei jaeta säikeiden välillä ja viat pysyvät erillään.
+            Laajotyöt luovat erillisen SSH-yhteyden per kohde, jotta säikeiden välinen uudelleenkäyttö vältetään ja virheet pysyvät erillään.
         </div>
 
-        <h3>Toimintojen yksityiskohdat</h3>
+        <h3>Toimintojen tarkemmat tiedot</h3>
         <h4>Aja komento</h4>
-        <p>Ajaa komennon jokaisella kohteella ja näyttää kaapatun <b>stdout</b>- ja <b>stderr</b>-tulosteen.</p>
+        <p>Ajaa komennon jokaisella kohteella ja näyttää talteen otetut <b>stdout</b>- ja <b>stderr</b>-tulosteet.</p>
         <div class="note">
             Esimerkkejä:
             <pre class="codeblock"><code>uptime</code></pre>
@@ -465,56 +480,177 @@
         </div>
 
         <h4>Tarkista palvelu (systemd)</h4>
-        <p>Tarkistaa, onko systemd-palvelu aktiivinen (ei häiritsevä).</p>
+        <p>Tarkistaa, onko systemd-palvelu aktiivinen (ei häiritse).</p>
         <div class="note">
-            Esimerkkipalvelun nimi:
+            Esimerkki palvelunimestä:
             <pre class="codeblock"><code>nginx</code></pre>
         </div>
 
         <h4>Käynnistä palvelu uudelleen (systemd)</h4>
-        <p>Käynnistää palvelun uudelleen (häiritsevä). PQ-SSH vaatii lisävahvistuksen ennen häiritseviä toimintoja.</p>
+        <p>Käynnistää palvelun uudelleen (häiritsevä). PQ-SSH pyytää lisävahvistuksen ennen häiritsevien toimintojen ajamista.</p>
         <div class="warn">
-            <b>Varoitus:</b> Palveluiden uudelleenkäynnistys voi aiheuttaa katkoksia. Suosi <b>Tarkista palvelu</b> -toimintoa ensin.
+            <b>Varoitus:</b> Palveluiden uudelleenkäynnistäminen voi aiheuttaa katkoja. Suosi <b>Tarkista palvelu</b> ensin.
         </div>
 
-        <h3>Timeoutit</h3>
+        <h3>Aikakatkaisut</h3>
         <ul class="bullets">
-            <li>Jos kohde ylittää timeoutin, se merkitään <b>Epäonnistunut</b>-tilaan timeout-viestillä.</li>
-            <li>Muut kohteet jatkavat suoritusta.</li>
-            <li>Timeout katkaisee odottamisen tulosteelle; se ei luotettavasti tapa etäprosesseja.</li>
+            <li>Jos kohde ylittää aikakatkaisun, se merkitään <b>Epäonnistuneeksi</b> aikakatkaisuviestillä.</li>
+            <li>Muut kohteet jatkavat ajamista.</li>
+            <li>Aikakatkaisu lopettaa tulosteen odottamisen; se ei luotettavasti tapa etäprosesseja.</li>
         </ul>
 
         <div class="tip">
-            Vinkki: Pitkille tehtäville kuten <code>apt upgrade</code> kasvata timeoutia tai vältä Fleet-ajoa.
+            Vinkki: Pitkissä tehtävissä kuten <code>apt upgrade</code>, kasvata aikakatkaisua tai vältä Laajotyötä.
         </div>
 
         <h3>Rinnakkaisuus</h3>
         <div class="note">
-            Suositus aloitusarvoksi:
+            Suositeltu aloitus:
             <ul class="bullets">
-                <li><b>Koti/lab:</b> 2–4</li>
-                <li><b>Pieni fleet (10–20 palvelinta):</b> 4–8</li>
+                <li><b>Koti/labra:</b> 2–4</li>
+                <li><b>Pieni laivue (10–20 palvelinta):</b> 4–8</li>
             </ul>
         </div>
 
         <h3>Työn peruminen</h3>
         <p>
-            Klikkaa <b>Cancel</b> pyytääksesi perumista. Kohteet, joita ei ole vielä aloitettu, ohitetaan.
+            Napsauta <b>Peru</b> pyytääksesi perumista. Kohteet, joita ei ole vielä aloitettu, ohitetaan.
         </p>
 
         <h3>Tulosten ymmärtäminen</h3>
         <ul class="bullets">
             <li><b>Tila</b> — Ok / Failed / Canceled</li>
             <li><b>Kesto</b></li>
-            <li><b>Tuloste</b> — tiivistetty luettavuuden vuoksi</li>
+            <li><b>Tuloste</b> — lyhennetty luettavuuden vuoksi</li>
         </ul>
 
-        <h3>Audit-lokitus (suositeltu Fleetille)</h3>
-        <p>Fleet-toiminnot voidaan kirjata erilliseen <b>audit-lokiin</b> jäljitettävyyden vuoksi.</p>
+        <h3>Audit-lokitus (suositus Laajotöille)</h3>
+        <p>Laajotyöt voidaan kirjoittaa erilliseen <b>audit-lokiin</b> jäljitettävyyttä varten.</p>
 
         <div class="warn">
-            <b>Yksityisyys:</b> Vältä täysien komentojen tallentamista audit-lokiin, jos komennot voivat sisältää salaisuuksia.
-            Suosi hasheja ja minimimetatietoja.
+            <b>Yksityisyys:</b> Vältä täysien komentosisältöjen tallentamista audit-lokiin, jos komennoissa voi olla salaisuuksia.
+            Suosi hasheja ja minimaalista metatietoa.
+        </div>
+    </section>
+
+    <!-- ✅ NEW / UPDATED SECTION: Scheduled jobs -->
+    <section id="scheduled-jobs" class="card">
+        <h2>Ajastetut työt (suorita komento myöhemmin tai aikataululla)</h2>
+
+        <p>
+            <b>Ajastetut työt</b> mahdollistavat komennon ja aikataulun määrittämisen ja sen asentamisen valitulle palvelinprofiilille.
+            Tämä on hyödyllistä rutiinihuoltoon, viivästettyihin toimiin ja toistuviin tehtäviin (päivittäiset tarkistukset, viikoittaiset uudelleenkäynnistykset, jne.).
+        </p>
+
+        <div class="note">
+            Ajastetut työt määritellään paikallisesti PQ-SSH:ssa, mutta ne suorittuvat vasta sen jälkeen, kun olet erikseen
+            napsauttanut <b>Asenna palvelimelle</b>. Työn luominen tai muokkaus <b>ei</b> vaikuta etäjärjestelmään ennen asennusta.
+        </div>
+
+        <div class="tip">
+            Ajastetut työt sopivat viivästettyihin tai toistuviin tehtäviin yhdellä palvelimella.
+            Jos haluat suorittaa heti usealle palvelimelle, käytä <b>Työkalut → Laajotyöt…</b>.
+        </div>
+
+        <h3>Mistä Ajastetut työt löytyvät</h3>
+        <ul class="bullets">
+            <li>Avaa valikosta: <b>Työkalut → Ajastetut työt…</b></li>
+        </ul>
+
+        <h3>Mitä näet</h3>
+        <p>
+            Ajastettujen töiden ikkuna näyttää listan töistä ja niiden tilan. Jokainen rivi sisältää:
+        </p>
+        <ul class="bullets">
+            <li><b>Nimi</b> — työn selite/nimi</li>
+            <li><b>Profiili</b> — mille palvelimelle (profiilille) työ on tarkoitettu</li>
+            <li><b>Tyyppi</b> — Kertaluonteinen tai Toistuva</li>
+            <li><b>Milloin</b> — ajoaika (kertaluonteinen) tai aikataululauseke (toistuva)</li>
+            <li><b>Komento</b> — palvelimella ajettava komento</li>
+            <li><b>Asennettu</b> — onko työ asennettu etäpalvelimelle</li>
+            <li><b>Käytössä</b> — onko työ käytössä paikallisesti (tuleva käyttö)</li>
+        </ul>
+
+        <h3>Asenna, Peruuta ja Poista (mitä kukin tarkoittaa)</h3>
+        <ul class="bullets">
+            <li>
+                <b>Asenna palvelimelle</b> —
+                luo tai päivittää ajastusmerkinnän etäpalvelimelle.
+                Mitään etämuutoksia ei tapahdu ennen tätä vaihetta.
+            </li>
+            <li>
+                <b>Peruuta palvelimelta</b> —
+                poistaa ajastusmerkinnän, jonka PQ-SSH on aiemmin asentanut etäpalvelimelle.
+            </li>
+            <li>
+                <b>Poista</b> —
+                poistaa työn vain PQ-SSH:sta.
+                Se <b>ei</b> muokkaa etäpalvelinta.
+            </li>
+        </ul>
+
+        <div class="warn">
+            <b>Tärkeää:</b> Jos poistat työn peruuttamatta sitä ensin, työ voi jäädä aktiiviseksi etäpalvelimelle.
+        </div>
+
+        <h3>Työtyypit</h3>
+
+        <h4>Kertaluonteinen (suoritetaan kerran)</h4>
+        <p>
+            Kertaluonteinen työ ajetaan kerran tiettynä paikallisena aikana (syötetään muodossa <code>YYYY-MM-DD HH:MM</code>).
+            PQ-SSH asentaa sen palvelimelle parhaalla saatavilla olevalla taustalla.
+        </p>
+
+        <h4>Toistuva (OnCalendar)</h4>
+        <p>
+            Toistuva työ ajetaan aikataulun mukaisesti. Kun systemd on saatavilla, PQ-SSH käyttää
+            systemd:n <b>OnCalendar</b>-muotoa (esim. <code>daily</code>, <code>Mon..Fri 02:00</code>).
+            Jos systemd user -timereita ei voi käyttää, PQ-SSH siirtyy cron-varavaihtoehtoon.
+        </p>
+
+        <h3>Taustan valinta (automaattinen)</h3>
+        <p>
+            Asennuksen aikana PQ-SSH tunnistaa etäpalvelimelta, mitkä ajastusratkaisut ovat käytettävissä.
+            Paras vaihtoehto valitaan automaattisesti.
+        </p>
+        <ul class="bullets">
+            <li><b>Suositus:</b> systemd <b>user</b> -timerit (<code>systemctl --user</code>)</li>
+            <li><b>Toistuva varavaihtoehto:</b> cron (<code>crontab</code>)</li>
+            <li><b>Kertaluonteinen varavaihtoehto:</b> at (<code>at</code>) tai cron, jos <code>at</code> puuttuu</li>
+        </ul>
+
+        <div class="note">
+            Joissain palvelimissa <code>systemctl</code> on asennettu, mutta ei tarjoa user-DBus-istuntoa ei-interaktiivisille SSH-kirjautumisille.
+            Tällöin systemd user -timerit voivat epäonnistua ja PQ-SSH käyttää cron/at-varavaihtoehtoja mahdollisuuksien mukaan.
+        </div>
+
+        <h3>Komennon suoritusympäristö</h3>
+        <p>
+            Ajastetut komennot suoritetaan ei-interaktiivisesti etäpalvelimella käyttäen:
+        </p>
+        <pre class="codeblock"><code>/bin/sh -lc 'your command'</code></pre>
+
+        <div class="note">
+            Interaktiivista terminaalia ei varata. Komennot, jotka vaativat TTY-vuorovaikutusta
+            (kuten editorit tai salasanakyselyt), epäonnistuvat.
+        </div>
+
+        <h3>Esimerkkejä</h3>
+        <ul class="bullets">
+            <li><b>Päivittäinen levytilannekuva</b>
+                <pre class="codeblock"><code>df -h &gt; ~/disk-usage.txt</code></pre>
+            </li>
+            <li><b>Käynnistä palvelu uudelleen yöllä (varo)</b>
+                <pre class="codeblock"><code>sudo systemctl restart nginx</code></pre>
+            </li>
+            <li><b>Kertaluonteinen viivästetty komento</b>
+                <pre class="codeblock"><code>echo "hello" &gt;&gt; ~/hello.log</code></pre>
+            </li>
+        </ul>
+
+        <div class="warn">
+            <b>Tietoturvahuomio:</b> Vältä salaisuuksien upottamista ajastettuihin komentoihin.
+            Suosi salaisuuksien lukemista suojatuista tiedostoista tai secret manager -ratkaisuista.
         </div>
     </section>
 
@@ -529,14 +665,14 @@
         <ul class="bullets">
             <li>Avaa <b>Muokkaa profiileja…</b></li>
             <li>Valitse profiili</li>
-            <li>Käytä oikealla olevaa <b>Hotkey macros</b> -paneelia</li>
+            <li>Käytä oikean reunan <b>Pikanäppäinmakrot</b>-paneelia</li>
         </ul>
 
         <h3>Makron luominen</h3>
         <ol>
-            <li>Klikkaa <b>+</b> lisätäksesi makron.</li>
-            <li>Aseta <b>Nimi</b> (suositeltu).</li>
-            <li>Klikkaa <b>Pikanäppäin</b>-kenttää ja paina näppäinyhdistelmä (esim. <code>F2</code>, <code>Alt+X</code>).</li>
+            <li>Napsauta <b>+</b> lisätäksesi makron.</li>
+            <li>Aseta <b>Nimi</b> (suositus).</li>
+            <li>Napsauta <b>Pikanäppäin</b>-kenttää ja paina näppäinyhdistelmä (esim. <code>F2</code>, <code>Alt+X</code>).</li>
             <li>Kirjoita lähetettävä <b>Komento</b>.</li>
             <li>Ota käyttöön <b>Lähetä [Enter] automaattisesti</b>, jos haluat sen ajautuvan heti.</li>
         </ol>
@@ -548,13 +684,13 @@
         <h3>Makrojen käyttö</h3>
         <ul class="bullets">
             <li>Yhdistä profiililla, jossa makro on.</li>
-            <li>Paina makron pikanäppäin, kun terminaali-ikkuna on aktiivinen.</li>
+            <li>Paina makron pikanäppäintä, kun terminaali-ikkuna on aktiivinen.</li>
             <li>PQ-SSH lähettää makrokomennon terminaaliin.</li>
         </ul>
 
         <h3>Paikkamerkit (muuttujat)</h3>
         <p>
-            Makrot voivat sisältää <b>paikkamerkkejä</b>, jotka PQ-SSH laajentaa juuri ennen komennon lähettämistä.
+            Makrot voivat sisältää <b>paikkamerkkimuuttujia</b>, jotka PQ-SSH laajentaa juuri ennen komennon lähettämistä.
         </p>
 
         <div class="note">
@@ -568,20 +704,21 @@
         <ul class="bullets">
             <li><code>{PROFILE}</code> — profiilin nimi</li>
             <li><code>{USER}</code> — SSH-käyttäjä</li>
-            <li><code>{HOST}</code> — hostname/IP</li>
+            <li><code>{HOST}</code> — isäntänimi/IP</li>
             <li><code>{PORT}</code> — portti (oletus 22)</li>
             <li><code>{TARGET}</code> — <code>user@host</code> (tai <code>user@host:port</code>, jos portti ei ole 22)</li>
             <li><code>{HOME}</code> — <code>~</code></li>
             <li><code>{KEYFILE}</code> — asetettu avaintiedoston polku (jos on)</li>
-            <li><code>{DATE}</code> — nykyinen päivämäärä (<code>YYYY-MM-DD</code>)</li>
-            <li><code>{TIME}</code> — nykyinen aika (<code>HH:MM:SS</code>)</li>
+            <li><code>{DATE}</code> — tämänhetkinen päivämäärä (<code>YYYY-MM-DD</code>)</li>
+            <li><code>{TIME}</code> — tämänhetkinen aika (<code>HH:MM:SS</code>)</li>
         </ul>
         <div class="note">
-            <b>{KEYFILE}</b> laajenee tyhjäksi merkkijonoksi, jos profiilissa ei ole asetettu avaintiedostoa.
+            <b>{KEYFILE}</b> laajenee tyhjäksi merkkijonoksi, jos profiilille ei ole asetettu avaintiedostoa.
         </div>
         <div class="note">
-            <b>{TARGET}</b> käyttää muotoa <code>user@host</code> portilla 22, ja <code>user@host:port</code> muilla porteilla.
+            <b>{TARGET}</b> käyttää muotoa <code>user@host</code> portilla 22 ja <code>user@host:port</code> muilla porteilla.
         </div>
+
         <h3>Aaltosulkeiden escapetus</h3>
         <ul class="bullets">
             <li><code>{{</code> muuttuu kirjaimelliseksi <code>{</code></li>
@@ -591,7 +728,7 @@
         <div class="note">
             Esimerkki:
             <pre class="codeblock"><code>{{{USER}}}</code></pre>
-            muuttuu muotoon:
+            muuttuu:
             <pre class="codeblock"><code>{root}</code></pre>
         </div>
 
@@ -607,7 +744,7 @@
             <li><b>Näytä levytila</b>
                 <pre class="codeblock"><code>df -h</code></pre>
             </li>
-            <li><b>Seuraa palvelulokia</b>
+            <li><b>Seuraa palvelulogia</b>
                 <pre class="codeblock"><code>journalctl -u nginx -f</code></pre>
             </li>
             <li><b>Kontekstibanneri (paikkamerkeillä)</b>
@@ -619,55 +756,55 @@
         </ul>
 
         <div class="tip">
-            Vinkki: Suosi funktionäppäimiä (<code>F1…F12</code>) tai <code>Alt+…</code>-pikanäppäimiä, jotka eivät törmää terminaalisovelluksiin kuten <code>vim</code>.
+            Vinkki: Suosi funktionäppäimiä (<code>F1…F12</code>) tai <code>Alt+…</code>-yhdistelmiä, jotka eivät törmää terminaalisovelluksiin kuten <code>vim</code>.
         </div>
     </section>
 
     <section id="settings" class="card">
-        <h2>Asetukset</h2>
-        <p>PQ-SSH sisältää Asetukset-ikkunan ulkoasun ja lokituskäyttäytymisen hallintaan.</p>
+        <h2>Asetukset-valikko</h2>
+        <p>PQ-SSH sisältää Asetukset-ikkunan, jolla hallitset ulkoasua ja lokituksen toimintaa.</p>
 
         <h3>Mistä se löytyy</h3>
         <ul class="bullets">
-            <li>Ylävalikosta: <b>File → Settings…</b></li>
+            <li>Ylävalikosta: <b>Tiedosto → Asetukset…</b></li>
         </ul>
 
         <h3>Mitä tapahtuu, kun tallennat</h3>
         <ul class="bullets">
-            <li>Asetukset tallennetaan ja ne otetaan käyttöön heti.</li>
+            <li>Asetukset tallennetaan ja otetaan käyttöön heti.</li>
             <li>Teemamuutokset tulevat voimaan välittömästi (ei uudelleenkäynnistystä).</li>
             <li>Lokitasomuutokset tulevat voimaan välittömästi.</li>
         </ul>
 
         <div class="note">
-            Asetukset tallennetaan <code>QSettings</code>-järjestelmään sovelluksen nimen ja organisaation mukaan, jotka PQ-SSH määrittää.
+            Asetukset tallennetaan <code>QSettings</code>-mekanismilla sovelluksen nimen ja organisaation alle, jotka PQ-SSH määrittelee.
         </div>
     </section>
 
     <section id="themes" class="card">
         <h2>Teemat</h2>
         <p>
-            Teemat ohjaavat pääkäyttöliittymän ulkoasua (listat, painikkeet, dialogit, välilehdet).
-            Terminaalin värit ohjataan erikseen valitulla <b>Terminaaliteemalla</b> profiilissa.
+            Teemat hallitsevat pääkäyttöliittymän ulkoasua (listat, painikkeet, ikkunat, välilehdet).
+            Terminaalin värit määritellään erikseen profiilissa valitulla <b>Terminaaliteemalla</b>.
         </p>
 
         <h3>Saatavilla olevat teemat</h3>
         <ul class="bullets">
-            <li><b>CPUNK Dark</b> — tumma UI CPUNK-neonaksenteilla</li>
-            <li><b>CPUNK Orange</b> — tumma UI oransseilla aksenteilla</li>
-            <li><b>Windows Basic</b> — vaalea/neutraali UI (klassinen desktop-fiilis)</li>
-            <li><b>CPUNK Neo</b> — lisäteema, joka toimitetaan sovelluksen mukana</li>
+            <li><b>CPUNK Dark</b> — tumma UI CPUNK-neonkorostuksilla</li>
+            <li><b>CPUNK Orange</b> — tumma UI oransseilla korostuksilla</li>
+            <li><b>Windows Basic</b> — vaalea/neutraali UI (klassinen työpöytätuntuma)</li>
+            <li><b>CPUNK Neo</b> — sovelluksen mukana tuleva lisäteema CPUNK-tyylillä</li>
         </ul>
 
-        <h3>Teeman vaihtaminen</h3>
+        <h3>Näin vaihdat teeman</h3>
         <ol>
-            <li>Avaa <b>File → Settings…</b></li>
-            <li>Valitse <b>App theme</b></li>
-            <li>Klikkaa <b>Save</b></li>
+            <li>Avaa <b>Tiedosto → Asetukset…</b></li>
+            <li>Valitse <b>Sovellusteema</b></li>
+            <li>Napsauta <b>Tallenna</b></li>
         </ol>
 
         <div class="tip">
-            Jos et näe muutosta, varmista että klikkasit <b>Save</b>. PQ-SSH ottaa teeman käyttöön, kun asetukset tallennetaan.
+            Jos et näe selvää muutosta, varmista että napsautit <b>Tallenna</b>. PQ-SSH ottaa teeman käyttöön, kun asetukset tallennetaan.
         </div>
     </section>
 
@@ -679,18 +816,18 @@
                 <td class="colText">
                     <p>
                         PQ-SSH sisältää sisäänrakennetun tiedostonsiirtotyönkulun. Se käyttää erillistä <b>libssh</b>-istuntoa SFTP-toimintoihin,
-                        kun taas interaktiivinen terminaali toimii OpenSSH:n kautta.
+                        kun taas interaktiivinen terminaali käyttää OpenSSH:ta.
                     </p>
 
-                    <h3>Files-välilehti</h3>
+                    <h3>Tiedostot-välilehti</h3>
                     <p>
-                        Pääikkunassa on <b>Files</b>-välilehti <b>Log</b>-välilehden vieressä.
-                        Kun SFTP on yhdistetty, voit selata etäjärjestelmää ja tehdä siirtoja.
+                        Pääikkunassa on <b>Tiedostot</b>-välilehti <b>Loki</b>-välilehden vieressä.
+                        Kun SFTP-yhteys on muodostettu, voit selata etätiedostojärjestelmää ja tehdä siirtoja.
                     </p>
 
                     <ul class="bullets">
-                        <li>Jos libssh yhdistää onnistuneesti, Files-välilehti aktivoituu ja etälistaus toimii.</li>
-                        <li>Jos libssh epäonnistuu, SSH-terminaali toimii silti normaalisti, mutta SFTP-ominaisuudet poistuvat käytöstä.</li>
+                        <li>Jos libssh-yhteys onnistuu, Tiedostot-välilehti aktivoituu ja etälistaus toimii.</li>
+                        <li>Jos libssh epäonnistuu, SSH-terminaali toimii normaalisti, mutta SFTP-toiminnot ovat pois käytöstä.</li>
                     </ul>
 
                     <h3>Vedä &amp; pudota -lähetykset</h3>
@@ -703,22 +840,22 @@
                     <pre class="codeblock"><code>~/pqssh_drops/</code></pre>
 
                     <div class="warn">
-                        <b>Huom:</b> Varakansio on olemassa estämään “hiljainen epäonnistuminen”, kun käyttäjä odottaa, että pudotus tekee jotain.
+                        <b>Huom:</b> Varakansio estää “hiljaisen epäonnistumisen”, kun käyttäjä odottaa pudotuksen tekevän jotain.
                         Se ei ole synkronointikansio.
                     </div>
 
                     <h3>Yleisiä syitä, miksi SFTP on pois käytöstä</h3>
                     <ul class="bullets">
-                        <li>libssh-istunnon autentikointi epäonnistuu</li>
-                        <li>Verkko/palomuuriongelmat</li>
-                        <li>Profiili käyttää avaintyyppiä, jota libssh ei vielä tue PQ-SSH:ssä</li>
+                        <li>Autentikointi epäonnistuu libssh-istunnossa</li>
+                        <li>Verkko-/palomuuriongelmat</li>
+                        <li>Profiilissa käytetään avaintyyppiä, jota PQ-SSH:n libssh-polku ei vielä tue</li>
                     </ul>
                 </td>
 
                 <td class="colImg">
                     <div class="figure">
-                        <img src="qrc:/docs/img/files.png" alt="Files-välilehti (SFTP)" width="450"/>
-                        <div class="figcap"><b>Files-välilehti</b> — selaa ja siirrä tiedostoja SFTP:n kautta (libssh-istunto).</div>
+                        <img src="qrc:/docs/img/files.png" alt="Tiedostot-välilehti (SFTP)" width="450"/>
+                        <div class="figcap"><b>Tiedostot-välilehti</b> — selaa ja siirrä tiedostoja SFTP:n kautta (libssh-istunto).</div>
                     </div>
                 </td>
             </tr>
@@ -728,21 +865,19 @@
     <section id="pq-status" class="card">
         <h2>PQ-tilan ilmaisin</h2>
         <p>
-            PQ-SSH suorittaa nopean testin selvittääkseen, tukeeko etäpalvelin
-            PQ-yhteensopivaa avainvaihtoa.
-            Tämä <b>ei</b> muuta palvelimen asetuksia; tieto on vain informatiivinen.
+            PQ-SSH ajaa pikatarkistuksen selvittääkseen, tukeeko etäpalvelin PQ-kykyistä avainvaihtoa.
+            Tämä <b>ei</b> muuta palvelimen asetuksia; se on pelkkä informaatio.
         </p>
 
-        <h3>Mitä tunnisteet tarkoittavat</h3>
+        <h3>Mitä merkit tarkoittavat</h3>
 
         <div class="note">
-            <b>Tärkeää:</b> PQ-SSH voi käyttää <b>kahta eri SSH-pinoa</b> samanaikaisesti:
+            <b>Tärkeää:</b> PQ-SSH voi käyttää <b>kahta eri SSH-pinoa</b> samaan aikaan:
             <ul class="bullets">
-                <li><b>Terminal SSH</b> käyttää järjestelmän <b>OpenSSH</b>:ta (pääasiallinen interaktiivinen istunto).</li>
-                <li><b>SFTP</b> käyttää valinnaista <b>libssh</b>-istuntoa (vain Tiedostot-välilehti / siirrot).</li>
+                <li><b>Terminaali-SSH</b> käyttää järjestelmäsi <b>OpenSSH</b>:ta (pääasiallinen interaktiivinen istunto).</li>
+                <li><b>SFTP</b> käyttää valinnaista <b>libssh</b>-istuntoa (vain Tiedostot-välilehteen / siirtoihin).</li>
             </ul>
-            Koska nämä pinot ovat eri toteutuksia, ne voivat neuvotella
-            <b>eri algoritmeista</b>.
+            Koska pinot ovat eri, ne voivat neuvotella <b>eri algoritmit</b>.
         </div>
 
         <h4>PQ-tuki</h4>
@@ -753,49 +888,46 @@
         </div>
 
         <ul class="bullets">
-            <li><b>PQ-tuki: KYLLÄ</b> — testi havaitsi palvelimen tarjoavan PQ-/hybrid-avainvaihdon.</li>
-            <li><b>PQ-tuki: EI</b> — palvelin ei todennäköisesti tarjoa testattua PQ-/hybrid-KEX:iä.</li>
-            <li><b>PQ: tarkistetaan…</b> — testi on käynnissä.</li>
+            <li><b>PQ-tuki: KYLLÄ</b> — tarkistus havaitsi palvelimen tarjoavan PQ-/hybridiavainvaihdon.</li>
+            <li><b>PQ-tuki: EI</b> — palvelin ei todennäköisesti tarjoa tarkistettua PQ-/hybridi-KEX:ää.</li>
+            <li><b>PQ: tarkistetaan…</b> — tarkistus käynnissä.</li>
         </ul>
 
         <h4>SSH KEX vs SFTP KEX</h4>
         <p>
-            PQ-SSH näyttää neuvotellun avainvaihdon erikseen molemmille yhteyksille:
+            PQ-SSH näyttää neuvotellun avainvaihdon erikseen kahdelle yhteydelle:
         </p>
 
         <ul class="bullets">
             <li>
-                <b>SSH KEX</b> — neuvoteltu <b>OpenSSH</b>:n kautta (terminaali-istunto).
-                Tämä on tärkein interaktiivisen komentotulkin kannalta.
+                <b>SSH KEX</b> — neuvottelee <b>OpenSSH</b> (terminaali-istunto).
+                Tämä on tärkein interaktiiviselle shellillesi.
             </li>
             <li>
-                <b>SFTP KEX</b> — neuvoteltu <b>libssh</b>:n kautta (Tiedostot-välilehden SFTP-istunto).
+                <b>SFTP KEX</b> — neuvottelee <b>libssh</b> (SFTP-istunto Tiedostot-välilehdelle).
             </li>
         </ul>
 
         <div class="note">
-            <b>libssh-rajoitus:</b> vaikka terminaali-istunto neuvottelisi PQ-/hybrid-KEX:n,
-            libssh-pohjainen SFTP-istunto voi silti näyttää <b>klassisia</b> algoritmeja
-            kirjaston rajoitusten vuoksi.
-            Tämä on odotettua eikä “alenna” OpenSSH-terminaaliyhteyttä.
+            <b>libssh-rajoite:</b> vaikka terminaali-istunto neuvottelisi PQ-/hybridi-KEX:n,
+            libssh-pohjainen SFTP-istunto voi silti näyttää <b>klassisia</b> algoritmeja kirjastotuen rajoitteiden vuoksi.
+            Tämä on odotettua eikä “alenna” OpenSSH-terminaali-istuntoasi.
         </div>
 
-        <h4>Diagnostiikka Lokit-välilehdessä</h4>
+        <h4>Diagnostiikka Loki-välilehdellä</h4>
         <p>
-            Kun <b>PQ-debug</b> on käytössä, lokissa voi näkyä esimerkiksi:
+            Kun <b>PQ debug</b> on käytössä, saatat nähdä rivejä kuten:
         </p>
         <pre class="codeblock"><code>[PQ-PROBE] ... ssh ... true
 [SFTP-KEX] Classical (libssh limitation) → X25519 (Curve25519)</code></pre>
 
         <div class="tip">
-            Vinkki: Jos <b>SSH KEX</b> näyttää PQ-/hybrid-tilan mutta <b>SFTP KEX</b> näyttää klassisen,
-            tämä tarkoittaa yleensä, että palvelin tukee PQ-/hybridiä OpenSSH:ssa,
-            mutta SFTP-kirjastopolku ei pysty neuvottelemaan sitä.
+            Vinkki: Jos <b>SSH KEX</b> näyttää PQ-/hybridiä mutta <b>SFTP KEX</b> näyttää klassista, se tarkoittaa tyypillisesti:
+            palvelin tukee PQ-/hybridiä OpenSSH:ssa, mutta SFTP-kirjastopolku ei pysty neuvottelemaan sitä.
         </div>
 
         <div class="note">
-            Ilmaisimet ovat parhaaseen arvioon perustuvia käyttöliittymävihjeitä;
-            PQ-SSH ei muuta SSH-palvelimen asetuksia eikä pakota PQ-tilaa.
+            Indikaattorit ovat parhaaseen yritykseen perustuvia UI-vihjeitä; PQ-SSH ei muuta SSH-palvelimen asetuksia eikä pakota PQ-tilaa.
         </div>
     </section>
 
@@ -803,13 +935,13 @@
         <h2>Julkisen avaimen asentaminen palvelimelle</h2>
         <p>
             PQ-SSH voi asentaa <b>OpenSSH-julkisen avaimen</b> suoraan etäpalvelimen
-            <code>~/.ssh/authorized_keys</code> -tiedostoon turvallisesti ja rikkomatta olemassa olevia avaimia.
+            <code>~/.ssh/authorized_keys</code>-tiedostoon turvallisesti ja ei-tuhoavasti.
         </p>
 
-        <p>Tämä ominaisuus löytyy:</p>
+        <p>Tämä toiminto löytyy:</p>
         <ul class="bullets">
-            <li><b>Keys → Install public key to server…</b> (päävalikko)</li>
-            <li><b>Key Generator → Keys tab → Install…</b> (asenna valittu avain)</li>
+            <li><b>Avaimet → Asenna julkinen avain palvelimelle…</b> (päävalikko)</li>
+            <li><b>Avaingeneraattori → Avaimet-välilehti → Asenna…</b> (asenna valittu avain)</li>
         </ul>
 
         <h3>Mitä näet (vahvistusvaihe)</h3>
@@ -822,30 +954,30 @@
             <li><b>Avaimen esikatselu</b> (lyhyt ote avaimesta)</li>
         </ul>
 
-        <div class="note">Mitään ei tapahdu, ellei vahvistusta anneta erikseen.</div>
+        <div class="note">Mitään ei tapahdu, ellet nimenomaisesti vahvista.</div>
 
-        <h3>Mitä tapahtuu palvelimella</h3>
-        <p>Vahvistuksen jälkeen PQ-SSH yhdistää SSH/SFTP:llä ja suorittaa nämä vaiheet:</p>
+        <h3>Mitä palvelimella tapahtuu</h3>
+        <p>Vahvistuksen jälkeen PQ-SSH yhdistää SSH/SFTP:llä ja tekee seuraavat vaiheet:</p>
 
         <ol>
             <li>
-                <b>Varmista, että SSH-kansio on olemassa</b>
+                <b>Varmistaa, että SSH-hakemisto on olemassa</b>
                 <pre class="codeblock"><code>mkdir -p ~/.ssh
 chmod 700 ~/.ssh</code></pre>
             </li>
             <li>
-                <b>Lue nykyinen <code>authorized_keys</code> (jos on)</b>
-                <p>Jos sama avain löytyy jo, mitään ei muuteta.</p>
+                <b>Lukee olemassa olevan <code>authorized_keys</code>-tiedoston (jos löytyy)</b>
+                <p>Jos sama avain on jo olemassa, mitään ei muuteta.</p>
             </li>
             <li>
-                <b>Luo aikaleimattu varmuuskopio (jos tiedosto on olemassa)</b>
+                <b>Luo aikaleimatun varmuuskopion (jos tiedosto on olemassa)</b>
                 <div class="warn">
-                    Varmuuskopion luonti on pakollinen. Jos varmuuskopio epäonnistuu, asennus keskeytetään.
+                    Varmuuskopio on pakollinen. Jos varmuuskopiointi epäonnistuu, avaimen asennus keskeytetään.
                 </div>
             </li>
             <li>
-                <b>Lisää avain vain, jos se puuttuu</b>
-                <p>Duplikaatteja ei koskaan lisätä.</p>
+                <b>Lisää avaimen vain, jos se puuttuu</b>
+                <p>Tuplia ei koskaan lisätä.</p>
             </li>
             <li>
                 <b>Korjaa oikeudet</b>
@@ -857,46 +989,46 @@ chmod 700 ~/.ssh</code></pre>
         <ul class="bullets">
             <li>Olemassa olevat avaimet säilyvät</li>
             <li>Varmuuskopio ennen muutosta</li>
-            <li>Ei duplikaattiavaimia</li>
+            <li>Ei tupla-avaimia</li>
             <li>Oikeat SSH-oikeudet pakotetaan</li>
-            <li>Salasanoja tai yksityisiä avaimia ei koskaan ladata palvelimelle</li>
+            <li>Salasanoja tai yksityisiä avaimia ei koskaan ladata</li>
         </ul>
     </section>
 
     <section id="logging" class="card">
-        <h2>Lokitus &amp; Debug</h2>
+        <h2>Lokitus &amp; debug</h2>
 
         <table class="twocol" role="presentation">
             <tr>
                 <td class="colText">
-                    <h3>Lokitasot</h3>
-                    <p>Lokituksen tarkkuutta voi säätää valikosta <b>File → Settings…</b>:</p>
+                    <h3>Lokitustasot</h3>
+                    <p>Lokituksen tarkkuutta voi säätää kohdasta <b>Tiedosto → Asetukset…</b>:</p>
                     <ul class="bullets">
-                        <li><b>Vain virheet</b> — minimilokit</li>
+                        <li><b>Vain virheet</b> — minimaalinen lokitus</li>
                         <li><b>Normaali</b> — suositeltu oletus</li>
-                        <li><b>Debug</b> — yksityiskohtaiset lokit vianetsintään</li>
+                        <li><b>Debug</b> — tarkka lokitus vianmääritykseen</li>
                     </ul>
 
                     <h3>Avaa lokitiedosto</h3>
-                    <p>Käytä valikkoa: <b>View → Open log file</b></p>
+                    <p>Käytä valikkoa: <b>Näytä → Avaa lokitiedosto</b></p>
                     <pre class="codeblock"><code>~/.local/share/pq-ssh/logs/pq-ssh.log</code></pre>
 
                     <h3>PQ debug -tila (UI)</h3>
                     <p>
-                        Ota <b>PQ debug</b> käyttöön alapalkista nähdäksesi lisädiagnostiikkaa
-                        (SSH-komentojen yksityiskohdat, teemat, matalan tason viestit).
+                        Ota <b>PQ debug</b> käyttöön alariviltä nähdäksesi lisädiagnostiikkaa
+                        (SSH-komennon yksityiskohdat, teemalistat, matalan tason viestit).
                     </p>
 
                     <div class="warn">
-                        <b>Yksityisyys:</b> PQ-SSH ei lokita salasanoja tai yksityisten avainten sisältöä.
-                        Debug-tuloste voi silti sisältää hostnimiä ja polkuja.
+                        <b>Yksityisyys:</b> PQ-SSH ei kirjaa salasanoja tai yksityisten avainten sisältöä.
+                        Debug-tuloste voi silti sisältää hosteja ja tiedostopolkuja.
                     </div>
                 </td>
 
                 <td class="colImg">
                     <div class="figure">
                         <img src="qrc:/docs/img/auditlog.png" alt="Audit-lokin katselu" width="450" />
-                        <div class="figcap"><b>Audit-loki</b> — tarkastele toimintoja (etenkin Fleet-ajoja) jäljitettävyyden vuoksi.</div>
+                        <div class="figcap"><b>Audit-loki</b> — tarkastele toimintoja (erityisesti Laajotyöt) jäljitettävyyden vuoksi.</div>
                     </div>
                 </td>
             </tr>
@@ -905,77 +1037,96 @@ chmod 700 ~/.ssh</code></pre>
 
     <section class="card">
         <h2>Avaimet &amp; vanhenemisvaroitukset</h2>
-        <p>Avaa <b>Keys → Key Generator…</b> luodaksesi/hallinnoidaksesi avaimia.</p>
+        <p>Avaa <b>Avaimet → Avaingeneraattori…</b> luodaksesi/hallitaksesi avaimia.</p>
 
         <ul class="bullets">
-            <li>Käynnistyksessä PQ-SSH voi merkitä vanhentuneet avaimet metatietoihin automaattisesti.</li>
-            <li>Jos vanhentuneita avaimia löytyy, tilarivillä näytetään varoitus.</li>
-            <li>Kierrätä avaimia säännöllisesti parhaan turvallisuuden vuoksi.</li>
+            <li>Käynnistyksessä PQ-SSH voi merkitä vanhentuneet avaimet automaattisesti metatietoihin.</li>
+            <li>Jos vanhentuneita avaimia on, tila-alueella näytetään varoitus.</li>
+            <li>Vaihda avaimet säännöllisesti parhaan tietoturvan saavuttamiseksi.</li>
         </ul>
     </section>
 
     <section id="troubleshooting" class="card">
-        <h2>Vianetsintä</h2>
+        <h2>Vianmääritys</h2>
 
         <details>
-            <summary>Fleet-työ epäonnistui yhdellä hostilla</summary>
+            <summary>Asennus epäonnistui: “Failed to connect to bus” / “No medium found”</summary>
             <ul class="bullets">
-                <li>Avaa <b>View → Open log file</b> nähdäksesi yksityiskohtaiset virheet.</li>
-                <li>Kokeile ajaa sama työ vain tuolle yhdelle hostille, jotta saat toistettua tilanteen.</li>
-                <li>Pienennä <b>Rinnakkaisuutta</b>, jos monta hostia epäonnistuu yhtä aikaa.</li>
-                <li>Kasvata <b>Timeoutia</b>, jos komento on hidas kyseisellä hostilla.</li>
+                <li>
+                    Tämä tarkoittaa, että <code>systemctl --user</code> on olemassa, mutta palvelimella ei ole käyttäjän DBus-istuntoa käytettävissä.
+                </li>
+                <li>
+                    Yleistä headless-/minimaalipalvelimilla ilman user lingering -asetusta.
+                </li>
+                <li>
+                    Korjaa palvelimella kerran (suositus):
+                    <pre class="codeblock"><code>sudo loginctl enable-linger &lt;user&gt;</code></pre>
+                </li>
+                <li>
+                    Vaihtoehtoisesti PQ-SSH käyttää cron- tai at-varavaihtoehtoa, jos saatavilla.
+                </li>
             </ul>
         </details>
 
         <details>
-            <summary>Fleet restart on vaarallinen — miten tehdä se turvallisesti?</summary>
+            <summary>Laajotyö epäonnistui yhdellä hostilla</summary>
             <ul class="bullets">
-                <li>Aja ensin <b>Tarkista palvelu</b>, jotta ymmärrät nykytilan.</li>
-                <li>Käynnistä uudelleen yksi host ensin, varmista toiminta ja laajenna sitten ryhmään.</li>
+                <li>Avaa <b>Näytä → Avaa lokitiedosto</b> nähdäksesi tarkat virheet.</li>
+                <li>Kokeile ajaa sama työ vain kyseiselle hostille toistaaksesi tilanteen.</li>
+                <li>Pienennä <b>Rinnakkaisuutta</b>, jos moni host epäonnistuu yhtä aikaa.</li>
+                <li>Kasvata <b>Aikakatkaisua</b>, jos komento on hidas kyseisellä hostilla.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Laajotyön uudelleenkäynnistys on vaarallinen — miten tehdä se turvallisesti?</summary>
+            <ul class="bullets">
+                <li>Aja ensin <b>Tarkista palvelu</b> ymmärtääksesi nykytilan.</li>
+                <li>Käynnistä uudelleen ensin yksi host, varmista toiminta, ja laajenna vasta sitten.</li>
                 <li>Vältä uudelleenkäynnistyksiä käyttöjärjestelmäpäivitysten tai pakettiasennusten aikana.</li>
-                <li>Käytä varovaista rinnakkaisuutta (2–4) tuotannossa.</li>
+                <li>Käytä varovaista rinnakkaisuutta (2–4) tuotantoympäristössä.</li>
             </ul>
         </details>
 
         <details>
             <summary>Teeman vaihto ei tullut voimaan</summary>
             <ul class="bullets">
-                <li>Avaa <b>File → Settings…</b>, valitse teema ja klikkaa <b>Save</b>.</li>
-                <li>Tarvittaessa sulje ja avaa Asetukset-ikkuna uudelleen ja kokeile uudestaan.</li>
+                <li>Avaa <b>Tiedosto → Asetukset…</b>, valitse teema ja napsauta <b>Tallenna</b>.</li>
+                <li>Tarvittaessa sulje ja avaa Asetukset-ikkuna uudelleen ja kokeile taas.</li>
             </ul>
         </details>
 
         <details>
             <summary>Yhteys epäonnistuu heti</summary>
             <ul class="bullets">
-                <li>Varmista host/IP ja portti profiilissa.</li>
-                <li>Tarkista lokitiedosto (Help → Open log file).</li>
-                <li>Ota <b>PQ debug</b> käyttöön saadaksesi tarkemmat SSH-diagnostiikat.</li>
+                <li>Tarkista host/IP ja portti profiilista.</li>
+                <li>Tarkista lokitiedosto (Ohje → Avaa lokitiedosto).</li>
+                <li>Ota <b>PQ debug</b> käyttöön nähdäksesi tarkat SSH-diagnostiikat.</li>
             </ul>
         </details>
 
         <details>
-            <summary>PQ näyttää POIS</summary>
+            <summary>PQ näyttää OFF</summary>
             <ul class="bullets">
-                <li>Palvelin ei todennäköisesti tarjoa probattua PQ-avaintenvaihtoa.</li>
-                <li>Tämä on informatiivinen; normaali SSH voi silti olla turvallinen käytännöistäsi riippuen.</li>
+                <li>Palvelin ei todennäköisesti tarjoa tarkistettua PQ-avainvaihtoa.</li>
+                <li>Tämä on informatiivista; normaali SSH voi silti olla turvallinen käytännöistäsi riippuen.</li>
             </ul>
         </details>
 
         <details>
-            <summary>Files-välilehti / SFTP on pois käytöstä</summary>
+            <summary>Tiedostot-välilehti / SFTP on pois käytöstä</summary>
             <ul class="bullets">
-                <li>libssh-istunto voi epäonnistua, vaikka SSH-terminaali toimisi.</li>
-                <li>Jotkin avaintyypit eivät vielä ole libssh:n tukemia.</li>
-                <li>Tarkista lokit auth- tai connect-virheiden varalta.</li>
+                <li>libssh-istunto voi epäonnistua, vaikka terminaali-SSH toimisi.</li>
+                <li>Jotkin avaintyypit eivät ole vielä tuettuja libssh-polussa.</li>
+                <li>Tarkista lokit autentikointi- tai yhteysvirheiden varalta.</li>
             </ul>
         </details>
 
         <details>
-            <summary>Vedä &amp; pudota tallentui paikallisesti eikä latautunut</summary>
+            <summary>Vedä &amp; pudota tallentui paikallisesti eikä ladannut</summary>
             <ul class="bullets">
-                <li>Tämä tarkoittaa, ettei SFTP/libssh ollut yhdistetty pudotushetkellä.</li>
-                <li>Tarkista, että SFTP on valmis ja kokeile uudelleen, tai käytä Files-välilehden siirtoja.</li>
+                <li>Tämä tarkoittaa, että SFTP/libssh ei ollut yhdistetty pudotushetkellä.</li>
+                <li>Varmista, että SFTP on valmiina ja yritä uudelleen, tai käytä Tiedostot-välilehden siirtoja.</li>
                 <li>Paikallinen varakansio: <code>~/pqssh_drops/</code></li>
             </ul>
         </details>
@@ -983,9 +1134,9 @@ chmod 700 ~/.ssh</code></pre>
         <details>
             <summary>Makron pikanäppäin ei laukea</summary>
             <ul class="bullets">
-                <li>Varmista, että makrossa on <b>sekä</b> pikanäppäin että komento.</li>
-                <li>Varmista, että terminaali-ikkuna on aktiivinen.</li>
-                <li>Vältä pikanäppäimiä, joita terminaalisovellukset käyttävät (esim. jotkin <code>Ctrl+…</code> yhdistelmät <code>vim</code>:issä).</li>
+                <li>Varmista, että makrossa on <b>sekä</b> Pikanäppäin että Komento.</li>
+                <li>Varmista, että terminaali-ikkuna on aktiivinen ikkuna.</li>
+                <li>Vältä pikanäppäimiä, joita terminaalisovellukset käyttävät (esim. osa <code>Ctrl+…</code>-yhdistelmistä <code>vim</code>:ssä).</li>
                 <li>Kokeile funktionäppäintä kuten <code>F2</code> tai <code>Alt+…</code>-yhdistelmää.</li>
             </ul>
         </details>
@@ -1001,8 +1152,8 @@ chmod 700 ~/.ssh</code></pre>
         <details>
             <summary>Liikaa debug-tulostetta käyttöliittymässä</summary>
             <ul class="bullets">
-                <li>Ota <b>PQ debug</b> pois päältä.</li>
-                <li>Sovellus piilottaa oletuksena meluisia rivejä kuten SSH-komentokäärijät.</li>
+                <li>Kytke <b>PQ debug</b> pois päältä.</li>
+                <li>Sovellus piilottaa oletuksena meluisia rivejä, kuten SSH-komentokääreitä.</li>
             </ul>
         </details>
     </section>

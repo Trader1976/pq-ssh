@@ -283,7 +283,7 @@
 <context>
     <name>AuditLogger</name>
     <message>
-        <location filename="../AuditLogger.cpp" line="+107"/>
+        <location filename="../AuditLogger.cpp" line="+132"/>
         <source>AuditLogger: failed to open %1: %2</source>
         <translation>AuditLogger: %1:n avaaminen epäonnistui: %2</translation>
     </message>
@@ -309,7 +309,7 @@
 <context>
     <name>FilesTab</name>
     <message>
-        <location filename="../FilesTab.cpp" line="+170"/>
+        <location filename="../FilesTab.cpp" line="+250"/>
         <source>Local Up</source>
         <translation>Ylös (paikallinen)</translation>
     </message>
@@ -339,12 +339,12 @@
         <translation>Lataa…</translation>
     </message>
     <message>
-        <location line="+2"/>
+        <location line="+3"/>
         <source>Remote: ~</source>
         <translation>Etä: ~</translation>
     </message>
     <message>
-        <location line="+73"/>
+        <location line="+79"/>
         <source>Name</source>
         <translation>Nimi</translation>
     </message>
@@ -364,28 +364,28 @@
         <translation>Muokattu</translation>
     </message>
     <message>
-        <location line="+102"/>
+        <location line="+122"/>
         <source>Remote: %1</source>
         <translation>Etä: %1</translation>
     </message>
     <message>
-        <location line="+41"/>
-        <location line="+253"/>
-        <location line="+179"/>
-        <location line="+137"/>
-        <location line="+154"/>
-        <location line="+108"/>
-        <location line="+77"/>
+        <location line="+65"/>
+        <location line="+328"/>
+        <location line="+208"/>
+        <location line="+145"/>
+        <location line="+183"/>
+        <location line="+120"/>
+        <location line="+87"/>
         <source>Not connected.</source>
         <translation>Ei yhteyttä.</translation>
     </message>
     <message>
-        <location line="-908"/>
+        <location line="-1071"/>
         <source>Files</source>
         <translation>Tiedostot</translation>
     </message>
     <message>
-        <location line="+169"/>
+        <location line="+214"/>
         <source>Cancel</source>
         <translation>Peruuta</translation>
     </message>
@@ -400,7 +400,7 @@
         <translation>Siirto</translation>
     </message>
     <message>
-        <location line="+23"/>
+        <location line="+29"/>
         <source>Select local files to upload</source>
         <translation>Valitse lähetettävät paikalliset tiedostot</translation>
     </message>
@@ -410,17 +410,23 @@
         <translation>Kaikki tiedostot (*)</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+15"/>
         <source>Select folder to upload</source>
         <translation>Valitse lähetettävä kansio</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+33"/>
+        <location line="+34"/>
         <source>Upload</source>
         <translation>Lähetä</translation>
     </message>
     <message>
-        <location line="+48"/>
+        <location line="+0"/>
+        <source>No files found to upload.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
         <source>Uploading %1 item(s)…</source>
         <translation>Lähetetään %1 kohdetta…</translation>
     </message>
@@ -432,7 +438,7 @@
         <translation>Etähakemiston luonti epäonnistui:</translation>
     </message>
     <message>
-        <location line="+37"/>
+        <location line="+38"/>
         <source>Upload failed:
 %1
 → %2
@@ -441,21 +447,29 @@
         <translation>Lähetys epäonnistui:</translation>
     </message>
     <message>
-        <location line="+103"/>
+        <location line="+15"/>
+        <source>Integrity check failed for upload:
+%1
+
+%2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+113"/>
         <source>Cannot stat remote path:
 %1
 %2</source>
         <translation>Etäpolun tietojen haku epäonnistui:</translation>
     </message>
     <message>
-        <location line="+219"/>
+        <location line="+246"/>
         <source>Delete %1 local item(s)?
 
 This cannot be undone.</source>
         <translation>Tätä toimintoa ei voi perua.</translation>
     </message>
     <message>
-        <location line="+72"/>
+        <location line="+82"/>
         <source>Delete %1 remote item(s)?
 
 Folders will be deleted recursively.</source>
@@ -464,35 +478,35 @@ Folders will be deleted recursively.</source>
 Kansiot poistetaan rekursiivisesti.</translation>
     </message>
     <message>
-        <location line="+115"/>
+        <location line="+127"/>
         <source>Rename failed:
 %1</source>
         <translation>Uudelleennimeäminen epäonnistui:
 %1</translation>
     </message>
     <message>
-        <location line="+62"/>
+        <location line="+72"/>
         <source>Failed to create folder:
 %1</source>
         <translation>Kansion luonti epäonnistui:
 %1</translation>
     </message>
     <message>
-        <location line="-496"/>
+        <location line="-555"/>
         <location line="+27"/>
-        <location line="+20"/>
-        <location line="+90"/>
+        <location line="+21"/>
+        <location line="+97"/>
         <location line="+6"/>
         <source>Download</source>
         <translation>Lataa</translation>
     </message>
     <message>
-        <location line="-74"/>
+        <location line="-81"/>
         <source>Downloading %1 file(s)…</source>
         <translation>Ladataan %1 tiedostoa…</translation>
     </message>
     <message>
-        <location line="+47"/>
+        <location line="+48"/>
         <source>Integrity check failed for download:
 %1
 
@@ -503,7 +517,7 @@ Kansiot poistetaan rekursiivisesti.</translation>
 %2</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+33"/>
         <source>Select file(s) or folder(s) first.</source>
         <translation>Valitse ensin tiedosto(ja) tai kansio(ita).</translation>
     </message>
@@ -513,38 +527,38 @@ Kansiot poistetaan rekursiivisesti.</translation>
         <translation>Valitse paikallinen kohdekansio</translation>
     </message>
     <message>
-        <location line="+20"/>
-        <location line="+32"/>
+        <location line="+26"/>
+        <location line="+39"/>
         <source>Rename…</source>
         <translation>Nimeä uudelleen…</translation>
     </message>
     <message>
-        <location line="-31"/>
-        <location line="+32"/>
+        <location line="-38"/>
+        <location line="+39"/>
         <source>New folder…</source>
         <translation>Uusi kansio…</translation>
     </message>
     <message>
-        <location line="-30"/>
-        <location line="+32"/>
+        <location line="-37"/>
+        <location line="+39"/>
         <source>Copy path</source>
         <translation>Kopioi polku</translation>
     </message>
     <message>
-        <location line="-30"/>
-        <location line="+32"/>
-        <location line="+25"/>
+        <location line="-37"/>
+        <location line="+39"/>
+        <location line="+31"/>
         <location line="+21"/>
         <location line="+16"/>
         <location line="+9"/>
-        <location line="+14"/>
+        <location line="+24"/>
         <location line="+6"/>
         <location line="+25"/>
         <source>Delete</source>
         <translation>Poista</translation>
     </message>
     <message>
-        <location line="-91"/>
+        <location line="-101"/>
         <source>Select one or more local items first.</source>
         <translation>Valitse ensin yksi tai useampi paikallinen kohde.</translation>
     </message>
@@ -563,7 +577,7 @@ Kansiot poistetaan rekursiivisesti.</translation>
     %1</translation>
     </message>
     <message>
-        <location line="+19"/>
+        <location line="+29"/>
         <source>Select one or more remote items first.</source>
         <translation>Valitse ensin yksi tai useampi etäkohde.</translation>
     </message>
@@ -582,29 +596,29 @@ Kansiot poistetaan rekursiivisesti.</translation>
 %2</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+23"/>
         <location line="+10"/>
         <location line="+10"/>
         <location line="+13"/>
-        <location line="+11"/>
+        <location line="+17"/>
         <location line="+6"/>
         <location line="+12"/>
         <source>Rename</source>
         <translation>Nimeä uudelleen</translation>
     </message>
     <message>
-        <location line="-62"/>
+        <location line="-68"/>
         <source>Select exactly one local item.</source>
         <translation>Valitse täsmälleen yksi paikallinen kohde.</translation>
     </message>
     <message>
         <location line="+10"/>
-        <location line="+52"/>
+        <location line="+58"/>
         <source>New name:</source>
         <translation>Uusi nimi:</translation>
     </message>
     <message>
-        <location line="-42"/>
+        <location line="-48"/>
         <source>Target name already exists.</source>
         <translation>Kohdenimi on jo olemassa.</translation>
     </message>
@@ -614,7 +628,7 @@ Kansiot poistetaan rekursiivisesti.</translation>
         <translation>Uudelleennimeäminen epäonnistui.</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+23"/>
         <source>Select exactly one remote item.</source>
         <translation>Valitse täsmälleen yksi etäkohde.</translation>
     </message>
@@ -624,28 +638,28 @@ Kansiot poistetaan rekursiivisesti.</translation>
         <translation>Nimetään uudelleen %1…</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+32"/>
         <location line="+8"/>
         <location line="+5"/>
-        <location line="+10"/>
+        <location line="+15"/>
         <location line="+6"/>
         <source>New folder</source>
         <translation>Uusi kansio</translation>
     </message>
     <message>
-        <location line="-29"/>
-        <location line="+29"/>
+        <location line="-34"/>
+        <location line="+34"/>
         <source>Folder name:</source>
         <translation>Kansion nimi:</translation>
     </message>
     <message>
-        <location line="-29"/>
-        <location line="+29"/>
+        <location line="-34"/>
+        <location line="+34"/>
         <source>NewFolder</source>
         <translation>UusiKansio</translation>
     </message>
     <message>
-        <location line="-21"/>
+        <location line="-26"/>
         <source>That name already exists.</source>
         <translation>Tuo nimi on jo olemassa.</translation>
     </message>
@@ -655,7 +669,7 @@ Kansiot poistetaan rekursiivisesti.</translation>
         <translation>Kansion luonti epäonnistui.</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+29"/>
         <source>Creating folder %1…</source>
         <translation>Luodaan kansiota %1…</translation>
     </message>
@@ -1049,12 +1063,12 @@ Tämä tallentaa koko komentomerkkijonon audit-lokitiedostoon ja voi sisältää
 <context>
     <name>IdentityManagerDialog</name>
     <message>
-        <location filename="../IdentityManagerDialog.cpp" line="+53"/>
+        <location filename="../IdentityManagerDialog.cpp" line="+66"/>
         <source>Identity Manager</source>
         <translation>Identiteettien hallinta</translation>
     </message>
     <message>
-        <location line="+113"/>
+        <location line="+119"/>
         <source>word1 word2 ... word24</source>
         <translation>sana1 sana2 ... sana24</translation>
     </message>
@@ -1079,12 +1093,12 @@ Tämä tallentaa koko komentomerkkijonon audit-lokitiedostoon ja voi sisältää
     </message>
     <message>
         <location line="+4"/>
-        <location line="+234"/>
+        <location line="+275"/>
         <source>Fingerprint:</source>
         <translation>Sormenjälki:</translation>
     </message>
     <message>
-        <location line="-198"/>
+        <location line="-239"/>
         <source>Copy public</source>
         <translation>Kopioi julkinen</translation>
     </message>
@@ -1104,43 +1118,44 @@ Tämä tallentaa koko komentomerkkijonon audit-lokitiedostoon ja voi sisältää
         <translation>Tallenna julkinen…</translation>
     </message>
     <message>
-        <location line="+125"/>
-        <location line="+13"/>
-        <location line="+9"/>
-        <location line="+12"/>
+        <location line="+127"/>
         <location line="+11"/>
-        <location line="+170"/>
-        <location line="+138"/>
+        <location line="+10"/>
+        <location line="+19"/>
+        <location line="+7"/>
+        <location line="+13"/>
+        <location line="+10"/>
+        <location line="+225"/>
+        <location line="+153"/>
         <source>Identity</source>
         <translation>Identiteetti</translation>
     </message>
     <message>
-        <location line="-353"/>
+        <location line="-427"/>
         <source>Failed: %1</source>
         <translation>Epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+13"/>
         <source>Failed to derive BIP39 master seed.</source>
-        <translation>BIP39-pääavaimen johtaminen epäonnistui.</translation>
+        <translation type="vanished">BIP39-pääavaimen johtaminen epäonnistui.</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+26"/>
         <source>Failed to derive Ed25519 seed (SHAKE256).</source>
         <translation>Ed25519-siemenen johtaminen epäonnistui (SHAKE256).</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>Failed to create Ed25519 key.</source>
         <translation>Ed25519-avaimen luominen epäonnistui.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+10"/>
         <source>Failed to extract Ed25519 public key.</source>
         <translation>Ed25519-julkisen avaimen lukeminen epäonnistui.</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+60"/>
         <source>Words are empty.</source>
         <translation>Sanat puuttuvat.</translation>
     </message>
@@ -1150,60 +1165,56 @@ Tämä tallentaa koko komentomerkkijonon audit-lokitiedostoon ja voi sisältää
         <translation>Odotettiin 24 sanaa, mutta saatiin %1.</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+18"/>
         <source>Wordlist loaded but seems too small (%1).</source>
         <translation>Sanaluettelo ladattiin, mutta se vaikuttaa liian pieneltä (%1)</translation>
     </message>
     <message>
-        <location line="+16"/>
+        <location line="+21"/>
         <source>Wordlist is too small.</source>
         <translation>Sanaluettelo on liian pieni.</translation>
     </message>
     <message>
-        <location line="+17"/>
         <source>Failed to generate words.</source>
-        <translation>Sanojen luominen epäonnistui.</translation>
+        <translation type="vanished">Sanojen luominen epäonnistui.</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+89"/>
         <source>Invalid identities.json</source>
         <translation>Virheellinen identities.json-tiedosto.</translation>
     </message>
     <message>
-        <location line="+32"/>
+        <location line="+35"/>
         <source>Cannot load identities:
 %1</source>
         <translation>Identiteettejä ei voitu ladata:
 %1</translation>
     </message>
     <message>
-        <location line="+13"/>
-        <location line="+136"/>
+        <location line="+15"/>
         <source>Fingerprint: %1</source>
         <translation>Sormenjälki: %1</translation>
     </message>
     <message>
-        <location line="-124"/>
-        <location line="+4"/>
-        <location line="+137"/>
+        <location line="+174"/>
         <source>Fingerprint: </source>
         <translation>Sormenjälki: </translation>
     </message>
     <message>
-        <location line="-438"/>
-        <location line="+4"/>
+        <location line="-548"/>
+        <location line="+6"/>
         <location line="+5"/>
-        <location line="+10"/>
+        <location line="+12"/>
         <source>Save private key</source>
         <translation>Tallenna yksityinen avain</translation>
     </message>
     <message>
-        <location line="-212"/>
+        <location line="-219"/>
         <source>Saved identities</source>
         <translation>Tallennetut identiteetit</translation>
     </message>
     <message>
-        <location line="+12"/>
+        <location line="+13"/>
         <source>Saved identities.
 Select an identity to view its fingerprint and public key.</source>
         <translation>Tallennetut identiteetit.
@@ -1223,39 +1234,38 @@ Tämä ei poista aiemmin vietyjä avaintiedostoja.</translation>
     </message>
     <message>
         <location line="+14"/>
-        <location line="+355"/>
+        <location line="+427"/>
         <source>Create identity</source>
         <translation>Luo identiteetti</translation>
     </message>
     <message>
-        <location line="-354"/>
+        <location line="-426"/>
         <source>Restore identity</source>
         <translation>Palauta identiteetti</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+454"/>
-        <location line="+5"/>
+        <location line="+557"/>
         <location line="+7"/>
-        <location line="+45"/>
-        <location line="+6"/>
+        <location line="+47"/>
+        <location line="+7"/>
         <source>Save identity</source>
         <translation>Tallenna identiteetti</translation>
     </message>
     <message>
-        <location line="-516"/>
+        <location line="-617"/>
         <source>Derive</source>
         <translation>Johda identiteetti</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+4"/>
         <source>Create a new identity by generating a random 24-word recovery phrase.
 Write the words down and keep them safe.</source>
         <translation>uo uusi identiteetti luomalla satunnainen 24 sanan palautuslause.
 Kirjoita sanat muistiin ja säilytä ne turvallisesti.</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+11"/>
         <source>Restore an existing identity by entering your 24-word recovery phrase.</source>
         <translation>Palauta olemassa oleva identiteetti syöttämällä 24 sanan palautuslause.</translation>
     </message>
@@ -1277,7 +1287,7 @@ Vain julkiset tiedot tallennetaan (ei palautussanoja).</translation>
         <translation>Alias:</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+25"/>
         <source>Enter your 24-word recovery phrase.
 Words can be separated by spaces or new lines.</source>
         <translation>Syötä 24 sanan palautuslauseesi.
@@ -1299,40 +1309,40 @@ Sanat voidaan erottaa välilyönneillä tai rivinvaihdoilla.</translation>
         <translation>Kommentti, joka lisätään luotuun SSH-julkiseen avaimeen.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+13"/>
         <source>Copy the OpenSSH public key to the clipboard.</source>
         <translation>Kopioi OpenSSH-julkinen avain leikepöydälle.</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+1"/>
         <source>Copy the full identity fingerprint to the clipboard.</source>
         <translation>Kopioi koko identiteetin sormenjälki leikepöydälle.</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+1"/>
         <source>Save the private SSH key to a file.
 Protect this file and set correct permissions.</source>
         <translation>Tallenna yksityinen SSH-avain tiedostoon.
 Suojaa tämä tiedosto ja aseta sille oikeat käyttöoikeudet.</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+1"/>
         <source>Save the public SSH key to a file.</source>
         <translation>Tallenna julkinen SSH-avain tiedostoon.</translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+55"/>
         <source>No private key derived yet.</source>
         <translation>Yksityistä avainta ei ole vielä johdettu.</translation>
     </message>
     <message>
-        <location line="+4"/>
+        <location line="+6"/>
         <source>id_ed25519</source>
         <translation>id_ed25519</translation>
     </message>
     <message>
         <location line="+5"/>
-        <location line="+28"/>
+        <location line="+30"/>
         <source>Cannot write file:
 %1</source>
         <translation>Tiedostoon ei voi kirjoittaa:
@@ -1363,18 +1373,32 @@ Suojaa tämä tiedosto ja aseta sille oikeat käyttöoikeudet.</translation>
         <translation>id_ed25519.pub</translation>
     </message>
     <message>
-        <location line="+266"/>
-        <location line="+5"/>
+        <location line="+40"/>
+        <source>Invalid BIP39 recovery phrase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+28"/>
+        <source>Internal error: missing master seed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+165"/>
+        <source>Failed to generate BIP39 recovery phrase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+130"/>
         <source>Derive identity first.</source>
         <translation>Johda identiteetti ensin.</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+61"/>
         <source>Identity saved.</source>
         <translation>Identiteetti tallennettu</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+11"/>
         <location line="+9"/>
         <location line="+14"/>
         <source>Remove identity</source>
@@ -1877,12 +1901,13 @@ Profiiliin: %3</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../MainWindow.cpp" line="+680"/>
+        <location filename="../MainWindow.cpp" line="+859"/>
+        <location line="+478"/>
         <source>Profiles</source>
         <translation>Profiilit</translation>
     </message>
     <message>
-        <location line="+6"/>
+        <location line="-472"/>
         <source>Edit profiles…</source>
         <translation>Muokkaa profiileja…</translation>
     </message>
@@ -1912,7 +1937,7 @@ Profiiliin: %3</translation>
         <translation>Katkaise</translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+41"/>
         <source>Log</source>
         <translation>Loki</translation>
     </message>
@@ -1937,12 +1962,11 @@ Profiiliin: %3</translation>
         <translation>Valmis.</translation>
     </message>
     <message>
-        <location line="+3"/>
         <source>PQ: unknown</source>
-        <translation>PQ: tuntematon</translation>
+        <translation type="vanished">PQ: tuntematon</translation>
     </message>
     <message>
-        <location line="+3"/>
+        <location line="+9"/>
         <source>PQ debug</source>
         <translation>PQ-virheenkorjaus</translation>
     </message>
@@ -1952,34 +1976,29 @@ Profiiliin: %3</translation>
         <translation>Avaa uusi yhteys UUTEEN ikkunaan</translation>
     </message>
     <message>
-        <location line="+52"/>
         <source>[PQ] 🧬 Post-Quantum key exchange established → %1</source>
-        <translation>[PQ] 🧬 Post-kvanttinen avaintenvaihto muodostettu → %1</translation>
+        <translation type="vanished">[PQ] 🧬 Post-kvanttinen avaintenvaihto muodostettu → %1</translation>
     </message>
     <message>
-        <location line="+5"/>
         <source>[KEX] Classical key exchange negotiated → %1</source>
-        <translation>[KEX] Klassinen avaintenvaihto neuvoteltu → %1</translation>
+        <translation type="vanished">[KEX] Klassinen avaintenvaihto neuvoteltu → %1</translation>
     </message>
     <message>
-        <location line="+6"/>
         <source>Post-Quantum KEX: %1</source>
-        <translation>Post-kvanttinen KEX: %1</translation>
+        <translation type="vanished">Post-kvanttinen KEX: %1</translation>
     </message>
     <message>
-        <location line="+1"/>
-        <location line="+1225"/>
+        <location line="+1431"/>
         <source>KEX: %1</source>
         <translation>KEX: %1</translation>
     </message>
     <message>
-        <location line="-1220"/>
-        <location line="+1225"/>
+        <location line="+5"/>
         <source>Negotiated KEX: %1</source>
         <translation>Neuvoteltu KEX: %1</translation>
     </message>
     <message>
-        <location line="-1219"/>
+        <location line="-1370"/>
         <source>&amp;File</source>
         <translation>&amp;Tiedosto</translation>
     </message>
@@ -2000,18 +2019,18 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+19"/>
-        <location line="+1079"/>
+        <location line="+1227"/>
         <source>[INFO] Settings updated.</source>
         <translation>[INFO] Asetukset päivitetty.</translation>
     </message>
     <message>
-        <location line="-1078"/>
-        <location line="+1079"/>
+        <location line="-1226"/>
+        <location line="+1227"/>
         <source>Settings updated.</source>
         <translation>Asetukset päivitetty.</translation>
     </message>
     <message>
-        <location line="-1071"/>
+        <location line="-1219"/>
         <source>Import OpenSSH config…</source>
         <translation>Tuo OpenSSH-asetukset…</translation>
     </message>
@@ -2041,7 +2060,7 @@ Profiiliin: %3</translation>
         <translation>Suorita sama tehtävä useissa profiileissa/isännissä (esim. julkaise 10 palvelimelle).</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+31"/>
         <source>&amp;Keys</source>
         <translation>&amp;Avaimet</translation>
     </message>
@@ -2082,13 +2101,13 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+218"/>
+        <location line="+313"/>
         <location line="+10"/>
         <source>Key install failed</source>
         <translation>Avaimen asennus epäonnistui</translation>
     </message>
     <message>
-        <location line="-227"/>
+        <location line="-322"/>
         <source>Cannot read file:
 %1</source>
         <translation>Tiedostoa ei voi lukea:
@@ -2192,12 +2211,12 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+15"/>
-        <location line="+886"/>
+        <location line="+1028"/>
         <source>User Manual</source>
         <translation>Käyttöohje</translation>
     </message>
     <message>
-        <location line="-885"/>
+        <location line="-1027"/>
         <source>Open PQ-SSH user manual</source>
         <translation>Avaa PQ-SSH:n käyttöohje</translation>
     </message>
@@ -2207,7 +2226,69 @@ Profiiliin: %3</translation>
         <translation>Avaa lokitiedosto</translation>
     </message>
     <message>
-        <location line="-147"/>
+        <location line="-591"/>
+        <location line="+729"/>
+        <source>Scheduled jobs load failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-617"/>
+        <source>SSH KEX: probing…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Running OpenSSH probe to detect negotiated KEX</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+69"/>
+        <source>SSH KEX: PQ / hybrid</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>SSH KEX: classical</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>OpenSSH negotiated KEX: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <location line="+147"/>
+        <source>SSH KEX: unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-145"/>
+        <source>No OpenSSH debug output captured.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+148"/>
+        <source>SFTP KEX: unknown</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>[SFTP-KEX] Classical (libssh limitation) → %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>SFTP KEX: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>SFTP negotiated KEX (libssh): %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+34"/>
         <source>[INFO] Settings applied.</source>
         <translation>[INFO] Asetukset otettu käyttöön.</translation>
     </message>
@@ -2217,7 +2298,12 @@ Profiiliin: %3</translation>
         <translation>Asetukset otettu käyttöön.</translation>
     </message>
     <message>
-        <location line="+147"/>
+        <location line="+51"/>
+        <source>Scheduled jobs…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+100"/>
         <source>Open pq-ssh log file</source>
         <translation>Avaa pq-ssh-lokitiedosto</translation>
     </message>
@@ -2244,9 +2330,39 @@ Profiiliin: %3</translation>
         <translation>CPUNK PQ-SSH %1</translation>
     </message>
     <message>
-        <location line="+49"/>
+        <location line="+62"/>
+        <source>[INFO] profiles.json path: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
         <source>[WARN] Could not save default profiles: %1</source>
         <translation>[WARN] Oletusprofiileja ei voitu tallentaa: %1</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>[INFO] Created default profiles.json</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>profiles.json exists but no profiles were loaded (empty or unsupported format).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>profiles.json exists but could not be loaded: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Defaults will be used for this session, and your file will NOT be overwritten.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+38"/>
+        <source>Scheduled jobs migration save failed: %1</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2254,7 +2370,7 @@ Profiiliin: %3</translation>
         <translation>[WARN] ProfileStore: %1</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+11"/>
         <source>[ERROR] %1</source>
         <translation>[ERROR] %1</translation>
     </message>
@@ -2264,7 +2380,7 @@ Profiiliin: %3</translation>
         <translation>Profiilien tallennus epäonnistui</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+30"/>
         <source>Profiles updated.</source>
         <translation>Profiilit päivitetty.</translation>
     </message>
@@ -2274,7 +2390,7 @@ Profiiliin: %3</translation>
         <translation>[INFO] Profiilit päivitetty.</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+17"/>
         <source>Public key is empty.</source>
         <translation>Julkinen avain on tyhjä.</translation>
     </message>
@@ -2285,12 +2401,12 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+7"/>
-        <location line="+108"/>
+        <location line="+115"/>
         <source>Profile has empty user/host.</source>
         <translation>Profiilissa on tyhjä käyttäjä/isäntä.</translation>
     </message>
     <message>
-        <location line="-89"/>
+        <location line="-96"/>
         <source>You are about to install a public key to this host:
 
 Target profile:
@@ -2351,7 +2467,7 @@ Jatketaanko?</translation>
         <translation>Avain asennettiin onnistuneesti.</translation>
     </message>
     <message>
-        <location line="+41"/>
+        <location line="+48"/>
         <source>[WARN] No profile selected.</source>
         <translation>[WARN] Profiilia ei ole valittu.</translation>
     </message>
@@ -2371,7 +2487,7 @@ Jatketaanko?</translation>
         <translation>[CONNECT] %1 → %2:%3</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+15"/>
         <source>PQ: checking…</source>
         <translation>PQ: tarkistetaan…</translation>
     </message>
@@ -2421,12 +2537,12 @@ Jatketaanko?</translation>
         <translation>Yhdistetty: %1</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+20"/>
         <source>Disconnected.</source>
         <translation>Yhteys katkaistu.</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+9"/>
         <source>&gt; %1</source>
         <translation>&gt; %1</translation>
     </message>
@@ -2436,7 +2552,7 @@ Jatketaanko?</translation>
         <translation>[INFO] Shelliä ei ole vielä toteutettu; syötettä ei lähetetä minnekään.</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+18"/>
         <source>[DROP] %1 (%2 bytes)</source>
         <translation>[DROP] %1 (%2 tavua)</translation>
     </message>
@@ -2466,12 +2582,12 @@ Jatketaanko?</translation>
         <translation>[UPLOAD] OK → %1</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>[DOWNLOAD] Shell not implemented yet (no selection source).</source>
         <translation>[DOWNLOAD] Shelliä ei ole vielä toteutettu (valinnan lähdettä ei ole).</translation>
     </message>
     <message>
-        <location line="+104"/>
+        <location line="+110"/>
         <source>[SSH] key_type=&apos;%1&apos; not implemented yet → falling back to password auth.</source>
         <translation>[SSH] key_type=&apos;%1&apos; ei ole vielä toteutettu → palataan salasanatodennukseen.</translation>
     </message>
@@ -2491,7 +2607,7 @@ Jatketaanko?</translation>
         <translation>[SECURITY] Paikallinen shell-vararatkaisu poistettu käytöstä (exec ssh)</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+22"/>
         <source>[TERM] ssh ended; closing terminal tab/window and disconnecting.</source>
         <translation>[TERM] ssh päättyi; suljetaan terminaalivälilehti/ikkuna ja katkaistaan yhteys.</translation>
     </message>
@@ -2501,17 +2617,20 @@ Jatketaanko?</translation>
         <translation>[TERM] ssh käynnistyi (kääritty); terminaali sulkeutuu kun ssh poistuu.</translation>
     </message>
     <message>
-        <location line="+49"/>
+        <location line="+730"/>
+        <source>Scheduled jobs save failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>[TERM] profile=%1 scheme=&apos;%2&apos; (raw=&apos;%3&apos;)</source>
-        <translation>[TERM] profiili=%1 teema=&apos;%2&apos; (raw=&apos;%3&apos;)</translation>
+        <translation type="vanished">[TERM] profiili=%1 teema=&apos;%2&apos; (raw=&apos;%3&apos;)</translation>
     </message>
     <message>
-        <location line="+2"/>
         <source>[TERM] available schemes: %1</source>
-        <translation>[TERM] saatavilla olevat teemat: %1</translation>
+        <translation type="vanished">[TERM] saatavilla olevat teemat: %1</translation>
     </message>
     <message>
-        <location line="+35"/>
+        <location line="-635"/>
         <source>PQ-SSH: %1 (%2)</source>
         <translation>PQ-SSH: %1 (%2)</translation>
     </message>
@@ -2531,12 +2650,12 @@ Jatketaanko?</translation>
         <translation>PQ-SSH-välilehdet — %1</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+42"/>
         <source>[LOG] Log file path not available.</source>
         <translation>[LOG] Lokitiedoston polku ei ole saatavilla.</translation>
     </message>
     <message>
-        <location line="+49"/>
+        <location line="+56"/>
         <source>User manual was not found in application resources.</source>
         <translation>Käyttöohjetta ei löytynyt sovelluksen resursseista.</translation>
     </message>
@@ -2638,7 +2757,7 @@ Muoto validoitu + salasana-avauksella.
 Yksityiskohdat kirjoitettu terminaaliin/lokiin.</translation>
     </message>
     <message>
-        <location line="+44"/>
+        <location line="+47"/>
         <source>Settings</source>
         <translation>Asetukset</translation>
     </message>
@@ -2648,7 +2767,7 @@ Yksityiskohdat kirjoitettu terminaaliin/lokiin.</translation>
         <translation>Asetusikkuna (tulossa seuraavaksi).</translation>
     </message>
     <message>
-        <location line="+43"/>
+        <location line="+45"/>
         <source>[MACRO] Invalid shortcut &apos;%1&apos; (profile &apos;%2&apos;)</source>
         <translation>[MACRO] Virheellinen pikanäppäin &apos;%1&apos; (profiili &apos;%2&apos;)</translation>
     </message>
@@ -2683,12 +2802,12 @@ Yksityiskohdat kirjoitettu terminaaliin/lokiin.</translation>
         <translation>PQ KEX: %1</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+19"/>
         <source>CPUNK PQ-SSH — Identity Manager</source>
         <translation>CPUNK PQ-SSH — Identiteettien hallinta</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+31"/>
         <source>OpenSSH config not found</source>
         <translation>OpenSSH-asetustiedostoa ei löytynyt</translation>
     </message>
@@ -2755,7 +2874,7 @@ Kokeile sen jälkeen Tuonti-toimintoa uudelleen.</translation>
         <translation>CPUNK PQ-SSH — Tuontisuunnitelma</translation>
     </message>
     <message>
-        <location line="+35"/>
+        <location line="+37"/>
         <source>[INFO] Imported %1 profile(s) from ~/.ssh/config</source>
         <translation>[INFO] Tuotu %1 profiili(a) tiedostosta ~/.ssh/config</translation>
     </message>
@@ -2775,7 +2894,7 @@ Kokeile sen jälkeen Tuonti-toimintoa uudelleen.</translation>
         <translation>Tuontisuunnitelma toteutettu: ei muutoksia.</translation>
     </message>
     <message>
-        <location line="+69"/>
+        <location line="+78"/>
         <source>Unlock CPUNK PQ-SSH</source>
         <translation>Avaa CPUNK PQ-SSH</translation>
     </message>
@@ -2804,8 +2923,8 @@ Syötä sovelluksen salasana:</translation>
         <translation>Väärä salasana.</translation>
     </message>
     <message>
-        <location line="-1345"/>
-        <location line="+178"/>
+        <location line="-1508"/>
+        <location line="+273"/>
         <location line="+5"/>
         <location line="+7"/>
         <location line="+58"/>
@@ -2813,17 +2932,17 @@ Syötä sovelluksen salasana:</translation>
         <translation>Avaimen asennus</translation>
     </message>
     <message>
-        <location line="-835"/>
+        <location line="-1061"/>
         <source>%1@%2:%3  [%4]</source>
         <translation>%1@%2:%3  [%4]</translation>
     </message>
     <message>
-        <location line="+150"/>
+        <location line="+164"/>
         <source>CPUNK PQ-SSH</source>
         <translation>CPUNK PQ-SSH</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+16"/>
         <source>SSH Key Passphrase</source>
         <translation>SSH-avaimen salasana</translation>
     </message>
@@ -2854,11 +2973,12 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
     <message>
         <location line="+28"/>
         <location line="+8"/>
+        <location line="+633"/>
         <source>[WARN] %1</source>
         <translation>[WARN] %1</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="-625"/>
         <source>⚠ WARNING: You have %1 expired SSH key(s). Open Key Generator → Keys tab to review/rotate.</source>
         <translation>⚠ VAROITUS: Sinulla on %1 vanhentunutta SSH-avainta. Avaa Avaingeneraattori → Avaimet-välilehti tarkistaaksesi/kierrättääksesi.</translation>
     </message>
@@ -2868,8 +2988,8 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>[SECURITY] %1</translation>
     </message>
     <message>
-        <location line="+344"/>
-        <location line="+290"/>
+        <location line="+454"/>
+        <location line="+392"/>
         <source>No profile selected.</source>
         <translation>Profiilia ei ole valittu.</translation>
     </message>
@@ -2877,12 +2997,12 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
 <context>
     <name>PortForwardingDialog</name>
     <message>
-        <location filename="../PortForwardingDialog.cpp" line="+80"/>
+        <location filename="../PortForwardingDialog.cpp" line="+114"/>
         <source>Port forwarding</source>
         <translation>Porttien uudelleenohjaus</translation>
     </message>
     <message>
-        <location line="+9"/>
+        <location line="+10"/>
         <source>Enabled</source>
         <translation>Käytössä</translation>
     </message>
@@ -2902,7 +3022,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>Huomautus</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+12"/>
         <source>Add</source>
         <translation>Lisää</translation>
     </message>
@@ -2917,7 +3037,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
         <translation>Poista</translation>
     </message>
     <message>
-        <location line="+104"/>
+        <location line="+122"/>
         <source>Invalid port forwarding rule</source>
         <translation>Virheellinen porttien uudelleenohjaussääntö</translation>
     </message>
@@ -2950,17 +3070,18 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
 <context>
     <name>ProfileStore</name>
     <message>
-        <location filename="../ProfileStore.cpp" line="+242"/>
+        <location filename="../ProfileStore.cpp" line="+329"/>
         <source>Localhost</source>
         <translation>Paikallinen kone</translation>
     </message>
     <message>
-        <location line="+144"/>
+        <location line="+157"/>
+        <location line="+9"/>
         <source>Could not write profiles.json: %1</source>
         <translation>profiles.json-tiedostoon ei voitu kirjoittaa: %1</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+26"/>
         <source>Could not open profiles.json: %1</source>
         <translation>profiles.json-tiedostoa ei voitu avata: %1</translation>
     </message>
@@ -3268,7 +3389,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation type="vanished">Vinkki: Jos [Enter] on käytössä, PQ-SSH lisää rivinvaihdon, jolloin komento suoritetaan heti.</translation>
     </message>
     <message>
-        <location line="+428"/>
+        <location line="+429"/>
         <source>Each profile must have non-empty user and host.</source>
         <translation>Jokaisessa profiilissa on oltava ei-tyhjät käyttäjä ja isäntä.</translation>
     </message>
@@ -3427,7 +3548,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Ei voida kirjoittaa tiedostoon %1</translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-848"/>
+        <location filename="../MainWindow.cpp" line="-1079"/>
         <source>Out of memory while hashing password.</source>
         <translation>Muisti loppui salasanaa hajautettaessa.</translation>
     </message>
@@ -3485,12 +3606,12 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Ryhmittelemätön</translation>
     </message>
     <message>
-        <location filename="../SshClient.cpp" line="+48"/>
+        <location filename="../SshClient.cpp" line="+49"/>
         <source>libssh: null session</source>
         <translation>libssh: tyhjä istunto</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+13"/>
         <source>openSftp: out is null.</source>
         <translation>openSftp: ulostulo on tyhjä.</translation>
     </message>
@@ -3510,7 +3631,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>sftp_init epäonnistui: %1</translation>
     </message>
     <message>
-        <location filename="../PortForwardingDialog.cpp" line="-201"/>
+        <location filename="../PortForwardingDialog.cpp" line="-227"/>
         <source>Forward type</source>
         <translation>Uudelleenohjauksen tyyppi</translation>
     </message>
@@ -3520,7 +3641,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Tyyppi:</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Bind address</source>
         <translation>Sidontaosoite</translation>
     </message>
@@ -3530,7 +3651,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Sidontaosoite:</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Listen port</source>
         <translation>Kuunteluportti</translation>
     </message>
@@ -3540,7 +3661,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Kuunteluportti:</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Target host</source>
         <translation>Kohdepalvelin</translation>
     </message>
@@ -3560,7 +3681,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Kohdeportti:</translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+6"/>
         <source>Description</source>
         <translation>Kuvaus</translation>
     </message>
@@ -3594,7 +3715,7 @@ Escape-merkit:
   }}  -&gt;  }</translation>
     </message>
     <message>
-        <location filename="../ProfilesEditorDialog.cpp" line="-1487"/>
+        <location filename="../ProfilesEditorDialog.cpp" line="-1488"/>
         <source>You can use placeholders in macro commands:
   {USER}    Username
   {HOST}    Host/IP
@@ -3624,11 +3745,388 @@ Escape-merkit:
   {{  -&gt;  {
   }}  -&gt;  }</translation>
     </message>
+    <message>
+        <location filename="../ScheduledJobsDialog.cpp" line="+26"/>
+        <source>One-shot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Recurring</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+282"/>
+        <source>(missing)</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ScheduledJobStore</name>
+    <message>
+        <location filename="../ScheduledJobStore.cpp" line="+100"/>
+        <source>Could not open scheduled-jobs.json: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Invalid JSON in scheduled-jobs.json: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+34"/>
+        <location line="+8"/>
+        <source>Could not write scheduled-jobs.json: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>ScheduledJobsDialog</name>
+    <message>
+        <location filename="../ScheduledJobsDialog.cpp" line="-237"/>
+        <location line="+84"/>
+        <location line="+71"/>
+        <location line="+51"/>
+        <location line="+192"/>
+        <location line="+58"/>
+        <location line="+43"/>
+        <source>SSH client missing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-487"/>
+        <location line="+89"/>
+        <location line="+305"/>
+        <source>Run time not set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-391"/>
+        <source>OnCalendar not set.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+43"/>
+        <location line="+471"/>
+        <source>Could not determine remote uid.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-465"/>
+        <location line="+472"/>
+        <source>Invalid remote uid output: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-439"/>
+        <source>Cron backend requires a 5-field cron schedule, e.g. &quot;0 2 * * 1-5&quot;.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+41"/>
+        <source>Failed to install cron job.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+91"/>
+        <source>Could not determine remote home directory.
+Neither $HOME nor getent passwd returned a usable path.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+34"/>
+        <source>Scheduled jobs</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>Name</source>
+        <translation type="unfinished">Nimi</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+332"/>
+        <location line="+5"/>
+        <location line="+97"/>
+        <source>Profile</source>
+        <translation type="unfinished">Profiili</translation>
+    </message>
+    <message>
+        <location line="-433"/>
+        <source>Type</source>
+        <translation type="unfinished">Tyyppi</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>When</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <location line="+343"/>
+        <location line="+58"/>
+        <source>Command</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-400"/>
+        <location line="+474"/>
+        <source>Installed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-473"/>
+        <source>Enabled</source>
+        <translation type="unfinished">Käytössä</translation>
+    </message>
+    <message>
+        <location line="+23"/>
+        <source>Add</source>
+        <translation type="unfinished">Lisää</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Edit</source>
+        <translation type="unfinished">Muokkaa</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Delete</source>
+        <translation type="unfinished">Poista</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Install on server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Cancel on server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
+        <source>Close</source>
+        <translation type="unfinished">Sulje</translation>
+    </message>
+    <message>
+        <location line="+37"/>
+        <location line="+2"/>
+        <source>(not set)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>(unnamed)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <location line="+1"/>
+        <source>Yes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-1"/>
+        <location line="+1"/>
+        <source>No</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+24"/>
+        <source>The &apos;at&apos; backend supports one-shot jobs only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <location line="+106"/>
+        <source>Could not resolve remote home directory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-73"/>
+        <source>Failed to enqueue at job.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+42"/>
+        <source>Profile not found (missing).</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-24"/>
+        <source>No supported scheduler found on the remote.
+
+Details:
+%1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>Unsupported scheduler backend.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+57"/>
+        <source>This server does not have a user systemd/DBus session available for this SSH login.
+
+systemctl --user needs /run/user/%1/bus, but it was not found.
+
+Fix options:
+  1) (Recommended) Enable lingering once:
+     sudo loginctl enable-linger %2
+  2) Log in with a full desktop/session that provides a user bus.
+  3) Use a cron/at backend instead of systemd user timers.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+40"/>
+        <source>No profiles</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>No SSH profiles exist. Create a profile first.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>New job</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <location line="+102"/>
+        <source>Run on server:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-97"/>
+        <source>Invalid profile selection.</source>
+        <translation type="unfinished">Virheellinen profiilivalinta.</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location line="+58"/>
+        <source>Job name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-58"/>
+        <location line="+58"/>
+        <source>Name:</source>
+        <translation type="unfinished">Nimi:</translation>
+    </message>
+    <message>
+        <location line="-54"/>
+        <source>Command to run on server:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>One-shot (run once)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Recurring (OnCalendar)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Schedule type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Type:</source>
+        <translation type="unfinished">Tyyppi:</translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <location line="+50"/>
+        <source>OnCalendar</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-49"/>
+        <source>systemd OnCalendar (e.g. daily, Mon..Fri 02:00):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <location line="+10"/>
+        <location line="+32"/>
+        <location line="+6"/>
+        <source>Run at</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-47"/>
+        <location line="+41"/>
+        <source>Local time (YYYY-MM-DD HH:MM):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-32"/>
+        <location line="+38"/>
+        <source>Invalid time format. Use YYYY-MM-DD HH:MM.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-15"/>
+        <source>Command:</source>
+        <translation type="unfinished">Komento:</translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>OnCalendar:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+41"/>
+        <source>Delete job</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Delete this scheduled job from PQ-SSH?
+
+This does NOT cancel it on the server.
+Use &apos;Cancel on server&apos; first if needed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Install failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>Job installed on server.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>Cancel failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>Cancelled</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Job cancelled on server.</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <location filename="../SettingsDialog.cpp" line="+55"/>
+        <location filename="../SettingsDialog.cpp" line="+78"/>
         <source>Settings</source>
         <translation>Asetukset</translation>
     </message>
@@ -3733,7 +4231,7 @@ Escape-merkit:
         <translation>Audit-hakemisto:</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+20"/>
         <source>Require password on startup</source>
         <translation>Vaadi salasana käynnistyksessä</translation>
     </message>
@@ -3758,41 +4256,41 @@ Escape-merkit:
         <translation>Poista sovelluslukitus ja poista tallennettu salasana-tiiviste</translation>
     </message>
     <message>
-        <location line="+10"/>
+        <location line="+11"/>
         <source>App lock:</source>
         <translation>Sovelluslukitus:</translation>
     </message>
     <message>
-        <location line="+33"/>
-        <location line="+91"/>
+        <location line="+35"/>
+        <location line="+97"/>
         <source>Restart required</source>
         <translation>Uudelleenkäynnistys vaaditaan</translation>
     </message>
     <message>
-        <location line="-90"/>
-        <location line="+91"/>
+        <location line="-96"/>
+        <location line="+97"/>
         <source>Language change will take effect after restarting the application.</source>
         <translation>Kielimuutos tulee voimaan sovelluksen uudelleenkäynnistyksen jälkeen.</translation>
     </message>
     <message>
-        <location line="-38"/>
-        <location line="+174"/>
+        <location line="-42"/>
+        <location line="+196"/>
         <source>Password set</source>
         <translation>Salasana asetettu</translation>
     </message>
     <message>
-        <location line="-173"/>
+        <location line="-195"/>
         <source>Enabled, but no password set!</source>
         <translation>Käytössä, mutta salasanaa ei ole asetettu!</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+200"/>
+        <location line="+225"/>
         <source>Off</source>
         <translation>Pois</translation>
     </message>
     <message>
-        <location line="-138"/>
+        <location line="-153"/>
         <source>Choose log file</source>
         <translation>Valitse lokitiedosto</translation>
     </message>
@@ -3802,12 +4300,12 @@ Escape-merkit:
         <translation>Lokitiedostot (*.log);;Kaikki tiedostot (*)</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+33"/>
         <source>Choose audit directory</source>
         <translation>Valitse audit-hakemisto</translation>
     </message>
     <message>
-        <location line="+28"/>
+        <location line="+35"/>
         <source>Set application password</source>
         <translation>Aseta sovelluksen salasana</translation>
     </message>
@@ -3847,7 +4345,7 @@ Escape-merkit:
         <translation>Salasana-tiivisteen luonti epäonnistui (muisti loppui?).</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+16"/>
         <source>App lock enabled</source>
         <translation>Sovelluslukitus käytössä</translation>
     </message>
@@ -3857,7 +4355,7 @@ Escape-merkit:
         <translation>Käynnistyssalasana on asetettu.</translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+10"/>
         <source>Disable app lock</source>
         <translation>Poista sovelluslukitus</translation>
     </message>
@@ -3867,7 +4365,7 @@ Escape-merkit:
         <translation>Poistetaanko sovelluslukitus ja tallennettu salasana-tiiviste?</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+19"/>
         <source>App lock disabled</source>
         <translation>Sovelluslukitus poistettu</translation>
     </message>
@@ -3880,9 +4378,9 @@ Escape-merkit:
 <context>
     <name>SshClient</name>
     <message>
-        <location filename="../SshClient.cpp" line="+45"/>
+        <location filename="../SshClient.cpp" line="+51"/>
         <location line="+2"/>
-        <location line="+47"/>
+        <location line="+58"/>
         <source>No host specified.</source>
         <translation>Isäntää ei ole määritetty.</translation>
     </message>
@@ -3912,7 +4410,7 @@ Escape-merkit:
         <translation>Käyttäjää ei ole määritetty.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="+13"/>
         <source>Unsupported key_type &apos;%1&apos; (PQ keys not implemented yet).</source>
         <translation>Tukematon key_type &apos;%1&apos; (PQ-avaimia ei ole vielä toteutettu).</translation>
     </message>
@@ -3922,45 +4420,70 @@ Escape-merkit:
         <translation>ssh_new() epäonnistui.</translation>
     </message>
     <message>
-        <location line="+117"/>
+        <location line="+49"/>
+        <source>Failed to set SSH host.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Failed to set SSH user.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Failed to set SSH port.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Failed to set SSH timeout.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Failed to set SSH identity file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+58"/>
         <source>ssh_connect failed: %1</source>
         <translation>ssh_connect epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+41"/>
         <source>Public-key auth failed: %1</source>
         <translation>Julkisen avaimen todennus epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+46"/>
         <location line="+52"/>
-        <location line="+60"/>
-        <location line="+49"/>
-        <location line="+103"/>
-        <location line="+109"/>
-        <location line="+52"/>
-        <location line="+94"/>
-        <location line="+130"/>
-        <location line="+147"/>
-        <location line="+32"/>
-        <location line="+94"/>
+        <location line="+54"/>
+        <location line="+65"/>
+        <location line="+70"/>
+        <location line="+174"/>
+        <location line="+158"/>
+        <location line="+53"/>
+        <location line="+101"/>
+        <location line="+142"/>
+        <location line="+155"/>
+        <location line="+37"/>
+        <location line="+114"/>
         <source>Not connected.</source>
         <translation>Ei yhteyttä.</translation>
     </message>
     <message>
-        <location line="-916"/>
-        <location line="+649"/>
+        <location line="-1117"/>
+        <location line="+817"/>
         <source>ssh_channel_new failed.</source>
         <translation>ssh_channel_new epäonnistui.</translation>
     </message>
     <message>
-        <location line="-644"/>
-        <location line="+666"/>
+        <location line="-812"/>
+        <location line="+835"/>
         <source>ssh_channel_open_session failed: %1</source>
         <translation>ssh_channel_open_session epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="-660"/>
+        <location line="-829"/>
         <source>ssh_channel_request_exec(pwd) failed: %1</source>
         <translation>ssh_channel_request_exec(pwd) epäonnistui: %1</translation>
     </message>
@@ -3970,67 +4493,77 @@ Escape-merkit:
         <translation>Etäkomento &apos;pwd&apos; palautti tyhjän tuloksen.</translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+29"/>
         <source>sftp_opendir failed for &apos;%1&apos;: %2</source>
         <translation>sftp_opendir epäonnistui kohteelle &apos;%1&apos;: %2</translation>
     </message>
     <message>
-        <location line="+45"/>
+        <location line="+50"/>
         <source>statRemotePath: outInfo is null.</source>
         <translation>statRemotePath: outInfo on tyhjä.</translation>
     </message>
     <message>
-        <location line="+8"/>
-        <location line="+261"/>
-        <location line="+52"/>
+        <location line="+10"/>
+        <location line="+400"/>
+        <location line="+53"/>
         <source>Remote path is empty.</source>
         <translation>Etäpolku on tyhjä.</translation>
     </message>
     <message>
-        <location line="-304"/>
+        <location line="-444"/>
         <source>sftp_stat failed for &apos;%1&apos;: %2</source>
         <translation>sftp_stat epäonnistui kohteelle &apos;%1&apos;: %2</translation>
     </message>
     <message>
-        <location line="+40"/>
+        <location line="+63"/>
         <source>uploadFile: localPath/remotePath empty.</source>
         <translation>uploadFile: localPath/remotePath on tyhjä.</translation>
     </message>
     <message>
-        <location line="+25"/>
+        <location line="+46"/>
         <source>Cannot open remote temp file &apos;%1&apos;: %2</source>
         <translation>Etätilapäistiedostoa &apos;%1&apos; ei voi avata: %2</translation>
     </message>
     <message>
         <location line="+14"/>
-        <location line="+115"/>
-        <location line="+178"/>
-        <location line="+51"/>
+        <location line="+187"/>
+        <location line="+204"/>
+        <location line="+56"/>
         <source>Cancelled by user</source>
         <translation>Käyttäjä peruutti</translation>
     </message>
     <message>
-        <location line="-335"/>
+        <location line="-441"/>
+        <source>Local read failed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+10"/>
         <source>SFTP write failed: %1</source>
         <translation>SFTP-kirjoitus epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+24"/>
+        <location line="+52"/>
         <source>SFTP rename failed &apos;%1&apos; -&gt; &apos;%2&apos;: %3</source>
         <translation>SFTP-uudelleennimeäminen epäonnistui &apos;%1&apos; → &apos;%2&apos;: %3</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+46"/>
         <source>downloadFile: remotePath/localPath empty.</source>
         <translation>downloadFile: remotePath/localPath on tyhjä.</translation>
     </message>
     <message>
-        <location line="+20"/>
+        <location line="+11"/>
+        <source>Failed to create local directory: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+30"/>
         <source>Cannot open remote file &apos;%1&apos;: %2</source>
         <translation>Etätiedostoa &apos;%1&apos; ei voi avata: %2</translation>
     </message>
     <message>
-        <location line="+39"/>
+        <location line="+40"/>
         <source>SFTP read failed: %1</source>
         <translation>SFTP-luku epäonnistui: %1</translation>
     </message>
@@ -4040,25 +4573,34 @@ Escape-merkit:
         <translation>Paikallinen kirjoitus epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+20"/>
         <source>Failed to rename downloaded temp file to final path.</source>
-        <translation>Ladatun väliaikaistiedoston uudelleennimeäminen lopulliseen polkuun epäonnistui.</translation>
+        <translation type="vanished">Ladatun väliaikaistiedoston uudelleennimeäminen lopulliseen polkuun epäonnistui.</translation>
     </message>
     <message>
-        <location line="+35"/>
-        <location line="+59"/>
-        <location line="+391"/>
+        <location line="+25"/>
+        <source>Failed to move existing file aside before replacing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Failed to move downloaded temp file to final path.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+41"/>
+        <location line="+60"/>
+        <location line="+423"/>
         <source>sftp_open failed for &apos;%1&apos;.</source>
         <translation>sftp_open epäonnistui kohteelle &apos;%1&apos;.</translation>
     </message>
     <message>
-        <location line="-440"/>
-        <location line="+452"/>
+        <location line="-473"/>
+        <location line="+485"/>
         <source>sftp_write failed for &apos;%1&apos;.</source>
         <translation>sftp_write epäonnistui kohteelle &apos;%1&apos;.</translation>
     </message>
     <message>
-        <location line="-421"/>
+        <location line="-453"/>
         <source>Local path is empty.</source>
         <translation>Paikallinen polku on tyhjä.</translation>
     </message>
@@ -4068,7 +4610,7 @@ Escape-merkit:
         <translation>Paikallista tiedostoa &apos;%1&apos; ei voitu kirjoittaa: %2</translation>
     </message>
     <message>
-        <location line="+18"/>
+        <location line="+20"/>
         <source>Cannot open local file for hashing: %1</source>
         <translation>Paikallista tiedostoa ei voi avata tiivistämistä varten: %1</translation>
     </message>
@@ -4078,7 +4620,7 @@ Escape-merkit:
         <translation>Paikallinen luku epäonnistui tiivistämisen aikana: %1</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+36"/>
         <source>Cannot open remote file for hashing.</source>
         <translation>Etätiedostoa ei voi avata tiivistämistä varten.</translation>
     </message>
@@ -4088,19 +4630,19 @@ Escape-merkit:
         <translation>SFTP-luku epäonnistui etätiedostoa tiivistettäessä.</translation>
     </message>
     <message>
-        <location line="+24"/>
-        <location line="+37"/>
+        <location line="+30"/>
+        <location line="+42"/>
         <source>Local SHA-256 failed: %1</source>
         <translation>Paikallinen SHA-256 epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="-31"/>
-        <location line="+25"/>
+        <location line="-36"/>
+        <location line="+30"/>
         <source>Remote SHA-256 failed: %1</source>
         <translation>Etä-SHA-256 epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="-19"/>
+        <location line="-24"/>
         <source>Checksum mismatch (SHA-256)
 Local : %1
 Remote: %2</source>
@@ -4109,7 +4651,7 @@ Paikallinen : %1
 Etä        : %2</translation>
     </message>
     <message>
-        <location line="+31"/>
+        <location line="+36"/>
         <source>Checksum mismatch (SHA-256)
 Remote: %1
 Local : %2</source>
@@ -4118,12 +4660,12 @@ Etä        : %1
 Paikallinen : %2</translation>
     </message>
     <message>
-        <location line="+58"/>
+        <location line="+60"/>
         <source>ssh_channel_request_exec failed: %1</source>
         <translation>ssh_channel_request_exec epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+32"/>
         <source>Remote command timed out after %1 ms.</source>
         <translation>Etäkomento aikakatkaistiin %1 ms jälkeen.</translation>
     </message>
@@ -4148,7 +4690,7 @@ Paikallinen : %2</translation>
         <translation>ssh_channel_read(stderr) epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="+8"/>
         <source>ssh_channel_poll_timeout(stdout/drain) failed: %1</source>
         <translation>ssh_channel_poll_timeout(stdout/drain) epäonnistui: %1</translation>
     </message>
@@ -4178,17 +4720,17 @@ Paikallinen : %2</translation>
         <translation>Etäkomento epäonnistui (exit %1): %2</translation>
     </message>
     <message>
-        <location line="+34"/>
+        <location line="+38"/>
         <source>sftp_open failed for &apos;%1&apos; (may not exist).</source>
         <translation>sftp_open epäonnistui kohteelle &apos;%1&apos; (ei ehkä ole olemassa).</translation>
     </message>
     <message>
-        <location line="+66"/>
+        <location line="+71"/>
         <source>sftp_rename failed for &apos;%1&apos; → &apos;%2&apos;.</source>
         <translation>sftp_rename epäonnistui kohteelle &apos;%1&apos; → &apos;%2&apos;.</translation>
     </message>
     <message>
-        <location line="+59"/>
+        <location line="+79"/>
         <source>Public key line is empty.</source>
         <translation>Julkisen avaimen rivi on tyhjä.</translation>
     </message>
@@ -4208,7 +4750,7 @@ Paikallinen : %2</translation>
         <translation>Etä-$HOME on tyhjä.</translation>
     </message>
     <message>
-        <location line="+34"/>
+        <location line="+35"/>
         <source>Failed to create backup dir: %1</source>
         <translation>Varmuuskopiohakemiston luonti epäonnistui: %1</translation>
     </message>

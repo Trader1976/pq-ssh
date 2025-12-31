@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>CPUNK PQ-SSH — Manual de usuario</title>
-    <meta name="description" content="Manual de usuario de CPUNK PQ-SSH (cliente SSH basado en perfiles con estado PQ, ajustes, transferencia de archivos, macros y registros)." />
+    <meta name="description" content="Manual de usuario de CPUNK PQ-SSH (cliente SSH basado en perfiles con estado PQ, ajustes, transferencia de archivos, macros y registro)." />
 
     <!-- IMPORTANT for QTextBrowser + QRC -->
     <link rel="stylesheet" href="qrc:/docs/user-manual.css" />
@@ -144,14 +144,28 @@
         .card h2 { margin-top: 0; }
 
         /* --- Readability spacing (Windows Classic friendly) --- */
+
+        /* Space between cards (Getting started, Profiles, Connect...) */
         main.content > section.card { margin: 0 0 16px 0; }
+
+        /* Paragraph spacing inside cards */
         .card p { margin: 10px 0; line-height: 1.45; }
+
+        /* Lists */
         .card ul, .card ol { margin: 10px 0 12px 22px; }
-        .card h2 { margin: 0 0 12px 0; }
+
+        /* Headings inside cards: spacing ABOVE headings, not huge */
+        .card h2 { margin: 50px 0 12px 0; }
         .card h3 { margin: 18px 0 8px 0; }
         .card h4 { margin: 14px 0 6px 0; }
+
+        /* Notes/tips/warnings */
         .note, .tip, .warn { margin: 12px 0; padding: 10px 12px; }
+
+        /* Code blocks */
         pre, .codeblock { margin: 10px 0 12px 0; padding: 10px; }
+
+        /* Troubleshooting details spacing */
         details { margin: 10px 0; }
     </style>
 </head>
@@ -171,7 +185,8 @@
             <a class="btn" href="#getting-started">Primeros pasos</a>
             <a class="btn" href="#profiles">Perfiles</a>
             <a class="btn" href="#connect">Conectar</a>
-            <a class="btn" href="#fleet-jobs">Trabajos Fleet</a>
+            <a class="btn" href="#fleet-jobs">Tareas de flota</a>
+            <a class="btn" href="#scheduled-jobs">Tareas programadas</a>
             <a class="btn" href="#macros">Macros</a>
             <a class="btn" href="#settings">Ajustes</a>
             <a class="btn" href="#themes">Temas</a>
@@ -191,12 +206,12 @@
         <div class="hero">
             <h2>Qué es PQ-SSH</h2>
             <p>
-                <b>CPUNK PQ-SSH</b> es un cliente SSH basado en perfiles, centrado en un flujo de trabajo limpio en terminal,
-                fuertes valores predeterminados de seguridad y un <b>indicador de preparación post-cuántica (PQ)</b>.
+                <b>CPUNK PQ-SSH</b> es un cliente SSH basado en perfiles, centrado en un flujo de trabajo de terminal limpio,
+                valores predeterminados de seguridad sólidos y un <b>indicador de preparación post-cuántica (PQ)</b>.
             </p>
 
             <div>
-                <span class="pill">Terminal primero</span>
+                <span class="pill">Primero la terminal</span>
                 <span class="pill">Perfiles</span>
                 <span class="pill">Macros</span>
                 <span class="pill">SFTP</span>
@@ -205,20 +220,20 @@
 
             <div class="callouts">
                 <div class="callout">
-                    <div class="callout-title">Terminal primero</div>
+                    <div class="callout-title">Primero la terminal</div>
                     <p>Las conexiones abren una terminal SSH real impulsada por tu OpenSSH del sistema.</p>
                 </div>
                 <div class="callout">
                     <div class="callout-title">Perfiles</div>
-                    <p>Guarda host/usuario/puerto y preferencias. Conecta con un clic.</p>
+                    <p>Guarda host/usuario/puerto y preferencias. Conecta con un solo clic.</p>
                 </div>
                 <div class="callout">
                     <div class="callout-title">Macros</div>
-                    <p>Asigna atajos a comandos y envíalos al terminal SSH activo al instante.</p>
+                    <p>Asigna teclas rápidas a comandos y envíalos al terminal SSH activo al instante.</p>
                 </div>
                 <div class="callout">
-                    <div class="callout-title">Flujos SFTP</div>
-                    <p>Una sesión libssh opcional permite navegar y transferir archivos sin romper la experiencia de terminal.</p>
+                    <div class="callout-title">Flujos de trabajo SFTP</div>
+                    <p>Una sesión opcional de libssh permite navegar y transferir archivos sin romper la experiencia de terminal.</p>
                 </div>
             </div>
         </div>
@@ -228,13 +243,13 @@
         <h2>Primeros pasos</h2>
         <ol>
             <li>Abre <b>PQ-SSH</b>.</li>
-            <li>Haz clic en <b>Edit profiles…</b>.</li>
+            <li>Haz clic en <b>Editar perfiles…</b>.</li>
             <li>Crea un perfil (Nombre, Usuario, Host/IP, Puerto).</li>
-            <li>Selecciona un perfil y haz clic en <b>Connect</b> (o haz doble clic en el perfil).</li>
+            <li>Selecciona un perfil y haz clic en <b>Conectar</b> (o haz doble clic en el perfil).</li>
         </ol>
 
         <div class="note">
-            <b>Comportamiento predeterminado:</b> “Open new connection in NEW window” está habilitado, así que cada conexión se abre por separado.
+            <b>Comportamiento predeterminado:</b> “Abrir nueva conexión en NUEVA ventana” está habilitado, por lo que cada conexión se abre por separado.
         </div>
     </section>
 
@@ -244,20 +259,20 @@
         <table class="twocol" role="presentation">
             <tr>
                 <td class="colText">
-                    <p>Un perfil guarda los datos de conexión y preferencias de UI:</p>
+                    <p>Un perfil almacena los detalles de conexión y las preferencias de la interfaz:</p>
                     <ul class="bullets">
-                        <li><b>Name</b> — etiqueta amigable (p. ej. “Server#1”)</li>
-                        <li><b>User</b> — usuario SSH (p. ej. <code>root</code>)</li>
-                        <li><b>Host</b> — hostname o IP (p. ej. <code>192.168.0.1</code>)</li>
-                        <li><b>Port</b> — por defecto <code>22</code></li>
-                        <li><b>Group</b> — etiqueta opcional para organizar perfiles en la lista</li>
-                        <li><b>Key type</b> — normalmente <code>auto</code> o <code>openssh</code></li>
-                        <li><b>Terminal scheme</b> — esquema de color del terminal</li>
-                        <li><b>Hotkey macros</b> — lista de macros por perfil (atajo → comando)</li>
+                        <li><b>Nombre</b> — etiqueta amigable (p. ej. “Servidor#1”)</li>
+                        <li><b>Usuario</b> — nombre de usuario SSH (p. ej. <code>root</code>)</li>
+                        <li><b>Host</b> — nombre de host o IP (p. ej. <code>192.168.0.1</code>)</li>
+                        <li><b>Puerto</b> — el valor predeterminado es <code>22</code></li>
+                        <li><b>Grupo</b> — etiqueta opcional para organizar perfiles en la lista</li>
+                        <li><b>Tipo de clave</b> — normalmente <code>auto</code> o <code>openssh</code></li>
+                        <li><b>Esquema de terminal</b> — esquema de colores para la terminal</li>
+                        <li><b>Macros de teclas rápidas</b> — lista de macros por perfil (atajo → comando)</li>
                     </ul>
 
                     <div class="tip">
-                        Consejo: Mantén los nombres de perfil cortos y consistentes (Prod, Staging, Home, etc.) y usa Groups para que la lista sea más legible.
+                        Consejo: Mantén los nombres de perfil cortos y consistentes (Prod, Staging, Home, etc.) y usa Grupos para mantener la lista legible.
                     </div>
                 </td>
 
@@ -273,36 +288,36 @@
         <!-- Port forwarding -->
         <h3 id="port-forwarding">Reenvío de puertos</h3>
         <p>
-            PQ-SSH soporta <b>reenvío de puertos por perfil</b>. Esto te permite “tunelizar” tráfico TCP de forma segura a través de tu
-            conexión SSH. Puedes habilitar varias reglas en un mismo perfil (multi-forward).
+            PQ-SSH admite <b>reenvío de puertos por perfil</b>. Esto te permite “tunelizar” tráfico TCP de forma segura a través de tu
+            conexión SSH. Puedes habilitar múltiples reglas de reenvío en un solo perfil (multi-forward).
         </p>
 
         <h4>Dónde configurarlo</h4>
         <ol>
-            <li>Abre <b>Edit profiles…</b></li>
+            <li>Abre <b>Editar perfiles…</b></li>
             <li>Selecciona un perfil</li>
-            <li>En la columna central, abre <b>Advanced</b></li>
-            <li>Activa <b>Enable port forwarding</b></li>
-            <li>Haz clic en <b>Port forwarding…</b> para añadir/editar reglas</li>
+            <li>En la columna central, abre <b>Avanzado</b></li>
+            <li>Habilita <b>Habilitar reenvío de puertos</b></li>
+            <li>Haz clic en <b>Reenvío de puertos…</b> para añadir/editar reglas</li>
         </ol>
 
         <h4>Tipos de reenvío</h4>
         <ul class="bullets">
             <li>
-                <b>Reenvío local (-L)</b> — reenvía un puerto local en tu equipo a un host/puerto objetivo del lado remoto.
+                <b>Reenvío local (-L)</b> — reenvía un puerto local de tu ordenador a un host/puerto de destino en el lado remoto.
                 <div class="note">
-                    Ejemplo: acceder localmente a un servicio web remoto:
+                    Ejemplo: acceder a un servicio web remoto localmente:
                     <pre class="codeblock"><code>ssh -L 127.0.0.1:18888:localhost:18080 user@server</code></pre>
-                    Luego navega/curl:
+                    Luego navegar/curl:
                     <pre class="codeblock"><code>curl http://127.0.0.1:18888/</code></pre>
                 </div>
             </li>
             <li>
-                <b>Reenvío remoto (-R)</b> — abre un puerto en el servidor remoto y lo reenvía a un host/puerto accesible desde tu lado local.
+                <b>Reenvío remoto (-R)</b> — reenvía un puerto en el servidor remoto hacia un host/puerto accesible desde tu lado local.
                 <div class="note">
                     Ejemplo (conceptual):
                     <pre class="codeblock"><code>ssh -R 0.0.0.0:9000:127.0.0.1:3000 user@server</code></pre>
-                    Los clientes remotos pueden conectarse al puerto <code>9000</code> del servidor (según política del servidor).
+                    Los clientes remotos pueden conectarse al puerto <code>9000</code> del servidor remoto (según la política del servidor).
                 </div>
             </li>
             <li>
@@ -310,32 +325,32 @@
                 <div class="note">
                     Ejemplo:
                     <pre class="codeblock"><code>ssh -D 127.0.0.1:1080 user@server</code></pre>
-                    Luego apunta un navegador o herramienta a SOCKS5 <code>127.0.0.1:1080</code>.
+                    Luego puedes apuntar un navegador o herramienta a SOCKS5 <code>127.0.0.1:1080</code>.
                 </div>
             </li>
         </ul>
 
         <h4>Campos de la regla (qué significan)</h4>
         <ul class="bullets">
-            <li><b>Enabled</b> — activa/desactiva una regla (sin borrarla)</li>
-            <li><b>Type</b> — Local (-L), Remote (-R), Dynamic (-D)</li>
-            <li><b>Bind address</b> — dónde se crea el listener (por defecto: <code>127.0.0.1</code> solo local)</li>
-            <li><b>Listen port</b> — puerto a abrir (1–65535)</li>
-            <li><b>Target host / Target port</b> — solo para reglas Local/Remote (se ignora en Dynamic)</li>
-            <li><b>Description</b> — nota opcional para recordar el propósito</li>
+            <li><b>Habilitado</b> — activa/desactiva una regla individual (sin borrarla)</li>
+            <li><b>Tipo</b> — Local (-L), Remoto (-R), Dinámico (-D)</li>
+            <li><b>Dirección de enlace</b> — dónde se crea el listener (predeterminado: <code>127.0.0.1</code> para solo local)</li>
+            <li><b>Puerto de escucha</b> — el puerto a abrir (1–65535)</li>
+            <li><b>Host de destino / Puerto de destino</b> — solo para reglas Local/Remoto (se ignora en Dinámico)</li>
+            <li><b>Descripción</b> — nota opcional para recordar para qué es la regla</li>
         </ul>
 
         <div class="warn">
-            <b>Consejo de seguridad:</b> Para reenvíos locales, prefiere enlazar a <code>127.0.0.1</code>.
+            <b>Consejo de seguridad:</b> Prefiere enlazar a <code>127.0.0.1</code> para reenvíos locales.
             Enlazar a <code>0.0.0.0</code> puede exponer el puerto reenviado a toda tu red.
         </div>
 
-        <h4>Cómo probar el reenvío (checklist rápido)</h4>
+        <h4>Cómo probar el reenvío (lista rápida)</h4>
         <ol>
             <li>Inicia un servicio en el host remoto (ejemplo: servidor de prueba Python):<br/>
                 <pre class="codeblock"><code>python3 -m http.server 18080 --bind 127.0.0.1</code></pre>
             </li>
-            <li>En PQ-SSH, añade un reenvío local:<br/>
+            <li>En PQ-SSH, añade un reenvío Local:<br/>
                 <pre class="codeblock"><code>127.0.0.1:18888 → localhost:18080</code></pre>
             </li>
             <li>Conecta con el perfil.</li>
@@ -346,37 +361,37 @@
 
         <h4>Solución de problemas del reenvío</h4>
         <ul class="bullets">
-            <li><b>“Address already in use”</b> significa que el puerto ya está en uso. Elige otro (p. ej. 18890).</li>
-            <li><b>Connection reset / timeout</b> suele significar que el servicio destino no está en ejecución o no es accesible desde el lado remoto.</li>
-            <li><b>Reenvío remoto (-R) no funciona</b> puede estar bloqueado por la política del servidor (<code>AllowTcpForwarding</code>, <code>GatewayPorts</code>).</li>
+            <li><b>“Address already in use”</b> significa que el puerto de escucha ya está ocupado. Elige otro puerto (p. ej. 18890).</li>
+            <li><b>Connection reset / timeout</b> normalmente significa que el servicio de destino no está ejecutándose o no es accesible desde el lado remoto.</li>
+            <li><b>El reenvío remoto (-R) no funciona</b> puede estar bloqueado por la política del servidor (<code>AllowTcpForwarding</code>, <code>GatewayPorts</code>).</li>
         </ul>
 
         <div class="note">
-            Los reenvíos en PQ-SSH se implementan usando tu OpenSSH del sistema pasando opciones <code>-L</code>/<code>-R</code>/<code>-D</code>
-            al lanzar <code>ssh</code>. No se aplica automáticamente ninguna configuración en el servidor.
+            Los reenvíos de PQ-SSH se implementan usando tu OpenSSH del sistema pasando opciones <code>-L</code>/<code>-R</code>/<code>-D</code>
+            al lanzar <code>ssh</code>. No se aplican ajustes de reenvío al servidor automáticamente.
         </div>
 
-        <h3>Sondear cifrado del servidor (diagnóstico)</h3>
+        <h3>Sondear criptografía del servidor (diagnóstico)</h3>
         <p>
-            En <b>Edit profiles…</b>, PQ-SSH ofrece un botón <b>Probe server crypto…</b> para inspeccionar
-            lo que negocia el handshake SSH con un servidor.
+            En <b>Editar perfiles…</b>, PQ-SSH ofrece un botón <b>Sondear criptografía del servidor…</b> para ayudarte a inspeccionar
+            qué negocia el handshake SSH con un servidor.
         </p>
 
         <ul class="bullets">
-            <li><b>Cuándo está disponible:</b> se habilita tras establecer <b>User</b> y <b>Host</b> (Port es opcional).</li>
+            <li><b>Cuándo está disponible:</b> se habilita después de configurar <b>Usuario</b> y <b>Host</b> (Puerto es opcional).</li>
             <li><b>Qué muestra:</b> <b>KEX</b>, <b>algoritmo de clave de host</b> y <b>cifrados</b> negociados.</li>
-            <li><b>Cómo funciona:</b> ejecuta tu cliente <b>OpenSSH</b> del sistema en modo verbose (<code>ssh -vvv</code>) con un timeout corto.</li>
-            <li><b>No requiere autenticación:</b> la negociación ocurre antes de autenticar.</li>
+            <li><b>Cómo funciona:</b> ejecuta tu cliente <b>OpenSSH</b> del sistema en modo verboso (<code>ssh -vvv</code>) con un tiempo de espera corto.</li>
+            <li><b>No requiere autenticación:</b> la negociación ocurre antes de autenticarse.</li>
             <li><b>Solo lectura:</b> no modifica el servidor ni el perfil.</li>
         </ul>
 
         <div class="note">
-            Si el sondeo muestra <b>(not found)</b>, causas comunes incluyen: host inaccesible, puerto bloqueado, fallo DNS o desajuste al parsear la salida.
+            Si el sondeo muestra <b>(not found)</b>, causas comunes incluyen: host inaccesible, puerto bloqueado, fallo de DNS o desajuste al parsear la salida.
             Abre los detalles del diálogo de sondeo para ver la salida sin procesar.
         </div>
 
         <div class="tip">
-            Consejo: Usa el sondeo para confirmar algoritmos modernos (p. ej. <code>curve25519-sha256</code>, <code>ssh-ed25519</code>) y detectar despliegues antiguos.
+            Consejo: Usa el sondeo para confirmar algoritmos modernos (p. ej. <code>curve25519-sha256</code>, <code>ssh-ed25519</code>) y detectar despliegues heredados.
         </div>
     </section>
 
@@ -384,79 +399,79 @@
         <h2>Conectar</h2>
         <ol>
             <li>Selecciona un perfil de la lista.</li>
-            <li>Haz clic en <b>Connect</b> (o doble clic en el perfil).</li>
+            <li>Haz clic en <b>Conectar</b> (o haz doble clic en el perfil).</li>
             <li>Se abre una ventana de terminal y SSH inicia automáticamente.</li>
         </ol>
 
         <div class="note">
-            Las sesiones de terminal están impulsadas por OpenSSH. En paralelo, PQ-SSH puede conectar una sesión libssh para funciones SFTP.
+            Las sesiones de terminal las gestiona OpenSSH. En paralelo, PQ-SSH puede conectar una sesión libssh para funciones SFTP.
         </div>
     </section>
 
     <section id="fleet-jobs" class="card">
-        <h2>Trabajos Fleet (ejecutar acciones en muchos servidores)</h2>
+        <h2>Tareas de flota (ejecutar acciones en muchos servidores)</h2>
 
         <p>
-            Los <b>trabajos Fleet</b> te permiten ejecutar la misma acción en múltiples perfiles guardados en una sola operación.
-            Esto es útil para administración rutinaria: comprobaciones de salud, estado de servicios y reinicios controlados.
+            Las <b>tareas de flota</b> te permiten ejecutar la misma acción en múltiples perfiles guardados en una sola operación.
+            Esto es útil para trabajo rutinario de administración: comprobaciones de salud, estados de servicios y reinicios controlados.
         </p>
 
         <div class="callouts">
             <div class="callout">
-                <div class="callout-title">Una acción → muchos objetivos</div>
-                <p>Selecciona 5–50 perfiles y ejecuta el mismo trabajo en paralelo.</p>
+                <div class="callout-title">Una acción → muchos destinos</div>
+                <p>Selecciona 5–50 perfiles y ejecuta la misma tarea en paralelo.</p>
             </div>
             <div class="callout">
                 <div class="callout-title">Control de concurrencia</div>
-                <p>Limita cuántos hosts corren a la vez (por defecto: 4) para evitar sobrecarga.</p>
+                <p>Limita cuántos hosts se ejecutan a la vez (predeterminado: 4) para evitar sobrecarga.</p>
             </div>
             <div class="callout">
-                <div class="callout-title">Seguridad de timeout</div>
-                <p>Cada objetivo tiene un timeout para evitar fallos de “colgarse para siempre”.</p>
+                <div class="callout-title">Seguridad por tiempo de espera</div>
+                <p>Cada destino tiene un timeout de comando para evitar fallos de “colgarse para siempre”.</p>
             </div>
             <div class="callout">
                 <div class="callout-title">Rastro de auditoría</div>
-                <p>Las acciones Fleet pueden registrarse en un log de auditoría para rendición de cuentas.</p>
+                <p>Las acciones de flota pueden registrarse en un log de auditoría para rendición de cuentas.</p>
             </div>
         </div>
 
-        <h3>Dónde encontrar Trabajos Fleet</h3>
+        <h3>Dónde encontrar Tareas de flota</h3>
         <ul class="bullets">
-            <li>Abrir desde el menú: <b>Tools → Fleet jobs…</b></li>
+            <li>Abrir desde el menú: <b>Herramientas → Tareas de flota…</b></li>
         </ul>
 
         <h3>Conceptos</h3>
         <ul class="bullets">
-            <li><b>Target</b> — un perfil/host sobre el que corre el trabajo</li>
-            <li><b>Action</b> — lo que quieres hacer (Run command, Check service, Restart service)</li>
-            <li><b>Concurrency</b> — máximo de objetivos en paralelo</li>
-            <li><b>Timeout</b> — cuánto se permite ejecutar a un objetivo antes de tratarlo como fallido</li>
+            <li><b>Destino</b> — un perfil/host contra el que se ejecuta la tarea</li>
+            <li><b>Acción</b> — lo que quieres hacer (Ejecutar comando, Comprobar servicio, Reiniciar servicio)</li>
+            <li><b>Concurrencia</b> — número máximo de destinos ejecutándose en paralelo</li>
+            <li><b>Tiempo de espera</b> — cuánto tiempo se permite que un destino se ejecute antes de marcarlo como fallido</li>
         </ul>
 
-        <h3>Paso a paso: ejecutar un trabajo Fleet</h3>
+        <h3>Paso a paso: ejecutar una tarea de flota</h3>
         <ol>
-            <li>Abre <b>Tools → Fleet jobs…</b></li>
-            <li>Selecciona uno o más perfiles objetivo en la lista.</li>
-            <li>Elige una <b>Action</b>:
+            <li>Abre <b>Herramientas → Tareas de flota…</b></li>
+            <li>Selecciona uno o más perfiles destino en la lista.</li>
+            <li>Elige una <b>Acción</b>:
                 <ul class="bullets">
-                    <li><b>Run command</b> — ejecuta un comando de shell en cada host</li>
-                    <li><b>Check service</b> — comprueba si un servicio systemd está activo</li>
-                    <li><b>Restart service</b> — reinicia un servicio systemd (disruptivo)</li>
+                    <li><b>Ejecutar comando</b> — ejecuta un comando de shell en cada host</li>
+                    <li><b>Comprobar servicio</b> — comprueba si un servicio systemd está activo</li>
+                    <li><b>Reiniciar servicio</b> — reinicia un servicio systemd (disruptivo)</li>
                 </ul>
             </li>
-            <li>Introduce el <b>Command</b> (o <b>Service name</b>) según la acción.</li>
-            <li>Configura <b>Concurrency</b> (recomendado: 2–8).</li>
-            <li>(Si aparece) configura un <b>Timeout</b> (recomendado: 60–180 segundos).</li>
-            <li>Haz clic en <b>Run</b>.</li>
+            <li>Introduce el <b>Comando</b> (o <b>Nombre del servicio</b>) según la acción.</li>
+            <li>Configura <b>Concurrencia</b> (recomendado: 2–8).</li>
+            <li>(Si aparece) configura un <b>Tiempo de espera</b> (recomendado: 60–180 segundos).</li>
+            <li>Haz clic en <b>Ejecutar</b>.</li>
         </ol>
 
         <div class="note">
-            Los trabajos Fleet crean una conexión SSH separada por objetivo para evitar reutilización entre hilos y aislar fallos.
+            Las tareas de flota crean una conexión SSH separada por destino para evitar reutilización entre hilos y mantener los fallos aislados.
         </div>
 
         <h3>Detalles de acciones</h3>
-        <h4>Run command</h4>
-        <p>Ejecuta un comando en cada objetivo y muestra <b>stdout</b> y <b>stderr</b> capturados.</p>
+        <h4>Ejecutar comando</h4>
+        <p>Ejecuta un comando en cada destino y muestra <b>stdout</b> y <b>stderr</b> capturados.</p>
         <div class="note">
             Ejemplos:
             <pre class="codeblock"><code>uptime</code></pre>
@@ -464,28 +479,28 @@
             <pre class="codeblock"><code>uname -a</code></pre>
         </div>
 
-        <h4>Check service (systemd)</h4>
+        <h4>Comprobar servicio (systemd)</h4>
         <p>Comprueba si un servicio systemd está activo (no disruptivo).</p>
         <div class="note">
             Ejemplo de nombre de servicio:
             <pre class="codeblock"><code>nginx</code></pre>
         </div>
 
-        <h4>Restart service (systemd)</h4>
-        <p>Reinicia un servicio (disruptivo). PQ-SSH requiere confirmación adicional antes de acciones disruptivas.</p>
+        <h4>Reiniciar servicio (systemd)</h4>
+        <p>Reinicia un servicio (disruptivo). PQ-SSH requiere confirmación adicional antes de ejecutar acciones disruptivas.</p>
         <div class="warn">
-            <b>Advertencia:</b> Reiniciar servicios puede causar caídas. Prefiere <b>Check service</b> primero.
+            <b>Advertencia:</b> Reiniciar servicios puede causar interrupciones. Prefiere <b>Comprobar servicio</b> primero.
         </div>
 
         <h3>Tiempos de espera</h3>
         <ul class="bullets">
-            <li>Si un objetivo excede el timeout, se marca como <b>Failed</b> con un mensaje de timeout.</li>
-            <li>Los otros objetivos continúan.</li>
+            <li>Si un destino excede el timeout, se marca como <b>Fallido</b> con un mensaje de tiempo de espera.</li>
+            <li>Los demás destinos continúan ejecutándose.</li>
             <li>Los timeouts dejan de esperar salida; no matan de forma fiable procesos remotos.</li>
         </ul>
 
         <div class="tip">
-            Consejo: Para tareas largas como <code>apt upgrade</code>, incrementa el timeout o evita Fleet.
+            Consejo: Para tareas largas como <code>apt upgrade</code>, aumenta el timeout o evita Flota.
         </div>
 
         <h3>Concurrencia</h3>
@@ -497,52 +512,174 @@
             </ul>
         </div>
 
-        <h3>Cancelar un trabajo</h3>
+        <h3>Cancelar una tarea</h3>
         <p>
-            Haz clic en <b>Cancel</b> para solicitar cancelación. Los objetivos aún no iniciados se omiten.
+            Haz clic en <b>Cancelar</b> para solicitar cancelación. Los destinos que aún no han comenzado se omiten.
         </p>
 
-        <h3>Entender resultados</h3>
+        <h3>Entender los resultados</h3>
         <ul class="bullets">
-            <li><b>Status</b> — Ok / Failed / Canceled</li>
-            <li><b>Duration</b></li>
-            <li><b>Output</b> — recortado para legibilidad</li>
+            <li><b>Estado</b> — Ok / Fallido / Cancelado</li>
+            <li><b>Duración</b></li>
+            <li><b>Salida</b> — recortada para legibilidad</li>
         </ul>
 
-        <h3>Registro de auditoría (recomendado para Fleet)</h3>
-        <p>Las acciones Fleet pueden escribirse en un <b>audit log</b> dedicado para trazabilidad.</p>
+        <h3>Registro de auditoría (recomendado para Flota)</h3>
+        <p>Las acciones de flota pueden escribirse en un <b>registro de auditoría</b> dedicado para trazabilidad.</p>
 
         <div class="warn">
-            <b>Privacidad:</b> Evita guardar cargas completas de comandos en auditoría si pueden contener secretos.
+            <b>Privacidad:</b> Evita almacenar cargas completas de comandos en registros de auditoría si los comandos pueden contener secretos.
             Prefiere hashes y metadatos mínimos.
         </div>
     </section>
 
-    <section id="macros" class="card">
-        <h2>Macros (atajos)</h2>
+    <!-- ✅ NEW / UPDATED SECTION: Scheduled jobs -->
+    <section id="scheduled-jobs" class="card">
+        <h2>Tareas programadas (ejecutar comandos más tarde o según un horario)</h2>
+
         <p>
-            PQ-SSH soporta <b>macros de atajo por perfil</b>. Una macro es un atajo de teclado que envía un comando al
-            terminal SSH activo al instante (opcionalmente añadiendo un <code>[Enter]</code> automático).
+            Las <b>tareas programadas</b> te permiten definir un comando y una programación, y luego instalarlo en un perfil de servidor seleccionado.
+            Esto es útil para mantenimiento rutinario, acciones diferidas y tareas recurrentes (comprobaciones diarias, reinicios semanales, etc.).
+        </p>
+
+        <div class="note">
+            Las tareas programadas se configuran localmente en PQ-SSH, pero solo se ejecutan después de que hagas clic explícitamente en
+            <b>Instalar en el servidor</b>. Crear o editar una tarea <b>no</b> afecta al sistema remoto hasta que se instale.
+        </div>
+
+        <div class="tip">
+            Las tareas programadas son ideales para tareas diferidas o recurrentes en un solo servidor.
+            Para ejecución inmediata en muchos servidores, usa <b>Herramientas → Tareas de flota…</b>.
+        </div>
+
+        <h3>Dónde encontrar Tareas programadas</h3>
+        <ul class="bullets">
+            <li>Abrir desde el menú: <b>Herramientas → Tareas programadas…</b></li>
+        </ul>
+
+        <h3>Qué ves</h3>
+        <p>
+            La ventana de tareas programadas muestra una lista de tareas y su estado. Cada fila incluye:
+        </p>
+        <ul class="bullets">
+            <li><b>Nombre</b> — etiqueta amigable para la tarea</li>
+            <li><b>Perfil</b> — en qué servidor (perfil) se pretende ejecutar</li>
+            <li><b>Tipo</b> — De una sola vez o Recurrente</li>
+            <li><b>Cuándo</b> — hora de ejecución (una sola vez) o cadena de programación (recurrente)</li>
+            <li><b>Comando</b> — el comando que se ejecutará en el servidor</li>
+            <li><b>Instalada</b> — si la tarea está instalada en el servidor remoto</li>
+            <li><b>Habilitada</b> — si la tarea está habilitada localmente (uso futuro)</li>
+        </ul>
+
+        <h3>Instalar, Cancelar y Eliminar (qué significa cada acción)</h3>
+        <ul class="bullets">
+            <li>
+                <b>Instalar en el servidor</b> —
+                crea o actualiza la entrada del programador en el servidor remoto.
+                No hay cambios remotos antes de este paso.
+            </li>
+            <li>
+                <b>Cancelar en el servidor</b> —
+                elimina la entrada del programador que PQ-SSH instaló previamente en el servidor remoto.
+            </li>
+            <li>
+                <b>Eliminar</b> —
+                elimina la tarea solo de PQ-SSH.
+                <b>No</b> modifica el servidor remoto.
+            </li>
+        </ul>
+
+        <div class="warn">
+            <b>Importante:</b> Eliminar una tarea sin cancelarla primero puede dejarla activa
+            en el servidor remoto.
+        </div>
+
+        <h3>Tipos de tareas</h3>
+
+        <h4>De una sola vez (ejecutar una vez)</h4>
+        <p>
+            Una tarea de una sola vez se ejecuta una vez a una hora local específica (introducida en el diálogo como <code>YYYY-MM-DD HH:MM</code>).
+            PQ-SSH la instala usando el mejor backend disponible en el servidor.
+        </p>
+
+        <h4>Recurrente (OnCalendar)</h4>
+        <p>
+            Una tarea recurrente se ejecuta repetidamente según una programación. Cuando systemd está disponible, PQ-SSH usa
+            el formato <b>OnCalendar</b> de systemd (ejemplos: <code>daily</code>, <code>Mon..Fri 02:00</code>).
+            Si los temporizadores de systemd-user no se pueden usar, PQ-SSH recurre a cron.
+        </p>
+
+        <h3>Selección de backend (automática)</h3>
+        <p>
+            Al instalar una tarea, PQ-SSH sondea el servidor remoto para determinar qué backends de programación
+            están disponibles. Se elige automáticamente el mejor backend disponible.
+        </p>
+        <ul class="bullets">
+            <li><b>Preferido:</b> temporizadores systemd de <b>usuario</b> (<code>systemctl --user</code>)</li>
+            <li><b>Fallback recurrente:</b> cron (<code>crontab</code>)</li>
+            <li><b>Fallback de una sola vez:</b> at (<code>at</code>), o cron si <code>at</code> no está disponible</li>
+        </ul>
+
+        <div class="note">
+            Algunos servidores tienen <code>systemctl</code> instalado pero no proporcionan una sesión DBus de usuario para inicios de sesión SSH no interactivos.
+            En ese caso, los temporizadores systemd de usuario pueden fallar y PQ-SSH recurrirá a cron/at cuando sea posible.
+        </div>
+
+        <h3>Entorno de ejecución del comando</h3>
+        <p>
+            Los comandos de tareas programadas se ejecutan de forma no interactiva en el servidor remoto usando:
+        </p>
+        <pre class="codeblock"><code>/bin/sh -lc 'your command'</code></pre>
+
+        <div class="note">
+            No se asigna una terminal interactiva. Los comandos que requieren interacción TTY
+            (como editores o solicitudes de contraseña) fallarán.
+        </div>
+
+        <h3>Ejemplos</h3>
+        <ul class="bullets">
+            <li><b>Instantánea diaria de uso de disco</b>
+                <pre class="codeblock"><code>df -h &gt; ~/disk-usage.txt</code></pre>
+            </li>
+            <li><b>Reiniciar un servicio por la noche (con cuidado)</b>
+                <pre class="codeblock"><code>sudo systemctl restart nginx</code></pre>
+            </li>
+            <li><b>Comando diferido de una sola vez</b>
+                <pre class="codeblock"><code>echo "hello" &gt;&gt; ~/hello.log</code></pre>
+            </li>
+        </ul>
+
+        <div class="warn">
+            <b>Nota de seguridad:</b> Evita incrustar secretos en comandos de tareas programadas.
+            Prefiere leer secretos desde archivos protegidos o gestores de secretos.
+        </div>
+    </section>
+
+    <section id="macros" class="card">
+        <h2>Macros (teclas rápidas)</h2>
+        <p>
+            PQ-SSH admite <b>macros de teclas rápidas por perfil</b>. Una macro es un atajo de teclado que envía un comando al
+            terminal SSH activo al instante (opcionalmente añadiendo <code>[Enter]</code> automáticamente).
         </p>
 
         <h3>Dónde viven las macros</h3>
         <ul class="bullets">
-            <li>Abre <b>Edit profiles…</b></li>
+            <li>Abre <b>Editar perfiles…</b></li>
             <li>Selecciona un perfil</li>
-            <li>Usa el panel <b>Hotkey macros</b> a la derecha</li>
+            <li>Usa el panel <b>Macros de teclas rápidas</b> a la derecha</li>
         </ul>
 
         <h3>Crear una macro</h3>
         <ol>
             <li>Haz clic en <b>+</b> para añadir una macro.</li>
-            <li>Configura un <b>Name</b> (recomendado).</li>
-            <li>Haz clic en el campo <b>Shortcut</b> y presiona una combinación (p. ej. <code>F2</code>, <code>Alt+X</code>).</li>
-            <li>Escribe el <b>Command</b> a enviar.</li>
-            <li>Activa <b>Send [Enter] automatically</b> si quieres que se ejecute de inmediato.</li>
+            <li>Configura un <b>Nombre</b> (recomendado).</li>
+            <li>Haz clic en el campo <b>Atajo</b> y presiona una combinación (p. ej. <code>F2</code>, <code>Alt+X</code>).</li>
+            <li>Escribe el <b>Comando</b> a enviar.</li>
+            <li>Habilita <b>Enviar [Enter] automáticamente</b> si quieres que se ejecute de inmediato.</li>
         </ol>
 
         <div class="note">
-            Las macros son intencionalmente simples: PQ-SSH envía texto plano al terminal. No ejecuta nada localmente.
+            Las macros son intencionadamente simples: PQ-SSH envía texto plano al terminal. No ejecuta nada localmente.
         </div>
 
         <h3>Usar macros</h3>
@@ -552,9 +689,9 @@
             <li>PQ-SSH envía el comando de la macro al terminal.</li>
         </ul>
 
-        <h3>Placeholders (variables)</h3>
+        <h3>Marcadores (variables)</h3>
         <p>
-            Las macros pueden incluir <b>variables placeholder</b> que PQ-SSH expande justo antes de enviar el comando.
+            Las macros pueden incluir <b>variables de marcador</b> que PQ-SSH expande justo antes de enviar el comando.
         </p>
 
         <div class="note">
@@ -564,7 +701,7 @@
             <pre class="codeblock"><code>echo "Connected to john@example.com:2222"</code></pre>
         </div>
 
-        <h3>Placeholders compatibles</h3>
+        <h3>Marcadores admitidos</h3>
         <ul class="bullets">
             <li><code>{PROFILE}</code> — nombre del perfil</li>
             <li><code>{USER}</code> — usuario SSH</li>
@@ -577,12 +714,11 @@
             <li><code>{TIME}</code> — hora actual (<code>HH:MM:SS</code>)</li>
         </ul>
         <div class="note">
-            <b>{KEYFILE}</b> se expande a cadena vacía si no hay un archivo de clave configurado en el perfil.
+            <b>{KEYFILE}</b> se expande a una cadena vacía si no hay archivo de clave configurado en el perfil.
         </div>
         <div class="note">
-            <b>{TARGET}</b> usa <code>user@host</code> para puerto 22, y <code>user@host:port</code> para puertos distintos de 22.
+            <b>{TARGET}</b> usa <code>user@host</code> para el puerto 22 y <code>user@host:port</code> para puertos distintos de 22.
         </div>
-
         <h3>Escapar llaves</h3>
         <ul class="bullets">
             <li><code>{{</code> se convierte en una <code>{</code> literal</li>
@@ -597,7 +733,7 @@
         </div>
 
         <div class="warn">
-            <b>Importante:</b> Los placeholders desconocidos se dejan tal cual.
+            <b>Importante:</b> Los marcadores desconocidos se dejan tal cual.
         </div>
 
         <h3>Ejemplos de macros</h3>
@@ -611,10 +747,10 @@
             <li><b>Seguir el log de un servicio</b>
                 <pre class="codeblock"><code>journalctl -u nginx -f</code></pre>
             </li>
-            <li><b>Banner de contexto (con placeholders)</b>
+            <li><b>Banner de contexto (con marcadores)</b>
                 <pre class="codeblock"><code>echo "=== {PROFILE} :: {TARGET} ==="</code></pre>
             </li>
-            <li><b>Comprobar entrada de host key</b>
+            <li><b>Comprobar entrada de clave de host</b>
                 <pre class="codeblock"><code>ssh-keygen -F {HOST}</code></pre>
             </li>
         </ul>
@@ -625,50 +761,50 @@
     </section>
 
     <section id="settings" class="card">
-        <h2>Ajustes</h2>
-        <p>PQ-SSH incluye un diálogo de ajustes para controlar apariencia y comportamiento de registros.</p>
+        <h2>Menú de ajustes</h2>
+        <p>PQ-SSH incluye un diálogo de Ajustes para controlar la apariencia y el comportamiento de registro.</p>
 
         <h3>Dónde encontrarlo</h3>
         <ul class="bullets">
-            <li>Desde el menú superior: <b>File → Settings…</b></li>
+            <li>Desde el menú superior: <b>Archivo → Ajustes…</b></li>
         </ul>
 
         <h3>Qué ocurre al guardar</h3>
         <ul class="bullets">
             <li>Los ajustes se guardan y se aplican inmediatamente.</li>
             <li>Los cambios de tema se aplican al instante (no requiere reinicio).</li>
-            <li>Los cambios de nivel de logging se aplican al instante.</li>
+            <li>Los cambios de nivel de registro se aplican al instante.</li>
         </ul>
 
         <div class="note">
-            Los ajustes se almacenan usando <code>QSettings</code> bajo el nombre de aplicación y organización configurados por PQ-SSH.
+            Los ajustes se almacenan usando <code>QSettings</code> bajo el nombre de la aplicación y la organización configurados por PQ-SSH.
         </div>
     </section>
 
     <section id="themes" class="card">
         <h2>Temas</h2>
         <p>
-            Los temas controlan la apariencia de la UI principal (listas, botones, diálogos, pestañas).
-            Los colores del terminal se controlan por separado mediante el <b>Terminal scheme</b> seleccionado en cada perfil.
+            Los temas controlan el aspecto de la interfaz principal (listas, botones, diálogos, pestañas).
+            Los colores del terminal se controlan por separado mediante el <b>Esquema de terminal</b> seleccionado en cada perfil.
         </p>
 
         <h3>Temas disponibles</h3>
         <ul class="bullets">
-            <li><b>CPUNK Dark</b> — UI oscura con acentos neón CPUNK</li>
-            <li><b>CPUNK Orange</b> — UI oscura con acentos naranjas</li>
-            <li><b>Windows Basic</b> — UI clara/neutra (sensación clásica de escritorio)</li>
+            <li><b>CPUNK Dark</b> — interfaz oscura con acentos neón CPUNK</li>
+            <li><b>CPUNK Orange</b> — interfaz oscura con acentos naranjas</li>
+            <li><b>Windows Basic</b> — interfaz clara/neutra (sensación clásica de escritorio)</li>
             <li><b>CPUNK Neo</b> — tema adicional estilo CPUNK incluido con la app</li>
         </ul>
 
         <h3>Cómo cambiar el tema</h3>
         <ol>
-            <li>Abre <b>File → Settings…</b></li>
-            <li>Selecciona un <b>App theme</b></li>
-            <li>Haz clic en <b>Save</b></li>
+            <li>Abre <b>Archivo → Ajustes…</b></li>
+            <li>Selecciona un <b>Tema de la app</b></li>
+            <li>Haz clic en <b>Guardar</b></li>
         </ol>
 
         <div class="tip">
-            Si no ves un cambio visible, asegúrate de haber hecho clic en <b>Save</b>. PQ-SSH aplica el tema al guardar los ajustes.
+            Si no ves un cambio visible, asegúrate de haber hecho clic en <b>Guardar</b>. PQ-SSH aplica el tema cuando se guardan los ajustes.
         </div>
     </section>
 
@@ -679,25 +815,25 @@
             <tr>
                 <td class="colText">
                     <p>
-                        PQ-SSH incluye un flujo de transferencia de archivos integrado. Usa una sesión <b>libssh</b> separada para operaciones SFTP,
-                        mientras que el terminal interactivo sigue estando impulsado por OpenSSH.
+                        PQ-SSH incluye un flujo de trabajo integrado de transferencia de archivos. Usa una sesión <b>libssh</b> separada para operaciones SFTP,
+                        mientras que el terminal interactivo sigue siendo impulsado por OpenSSH.
                     </p>
 
-                    <h3>Pestaña Files</h3>
+                    <h3>Pestaña Archivos</h3>
                     <p>
-                        La ventana principal incluye una pestaña <b>Files</b> junto a la pestaña <b>Log</b>.
+                        La ventana principal incluye una pestaña <b>Archivos</b> junto a la pestaña <b>Log</b>.
                         Cuando SFTP está conectado, puedes navegar por el sistema de archivos remoto y realizar transferencias.
                     </p>
 
                     <ul class="bullets">
-                        <li>Si libssh conecta correctamente, la pestaña Files se activa y el listado remoto funciona.</li>
-                        <li>Si libssh falla, el terminal SSH sigue funcionando normal, pero las funciones SFTP se deshabilitan.</li>
+                        <li>Si libssh se conecta correctamente, la pestaña Archivos se activa y el listado remoto funciona.</li>
+                        <li>Si libssh falla, la terminal SSH sigue funcionando con normalidad, pero las funciones SFTP se deshabilitan.</li>
                     </ul>
 
-                    <h3>Subidas por arrastrar y soltar</h3>
+                    <h3>Cargas por arrastrar y soltar</h3>
                     <ul class="bullets">
                         <li>Si libssh está conectado, los archivos soltados se suben al directorio de trabajo remoto actual (<code>$PWD</code>).</li>
-                        <li>Si libssh no está conectado, PQ-SSH guarda el archivo soltado localmente en una carpeta de respaldo segura.</li>
+                        <li>Si libssh no está conectado, PQ-SSH guarda el archivo soltado localmente en una carpeta segura de respaldo.</li>
                     </ul>
 
                     <h3>Carpeta local de respaldo</h3>
@@ -712,14 +848,14 @@
                     <ul class="bullets">
                         <li>Falla la autenticación de la sesión libssh</li>
                         <li>Problemas de red/firewall</li>
-                        <li>El perfil usa un tipo de clave aún no soportado por libssh en PQ-SSH</li>
+                        <li>El perfil usa un tipo de clave que libssh aún no admite en PQ-SSH</li>
                     </ul>
                 </td>
 
                 <td class="colImg">
                     <div class="figure">
-                        <img src="qrc:/docs/img/files.png" alt="Pestaña Files (SFTP)" width="450"/>
-                        <div class="figcap"><b>Pestaña Files</b> — navega y transfiere archivos vía SFTP (sesión libssh).</div>
+                        <img src="qrc:/docs/img/files.png" alt="Pestaña Archivos (SFTP)" width="450"/>
+                        <div class="figcap"><b>Pestaña Archivos</b> — navega y transfiere archivos vía SFTP (sesión libssh).</div>
                     </div>
                 </td>
             </tr>
@@ -729,21 +865,19 @@
     <section id="pq-status" class="card">
         <h2>Indicador de estado PQ</h2>
         <p>
-            PQ-SSH ejecuta una prueba rápida para detectar si el servidor remoto
-            admite un intercambio de claves compatible con PQ.
-            Esto <b>no</b> modifica la configuración del servidor; es solo informativo.
+            PQ-SSH ejecuta un sondeo rápido para detectar si el servidor remoto admite un intercambio de claves compatible con PQ.
+            Esto <b>no</b> cambia la configuración del servidor; es informativo.
         </p>
 
         <h3>Qué significan las insignias</h3>
 
         <div class="note">
-            <b>Importante:</b> PQ-SSH puede utilizar <b>dos pilas SSH diferentes</b> al mismo tiempo:
+            <b>Importante:</b> PQ-SSH puede usar <b>dos pilas SSH diferentes</b> al mismo tiempo:
             <ul class="bullets">
-                <li><b>Terminal SSH</b> usa el <b>OpenSSH</b> del sistema (la sesión interactiva principal).</li>
-                <li><b>SFTP</b> usa una sesión opcional basada en <b>libssh</b> (solo para la pestaña Archivos / transferencias).</li>
+                <li><b>SSH de terminal</b> usa tu <b>OpenSSH</b> del sistema (esta es la sesión interactiva principal).</li>
+                <li><b>SFTP</b> usa una sesión opcional de <b>libssh</b> (solo para la pestaña Archivos / transferencias).</li>
             </ul>
-            Debido a que estas pilas son distintas, pueden negociar
-            <b>algoritmos diferentes</b>.
+            Debido a que estas pilas son diferentes, pueden negociar <b>algoritmos diferentes</b>.
         </div>
 
         <h4>Soporte PQ</h4>
@@ -754,52 +888,48 @@
         </div>
 
         <ul class="bullets">
-            <li><b>Soporte PQ: SÍ</b> — la prueba detectó un intercambio de claves PQ/híbrido ofrecido por el servidor.</li>
-            <li><b>Soporte PQ: NO</b> — es probable que el servidor no ofrezca el KEX PQ/híbrido probado.</li>
-            <li><b>PQ: comprobando…</b> — prueba en curso.</li>
+            <li><b>Soporte PQ: SÍ</b> — el sondeo detectó un intercambio de claves PQ/híbrido ofrecido por el servidor.</li>
+            <li><b>Soporte PQ: NO</b> — el servidor probablemente no ofrece el KEX PQ/híbrido sondeado.</li>
+            <li><b>PQ: comprobando…</b> — sondeo en progreso.</li>
         </ul>
 
-        <h4>SSH KEX vs SFTP KEX</h4>
+        <h4>KEX SSH vs KEX SFTP</h4>
         <p>
-            PQ-SSH muestra el intercambio de claves negociado por separado para ambas conexiones:
+            PQ-SSH muestra el intercambio de claves negociado por separado para las dos conexiones:
         </p>
 
         <ul class="bullets">
             <li>
-                <b>SSH KEX</b> — negociado por <b>OpenSSH</b> (la sesión de terminal).
-                Es el más importante para tu shell interactivo.
+                <b>KEX SSH</b> — negociado por <b>OpenSSH</b> (la sesión de terminal).
+                Este es el más importante para tu shell interactiva.
             </li>
             <li>
-                <b>SFTP KEX</b> — negociado por <b>libssh</b> (la sesión SFTP usada por la pestaña Archivos).
+                <b>KEX SFTP</b> — negociado por <b>libssh</b> (la sesión SFTP usada por la pestaña Archivos).
             </li>
         </ul>
 
         <div class="note">
-            <b>Limitación de libssh:</b> incluso si la sesión de terminal negocia un KEX PQ/híbrido,
-            la sesión SFTP basada en libssh puede seguir mostrando algoritmos <b>clásicos</b>
-            debido a limitaciones de la biblioteca.
-            Esto es esperado y no “degrada” la sesión de terminal OpenSSH.
+            <b>Limitación de libssh:</b> incluso si tu sesión de terminal negocia un KEX PQ/híbrido,
+            la sesión SFTP de libssh puede seguir mostrando algoritmos <b>clásicos</b> por limitaciones de soporte de la biblioteca.
+            Esto es esperado y no “degrada” tu sesión de terminal OpenSSH.
         </div>
 
-        <h4>Diagnósticos en la pestaña Registro</h4>
+        <h4>Diagnóstico en la pestaña Log</h4>
         <p>
-            Con <b>PQ debug</b> habilitado, pueden aparecer líneas como:
+            Con <b>depuración PQ</b> habilitada, puedes ver líneas como:
         </p>
         <pre class="codeblock"><code>[PQ-PROBE] ... ssh ... true
 [SFTP-KEX] Classical (libssh limitation) → X25519 (Curve25519)</code></pre>
 
         <div class="tip">
-            Consejo: Si <b>SSH KEX</b> muestra PQ/híbrido pero <b>SFTP KEX</b> muestra clásico,
-            normalmente significa que el servidor admite PQ/híbrido en OpenSSH,
-            pero la ruta de la biblioteca SFTP no puede negociarlo.
+            Consejo: Si <b>KEX SSH</b> muestra PQ/híbrido pero <b>KEX SFTP</b> muestra clásico, normalmente significa:
+            el servidor admite PQ/híbrido en OpenSSH, pero la ruta SFTP de la biblioteca no puede negociarlo.
         </div>
 
         <div class="note">
-            Los indicadores son pistas visuales de mejor esfuerzo;
-            PQ-SSH no modifica la configuración del servidor SSH ni impone el modo PQ.
+            Los indicadores son pistas UI de “mejor esfuerzo”; PQ-SSH no modifica la configuración del servidor SSH y no impone modo PQ.
         </div>
     </section>
-
 
     <section class="card" id="key-install">
         <h2>Instalar una clave pública en un servidor</h2>
@@ -810,43 +940,43 @@
 
         <p>Esta función está disponible desde:</p>
         <ul class="bullets">
-            <li><b>Keys → Install public key to server…</b> (menú principal)</li>
-            <li><b>Key Generator → Keys tab → Install…</b> (instalar una clave seleccionada)</li>
+            <li><b>Claves → Instalar clave pública en el servidor…</b> (menú principal)</li>
+            <li><b>Generador de claves → pestaña Claves → Instalar…</b> (instalar una clave seleccionada)</li>
         </ul>
 
         <h3>Qué ves (paso de confirmación)</h3>
         <p>Antes de cambiar nada en el servidor, PQ-SSH muestra un diálogo de confirmación con:</p>
         <ul class="bullets">
-            <li><b>Nombre del perfil objetivo</b></li>
+            <li><b>Nombre del perfil destino</b></li>
             <li><b>Usuario / host / puerto</b></li>
             <li><b>Ruta remota:</b> <code>~/.ssh/authorized_keys</code></li>
             <li><b>Tipo de clave</b> (por ejemplo <code>ssh-ed25519</code>)</li>
-            <li><b>Vista previa de la clave</b> (un extracto corto)</li>
+            <li><b>Vista previa de la clave</b> (un extracto corto de la clave)</li>
         </ul>
 
         <div class="note">No ocurre nada a menos que confirmes explícitamente.</div>
 
         <h3>Qué ocurre en el servidor</h3>
-        <p>Tras la confirmación, PQ-SSH conecta usando SSH/SFTP y realiza estos pasos:</p>
+        <p>Después de la confirmación, PQ-SSH se conecta usando SSH/SFTP y realiza estos pasos:</p>
 
         <ol>
             <li>
-                <b>Asegurar que existe el directorio SSH</b>
+                <b>Asegurar que exista el directorio SSH</b>
                 <pre class="codeblock"><code>mkdir -p ~/.ssh
 chmod 700 ~/.ssh</code></pre>
             </li>
             <li>
-                <b>Leer el <code>authorized_keys</code> existente (si existe)</b>
+                <b>Leer el <code>authorized_keys</code> existente (si está presente)</b>
                 <p>Si la misma clave ya existe, no se cambia nada.</p>
             </li>
             <li>
-                <b>Crear una copia de seguridad con timestamp (si el archivo existe)</b>
+                <b>Crear una copia de seguridad con marca de tiempo (si el archivo existe)</b>
                 <div class="warn">
-                    La copia de seguridad es obligatoria. Si falla, se aborta la instalación.
+                    La creación de copia de seguridad es obligatoria. Si falla, la instalación de la clave se aborta.
                 </div>
             </li>
             <li>
-                <b>Agregar la clave solo si falta</b>
+                <b>Añadir la clave solo si falta</b>
                 <p>Nunca se insertan claves duplicadas.</p>
             </li>
             <li>
@@ -860,45 +990,45 @@ chmod 700 ~/.ssh</code></pre>
             <li>Se conservan las claves existentes</li>
             <li>Copia de seguridad antes de modificar</li>
             <li>Sin claves duplicadas</li>
-            <li>Permisos SSH correctos forzados</li>
+            <li>Se fuerzan permisos SSH correctos</li>
             <li>No se suben contraseñas ni claves privadas</li>
         </ul>
     </section>
 
     <section id="logging" class="card">
-        <h2>Registro y depuración</h2>
+        <h2>Registro &amp; depuración</h2>
 
         <table class="twocol" role="presentation">
             <tr>
                 <td class="colText">
-                    <h3>Niveles de logging</h3>
-                    <p>La verbosidad del logging se controla desde <b>File → Settings…</b>:</p>
+                    <h3>Niveles de registro</h3>
+                    <p>La verbosidad del registro se puede controlar desde <b>Archivo → Ajustes…</b>:</p>
                     <ul class="bullets">
-                        <li><b>Errors only</b> — logs mínimos</li>
-                        <li><b>Normal</b> — recomendado por defecto</li>
-                        <li><b>Debug</b> — logs detallados para troubleshooting</li>
+                        <li><b>Solo errores</b> — registros mínimos</li>
+                        <li><b>Normal</b> — valor predeterminado recomendado</li>
+                        <li><b>Depuración</b> — registros detallados para solución de problemas</li>
                     </ul>
 
-                    <h3>Abrir el archivo de log</h3>
-                    <p>Usa el menú: <b>View → Open log file</b></p>
+                    <h3>Abrir el archivo de registro</h3>
+                    <p>Usa el menú: <b>Ver → Abrir archivo de registro</b></p>
                     <pre class="codeblock"><code>~/.local/share/pq-ssh/logs/pq-ssh.log</code></pre>
 
                     <h3>Modo de depuración PQ (UI)</h3>
                     <p>
-                        Activa <b>PQ debug</b> en la barra inferior para ver diagnósticos extra
-                        (detalles del comando SSH, listas de schemes, mensajes de bajo nivel).
+                        Habilita <b>depuración PQ</b> en la barra inferior para mostrar diagnósticos extra
+                        (detalles del comando SSH, listas de esquemas, mensajes de bajo nivel).
                     </p>
 
                     <div class="warn">
                         <b>Nota de privacidad:</b> PQ-SSH no registra contraseñas ni contenido de claves privadas.
-                        Aun así, la salida de debug puede contener hostnames y rutas.
+                        La salida de depuración puede contener nombres de host y rutas de archivo.
                     </div>
                 </td>
 
                 <td class="colImg">
                     <div class="figure">
-                        <img src="qrc:/docs/img/auditlog.png" alt="Visor de log de auditoría" width="450" />
-                        <div class="figcap"><b>Log de auditoría</b> — revisa acciones (especialmente trabajos Fleet) para trazabilidad.</div>
+                        <img src="qrc:/docs/img/auditlog.png" alt="Visor de registro de auditoría" width="450" />
+                        <div class="figcap"><b>Registro de auditoría</b> — revisa acciones (especialmente tareas de flota) para trazabilidad.</div>
                     </div>
                 </td>
             </tr>
@@ -906,13 +1036,13 @@ chmod 700 ~/.ssh</code></pre>
     </section>
 
     <section class="card">
-        <h2>Claves y avisos de expiración</h2>
-        <p>Abre <b>Keys → Key Generator…</b> para crear/gestionar claves.</p>
+        <h2>Claves &amp; advertencias de caducidad</h2>
+        <p>Abre <b>Claves → Generador de claves…</b> para crear/gestionar claves.</p>
 
         <ul class="bullets">
-            <li>Al iniciar, PQ-SSH puede marcar automáticamente claves expiradas en metadatos.</li>
-            <li>Si existen claves expiradas, se muestra una advertencia en el área de estado.</li>
-            <li>Rota claves regularmente para mejor seguridad.</li>
+            <li>Al iniciar, PQ-SSH puede marcar automáticamente claves caducadas en los metadatos.</li>
+            <li>Si existen claves caducadas, se muestra una advertencia en el área de estado.</li>
+            <li>Rota las claves regularmente para mejor seguridad.</li>
         </ul>
     </section>
 
@@ -920,30 +1050,50 @@ chmod 700 ~/.ssh</code></pre>
         <h2>Solución de problemas</h2>
 
         <details>
-            <summary>El trabajo Fleet falló en un host</summary>
+            <summary>La instalación falló: “Failed to connect to bus” / “No medium found”</summary>
             <ul class="bullets">
-                <li>Abre <b>View → Open log file</b> para errores detallados.</li>
-                <li>Intenta ejecutar el mismo trabajo contra ese único host para reproducir.</li>
-                <li>Reduce <b>Concurrency</b> si fallan muchos hosts a la vez.</li>
-                <li>Incrementa <b>Timeout</b> si el comando es lento en ese host.</li>
+                <li>
+                    Esto indica que <code>systemctl --user</code> está presente, pero no hay una sesión DBus de usuario
+                    disponible en el servidor.
+                </li>
+                <li>
+                    Común en servidores headless o mínimos sin “user lingering” habilitado.
+                </li>
+                <li>
+                    Arreglar una vez en el servidor (recomendado):
+                    <pre class="codeblock"><code>sudo loginctl enable-linger &lt;user&gt;</code></pre>
+                </li>
+                <li>
+                    Alternativamente, PQ-SSH recurrirá a cron o at si están disponibles.
+                </li>
             </ul>
         </details>
 
         <details>
-            <summary>Reiniciar con Fleet es peligroso — ¿cómo hacerlo con seguridad?</summary>
+            <summary>La tarea de flota falló en un host</summary>
             <ul class="bullets">
-                <li>Ejecuta <b>Check service</b> primero para entender el estado actual.</li>
-                <li>Reinicia un host primero, verifica el comportamiento y luego amplía al grupo.</li>
+                <li>Abre <b>Ver → Abrir archivo de registro</b> para errores detallados.</li>
+                <li>Intenta ejecutar la misma tarea contra ese host único para reproducir.</li>
+                <li>Reduce <b>Concurrencia</b> si muchos hosts fallan a la vez.</li>
+                <li>Aumenta <b>Tiempo de espera</b> si el comando es lento en ese host.</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>El reinicio de flota es peligroso — ¿cómo hacerlo de forma segura?</summary>
+            <ul class="bullets">
+                <li>Ejecuta <b>Comprobar servicio</b> primero para entender el estado actual.</li>
+                <li>Reinicia primero un host, verifica el comportamiento y luego amplía al grupo.</li>
                 <li>Evita reinicios durante upgrades del SO o instalaciones de paquetes.</li>
-                <li>Usa una concurrencia conservadora (2–4) en producción.</li>
+                <li>Usa una concurrencia conservadora (2–4) para flotas en producción.</li>
             </ul>
         </details>
 
         <details>
             <summary>El cambio de tema no se aplicó</summary>
             <ul class="bullets">
-                <li>Abre <b>File → Settings…</b>, selecciona un tema y haz clic en <b>Save</b>.</li>
-                <li>Si hace falta, cierra y vuelve a abrir el diálogo de Settings e inténtalo de nuevo.</li>
+                <li>Abre <b>Archivo → Ajustes…</b>, selecciona un tema y haz clic en <b>Guardar</b>.</li>
+                <li>Si es necesario, cierra y vuelve a abrir el diálogo de Ajustes e inténtalo de nuevo.</li>
             </ul>
         </details>
 
@@ -951,66 +1101,66 @@ chmod 700 ~/.ssh</code></pre>
             <summary>La conexión falla inmediatamente</summary>
             <ul class="bullets">
                 <li>Verifica host/IP y puerto en el perfil.</li>
-                <li>Revisa el archivo de log (Help → Open log file).</li>
-                <li>Activa <b>PQ debug</b> para diagnósticos SSH detallados.</li>
+                <li>Revisa el archivo de registro (Ayuda → Abrir archivo de registro).</li>
+                <li>Habilita <b>depuración PQ</b> para diagnósticos SSH detallados.</li>
             </ul>
         </details>
 
         <details>
             <summary>PQ muestra OFF</summary>
             <ul class="bullets">
-                <li>El servidor probablemente no ofrece el intercambio PQ sondeado.</li>
-                <li>Es informativo; SSH normal puede seguir siendo seguro según tus políticas.</li>
+                <li>El servidor probablemente no ofrece el intercambio de claves PQ sondeado.</li>
+                <li>Esto es informativo; el SSH normal aún puede ser seguro según tus políticas.</li>
             </ul>
         </details>
 
         <details>
-            <summary>Files / SFTP está deshabilitado</summary>
+            <summary>La pestaña Archivos / SFTP está deshabilitada</summary>
             <ul class="bullets">
-                <li>La sesión libssh puede fallar incluso si el SSH del terminal funciona.</li>
-                <li>Algunos tipos de clave aún no están soportados por libssh.</li>
-                <li>Revisa los logs por errores de auth o conexión.</li>
+                <li>La sesión libssh puede fallar aunque el SSH de terminal funcione.</li>
+                <li>Algunos tipos de claves aún no son compatibles con libssh.</li>
+                <li>Revisa los registros para errores de autenticación o conexión.</li>
             </ul>
         </details>
 
         <details>
             <summary>Arrastrar y soltar se guardó localmente en lugar de subir</summary>
             <ul class="bullets">
-                <li>Esto significa que SFTP/libssh no estaba conectado al momento del drop.</li>
-                <li>Verifica si SFTP está listo e inténtalo de nuevo, o usa transferencias en la pestaña Files.</li>
+                <li>Esto significa que SFTP/libssh no estaba conectado en el momento del drop.</li>
+                <li>Comprueba si SFTP está listo e inténtalo de nuevo, o usa transferencias desde la pestaña Archivos.</li>
                 <li>Carpeta local de respaldo: <code>~/pqssh_drops/</code></li>
             </ul>
         </details>
 
         <details>
-            <summary>El atajo de macro no se activa</summary>
+            <summary>El atajo de la macro no se activa</summary>
             <ul class="bullets">
-                <li>Asegúrate de que la macro tenga <b>ambos</b> Shortcut y Command.</li>
-                <li>Asegúrate de que la ventana de terminal esté activa.</li>
+                <li>Asegúrate de que la macro tenga <b>ambos</b>: Atajo y Comando.</li>
+                <li>Asegúrate de que la ventana de terminal sea la ventana activa.</li>
                 <li>Evita atajos usados por apps de terminal (p. ej. algunos <code>Ctrl+…</code> en <code>vim</code>).</li>
                 <li>Prueba una tecla de función como <code>F2</code> o un atajo <code>Alt+…</code>.</li>
             </ul>
         </details>
 
         <details>
-            <summary>Los placeholders no se expandieron</summary>
+            <summary>Los marcadores no se expandieron</summary>
             <ul class="bullets">
                 <li>Asegúrate de usar tokens soportados como <code>{HOST}</code>, <code>{USER}</code>, <code>{PORT}</code>.</li>
-                <li>Los placeholders desconocidos se dejan sin cambios.</li>
+                <li>Los marcadores desconocidos se dejan sin cambios.</li>
             </ul>
         </details>
 
         <details>
-            <summary>Demasiada salida de debug en la UI</summary>
+            <summary>Demasiada salida de depuración en la UI</summary>
             <ul class="bullets">
-                <li>Desactiva <b>PQ debug</b>.</li>
-                <li>La app oculta por defecto líneas ruidosas como wrappers de comandos SSH.</li>
+                <li>Desactiva <b>depuración PQ</b>.</li>
+                <li>La app ocultará líneas ruidosas como wrappers del comando SSH por defecto.</li>
             </ul>
         </details>
     </section>
 
     <footer class="footer">
-        <div class="muted">© CPUNK Project — Documentación de usuario de PQ-SSH</div>
+        <div class="muted">© Proyecto CPUNK — documentación de usuario de PQ-SSH</div>
     </footer>
 </main>
 </body>

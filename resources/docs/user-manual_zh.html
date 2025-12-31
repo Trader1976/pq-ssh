@@ -144,14 +144,28 @@
         .card h2 { margin-top: 0; }
 
         /* --- Readability spacing (Windows Classic friendly) --- */
+
+        /* Space between cards (Getting started, Profiles, Connect...) */
         main.content > section.card { margin: 0 0 16px 0; }
+
+        /* Paragraph spacing inside cards */
         .card p { margin: 10px 0; line-height: 1.45; }
+
+        /* Lists */
         .card ul, .card ol { margin: 10px 0 12px 22px; }
-        .card h2 { margin: 0 0 12px 0; }
+
+        /* Headings inside cards: spacing ABOVE headings, not huge */
+        .card h2 { margin: 50px 0 12px 0; }
         .card h3 { margin: 18px 0 8px 0; }
         .card h4 { margin: 14px 0 6px 0; }
+
+        /* Notes/tips/warnings */
         .note, .tip, .warn { margin: 12px 0; padding: 10px 12px; }
+
+        /* Code blocks */
         pre, .codeblock { margin: 10px 0 12px 0; padding: 10px; }
+
+        /* Troubleshooting details spacing */
         details { margin: 10px 0; }
     </style>
 </head>
@@ -167,17 +181,18 @@
             </div>
         </div>
 
-        <nav class="nav" aria-label="手册导航">
+        <nav class="nav" aria-label="Manual navigation">
             <a class="btn" href="#getting-started">快速开始</a>
             <a class="btn" href="#profiles">配置文件</a>
             <a class="btn" href="#connect">连接</a>
-            <a class="btn" href="#fleet-jobs">Fleet 作业</a>
+            <a class="btn" href="#fleet-jobs">机群任务</a>
+            <a class="btn" href="#scheduled-jobs">计划任务</a>
             <a class="btn" href="#macros">宏</a>
             <a class="btn" href="#settings">设置</a>
             <a class="btn" href="#themes">主题</a>
             <a class="btn" href="#file-transfer">文件传输</a>
             <a class="btn" href="#pq-status">PQ 状态</a>
-            <a class="btn" href="#key-install">安装公钥</a>
+            <a class="btn" href="#key-install">密钥安装</a>
             <a class="btn" href="#logging">日志</a>
             <a class="btn" href="#troubleshooting">故障排除</a>
         </nav>
@@ -191,8 +206,8 @@
         <div class="hero">
             <h2>PQ-SSH 是什么</h2>
             <p>
-                <b>CPUNK PQ-SSH</b> 是一款基于配置文件的 SSH 客户端，专注于清爽的终端工作流、
-                强安全默认值，以及 <b>后量子（PQ）就绪指示器</b>。
+                <b>CPUNK PQ-SSH</b> 是一款基于配置文件（Profile）的 SSH 客户端，专注于清爽的终端工作流、
+                强安全默认设置，以及 <b>后量子（PQ）就绪指示器</b>。
             </p>
 
             <div>
@@ -206,19 +221,19 @@
             <div class="callouts">
                 <div class="callout">
                     <div class="callout-title">终端优先</div>
-                    <p>连接会打开真实的 SSH 终端，由系统 OpenSSH 驱动。</p>
+                    <p>连接会打开一个由系统 OpenSSH 驱动的真实 SSH 终端。</p>
                 </div>
                 <div class="callout">
                     <div class="callout-title">配置文件</div>
-                    <p>保存主机/用户/端口与偏好设置，一键连接。</p>
+                    <p>保存主机/用户/端口与偏好设置。一键连接。</p>
                 </div>
                 <div class="callout">
                     <div class="callout-title">宏</div>
-                    <p>将热键绑定到命令，并立即发送到当前活动 SSH 终端。</p>
+                    <p>将快捷键绑定到命令，立即发送到当前活动的 SSH 终端。</p>
                 </div>
                 <div class="callout">
                     <div class="callout-title">SFTP 工作流</div>
-                    <p>可选的 libssh 会话用于浏览与传输文件，同时不破坏终端体验。</p>
+                    <p>可选的 libssh 会话在不破坏终端体验的前提下启用浏览与文件传输。</p>
                 </div>
             </div>
         </div>
@@ -228,13 +243,13 @@
         <h2>快速开始</h2>
         <ol>
             <li>打开 <b>PQ-SSH</b>。</li>
-            <li>点击 <b>Edit profiles…</b>。</li>
+            <li>点击 <b>编辑配置文件…</b>。</li>
             <li>创建一个配置文件（名称、用户、主机/IP、端口）。</li>
-            <li>选择配置文件并点击 <b>Connect</b>（或双击该配置文件）。</li>
+            <li>选择一个配置文件并点击 <b>连接</b>（或双击该配置文件）。</li>
         </ol>
 
         <div class="note">
-            <b>默认行为：</b> “Open new connection in NEW window” 已启用，因此每个连接会在单独窗口打开。
+            <b>默认行为：</b>已启用“在新窗口中打开新连接”，因此每个连接会单独打开。
         </div>
     </section>
 
@@ -244,27 +259,27 @@
         <table class="twocol" role="presentation">
             <tr>
                 <td class="colText">
-                    <p>配置文件会保存连接信息与界面偏好：</p>
+                    <p>配置文件用于保存连接信息与界面偏好：</p>
                     <ul class="bullets">
-                        <li><b>Name</b> — 友好名称（例如 “Server#1”）</li>
-                        <li><b>User</b> — SSH 用户名（例如 <code>root</code>）</li>
-                        <li><b>Host</b> — 主机名或 IP（例如 <code>192.168.0.1</code>）</li>
-                        <li><b>Port</b> — 默认 <code>22</code></li>
-                        <li><b>Group</b> — 可选标签，用于在列表中组织配置文件</li>
-                        <li><b>Key type</b> — 通常为 <code>auto</code> 或 <code>openssh</code></li>
-                        <li><b>Terminal scheme</b> — 终端配色方案</li>
-                        <li><b>Hotkey macros</b> — 每个配置文件的宏列表（快捷键 → 命令）</li>
+                        <li><b>名称</b> — 友好标签（例如“Server#1”）</li>
+                        <li><b>用户</b> — SSH 用户名（例如 <code>root</code>）</li>
+                        <li><b>主机</b> — 主机名或 IP（例如 <code>192.168.0.1</code>）</li>
+                        <li><b>端口</b> — 默认为 <code>22</code></li>
+                        <li><b>分组</b> — 可选标签，用于在列表中组织配置文件</li>
+                        <li><b>密钥类型</b> — 通常为 <code>auto</code> 或 <code>openssh</code></li>
+                        <li><b>终端方案</b> — 终端的配色方案</li>
+                        <li><b>快捷键宏</b> — 每个配置文件的宏列表（快捷键 → 命令）</li>
                     </ul>
 
                     <div class="tip">
-                        提示：尽量保持配置文件名称简短且一致（Prod、Staging、Home 等），并使用 Group 让列表更清晰。
+                        提示：保持配置文件名称简短且一致（Prod、Staging、Home 等），并使用“分组”让列表更易读。
                     </div>
                 </td>
 
                 <td class="colImg">
                     <div class="figure">
-                        <img src="qrc:/docs/img/profilemanager.png" alt="配置文件管理器" width="450"/>
-                        <div class="figcap"><b>配置文件管理器</b> — 创建与组织配置文件（含高级选项）。</div>
+                        <img src="qrc:/docs/img/profilemanager.png" alt="Profile Manager" width="450"/>
+                        <div class="figcap"><b>配置文件管理器</b> — 创建并组织配置文件（包含高级选项）。</div>
                     </div>
                 </td>
             </tr>
@@ -273,17 +288,17 @@
         <!-- Port forwarding -->
         <h3 id="port-forwarding">端口转发</h3>
         <p>
-            PQ-SSH 支持 <b>按配置文件的端口转发</b>。这允许你通过 SSH 连接安全地“隧道化” TCP 流量。
-            一个配置文件可启用多条转发规则（multi-forward）。
+            PQ-SSH 支持<b>按配置文件设置端口转发</b>，可通过 SSH 连接安全地“隧道化”TCP 流量。
+            一个配置文件可以启用多条转发规则（多转发）。
         </p>
 
         <h4>在哪里配置</h4>
         <ol>
-            <li>打开 <b>Edit profiles…</b></li>
+            <li>打开 <b>编辑配置文件…</b></li>
             <li>选择一个配置文件</li>
-            <li>在中间栏打开 <b>Advanced</b></li>
-            <li>启用 <b>Enable port forwarding</b></li>
-            <li>点击 <b>Port forwarding…</b> 添加/编辑规则</li>
+            <li>在中间列打开 <b>高级</b></li>
+            <li>启用 <b>启用端口转发</b></li>
+            <li>点击 <b>端口转发…</b> 添加/编辑规则</li>
         </ol>
 
         <h4>转发类型</h4>
@@ -298,85 +313,84 @@
                 </div>
             </li>
             <li>
-                <b>远程转发 (-R)</b> — 在远端服务器上开放一个端口，并将其转发回本地侧可达的主机/端口。
+                <b>远程转发 (-R)</b> — 将远端服务器上的端口转发回本地侧可达的主机/端口。
                 <div class="note">
                     示例（概念性）：
                     <pre class="codeblock"><code>ssh -R 0.0.0.0:9000:127.0.0.1:3000 user@server</code></pre>
-                    远端客户端可以连接到远端服务器的端口 <code>9000</code>（取决于服务器策略）。
+                    远端客户端可连接到远端服务器的端口 <code>9000</code>（受服务器策略限制）。
                 </div>
             </li>
             <li>
-                <b>动态转发 (-D)</b> — 创建本地 SOCKS 代理。
+                <b>动态转发 (-D)</b> — 创建一个本地 SOCKS 代理。
                 <div class="note">
                     示例：
                     <pre class="codeblock"><code>ssh -D 127.0.0.1:1080 user@server</code></pre>
-                    之后可将浏览器或工具指向 SOCKS5 <code>127.0.0.1:1080</code>。
+                    然后将浏览器或工具指向 SOCKS5 <code>127.0.0.1:1080</code>。
                 </div>
             </li>
         </ul>
 
-        <h4>规则字段（含义说明）</h4>
+        <h4>规则字段（含义）</h4>
         <ul class="bullets">
-            <li><b>Enabled</b> — 单条规则开/关（不删除）</li>
-            <li><b>Type</b> — Local (-L)、Remote (-R)、Dynamic (-D)</li>
-            <li><b>Bind address</b> — 监听创建的位置（默认：<code>127.0.0.1</code>，仅本机）</li>
-            <li><b>Listen port</b> — 要打开的端口（1–65535）</li>
-            <li><b>Target host / Target port</b> — 仅用于 Local/Remote（Dynamic 会忽略）</li>
-            <li><b>Description</b> — 可选备注，用于记录用途</li>
+            <li><b>启用</b> — 单条规则开/关（不删除）</li>
+            <li><b>类型</b> — 本地 (-L)、远程 (-R)、动态 (-D)</li>
+            <li><b>绑定地址</b> — 监听器创建的位置（默认：<code>127.0.0.1</code> 表示仅本机）</li>
+            <li><b>监听端口</b> — 要打开的端口（1–65535）</li>
+            <li><b>目标主机 / 目标端口</b> — 仅用于本地/远程规则（动态规则忽略）</li>
+            <li><b>描述</b> — 可选备注，便于记忆用途</li>
         </ul>
 
         <div class="warn">
-            <b>安全提示：</b>本地转发优先绑定到 <code>127.0.0.1</code>。
-            绑定到 <code>0.0.0.0</code> 可能会把转发端口暴露给整个网络。
+            <b>安全提示：</b>本地转发建议绑定到 <code>127.0.0.1</code>。
+            绑定到 <code>0.0.0.0</code> 可能会将转发端口暴露给整个网络。
         </div>
 
         <h4>如何测试转发（快速清单）</h4>
         <ol>
-            <li>在远端主机启动一个服务（示例：Python 测试服务器）：<br/>
+            <li>在远端主机启动服务（示例：Python 测试服务器）：<br/>
                 <pre class="codeblock"><code>python3 -m http.server 18080 --bind 127.0.0.1</code></pre>
             </li>
             <li>在 PQ-SSH 中添加本地转发：<br/>
                 <pre class="codeblock"><code>127.0.0.1:18888 → localhost:18080</code></pre>
             </li>
             <li>使用该配置文件连接。</li>
-            <li>在本地测试：<br/>
+            <li>在本机测试：<br/>
                 <pre class="codeblock"><code>curl -I http://127.0.0.1:18888/</code></pre>
             </li>
         </ol>
 
         <h4>转发故障排除</h4>
         <ul class="bullets">
-            <li><b>“Address already in use”</b> 表示监听端口已被占用。请选择其他端口（如 18890）。</li>
-            <li><b>Connection reset / timeout</b> 通常表示目标服务未运行，或远端侧无法访问该目标。</li>
-            <li><b>远程转发 (-R) 不生效</b> 可能被服务器策略限制（<code>AllowTcpForwarding</code>、<code>GatewayPorts</code>）。</li>
+            <li><b>“Address already in use”</b> 表示监听端口已被占用。请选择另一个端口（例如 18890）。</li>
+            <li><b>Connection reset / timeout</b> 通常表示目标服务未运行，或从远端侧不可达。</li>
+            <li><b>远程转发 (-R) 不工作</b> 可能被服务器策略阻止（<code>AllowTcpForwarding</code>、<code>GatewayPorts</code>）。</li>
         </ul>
 
         <div class="note">
-            PQ-SSH 的转发是通过系统 OpenSSH 实现：启动 <code>ssh</code> 时传入 <code>-L</code>/<code>-R</code>/<code>-D</code>
-            参数。不会自动修改服务器的任何转发设置。
+            PQ-SSH 通过在启动 <code>ssh</code> 时传入 <code>-L</code>/<code>-R</code>/<code>-D</code> 参数来实现转发（使用系统 OpenSSH）。
+            不会自动更改服务器上的任何转发配置。
         </div>
 
-        <h3>探测服务器加密（诊断）</h3>
+        <h3>探测服务器加密能力（诊断）</h3>
         <p>
-            在 <b>Edit profiles…</b> 中，PQ-SSH 提供 <b>Probe server crypto…</b> 按钮，
-            用于查看 SSH 握手与服务器协商了什么。
+            在 <b>编辑配置文件…</b> 中，PQ-SSH 提供 <b>探测服务器加密…</b> 按钮，帮助你查看 SSH 握手与服务器协商出的内容。
         </p>
 
         <ul class="bullets">
-            <li><b>何时可用：</b>设置了 <b>User</b> 与 <b>Host</b> 后启用（Port 可选）。</li>
-            <li><b>显示内容：</b>协商得到的 <b>KEX</b>、<b>主机密钥算法</b> 与 <b>加密算法</b>。</li>
-            <li><b>工作方式：</b>以详细模式运行系统 <b>OpenSSH</b> 客户端（<code>ssh -vvv</code>），并设置短超时。</li>
-            <li><b>无需认证：</b>协商发生在认证之前。</li>
+            <li><b>何时可用：</b>当你设置了 <b>用户</b> 与 <b>主机</b> 后启用（端口可选）。</li>
+            <li><b>显示内容：</b>协商出的 <b>KEX</b>、<b>主机密钥算法</b> 与 <b>加密算法</b>。</li>
+            <li><b>工作方式：</b>以详细模式运行系统 <b>OpenSSH</b>（<code>ssh -vvv</code>），并设置短超时。</li>
+            <li><b>不需要认证：</b>协商发生在认证之前。</li>
             <li><b>只读：</b>不会修改服务器或配置文件。</li>
         </ul>
 
         <div class="note">
-            如果探测显示 <b>(not found)</b>，常见原因包括：主机不可达、端口被阻断、DNS 失败，或输出解析不匹配。
-            打开探测对话框的详情以查看原始输出。
+            若探测显示 <b>(not found)</b>，常见原因包括：主机不可达、端口被阻塞、DNS 失败，或输出解析不匹配。
+            打开探测对话框详情以查看原始输出。
         </div>
 
         <div class="tip">
-            提示：用探测确认现代算法（如 <code>curve25519-sha256</code>、<code>ssh-ed25519</code>），并识别遗留部署。
+            提示：用探测确认现代算法（例如 <code>curve25519-sha256</code>、<code>ssh-ed25519</code>），并识别遗留部署。
         </div>
     </section>
 
@@ -384,79 +398,79 @@
         <h2>连接</h2>
         <ol>
             <li>从列表中选择一个配置文件。</li>
-            <li>点击 <b>Connect</b>（或双击配置文件）。</li>
-            <li>终端窗口打开，SSH 自动启动。</li>
+            <li>点击 <b>连接</b>（或双击该配置文件）。</li>
+            <li>会打开终端窗口，并自动启动 SSH。</li>
         </ol>
 
         <div class="note">
-            终端会话由 OpenSSH 驱动。同时，PQ-SSH 可能会建立一个 libssh 会话用于 SFTP 功能。
+            终端会话由 OpenSSH 驱动。同时，PQ-SSH 可能会额外建立一个 libssh 会话用于 SFTP 功能。
         </div>
     </section>
 
     <section id="fleet-jobs" class="card">
-        <h2>Fleet 作业（对多台服务器执行操作）</h2>
+        <h2>机群任务（跨多台服务器运行操作）</h2>
 
         <p>
-            <b>Fleet 作业</b>允许你对多个已保存的配置文件一次执行同一个操作。
-            适用于例行管理：健康检查、服务状态检查与受控重启。
+            <b>机群任务</b>允许你一次对多个已保存的配置文件执行相同操作。
+            适用于日常运维：健康检查、服务状态检查、受控重启等。
         </p>
 
         <div class="callouts">
             <div class="callout">
-                <div class="callout-title">一项操作 → 多个目标</div>
-                <p>选择 5–50 个配置文件并行执行同一作业。</p>
+                <div class="callout-title">一个操作 → 多个目标</div>
+                <p>选择 5–50 个配置文件，并行执行同一个任务。</p>
             </div>
             <div class="callout">
                 <div class="callout-title">并发控制</div>
-                <p>限制同时运行的主机数（默认：4），避免过载。</p>
+                <p>限制同时运行的主机数量（默认：4）以避免过载。</p>
             </div>
             <div class="callout">
                 <div class="callout-title">超时保护</div>
-                <p>每个目标都有命令超时，防止“永远卡住”。</p>
+                <p>每个目标有命令超时，防止“无限卡住”。</p>
             </div>
             <div class="callout">
                 <div class="callout-title">审计轨迹</div>
-                <p>Fleet 操作可记录到审计日志，便于追踪与问责。</p>
+                <p>机群操作可写入审计日志以便追责与追踪。</p>
             </div>
         </div>
 
-        <h3>在哪里打开 Fleet 作业</h3>
+        <h3>在哪里找到机群任务</h3>
         <ul class="bullets">
-            <li>从菜单打开：<b>Tools → Fleet jobs…</b></li>
+            <li>从菜单打开：<b>工具 → 机群任务…</b></li>
         </ul>
 
         <h3>概念</h3>
         <ul class="bullets">
-            <li><b>Target</b> — 运行作业的单个配置文件/主机</li>
-            <li><b>Action</b> — 要执行的操作（Run command、Check service、Restart service）</li>
-            <li><b>Concurrency</b> — 最大并发目标数</li>
-            <li><b>Timeout</b> — 单个目标允许运行的最长时间，超过即视为失败</li>
+            <li><b>目标</b> — 任务运行的单个配置文件/主机</li>
+            <li><b>操作</b> — 你想做什么（运行命令、检查服务、重启服务）</li>
+            <li><b>并发</b> — 同时运行的目标数量上限</li>
+            <li><b>超时</b> — 单个目标允许运行的最长时间，超过则视为失败</li>
         </ul>
 
-        <h3>步骤：运行一个 Fleet 作业</h3>
+        <h3>步骤：运行机群任务</h3>
         <ol>
-            <li>打开 <b>Tools → Fleet jobs…</b></li>
+            <li>打开 <b>工具 → 机群任务…</b></li>
             <li>在列表中选择一个或多个目标配置文件。</li>
-            <li>选择一个 <b>Action</b>：
+            <li>选择一个 <b>操作</b>：
                 <ul class="bullets">
-                    <li><b>Run command</b> — 在每台主机执行 shell 命令</li>
-                    <li><b>Check service</b> — 检查 systemd 服务是否处于 active</li>
-                    <li><b>Restart service</b> — 重启 systemd 服务（有影响）</li>
+                    <li><b>运行命令</b> — 在每台主机执行一条 shell 命令</li>
+                    <li><b>检查服务</b> — 检查某个 systemd 服务是否为 active</li>
+                    <li><b>重启服务</b> — 重启某个 systemd 服务（有破坏性）</li>
                 </ul>
             </li>
-            <li>根据操作输入 <b>Command</b>（或 <b>Service name</b>）。</li>
-            <li>设置 <b>Concurrency</b>（建议：2–8）。</li>
-            <li>（如有）设置 <b>Timeout</b>（建议：60–180 秒）。</li>
-            <li>点击 <b>Run</b>。</li>
+            <li>根据操作输入 <b>命令</b>（或 <b>服务名</b>）。</li>
+            <li>设置 <b>并发</b>（建议：2–8）。</li>
+            <li>（如显示）设置 <b>超时</b>（建议：60–180 秒）。</li>
+            <li>点击 <b>运行</b>。</li>
         </ol>
 
         <div class="note">
-            Fleet 作业为每个目标创建独立 SSH 连接，以避免跨线程复用并隔离失败影响。
+            机群任务会为每个目标创建独立的 SSH 连接，以避免跨线程复用并保持故障隔离。
         </div>
 
-        <h3>操作细节</h3>
-        <h4>Run command</h4>
-        <p>对每个目标执行命令并显示捕获到的 <b>stdout</b> 与 <b>stderr</b>。</p>
+        <h3>操作详情</h3>
+        <h4>运行命令</h4>
+        <p>在每个目标执行命令并显示捕获到的 <b>stdout</b> 与 <b>stderr</b>。</p>
         <div class="note">
             示例：
             <pre class="codeblock"><code>uptime</code></pre>
@@ -464,97 +478,216 @@
             <pre class="codeblock"><code>uname -a</code></pre>
         </div>
 
-        <h4>Check service（systemd）</h4>
-        <p>检查 systemd 服务是否 active（无影响）。</p>
+        <h4>检查服务（systemd）</h4>
+        <p>检查 systemd 服务是否处于 active（非破坏性）。</p>
         <div class="note">
             示例服务名：
             <pre class="codeblock"><code>nginx</code></pre>
         </div>
 
-        <h4>Restart service（systemd）</h4>
-        <p>重启服务（有影响）。PQ-SSH 在执行有影响的操作前会要求额外确认。</p>
+        <h4>重启服务（systemd）</h4>
+        <p>重启服务（有破坏性）。PQ-SSH 在执行破坏性操作前会要求额外确认。</p>
         <div class="warn">
-            <b>警告：</b>重启服务可能导致中断。请优先执行 <b>Check service</b>。
+            <b>警告：</b>重启服务可能造成中断。建议先执行 <b>检查服务</b>。
         </div>
 
         <h3>超时</h3>
         <ul class="bullets">
-            <li>若目标超过超时，将标记为 <b>Failed</b> 并显示超时信息。</li>
+            <li>若某个目标超过超时，将被标记为 <b>失败</b> 并显示超时信息。</li>
             <li>其他目标继续运行。</li>
-            <li>超时仅停止等待输出；并不可靠地终止远端进程。</li>
+            <li>超时会停止等待输出，但不一定能可靠地终止远端进程。</li>
         </ul>
 
         <div class="tip">
-            提示：对于 <code>apt upgrade</code> 这类长任务，请增加超时或避免使用 Fleet。
+            提示：对于 <code>apt upgrade</code> 这类耗时任务，增加超时或避免使用机群任务。
         </div>
 
         <h3>并发</h3>
         <div class="note">
-            建议起步值：
+            推荐起点：
             <ul class="bullets">
                 <li><b>家庭/实验室：</b>2–4</li>
-                <li><b>小型机群（10–20 台）：</b>4–8</li>
+                <li><b>小型机群（10–20 台服务器）：</b>4–8</li>
             </ul>
         </div>
 
-        <h3>取消作业</h3>
+        <h3>取消任务</h3>
         <p>
-            点击 <b>Cancel</b> 请求取消。尚未开始的目标将被跳过。
+            点击 <b>取消</b> 以请求取消。尚未开始的目标将被跳过。
         </p>
 
         <h3>理解结果</h3>
         <ul class="bullets">
-            <li><b>Status</b> — Ok / Failed / Canceled</li>
-            <li><b>Duration</b></li>
-            <li><b>Output</b> — 为便于阅读会进行裁剪</li>
+            <li><b>状态</b> — Ok / Failed / Canceled</li>
+            <li><b>耗时</b></li>
+            <li><b>输出</b> — 为便于阅读会进行裁剪</li>
         </ul>
 
-        <h3>审计日志（推荐用于 Fleet）</h3>
-        <p>Fleet 操作可写入专用 <b>audit log</b> 以便追踪。</p>
+        <h3>审计日志（推荐用于机群任务）</h3>
+        <p>机群操作可写入专用<b>审计日志</b>以便追踪。</p>
 
         <div class="warn">
-            <b>隐私：</b>如果命令可能包含敏感信息，请避免在审计日志中存储完整命令内容。
-            建议使用哈希和最少元数据。
+            <b>隐私：</b>如果命令可能包含机密信息，请避免在审计日志中保存完整命令内容。
+            建议使用哈希与最小元数据。
+        </div>
+    </section>
+
+    <!-- ✅ NEW / UPDATED SECTION: Scheduled jobs -->
+    <section id="scheduled-jobs" class="card">
+        <h2>计划任务（稍后或按计划运行命令）</h2>
+
+        <p>
+            <b>计划任务</b>允许你定义命令与时间计划，然后将其安装到选定的服务器配置文件上。
+            适用于日常维护、延迟操作与周期性任务（每日检查、每周重启等）。
+        </p>
+
+        <div class="note">
+            计划任务在 PQ-SSH 中本地配置，但只有在你明确点击 <b>安装到服务器</b> 之后才会执行。
+            创建或编辑任务 <b>不会</b> 在安装前影响远端系统。
+        </div>
+
+        <div class="tip">
+            计划任务适合在单台服务器上执行延迟或周期性任务。
+            若要跨多台服务器立即执行，请使用 <b>工具 → 机群任务…</b>。
+        </div>
+
+        <h3>在哪里找到计划任务</h3>
+        <ul class="bullets">
+            <li>从菜单打开：<b>工具 → 计划任务…</b></li>
+        </ul>
+
+        <h3>你会看到什么</h3>
+        <p>
+            计划任务窗口显示任务列表及其状态。每行包括：
+        </p>
+        <ul class="bullets">
+            <li><b>名称</b> — 任务的友好标签</li>
+            <li><b>配置文件</b> — 任务对应的服务器（配置文件）</li>
+            <li><b>类型</b> — 一次性 或 周期性</li>
+            <li><b>时间</b> — 运行时间（一次性）或计划字符串（周期性）</li>
+            <li><b>命令</b> — 将在服务器上运行的命令</li>
+            <li><b>已安装</b> — 任务是否已安装到远端服务器</li>
+            <li><b>已启用</b> — 任务是否在本地启用（未来用途）</li>
+        </ul>
+
+        <h3>安装、取消与删除（各自含义）</h3>
+        <ul class="bullets">
+            <li>
+                <b>安装到服务器</b> —
+                在远端服务器上创建或更新调度器条目。
+                在此步骤之前不会发生任何远端更改。
+            </li>
+            <li>
+                <b>在服务器上取消</b> —
+                移除 PQ-SSH 之前安装在远端服务器上的调度器条目。
+            </li>
+            <li>
+                <b>删除</b> —
+                仅从 PQ-SSH 中移除该任务，
+                <b>不会</b> 修改远端服务器。
+            </li>
+        </ul>
+
+        <div class="warn">
+            <b>重要：</b>如果删除任务前未先取消，可能会导致该任务仍在远端服务器上保持激活。
+        </div>
+
+        <h3>任务类型</h3>
+
+        <h4>一次性（只运行一次）</h4>
+        <p>
+            一次性任务在指定的本地时间运行一次（在对话框中以 <code>YYYY-MM-DD HH:MM</code> 输入）。
+            PQ-SSH 会在服务器上使用最佳可用后端进行安装。
+        </p>
+
+        <h4>周期性（OnCalendar）</h4>
+        <p>
+            周期性任务按计划重复运行。当 systemd 可用时，PQ-SSH 使用 systemd 的 <b>OnCalendar</b> 格式
+            （示例：<code>daily</code>、<code>Mon..Fri 02:00</code>）。
+            若 systemd-user 定时器不可用，PQ-SSH 会回退到 cron。
+        </p>
+
+        <h3>后端选择（自动）</h3>
+        <p>
+            安装任务时，PQ-SSH 会探测远端服务器以确定可用的调度后端，并自动选择最佳后端。
+        </p>
+        <ul class="bullets">
+            <li><b>优先：</b>systemd <b>用户</b>定时器（<code>systemctl --user</code>）</li>
+            <li><b>周期性回退：</b>cron（<code>crontab</code>）</li>
+            <li><b>一次性回退：</b>at（<code>at</code>），若 <code>at</code> 不可用则使用 cron</li>
+        </ul>
+
+        <div class="note">
+            有些服务器安装了 <code>systemctl</code>，但在非交互式 SSH 登录时不提供用户 DBus 会话。
+            此时 systemd 用户定时器可能失败，PQ-SSH 会在可能的情况下回退到 cron/at。
+        </div>
+
+        <h3>命令执行环境</h3>
+        <p>
+            计划任务命令会在远端服务器上以非交互方式运行：
+        </p>
+        <pre class="codeblock"><code>/bin/sh -lc 'your command'</code></pre>
+
+        <div class="note">
+            不会分配交互式终端。需要 TTY 交互的命令（例如编辑器或密码提示）将会失败。
+        </div>
+
+        <h3>示例</h3>
+        <ul class="bullets">
+            <li><b>每日磁盘使用快照</b>
+                <pre class="codeblock"><code>df -h &gt; ~/disk-usage.txt</code></pre>
+            </li>
+            <li><b>夜间重启服务（谨慎）</b>
+                <pre class="codeblock"><code>sudo systemctl restart nginx</code></pre>
+            </li>
+            <li><b>一次性延迟命令</b>
+                <pre class="codeblock"><code>echo "hello" &gt;&gt; ~/hello.log</code></pre>
+            </li>
+        </ul>
+
+        <div class="warn">
+            <b>安全提示：</b>避免在计划任务命令中内嵌密钥/令牌等机密信息。
+            建议从受保护文件或密钥管理系统中读取。
         </div>
     </section>
 
     <section id="macros" class="card">
-        <h2>宏（热键）</h2>
+        <h2>宏（快捷键）</h2>
         <p>
-            PQ-SSH 支持 <b>按配置文件的热键宏</b>。宏是一组键盘快捷键，用于将命令以文本形式发送到
-            当前活动的 SSH 终端（可选自动附加 <code>[Enter]</code>）。
+            PQ-SSH 支持<b>按配置文件设置快捷键宏</b>。宏是一个键盘快捷键，用于将命令即时发送到当前活动的 SSH 终端
+            （可选自动发送 <code>[Enter]</code>）。
         </p>
 
-        <h3>宏在哪里</h3>
+        <h3>宏在哪里设置</h3>
         <ul class="bullets">
-            <li>打开 <b>Edit profiles…</b></li>
+            <li>打开 <b>编辑配置文件…</b></li>
             <li>选择一个配置文件</li>
-            <li>使用右侧的 <b>Hotkey macros</b> 面板</li>
+            <li>在右侧使用 <b>快捷键宏</b> 面板</li>
         </ul>
 
-        <h3>创建一个宏</h3>
+        <h3>创建宏</h3>
         <ol>
             <li>点击 <b>+</b> 添加宏。</li>
-            <li>设置 <b>Name</b>（推荐）。</li>
-            <li>点击 <b>Shortcut</b> 字段并按下组合键（如 <code>F2</code>、<code>Alt+X</code>）。</li>
-            <li>输入要发送的 <b>Command</b>。</li>
-            <li>如需立即执行，请启用 <b>Send [Enter] automatically</b>。</li>
+            <li>设置 <b>名称</b>（推荐）。</li>
+            <li>点击 <b>快捷键</b> 字段并按下组合键（例如 <code>F2</code>、<code>Alt+X</code>）。</li>
+            <li>输入要发送的 <b>命令</b>。</li>
+            <li>如需立即运行，启用 <b>自动发送 [Enter]</b>。</li>
         </ol>
 
         <div class="note">
-            宏刻意保持简单：PQ-SSH 只向终端发送纯文本，不会在本地执行任何内容。
+            宏被刻意设计得很简单：PQ-SSH 仅向终端发送纯文本，不会在本地执行任何内容。
         </div>
 
         <h3>使用宏</h3>
         <ul class="bullets">
             <li>使用包含该宏的配置文件进行连接。</li>
             <li>在终端窗口处于活动状态时按下宏快捷键。</li>
-            <li>PQ-SSH 会将宏命令发送到终端。</li>
+            <li>PQ-SSH 将宏命令发送到终端中。</li>
         </ul>
 
         <h3>占位符（变量）</h3>
         <p>
-            宏中可以包含 <b>占位符变量</b>，PQ-SSH 会在发送之前进行展开。
+            宏可以包含<b>占位符变量</b>，PQ-SSH 会在发送命令前即时展开。
         </p>
 
         <div class="note">
@@ -570,9 +703,9 @@
             <li><code>{USER}</code> — SSH 用户</li>
             <li><code>{HOST}</code> — 主机名/IP</li>
             <li><code>{PORT}</code> — 端口（默认 22）</li>
-            <li><code>{TARGET}</code> — <code>user@host</code>（非 22 端口则为 <code>user@host:port</code>）</li>
+            <li><code>{TARGET}</code> — <code>user@host</code>（或非 22 端口时为 <code>user@host:port</code>）</li>
             <li><code>{HOME}</code> — <code>~</code></li>
-            <li><code>{KEYFILE}</code> — 配置的密钥文件路径（如有）</li>
+            <li><code>{KEYFILE}</code> — 配置的密钥文件路径（若有）</li>
             <li><code>{DATE}</code> — 当前日期（<code>YYYY-MM-DD</code>）</li>
             <li><code>{TIME}</code> — 当前时间（<code>HH:MM:SS</code>）</li>
         </ul>
@@ -580,10 +713,9 @@
             若配置文件未设置密钥文件，<b>{KEYFILE}</b> 会展开为空字符串。
         </div>
         <div class="note">
-            <b>{TARGET}</b> 在端口 22 使用 <code>user@host</code>，非 22 端口使用 <code>user@host:port</code>。
+            <b>{TARGET}</b> 在端口 22 时使用 <code>user@host</code>，非 22 端口时使用 <code>user@host:port</code>。
         </div>
-
-        <h3>大括号转义</h3>
+        <h3>转义花括号</h3>
         <ul class="bullets">
             <li><code>{{</code> 表示字面量 <code>{</code></li>
             <li><code>}}</code> 表示字面量 <code>}</code></li>
@@ -597,7 +729,7 @@
         </div>
 
         <div class="warn">
-            <b>重要：</b>未知占位符会原样保留。
+            <b>重要：</b>未知占位符将保持原样不变。
         </div>
 
         <h3>宏示例</h3>
@@ -605,7 +737,7 @@
             <li><b>快速状态</b>
                 <pre class="codeblock"><code>uptime</code></pre>
             </li>
-            <li><b>查看磁盘使用</b>
+            <li><b>显示磁盘使用</b>
                 <pre class="codeblock"><code>df -h</code></pre>
             </li>
             <li><b>跟随服务日志</b>
@@ -614,61 +746,61 @@
             <li><b>上下文横幅（含占位符）</b>
                 <pre class="codeblock"><code>echo "=== {PROFILE} :: {TARGET} ==="</code></pre>
             </li>
-            <li><b>检查主机密钥条目</b>
+            <li><b>检查主机密钥记录</b>
                 <pre class="codeblock"><code>ssh-keygen -F {HOST}</code></pre>
             </li>
         </ul>
 
         <div class="tip">
-            提示：建议使用 <code>F1…F12</code> 或 <code>Alt+…</code> 等不易与终端应用（如 <code>vim</code>）冲突的快捷键。
+            提示：建议使用功能键（<code>F1…F12</code>）或 <code>Alt+…</code> 组合，避免与 <code>vim</code> 等终端程序冲突的快捷键。
         </div>
     </section>
 
     <section id="settings" class="card">
-        <h2>设置</h2>
-        <p>PQ-SSH 包含设置对话框，用于控制外观与日志行为。</p>
+        <h2>设置菜单</h2>
+        <p>PQ-SSH 包含“设置”对话框，用于控制外观与日志行为。</p>
 
-        <h3>在哪里打开</h3>
+        <h3>在哪里找到</h3>
         <ul class="bullets">
-            <li>顶部菜单：<b>File → Settings…</b></li>
+            <li>顶部菜单：<b>文件 → 设置…</b></li>
         </ul>
 
         <h3>保存后会发生什么</h3>
         <ul class="bullets">
             <li>设置会保存并立即生效。</li>
-            <li>主题变更会立刻应用（无需重启）。</li>
-            <li>日志级别变更会立刻生效。</li>
+            <li>主题更改会立刻生效（无需重启）。</li>
+            <li>日志级别更改会立刻生效。</li>
         </ul>
 
         <div class="note">
-            设置通过 <code>QSettings</code> 保存到 PQ-SSH 配置的应用名与组织名命名空间下。
+            设置通过 <code>QSettings</code> 存储在 PQ-SSH 配置的应用名与组织名之下。
         </div>
     </section>
 
     <section id="themes" class="card">
         <h2>主题</h2>
         <p>
-            主题控制主界面外观（列表、按钮、对话框、标签页）。
-            终端颜色由每个配置文件选择的 <b>Terminal scheme</b> 单独控制。
+            主题控制主界面（列表、按钮、对话框、标签页）的外观与感觉。
+            终端颜色由每个配置文件中选择的 <b>终端方案</b> 单独控制。
         </p>
 
         <h3>可用主题</h3>
         <ul class="bullets">
-            <li><b>CPUNK Dark</b> — 深色 UI + CPUNK 霓虹点缀</li>
-            <li><b>CPUNK Orange</b> — 深色 UI + 橙色点缀</li>
-            <li><b>Windows Basic</b> — 亮色/中性 UI（经典桌面风格）</li>
-            <li><b>CPUNK Neo</b> — 应用内附带的额外 CPUNK 风格主题</li>
+            <li><b>CPUNK Dark</b> — 深色 UI + CPUNK 霓虹强调色</li>
+            <li><b>CPUNK Orange</b> — 深色 UI + 橙色强调</li>
+            <li><b>Windows Basic</b> — 浅色/中性 UI（经典桌面风格）</li>
+            <li><b>CPUNK Neo</b> — 随应用提供的额外 CPUNK 风格主题</li>
         </ul>
 
-        <h3>如何切换主题</h3>
+        <h3>如何更换主题</h3>
         <ol>
-            <li>打开 <b>File → Settings…</b></li>
-            <li>选择 <b>App theme</b></li>
-            <li>点击 <b>Save</b></li>
+            <li>打开 <b>文件 → 设置…</b></li>
+            <li>选择一个 <b>应用主题</b></li>
+            <li>点击 <b>保存</b></li>
         </ol>
 
         <div class="tip">
-            如果看不到变化，请确认已点击 <b>Save</b>。PQ-SSH 会在保存设置时应用主题。
+            若你没有看到明显变化，请确认你点击了 <b>保存</b>。PQ-SSH 会在保存设置时应用主题。
         </div>
     </section>
 
@@ -679,47 +811,47 @@
             <tr>
                 <td class="colText">
                     <p>
-                        PQ-SSH 内置文件传输工作流。它使用独立的 <b>libssh</b> 会话执行 SFTP 操作，
-                        同时交互式终端仍由 OpenSSH 驱动。
+                        PQ-SSH 内置文件传输工作流。SFTP 操作使用独立的 <b>libssh</b> 会话，
+                        而交互式终端仍由 OpenSSH 驱动。
                     </p>
 
-                    <h3>Files 标签页</h3>
+                    <h3>文件标签页</h3>
                     <p>
-                        主窗口包含 <b>Files</b> 标签页，位于 <b>Log</b> 标签页旁边。
+                        主窗口包含 <b>文件</b> 标签页（位于 <b>日志</b> 标签页旁）。
                         当 SFTP 已连接时，你可以浏览远端文件系统并进行传输。
                     </p>
 
                     <ul class="bullets">
-                        <li>如果 libssh 连接成功，Files 标签页将可用，远端列表可正常显示。</li>
-                        <li>如果 libssh 失败，SSH 终端仍可正常使用，但 SFTP 功能会被禁用。</li>
+                        <li>若 libssh 连接成功，“文件”标签页会激活并可列出远端目录。</li>
+                        <li>若 libssh 失败，SSH 终端仍可正常使用，但 SFTP 功能会禁用。</li>
                     </ul>
 
-                    <h3>拖拽上传</h3>
+                    <h3>拖放上传</h3>
                     <ul class="bullets">
-                        <li>如果 libssh 已连接，拖入的文件会上传到远端当前工作目录（<code>$PWD</code>）。</li>
-                        <li>如果 libssh 未连接，PQ-SSH 会把拖入文件保存到本地安全的回退目录。</li>
+                        <li>若 libssh 已连接，拖入的文件会上传到远端当前工作目录（<code>$PWD</code>）。</li>
+                        <li>若 libssh 未连接，PQ-SSH 会将拖入的文件保存到本地安全回退目录。</li>
                     </ul>
 
                     <h3>本地回退目录</h3>
                     <pre class="codeblock"><code>~/pqssh_drops/</code></pre>
 
                     <div class="warn">
-                        <b>说明：</b>回退机制用于避免用户拖拽后“毫无反应”的情况。
-                        它不是同步目录。
+                        <b>说明：</b>此回退机制用于避免用户期望拖放动作生效却“静默失败”。
+                        这不是同步文件夹。
                     </div>
 
                     <h3>SFTP 被禁用的常见原因</h3>
                     <ul class="bullets">
                         <li>libssh 会话认证失败</li>
                         <li>网络/防火墙问题</li>
-                        <li>配置文件使用了 libssh 在 PQ-SSH 中尚未支持的密钥类型</li>
+                        <li>配置文件使用了 PQ-SSH 中 libssh 尚不支持的密钥类型</li>
                     </ul>
                 </td>
 
                 <td class="colImg">
                     <div class="figure">
-                        <img src="qrc:/docs/img/files.png" alt="Files 标签页（SFTP）" width="450"/>
-                        <div class="figcap"><b>Files 标签页</b> — 通过 SFTP 浏览与传输文件（libssh 会话）。</div>
+                        <img src="qrc:/docs/img/files.png" alt="Files tab (SFTP)" width="450"/>
+                        <div class="figcap"><b>文件标签页</b> — 通过 SFTP（libssh 会话）浏览与传输文件。</div>
                     </div>
                 </td>
             </tr>
@@ -729,21 +861,19 @@
     <section id="pq-status" class="card">
         <h2>PQ 状态指示器</h2>
         <p>
-            PQ-SSH 会执行一次快速探测，用于判断远程服务器是否支持
-            具备 PQ 能力的密钥交换。
-            此操作 <b>不会</b> 更改服务器配置，仅用于信息显示。
+            PQ-SSH 会进行一次快速探测，以检测远端服务器是否支持具备 PQ 能力的密钥交换。
+            这<b>不会</b>更改服务器设置；仅用于信息提示。
         </p>
 
-        <h3>标识的含义</h3>
+        <h3>徽标含义</h3>
 
         <div class="note">
-            <b>重要说明：</b> PQ-SSH 可以同时使用 <b>两套不同的 SSH 栈</b>：
+            <b>重要：</b>PQ-SSH 可以同时使用<b>两套不同的 SSH 栈</b>：
             <ul class="bullets">
-                <li><b>终端 SSH</b> 使用系统的 <b>OpenSSH</b>（主要的交互式会话）。</li>
-                <li><b>SFTP</b> 使用可选的 <b>libssh</b> 会话（仅用于“文件”标签页 / 传输）。</li>
+                <li><b>终端 SSH</b> 使用系统 <b>OpenSSH</b>（主交互会话）。</li>
+                <li><b>SFTP</b> 使用可选的 <b>libssh</b> 会话（仅用于“文件”标签页/传输）。</li>
             </ul>
-            由于这两套实现不同，它们可能协商出
-            <b>不同的算法</b>。
+            由于两套栈不同，它们可能协商出<b>不同的算法</b>。
         </div>
 
         <h4>PQ 支持</h4>
@@ -754,79 +884,76 @@
         </div>
 
         <ul class="bullets">
-            <li><b>PQ 支持：是</b> — 探测发现服务器提供了 PQ / 混合型密钥交换。</li>
-            <li><b>PQ 支持：否</b> — 服务器很可能未提供所探测的 PQ / 混合 KEX。</li>
-            <li><b>PQ：检测中…</b> — 探测正在进行。</li>
+            <li><b>PQ 支持：是</b> — 探测检测到服务器提供了 PQ/混合式密钥交换。</li>
+            <li><b>PQ 支持：否</b> — 服务器可能未提供被探测的 PQ/混合式 KEX。</li>
+            <li><b>PQ：检测中…</b> — 正在探测。</li>
         </ul>
 
         <h4>SSH KEX 与 SFTP KEX</h4>
         <p>
-            PQ-SSH 会分别显示两种连接所协商的密钥交换方式：
+            PQ-SSH 会分别显示两条连接协商出的密钥交换：
         </p>
 
         <ul class="bullets">
             <li>
                 <b>SSH KEX</b> — 由 <b>OpenSSH</b> 协商（终端会话）。
-                这是交互式 Shell 最重要的部分。
+                这对交互式 shell 最关键。
             </li>
             <li>
-                <b>SFTP KEX</b> — 由 <b>libssh</b> 协商（文件标签页使用的 SFTP 会话）。
+                <b>SFTP KEX</b> — 由 <b>libssh</b> 协商（“文件”标签页使用的 SFTP 会话）。
             </li>
         </ul>
 
         <div class="note">
-            <b>libssh 限制：</b> 即使终端会话成功协商了 PQ / 混合 KEX，
-            基于 libssh 的 SFTP 会话仍可能显示为 <b>经典</b> 算法，
-            这是由于库本身的支持限制。
-            这是正常现象，并不会“降级”你的 OpenSSH 终端会话。
+            <b>libssh 限制：</b>即使终端会话协商到了 PQ/混合式 KEX，
+            libssh 的 SFTP 会话仍可能因库支持限制而显示<b>经典</b>算法。
+            这是预期行为，不会“降级”你的 OpenSSH 终端会话。
         </div>
 
-        <h4>日志标签页中的诊断信息</h4>
+        <h4>在“日志”标签页中的诊断信息</h4>
         <p>
-            启用 <b>PQ 调试</b> 后，你可能会看到如下日志：
+            启用 <b>PQ 调试</b> 后，你可能会看到类似：
         </p>
         <pre class="codeblock"><code>[PQ-PROBE] ... ssh ... true
 [SFTP-KEX] Classical (libssh limitation) → X25519 (Curve25519)</code></pre>
 
         <div class="tip">
-            提示：如果 <b>SSH KEX</b> 显示为 PQ / 混合，而 <b>SFTP KEX</b> 显示为经典，
-            通常意味着服务器在 OpenSSH 中支持 PQ / 混合算法，
-            但 SFTP 所使用的库路径无法协商该算法。
+            提示：若 <b>SSH KEX</b> 显示 PQ/混合式而 <b>SFTP KEX</b> 显示经典算法，通常意味着：
+            服务器在 OpenSSH 路径支持 PQ/混合式，但 SFTP 的库路径无法协商到它。
         </div>
 
         <div class="note">
-            这些指示器仅为尽力而为的界面提示；
-            PQ-SSH 不会修改 SSH 服务器配置，也不会强制启用 PQ 模式。
+            这些指示器只是尽力而为的 UI 提示；PQ-SSH 不会修改 SSH 服务器配置，也不会强制启用 PQ 模式。
         </div>
     </section>
 
     <section class="card" id="key-install">
         <h2>在服务器上安装公钥</h2>
         <p>
-            PQ-SSH 可以将 <b>OpenSSH 公钥</b> 以安全、非破坏方式安装到远端服务器的
+            PQ-SSH 可以将 <b>OpenSSH 公钥</b>以安全、非破坏性的方式直接安装到远端服务器的
             <code>~/.ssh/authorized_keys</code> 文件中。
         </p>
 
-        <p>此功能可从以下位置打开：</p>
+        <p>该功能可从以下入口使用：</p>
         <ul class="bullets">
-            <li><b>Keys → Install public key to server…</b>（主菜单）</li>
-            <li><b>Key Generator → Keys tab → Install…</b>（安装选定密钥）</li>
+            <li><b>密钥 → 安装公钥到服务器…</b>（主菜单）</li>
+            <li><b>密钥生成器 → 密钥 标签页 → 安装…</b>（安装选中的密钥）</li>
         </ul>
 
-        <h3>确认步骤（你会看到什么）</h3>
-        <p>在对服务器做任何修改之前，PQ-SSH 会显示确认对话框，包含：</p>
+        <h3>你会看到什么（确认步骤）</h3>
+        <p>在对服务器做任何更改前，PQ-SSH 会显示确认对话框，包含：</p>
         <ul class="bullets">
             <li><b>目标配置文件名称</b></li>
             <li><b>用户 / 主机 / 端口</b></li>
             <li><b>远端路径：</b><code>~/.ssh/authorized_keys</code></li>
             <li><b>密钥类型</b>（例如 <code>ssh-ed25519</code>）</li>
-            <li><b>密钥预览</b>（密钥的一小段摘要）</li>
+            <li><b>密钥预览</b>（密钥的简短片段）</li>
         </ul>
 
-        <div class="note">除非你明确确认，否则不会执行任何操作。</div>
+        <div class="note">除非你明确确认，否则不会发生任何操作。</div>
 
-        <h3>服务器端会发生什么</h3>
-        <p>确认后，PQ-SSH 会通过 SSH/SFTP 执行以下步骤：</p>
+        <h3>服务器上会发生什么</h3>
+        <p>确认后，PQ-SSH 将通过 SSH/SFTP 连接并执行以下步骤：</p>
 
         <ol>
             <li>
@@ -835,18 +962,18 @@
 chmod 700 ~/.ssh</code></pre>
             </li>
             <li>
-                <b>读取现有 <code>authorized_keys</code>（如存在）</b>
-                <p>如果相同公钥已存在，则不会做任何更改。</p>
+                <b>读取现有 <code>authorized_keys</code>（若存在）</b>
+                <p>如果同一把公钥已存在，则不会做任何更改。</p>
             </li>
             <li>
-                <b>创建带时间戳的备份（如文件存在）</b>
+                <b>创建带时间戳的备份（若文件存在）</b>
                 <div class="warn">
-                    备份是强制的。若备份失败，将中止安装。
+                    备份创建是强制的。若备份失败，将中止密钥安装。
                 </div>
             </li>
             <li>
                 <b>仅在缺失时追加公钥</b>
-                <p>绝不会插入重复公钥。</p>
+                <p>不会插入重复密钥。</p>
             </li>
             <li>
                 <b>修复权限</b>
@@ -854,11 +981,11 @@ chmod 700 ~/.ssh</code></pre>
             </li>
         </ol>
 
-        <h3>安全保证</h3>
+        <h3>安全保障</h3>
         <ul class="bullets">
-            <li>保留现有公钥</li>
-            <li>修改前先备份</li>
-            <li>不插入重复公钥</li>
+            <li>保留现有密钥</li>
+            <li>修改前备份</li>
+            <li>不插入重复密钥</li>
             <li>强制正确的 SSH 权限</li>
             <li>不会上传密码或私钥</li>
         </ul>
@@ -871,33 +998,33 @@ chmod 700 ~/.ssh</code></pre>
             <tr>
                 <td class="colText">
                     <h3>日志级别</h3>
-                    <p>日志详细程度可在 <b>File → Settings…</b> 中控制：</p>
+                    <p>日志详细程度可在 <b>文件 → 设置…</b> 中控制：</p>
                     <ul class="bullets">
-                        <li><b>Errors only</b> — 最少日志</li>
-                        <li><b>Normal</b> — 推荐默认</li>
-                        <li><b>Debug</b> — 用于故障排除的详细日志</li>
+                        <li><b>仅错误</b> — 最少日志</li>
+                        <li><b>普通</b> — 推荐默认</li>
+                        <li><b>调试</b> — 详细日志用于排障</li>
                     </ul>
 
                     <h3>打开日志文件</h3>
-                    <p>使用菜单：<b>View → Open log file</b></p>
+                    <p>使用菜单：<b>查看 → 打开日志文件</b></p>
                     <pre class="codeblock"><code>~/.local/share/pq-ssh/logs/pq-ssh.log</code></pre>
 
-                    <h3>PQ 调试模式（UI）</h3>
+                    <h3>PQ 调试模式（界面）</h3>
                     <p>
-                        在底部栏启用 <b>PQ debug</b> 以显示更多诊断信息
+                        在底部栏启用 <b>PQ 调试</b> 可显示更多诊断信息
                         （SSH 命令细节、方案列表、底层消息）。
                     </p>
 
                     <div class="warn">
                         <b>隐私提示：</b>PQ-SSH 不会记录密码或私钥内容。
-                        但调试输出可能仍包含主机名与文件路径。
+                        但调试输出仍可能包含主机名与文件路径。
                     </div>
                 </td>
 
                 <td class="colImg">
                     <div class="figure">
-                        <img src="qrc:/docs/img/auditlog.png" alt="审计日志查看器" width="450" />
-                        <div class="figcap"><b>审计日志</b> — 用于追踪操作（尤其是 Fleet 作业）。</div>
+                        <img src="qrc:/docs/img/auditlog.png" alt="Audit log viewer" width="450" />
+                        <div class="figcap"><b>审计日志</b> — 回顾操作（尤其是机群任务），用于追踪与问责。</div>
                     </div>
                 </td>
             </tr>
@@ -906,12 +1033,12 @@ chmod 700 ~/.ssh</code></pre>
 
     <section class="card">
         <h2>密钥与过期警告</h2>
-        <p>打开 <b>Keys → Key Generator…</b> 以创建/管理密钥。</p>
+        <p>打开 <b>密钥 → 密钥生成器…</b> 创建/管理密钥。</p>
 
         <ul class="bullets">
-            <li>启动时 PQ-SSH 可能会自动在元数据中标记已过期密钥。</li>
-            <li>如存在过期密钥，状态区域会显示警告。</li>
-            <li>为最佳安全性，请定期轮换密钥。</li>
+            <li>启动时 PQ-SSH 可能在元数据中自动标记已过期的密钥。</li>
+            <li>如果存在过期密钥，会在状态区域显示警告。</li>
+            <li>为获得最佳安全性，请定期轮换密钥。</li>
         </ul>
     </section>
 
@@ -919,64 +1046,83 @@ chmod 700 ~/.ssh</code></pre>
         <h2>故障排除</h2>
 
         <details>
-            <summary>Fleet 作业在某台主机上失败</summary>
+            <summary>安装失败：“Failed to connect to bus” / “No medium found”</summary>
             <ul class="bullets">
-                <li>打开 <b>View → Open log file</b> 查看详细错误。</li>
-                <li>尝试只对该主机运行同一作业以复现问题。</li>
-                <li>如果多台主机同时失败，请降低 <b>Concurrency</b>。</li>
-                <li>如果命令较慢，请提高 <b>Timeout</b>。</li>
+                <li>
+                    这表明服务器上存在 <code>systemctl --user</code>，但没有可用的用户 DBus 会话。
+                </li>
+                <li>
+                    常见于未启用用户 lingering 的无头/精简服务器。
+                </li>
+                <li>
+                    在服务器上一次性修复（推荐）：
+                    <pre class="codeblock"><code>sudo loginctl enable-linger &lt;user&gt;</code></pre>
+                </li>
+                <li>
+                    或者：如可用，PQ-SSH 会回退到 cron 或 at。
+                </li>
             </ul>
         </details>
 
         <details>
-            <summary>Fleet 重启很危险——如何更安全地执行？</summary>
+            <summary>某台主机上的机群任务失败</summary>
             <ul class="bullets">
-                <li>先运行 <b>Check service</b> 了解当前状态。</li>
-                <li>先重启一台主机并验证，再扩大到更多目标。</li>
-                <li>避免在系统升级或安装软件包期间重启服务。</li>
+                <li>打开 <b>查看 → 打开日志文件</b> 查看详细错误。</li>
+                <li>尝试仅对该主机运行同一任务以复现问题。</li>
+                <li>若多台主机同时失败，降低 <b>并发</b>。</li>
+                <li>若该主机命令执行缓慢，增加 <b>超时</b>。</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>机群重启很危险——如何更安全地执行？</summary>
+            <ul class="bullets">
+                <li>先运行 <b>检查服务</b> 了解当前状态。</li>
+                <li>先重启一台并验证行为，再扩展到组内更多主机。</li>
+                <li>避免在系统升级或安装软件包期间重启。</li>
                 <li>生产环境使用保守并发（2–4）。</li>
             </ul>
         </details>
 
         <details>
-            <summary>主题切换未生效</summary>
+            <summary>主题更改没有生效</summary>
             <ul class="bullets">
-                <li>打开 <b>File → Settings…</b>，选择主题并点击 <b>Save</b>。</li>
-                <li>如有需要，关闭并重新打开设置对话框再试一次。</li>
+                <li>打开 <b>文件 → 设置…</b>，选择主题并点击 <b>保存</b>。</li>
+                <li>如有需要，关闭并重新打开“设置”对话框再试一次。</li>
             </ul>
         </details>
 
         <details>
             <summary>连接立即失败</summary>
             <ul class="bullets">
-                <li>检查配置文件中的主机/IP 与端口。</li>
-                <li>查看日志文件（Help → Open log file）。</li>
-                <li>启用 <b>PQ debug</b> 获取更详细的 SSH 诊断。</li>
+                <li>核对配置文件中的主机/IP 与端口。</li>
+                <li>检查日志文件（帮助 → 打开日志文件）。</li>
+                <li>启用 <b>PQ 调试</b> 查看更详细的 SSH 诊断。</li>
             </ul>
         </details>
 
         <details>
             <summary>PQ 显示 OFF</summary>
             <ul class="bullets">
-                <li>服务器可能不提供所探测的 PQ 密钥交换。</li>
-                <li>这只是提示；在你的安全策略允许下，常规 SSH 仍可能足够安全。</li>
+                <li>服务器可能未提供被探测的 PQ 密钥交换。</li>
+                <li>这仅为信息提示；在你的策略允许下，常规 SSH 仍可能足够安全。</li>
             </ul>
         </details>
 
         <details>
-            <summary>Files 标签页 / SFTP 被禁用</summary>
+            <summary>文件标签页 / SFTP 被禁用</summary>
             <ul class="bullets">
                 <li>即使终端 SSH 可用，libssh 会话也可能失败。</li>
-                <li>某些密钥类型可能尚未被 libssh 支持。</li>
-                <li>查看日志中的认证或连接错误。</li>
+                <li>某些密钥类型 libssh 尚不支持。</li>
+                <li>检查日志中的认证或连接错误。</li>
             </ul>
         </details>
 
         <details>
-            <summary>拖拽后保存到本地而未上传</summary>
+            <summary>拖放被保存到本地而不是上传</summary>
             <ul class="bullets">
-                <li>表示拖拽时 SFTP/libssh 未连接就绪。</li>
-                <li>确认 SFTP 就绪后再试，或使用 Files 标签页传输。</li>
+                <li>这表示拖放时 SFTP/libssh 尚未连接。</li>
+                <li>确认 SFTP 就绪后再试，或使用“文件”标签页传输。</li>
                 <li>本地回退目录：<code>~/pqssh_drops/</code></li>
             </ul>
         </details>
@@ -984,26 +1130,26 @@ chmod 700 ~/.ssh</code></pre>
         <details>
             <summary>宏快捷键没有触发</summary>
             <ul class="bullets">
-                <li>确认宏同时设置了快捷键与命令。</li>
-                <li>确保终端窗口处于活动状态。</li>
-                <li>避免与终端应用冲突的快捷键（如 <code>vim</code> 中某些 <code>Ctrl+…</code> 组合）。</li>
-                <li>尝试使用功能键如 <code>F2</code> 或 <code>Alt+…</code> 组合。</li>
+                <li>确认宏同时设置了 <b>快捷键</b> 与 <b>命令</b>。</li>
+                <li>确认终端窗口是当前活动窗口。</li>
+                <li>避免被终端程序占用的快捷键（例如 <code>vim</code> 中的某些 <code>Ctrl+…</code>）。</li>
+                <li>尝试功能键（如 <code>F2</code>）或 <code>Alt+…</code> 组合。</li>
             </ul>
         </details>
 
         <details>
             <summary>占位符没有展开</summary>
             <ul class="bullets">
-                <li>确认使用了支持的 token，如 <code>{HOST}</code>、<code>{USER}</code>、<code>{PORT}</code>。</li>
-                <li>未知占位符会保持原样。</li>
+                <li>确认使用了支持的标记，如 <code>{HOST}</code>、<code>{USER}</code>、<code>{PORT}</code>。</li>
+                <li>未知占位符将保持原样。</li>
             </ul>
         </details>
 
         <details>
-            <summary>UI 里调试输出太多</summary>
+            <summary>界面里调试输出太多</summary>
             <ul class="bullets">
-                <li>关闭 <b>PQ debug</b>。</li>
-                <li>应用默认会隐藏噪声较大的行（例如 SSH 命令包装输出）。</li>
+                <li>关闭 <b>PQ 调试</b>。</li>
+                <li>应用默认会隐藏诸如 SSH 命令包装器之类的噪声行。</li>
             </ul>
         </details>
     </section>
