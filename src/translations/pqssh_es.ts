@@ -435,7 +435,7 @@
     <message>
         <location line="+0"/>
         <source>No files found to upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se encontraron archivos para cargar.</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -526,7 +526,10 @@
 %1
 
 %2</source>
-        <translation type="unfinished"></translation>
+        <translation>La verificación de integridad falló para la carga:
+%1
+
+%2</translation>
     </message>
     <message>
         <location line="+85"/>
@@ -1526,17 +1529,17 @@ Protege este archivo y establece los permisos correctos.</translation>
     <message>
         <location line="+40"/>
         <source>Invalid BIP39 recovery phrase.</source>
-        <translation type="unfinished"></translation>
+        <translation>Frase de recuperación BIP39 no válida.</translation>
     </message>
     <message>
         <location line="+28"/>
         <source>Internal error: missing master seed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Error interno: falta la semilla maestra.</translation>
     </message>
     <message>
         <location line="+165"/>
         <source>Failed to generate BIP39 recovery phrase.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo generar la frase de recuperación BIP39.</translation>
     </message>
     <message>
         <location line="+90"/>
@@ -2313,63 +2316,63 @@ Al perfil: %3</translation>
         <location line="-591"/>
         <location line="+729"/>
         <source>Scheduled jobs load failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al cargar los trabajos programados: %1</translation>
     </message>
     <message>
         <location line="-617"/>
         <source>SSH KEX: probing…</source>
-        <translation type="unfinished"></translation>
+        <translation>Intercambio de claves SSH (KEX): comprobando…</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Running OpenSSH probe to detect negotiated KEX</source>
-        <translation type="unfinished"></translation>
+        <translation>Ejecutando una prueba de OpenSSH para detectar el intercambio de claves (KEX) negociado</translation>
     </message>
     <message>
         <location line="+69"/>
         <source>SSH KEX: PQ / hybrid</source>
-        <translation type="unfinished"></translation>
+        <translation>Intercambio de claves SSH (KEX): PQ / híbrido</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>SSH KEX: classical</source>
-        <translation type="unfinished"></translation>
+        <translation>Intercambio de claves SSH (KEX): clásico</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>OpenSSH negotiated KEX: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Intercambio de claves (KEX) negociado por OpenSSH: %1</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+147"/>
         <source>SSH KEX: unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Intercambio de claves SSH (KEX): desconocido</translation>
     </message>
     <message>
         <location line="-145"/>
         <source>No OpenSSH debug output captured.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se capturó ninguna salida de depuración de OpenSSH.</translation>
     </message>
     <message>
         <location line="+148"/>
         <source>SFTP KEX: unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Intercambio de claves SFTP (KEX): desconocido</translation>
     </message>
     <message>
         <location line="+57"/>
         <source>[SFTP-KEX] Classical (libssh limitation) → %1</source>
-        <translation type="unfinished"></translation>
+        <translation>[SFTP-KEX] Clásico (limitación de libssh) → %1</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>SFTP KEX: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Intercambio de claves SFTP (KEX): %1</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>SFTP negotiated KEX (libssh): %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Intercambio de claves SFTP (KEX) negociado (libssh): %1</translation>
     </message>
     <message>
         <location line="+34"/>
@@ -2384,7 +2387,7 @@ Al perfil: %3</translation>
     <message>
         <location line="+51"/>
         <source>Scheduled jobs…</source>
-        <translation type="unfinished"></translation>
+        <translation>Trabajos programados…</translation>
     </message>
     <message>
         <location line="+100"/>
@@ -2416,7 +2419,7 @@ Al perfil: %3</translation>
     <message>
         <location line="+62"/>
         <source>[INFO] profiles.json path: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>[INFO] Ruta de profiles.json: %1</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -2426,27 +2429,27 @@ Al perfil: %3</translation>
     <message>
         <location line="+3"/>
         <source>[INFO] Created default profiles.json</source>
-        <translation type="unfinished"></translation>
+        <translation>[INFO] Se creó el archivo profiles.json predeterminado</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>profiles.json exists but no profiles were loaded (empty or unsupported format).</source>
-        <translation type="unfinished"></translation>
+        <translation>profiles.json existe, pero no se cargó ningún perfil (archivo vacío o formato no compatible).</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>profiles.json exists but could not be loaded: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>profiles.json existe, pero no se pudo cargar: %1</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Defaults will be used for this session, and your file will NOT be overwritten.</source>
-        <translation type="unfinished"></translation>
+        <translation>Se usarán los valores predeterminados para esta sesión y su archivo NO será sobrescrito.</translation>
     </message>
     <message>
         <location line="+38"/>
         <source>Scheduled jobs migration save failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al guardar la migración de los trabajos programados: %1</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2703,7 +2706,7 @@ Vista previa de la clave:
     <message>
         <location line="+730"/>
         <source>Scheduled jobs save failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Error al guardar los trabajos programados: %1</translation>
     </message>
     <message>
         <source>[TERM] profile=%1 scheme=&apos;%2&apos; (raw=&apos;%3&apos;)</source>
@@ -3720,17 +3723,17 @@ Escapes:
     <message>
         <location filename="../ScheduledJobsDialog.cpp" line="+26"/>
         <source>One-shot</source>
-        <translation type="unfinished"></translation>
+        <translation>Una sola vez</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Recurring</source>
-        <translation type="unfinished"></translation>
+        <translation>Recurrente</translation>
     </message>
     <message>
         <location line="+282"/>
         <source>(missing)</source>
-        <translation type="unfinished"></translation>
+        <translation>(falta)</translation>
     </message>
 </context>
 <context>
@@ -3738,18 +3741,18 @@ Escapes:
     <message>
         <location filename="../ScheduledJobStore.cpp" line="+100"/>
         <source>Could not open scheduled-jobs.json: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo abrir scheduled-jobs.json: %1</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Invalid JSON in scheduled-jobs.json: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>JSON no válido en scheduled-jobs.json: %1</translation>
     </message>
     <message>
         <location line="+34"/>
         <location line="+8"/>
         <source>Could not write scheduled-jobs.json: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo escribir scheduled-jobs.json: %1</translation>
     </message>
 </context>
 <context>
@@ -3763,57 +3766,58 @@ Escapes:
         <location line="+58"/>
         <location line="+43"/>
         <source>SSH client missing.</source>
-        <translation type="unfinished"></translation>
+        <translation>Falta el cliente SSH.</translation>
     </message>
     <message>
         <location line="-487"/>
         <location line="+89"/>
         <location line="+305"/>
         <source>Run time not set.</source>
-        <translation type="unfinished"></translation>
+        <translation>La hora de ejecución no está configurada.</translation>
     </message>
     <message>
         <location line="-391"/>
         <source>OnCalendar not set.</source>
-        <translation type="unfinished"></translation>
+        <translation>OnCalendar no está configurado.</translation>
     </message>
     <message>
         <location line="+43"/>
         <location line="+471"/>
         <source>Could not determine remote uid.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo determinar el UID remoto.</translation>
     </message>
     <message>
         <location line="-465"/>
         <location line="+472"/>
         <source>Invalid remote uid output: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Salida de UID remoto no válida: %1</translation>
     </message>
     <message>
         <location line="-439"/>
         <source>Cron backend requires a 5-field cron schedule, e.g. &quot;0 2 * * 1-5&quot;.</source>
-        <translation type="unfinished"></translation>
+        <translation>El backend de cron requiere una programación cron de 5 campos, por ejemplo: &quot;0 2 * * 1-5&quot;.</translation>
     </message>
     <message>
         <location line="+41"/>
         <source>Failed to install cron job.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo instalar el trabajo cron.</translation>
     </message>
     <message>
         <location line="+91"/>
         <source>Could not determine remote home directory.
 Neither $HOME nor getent passwd returned a usable path.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo determinar el directorio home remoto.
+Ni $HOME ni getent passwd devolvieron una ruta utilizable.</translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Scheduled jobs</source>
-        <translation type="unfinished"></translation>
+        <translation>Trabajos programados</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Name</source>
-        <translation type="unfinished">Nombre</translation>
+        <translation>Nombre</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3821,110 +3825,110 @@ Neither $HOME nor getent passwd returned a usable path.</source>
         <location line="+5"/>
         <location line="+97"/>
         <source>Profile</source>
-        <translation type="unfinished">Perfil</translation>
+        <translation>Perfil</translation>
     </message>
     <message>
         <location line="-433"/>
         <source>Type</source>
-        <translation type="unfinished">Tipo</translation>
+        <translation>Tipo</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>When</source>
-        <translation type="unfinished"></translation>
+        <translation>Cuándo</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+343"/>
         <location line="+58"/>
         <source>Command</source>
-        <translation type="unfinished"></translation>
+        <translation>Comando</translation>
     </message>
     <message>
         <location line="-400"/>
         <location line="+474"/>
         <source>Installed</source>
-        <translation type="unfinished"></translation>
+        <translation>Instalado</translation>
     </message>
     <message>
         <location line="-473"/>
         <source>Enabled</source>
-        <translation type="unfinished">Habilitado</translation>
+        <translation>Habilitado</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Add</source>
-        <translation type="unfinished">Añadir</translation>
+        <translation>Añadir</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit</source>
-        <translation type="unfinished">Editar</translation>
+        <translation>Editar</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Delete</source>
-        <translation type="unfinished">Eliminar</translation>
+        <translation>Eliminar</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Install on server</source>
-        <translation type="unfinished"></translation>
+        <translation>Instalar en el servidor</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cancel on server</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancelar en el servidor</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Close</source>
-        <translation type="unfinished">Cerrar</translation>
+        <translation>Cerrar</translation>
     </message>
     <message>
         <location line="+37"/>
         <location line="+2"/>
         <source>(not set)</source>
-        <translation type="unfinished"></translation>
+        <translation>(no configurado)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>(unnamed)</source>
-        <translation type="unfinished"></translation>
+        <translation>(sin nombre)</translation>
     </message>
     <message>
         <location line="+9"/>
         <location line="+1"/>
         <source>Yes</source>
-        <translation type="unfinished"></translation>
+        <translation>Sí</translation>
     </message>
     <message>
         <location line="-1"/>
         <location line="+1"/>
         <source>No</source>
-        <translation type="unfinished"></translation>
+        <translation>No</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>The &apos;at&apos; backend supports one-shot jobs only.</source>
-        <translation type="unfinished"></translation>
+        <translation>El backend &apos;at&apos; solo admite trabajos de ejecución única.</translation>
     </message>
     <message>
         <location line="+11"/>
         <location line="+106"/>
         <source>Could not resolve remote home directory.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo resolver el directorio home remoto.</translation>
     </message>
     <message>
         <location line="-73"/>
         <source>Failed to enqueue at job.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo poner en cola el trabajo de at.</translation>
     </message>
     <message>
         <location line="+15"/>
         <location line="+42"/>
         <source>Profile not found (missing).</source>
-        <translation type="unfinished"></translation>
+        <translation>Perfil no encontrado (faltante).</translation>
     </message>
     <message>
         <location line="-24"/>
@@ -3932,12 +3936,15 @@ Neither $HOME nor getent passwd returned a usable path.</source>
 
 Details:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>No se encontró ningún programador compatible en el servidor remoto.
+
+Detalles:
+%1</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Unsupported scheduler backend.</source>
-        <translation type="unfinished"></translation>
+        <translation>Backend del programador no compatible.</translation>
     </message>
     <message>
         <location line="+57"/>
@@ -3950,81 +3957,89 @@ Fix options:
      sudo loginctl enable-linger %2
   2) Log in with a full desktop/session that provides a user bus.
   3) Use a cron/at backend instead of systemd user timers.</source>
-        <translation type="unfinished"></translation>
+        <translation>Este servidor no tiene una sesión de systemd/DBus de usuario disponible para este inicio de sesión por SSH.
+
+systemctl --user necesita /run/user/%1/bus, pero no se encontró.
+
+Opciones para solucionarlo:
+  1) (Recomendado) Habilitar lingering una vez:
+     sudo loginctl enable-linger %2
+  2) Iniciar sesión con un entorno de escritorio/sesión completa que proporcione un bus de usuario.
+  3) Usar un backend de cron/at en lugar de temporizadores de usuario de systemd.</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>No profiles</source>
-        <translation type="unfinished"></translation>
+        <translation>No hay perfiles</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>No SSH profiles exist. Create a profile first.</source>
-        <translation type="unfinished"></translation>
+        <translation>No existen perfiles SSH. Cree un perfil primero.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>New job</source>
-        <translation type="unfinished"></translation>
+        <translation>Nuevo trabajo</translation>
     </message>
     <message>
         <location line="+18"/>
         <location line="+102"/>
         <source>Run on server:</source>
-        <translation type="unfinished"></translation>
+        <translation>Ejecutar en el servidor:</translation>
     </message>
     <message>
         <location line="-97"/>
         <source>Invalid profile selection.</source>
-        <translation type="unfinished">Selección de perfil no válida.</translation>
+        <translation>Selección de perfil no válida.</translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+58"/>
         <source>Job name</source>
-        <translation type="unfinished"></translation>
+        <translation>Nombre del trabajo</translation>
     </message>
     <message>
         <location line="-58"/>
         <location line="+58"/>
         <source>Name:</source>
-        <translation type="unfinished">Nombre:</translation>
+        <translation>Nombre:</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Command to run on server:</source>
-        <translation type="unfinished"></translation>
+        <translation>Comando a ejecutar en el servidor:</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>One-shot (run once)</source>
-        <translation type="unfinished"></translation>
+        <translation>Una sola vez (ejecutar una vez)</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Recurring (OnCalendar)</source>
-        <translation type="unfinished"></translation>
+        <translation>Recurrente (OnCalendar)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Schedule type</source>
-        <translation type="unfinished"></translation>
+        <translation>Tipo de programación</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Type:</source>
-        <translation type="unfinished">Tipo:</translation>
+        <translation>Tipo:</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+50"/>
         <source>OnCalendar</source>
-        <translation type="unfinished"></translation>
+        <translation>OnCalendar</translation>
     </message>
     <message>
         <location line="-49"/>
         <source>systemd OnCalendar (e.g. daily, Mon..Fri 02:00):</source>
-        <translation type="unfinished"></translation>
+        <translation>systemd OnCalendar (p. ej., daily, Lun..Vie 02:00):</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -4032,34 +4047,34 @@ Fix options:
         <location line="+32"/>
         <location line="+6"/>
         <source>Run at</source>
-        <translation type="unfinished"></translation>
+        <translation>Ejecutar a las</translation>
     </message>
     <message>
         <location line="-47"/>
         <location line="+41"/>
         <source>Local time (YYYY-MM-DD HH:MM):</source>
-        <translation type="unfinished"></translation>
+        <translation>Hora local (AAAA-MM-DD HH:MM):</translation>
     </message>
     <message>
         <location line="-32"/>
         <location line="+38"/>
         <source>Invalid time format. Use YYYY-MM-DD HH:MM.</source>
-        <translation type="unfinished"></translation>
+        <translation>Formato de hora no válido. Use YYYY-MM-DD HH:MM.</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Command:</source>
-        <translation type="unfinished">Comando:</translation>
+        <translation>Comando:</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>OnCalendar:</source>
-        <translation type="unfinished"></translation>
+        <translation>OnCalendar:</translation>
     </message>
     <message>
         <location line="+41"/>
         <source>Delete job</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminar trabajo</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4067,32 +4082,35 @@ Fix options:
 
 This does NOT cancel it on the server.
 Use &apos;Cancel on server&apos; first if needed.</source>
-        <translation type="unfinished"></translation>
+        <translation>¿Eliminar este trabajo programado de PQ-SSH?
+
+Esto NO lo cancela en el servidor.
+Use &apos;Cancelar en el servidor» primero si es necesario.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Install failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Falló la instalación</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Job installed on server.</source>
-        <translation type="unfinished"></translation>
+        <translation>Trabajo instalado en el servidor.</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Cancel failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Falló la cancelación</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Cancelled</source>
-        <translation type="unfinished"></translation>
+        <translation>Cancelado</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Job cancelled on server.</source>
-        <translation type="unfinished"></translation>
+        <translation>Trabajo cancelado en el servidor.</translation>
     </message>
 </context>
 <context>
@@ -4374,27 +4392,27 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="+49"/>
         <source>Failed to set SSH host.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo establecer el host SSH.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed to set SSH user.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo establecer el usuario SSH.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed to set SSH port.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo establecer el puerto SSH.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Failed to set SSH timeout.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo establecer el tiempo de espera de SSH.</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Failed to set SSH identity file.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo establecer el archivo de identidad SSH.></translation>
     </message>
     <message>
         <location line="+58"/>
@@ -4487,7 +4505,7 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="-441"/>
         <source>Local read failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Falló la lectura local: %1</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -4507,7 +4525,7 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="+11"/>
         <source>Failed to create local directory: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo crear el directorio local: %1</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -4531,12 +4549,12 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="+25"/>
         <source>Failed to move existing file aside before replacing.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo mover el archivo existente antes de reemplazarlo.</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Failed to move downloaded temp file to final path.</source>
-        <translation type="unfinished"></translation>
+        <translation>No se pudo mover el archivo temporal descargado a la ruta final.</translation>
     </message>
     <message>
         <location line="+41"/>

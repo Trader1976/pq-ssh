@@ -1905,12 +1905,12 @@ Profiiliin: %3</translation>
     <name>MainWindow</name>
     <message>
         <location filename="../MainWindow.cpp" line="+859"/>
-        <location line="+478"/>
+        <location line="+479"/>
         <source>Profiles</source>
         <translation>Profiilit</translation>
     </message>
     <message>
-        <location line="-472"/>
+        <location line="-473"/>
         <source>Edit profiles…</source>
         <translation>Muokkaa profiileja…</translation>
     </message>
@@ -1991,7 +1991,7 @@ Profiiliin: %3</translation>
         <translation type="vanished">Post-kvanttinen KEX: %1</translation>
     </message>
     <message>
-        <location line="+1431"/>
+        <location line="+1432"/>
         <source>KEX: %1</source>
         <translation>KEX: %1</translation>
     </message>
@@ -2001,7 +2001,7 @@ Profiiliin: %3</translation>
         <translation>Neuvoteltu KEX: %1</translation>
     </message>
     <message>
-        <location line="-1370"/>
+        <location line="-1371"/>
         <source>&amp;File</source>
         <translation>&amp;Tiedosto</translation>
     </message>
@@ -2022,18 +2022,18 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+19"/>
-        <location line="+1227"/>
+        <location line="+1228"/>
         <source>[INFO] Settings updated.</source>
         <translation>[INFO] Asetukset päivitetty.</translation>
     </message>
     <message>
-        <location line="-1226"/>
-        <location line="+1227"/>
+        <location line="-1227"/>
+        <location line="+1228"/>
         <source>Settings updated.</source>
         <translation>Asetukset päivitetty.</translation>
     </message>
     <message>
-        <location line="-1219"/>
+        <location line="-1220"/>
         <source>Import OpenSSH config…</source>
         <translation>Tuo OpenSSH-asetukset…</translation>
     </message>
@@ -2104,13 +2104,13 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+313"/>
+        <location line="+314"/>
         <location line="+10"/>
         <source>Key install failed</source>
         <translation>Avaimen asennus epäonnistui</translation>
     </message>
     <message>
-        <location line="-322"/>
+        <location line="-323"/>
         <source>Cannot read file:
 %1</source>
         <translation>Tiedostoa ei voi lukea:
@@ -2214,12 +2214,12 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="+15"/>
-        <location line="+1028"/>
+        <location line="+1029"/>
         <source>User Manual</source>
         <translation>Käyttöohje</translation>
     </message>
     <message>
-        <location line="-1027"/>
+        <location line="-1028"/>
         <source>Open PQ-SSH user manual</source>
         <translation>Avaa PQ-SSH:n käyttöohje</translation>
     </message>
@@ -2230,12 +2230,12 @@ Profiiliin: %3</translation>
     </message>
     <message>
         <location line="-591"/>
-        <location line="+729"/>
+        <location line="+730"/>
         <source>Scheduled jobs load failed: %1</source>
         <translation>Ajastettujen tehtävien lataus epäonnistui: %1</translation>
     </message>
     <message>
-        <location line="-617"/>
+        <location line="-618"/>
         <source>SSH KEX: probing…</source>
         <translation>SSH KEX: tutkitaan…</translation>
     </message>
@@ -2333,7 +2333,7 @@ Profiiliin: %3</translation>
         <translation>CPUNK PQ-SSH %1</translation>
     </message>
     <message>
-        <location line="+62"/>
+        <location line="+63"/>
         <source>[INFO] profiles.json path: %1</source>
         <translation>[INFO] profiles.json -polku: %1</translation>
     </message>
@@ -2926,8 +2926,8 @@ Syötä sovelluksen salasana:</translation>
         <translation>Väärä salasana.</translation>
     </message>
     <message>
-        <location line="-1508"/>
-        <location line="+273"/>
+        <location line="-1509"/>
+        <location line="+274"/>
         <location line="+5"/>
         <location line="+7"/>
         <location line="+58"/>
@@ -2935,7 +2935,7 @@ Syötä sovelluksen salasana:</translation>
         <translation>Avaimen asennus</translation>
     </message>
     <message>
-        <location line="-1061"/>
+        <location line="-1062"/>
         <source>%1@%2:%3  [%4]</source>
         <translation>%1@%2:%3  [%4]</translation>
     </message>
@@ -2976,12 +2976,12 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
     <message>
         <location line="+28"/>
         <location line="+8"/>
-        <location line="+633"/>
+        <location line="+634"/>
         <source>[WARN] %1</source>
         <translation>[WARN] %1</translation>
     </message>
     <message>
-        <location line="-625"/>
+        <location line="-626"/>
         <source>⚠ WARNING: You have %1 expired SSH key(s). Open Key Generator → Keys tab to review/rotate.</source>
         <translation>⚠ VAROITUS: Sinulla on %1 vanhentunutta SSH-avainta. Avaa Avaingeneraattori → Avaimet-välilehti tarkistaaksesi/kierrättääksesi.</translation>
     </message>
@@ -2992,7 +2992,7 @@ Poista sovelluslukitus käytöstä Asetuksista tai aseta salasana.</translation>
     </message>
     <message>
         <location line="+454"/>
-        <location line="+392"/>
+        <location line="+393"/>
         <source>No profile selected.</source>
         <translation>Profiilia ei ole valittu.</translation>
     </message>
@@ -3551,7 +3551,7 @@ Vinkki:Jos saat viestin “(not found)”, palvelin ei ehkä ole tavoitettavissa
         <translation>Ei voida kirjoittaa tiedostoon %1</translation>
     </message>
     <message>
-        <location filename="../MainWindow.cpp" line="-1079"/>
+        <location filename="../MainWindow.cpp" line="-1080"/>
         <source>Out of memory while hashing password.</source>
         <translation>Muisti loppui salasanaa hajautettaessa.</translation>
     </message>
