@@ -423,7 +423,7 @@
     <message>
         <location line="+0"/>
         <source>No files found to upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>Lähetettäviä tiedostoja ei löytynyt.</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -452,7 +452,10 @@
 %1
 
 %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Lähetyksen eheystarkistus epäonnistui:
+%1
+
+%2</translation>
     </message>
     <message>
         <location line="+113"/>
@@ -1375,17 +1378,17 @@ Suojaa tämä tiedosto ja aseta sille oikeat käyttöoikeudet.</translation>
     <message>
         <location line="+40"/>
         <source>Invalid BIP39 recovery phrase.</source>
-        <translation type="unfinished"></translation>
+        <translation>Virheellinen BIP39-palautuslause.</translation>
     </message>
     <message>
         <location line="+28"/>
         <source>Internal error: missing master seed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Sisäinen virhe: pääsiemen puuttuu.</translation>
     </message>
     <message>
         <location line="+165"/>
         <source>Failed to generate BIP39 recovery phrase.</source>
-        <translation type="unfinished"></translation>
+        <translation>BIP39-palautuslauseen luonti epäonnistui.</translation>
     </message>
     <message>
         <location line="+130"/>
@@ -2229,63 +2232,63 @@ Profiiliin: %3</translation>
         <location line="-591"/>
         <location line="+729"/>
         <source>Scheduled jobs load failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajastettujen tehtävien lataus epäonnistui: %1</translation>
     </message>
     <message>
         <location line="-617"/>
         <source>SSH KEX: probing…</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH KEX: tutkitaan…</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Running OpenSSH probe to detect negotiated KEX</source>
-        <translation type="unfinished"></translation>
+        <translation>Suoritetaan OpenSSH-testaus neuvotellun KEX:n havaitsemiseksi.</translation>
     </message>
     <message>
         <location line="+69"/>
         <source>SSH KEX: PQ / hybrid</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH KEX: PQ / hybridi</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>SSH KEX: classical</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH KEX: klassinen</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>OpenSSH negotiated KEX: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>OpenSSH neuvotteli KEX:n: %1</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+147"/>
         <source>SSH KEX: unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH KEX: tuntematon</translation>
     </message>
     <message>
         <location line="-145"/>
         <source>No OpenSSH debug output captured.</source>
-        <translation type="unfinished"></translation>
+        <translation>OpenSSH:n vianjäljitystulostetta ei saatu talteen.</translation>
     </message>
     <message>
         <location line="+148"/>
         <source>SFTP KEX: unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>SFTP KEX: tuntematon</translation>
     </message>
     <message>
         <location line="+57"/>
         <source>[SFTP-KEX] Classical (libssh limitation) → %1</source>
-        <translation type="unfinished"></translation>
+        <translation>[SFTP-KEX] Klassinen (libssh-rajoitus) → %1</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>SFTP KEX: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>SFTP KEX: %1</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>SFTP negotiated KEX (libssh): %1</source>
-        <translation type="unfinished"></translation>
+        <translation>SFTP neuvotteli KEX:n (libssh): %1</translation>
     </message>
     <message>
         <location line="+34"/>
@@ -2300,7 +2303,7 @@ Profiiliin: %3</translation>
     <message>
         <location line="+51"/>
         <source>Scheduled jobs…</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajastetut tehtävät…</translation>
     </message>
     <message>
         <location line="+100"/>
@@ -2332,7 +2335,7 @@ Profiiliin: %3</translation>
     <message>
         <location line="+62"/>
         <source>[INFO] profiles.json path: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>[INFO] profiles.json -polku: %1</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -2342,27 +2345,27 @@ Profiiliin: %3</translation>
     <message>
         <location line="+3"/>
         <source>[INFO] Created default profiles.json</source>
-        <translation type="unfinished"></translation>
+        <translation>[INFO] Oletusarvoinen profiles.json luotu</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>profiles.json exists but no profiles were loaded (empty or unsupported format).</source>
-        <translation type="unfinished"></translation>
+        <translation>profiles.json on olemassa, mutta profiileja ei ladattu (tyhjä tai tukematon muoto).</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>profiles.json exists but could not be loaded: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>profiles.json on olemassa, mutta sitä ei voitu ladata: %1</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Defaults will be used for this session, and your file will NOT be overwritten.</source>
-        <translation type="unfinished"></translation>
+        <translation>Tässä istunnossa käytetään oletusarvoja, eikä tiedostoasi ylikirjoiteta.</translation>
     </message>
     <message>
         <location line="+38"/>
         <source>Scheduled jobs migration save failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajastettujen tehtävien migraation tallennus epäonnistui: %1</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2619,7 +2622,7 @@ Jatketaanko?</translation>
     <message>
         <location line="+730"/>
         <source>Scheduled jobs save failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajastettujen tehtävien tallennus epäonnistui: %1</translation>
     </message>
     <message>
         <source>[TERM] profile=%1 scheme=&apos;%2&apos; (raw=&apos;%3&apos;)</source>
@@ -3748,17 +3751,17 @@ Escape-merkit:
     <message>
         <location filename="../ScheduledJobsDialog.cpp" line="+26"/>
         <source>One-shot</source>
-        <translation type="unfinished"></translation>
+        <translation>Kertaluonteinen</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Recurring</source>
-        <translation type="unfinished"></translation>
+        <translation>Toistuva</translation>
     </message>
     <message>
         <location line="+282"/>
         <source>(missing)</source>
-        <translation type="unfinished"></translation>
+        <translation>(puuttuu)</translation>
     </message>
 </context>
 <context>
@@ -3766,18 +3769,18 @@ Escape-merkit:
     <message>
         <location filename="../ScheduledJobStore.cpp" line="+100"/>
         <source>Could not open scheduled-jobs.json: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>scheduled-jobs.json-tiedostoa ei voitu avata: %1</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Invalid JSON in scheduled-jobs.json: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Virheellinen JSON scheduled-jobs.json-tiedostossa: %1</translation>
     </message>
     <message>
         <location line="+34"/>
         <location line="+8"/>
         <source>Could not write scheduled-jobs.json: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>scheduled-jobs.json-tiedostoa ei voitu kirjoittaa: %1</translation>
     </message>
 </context>
 <context>
@@ -3791,57 +3794,58 @@ Escape-merkit:
         <location line="+58"/>
         <location line="+43"/>
         <source>SSH client missing.</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH-asiakas puuttuu.</translation>
     </message>
     <message>
         <location line="-487"/>
         <location line="+89"/>
         <location line="+305"/>
         <source>Run time not set.</source>
-        <translation type="unfinished"></translation>
+        <translation>Suoritusaikaa ei ole asetettu.</translation>
     </message>
     <message>
         <location line="-391"/>
         <source>OnCalendar not set.</source>
-        <translation type="unfinished"></translation>
+        <translation>OnCalendar-arvoa ei ole asetettu.</translation>
     </message>
     <message>
         <location line="+43"/>
         <location line="+471"/>
         <source>Could not determine remote uid.</source>
-        <translation type="unfinished"></translation>
+        <translation>Etäkäyttäjän UID:tä ei voitu määrittää.</translation>
     </message>
     <message>
         <location line="-465"/>
         <location line="+472"/>
         <source>Invalid remote uid output: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Virheellinen etä-UID:n tuloste: %1</translation>
     </message>
     <message>
         <location line="-439"/>
         <source>Cron backend requires a 5-field cron schedule, e.g. &quot;0 2 * * 1-5&quot;.</source>
-        <translation type="unfinished"></translation>
+        <translation>Cron-tausta vaatii 5-kenttäisen cron-ajastuksen, esim. &quot;0 2 * * 1-5&quot;.</translation>
     </message>
     <message>
         <location line="+41"/>
         <source>Failed to install cron job.</source>
-        <translation type="unfinished"></translation>
+        <translation>Cron-tehtävän asennus epäonnistui.</translation>
     </message>
     <message>
         <location line="+91"/>
         <source>Could not determine remote home directory.
 Neither $HOME nor getent passwd returned a usable path.</source>
-        <translation type="unfinished"></translation>
+        <translation>Etäkoneen kotihakemistoa ei voitu määrittää.
+Sekä $HOME että getent passwd eivät palauttaneet käyttökelpoista polkua.</translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Scheduled jobs</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajastetut tehtävät</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Name</source>
-        <translation type="unfinished">Nimi</translation>
+        <translation>Nimi</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3849,110 +3853,110 @@ Neither $HOME nor getent passwd returned a usable path.</source>
         <location line="+5"/>
         <location line="+97"/>
         <source>Profile</source>
-        <translation type="unfinished">Profiili</translation>
+        <translation>Profiili</translation>
     </message>
     <message>
         <location line="-433"/>
         <source>Type</source>
-        <translation type="unfinished">Tyyppi</translation>
+        <translation>Tyyppi</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>When</source>
-        <translation type="unfinished"></translation>
+        <translation>Koska</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+343"/>
         <location line="+58"/>
         <source>Command</source>
-        <translation type="unfinished"></translation>
+        <translation>Komento</translation>
     </message>
     <message>
         <location line="-400"/>
         <location line="+474"/>
         <source>Installed</source>
-        <translation type="unfinished"></translation>
+        <translation>Asennettu</translation>
     </message>
     <message>
         <location line="-473"/>
         <source>Enabled</source>
-        <translation type="unfinished">Käytössä</translation>
+        <translation>Käytössä</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Add</source>
-        <translation type="unfinished">Lisää</translation>
+        <translation>Lisää</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit</source>
-        <translation type="unfinished">Muokkaa</translation>
+        <translation>Muokkaa</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Delete</source>
-        <translation type="unfinished">Poista</translation>
+        <translation>Poista</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Install on server</source>
-        <translation type="unfinished"></translation>
+        <translation>Asenna palvelimelle</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cancel on server</source>
-        <translation type="unfinished"></translation>
+        <translation>Peru palvelimella</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Close</source>
-        <translation type="unfinished">Sulje</translation>
+        <translation>Sulje</translation>
     </message>
     <message>
         <location line="+37"/>
         <location line="+2"/>
         <source>(not set)</source>
-        <translation type="unfinished"></translation>
+        <translation>(ei asetettu)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>(unnamed)</source>
-        <translation type="unfinished"></translation>
+        <translation>(nimeämätön)</translation>
     </message>
     <message>
         <location line="+9"/>
         <location line="+1"/>
         <source>Yes</source>
-        <translation type="unfinished"></translation>
+        <translation>Kyllä</translation>
     </message>
     <message>
         <location line="-1"/>
         <location line="+1"/>
         <source>No</source>
-        <translation type="unfinished"></translation>
+        <translation>Ei</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>The &apos;at&apos; backend supports one-shot jobs only.</source>
-        <translation type="unfinished"></translation>
+        <translation>&apos;at&apos; -tausta tukee vain kertaluonteisia tehtäviä.</translation>
     </message>
     <message>
         <location line="+11"/>
         <location line="+106"/>
         <source>Could not resolve remote home directory.</source>
-        <translation type="unfinished"></translation>
+        <translation>Etäkoneen kotihakemistoa ei voitu selvittää.</translation>
     </message>
     <message>
         <location line="-73"/>
         <source>Failed to enqueue at job.</source>
-        <translation type="unfinished"></translation>
+        <translation>at-tehtävän jonoon lisääminen epäonnistui.</translation>
     </message>
     <message>
         <location line="+15"/>
         <location line="+42"/>
         <source>Profile not found (missing).</source>
-        <translation type="unfinished"></translation>
+        <translation>Profiilia ei löytynyt (puuttuu).</translation>
     </message>
     <message>
         <location line="-24"/>
@@ -3960,12 +3964,15 @@ Neither $HOME nor getent passwd returned a usable path.</source>
 
 Details:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Etäkoneelta ei löytynyt tuettua ajastinta.
+
+Lisätiedot:
+%1</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Unsupported scheduler backend.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajastimen tausta ei ole tuettu.</translation>
     </message>
     <message>
         <location line="+57"/>
@@ -3978,81 +3985,89 @@ Fix options:
      sudo loginctl enable-linger %2
   2) Log in with a full desktop/session that provides a user bus.
   3) Use a cron/at backend instead of systemd user timers.</source>
-        <translation type="unfinished"></translation>
+        <translation>Tällä palvelimella ei ole käyttäjäkohtaista systemd/DBus-istuntoa käytettävissä tälle SSH-kirjautumiselle.
+
+systemctl --user tarvitsee /run/user/%1/bus, mutta sitä ei löytynyt.
+
+Korjausvaihtoehdot:
+  1) (Suositus) Ota lingering käyttöön kerran:
+     sudo loginctl enable-linger %2
+  2) Kirjaudu sisään täydellä työpöytä-/istuntokirjautumisella, joka tarjoaa käyttäjäbussin.
+  3) Käytä cron/at-taustaa systemd:n käyttäjäajastimien sijaan.</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>No profiles</source>
-        <translation type="unfinished"></translation>
+        <translation>Ei profiileja</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>No SSH profiles exist. Create a profile first.</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH-profiileja ei ole olemassa. Luo ensin profiili.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>New job</source>
-        <translation type="unfinished"></translation>
+        <translation>Uusi tehtävä</translation>
     </message>
     <message>
         <location line="+18"/>
         <location line="+102"/>
         <source>Run on server:</source>
-        <translation type="unfinished"></translation>
+        <translation>Suorita palvelimella:</translation>
     </message>
     <message>
         <location line="-97"/>
         <source>Invalid profile selection.</source>
-        <translation type="unfinished">Virheellinen profiilivalinta.</translation>
+        <translation>Virheellinen profiilivalinta.</translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+58"/>
         <source>Job name</source>
-        <translation type="unfinished"></translation>
+        <translation>Tehtävän nimi</translation>
     </message>
     <message>
         <location line="-58"/>
         <location line="+58"/>
         <source>Name:</source>
-        <translation type="unfinished">Nimi:</translation>
+        <translation>Nimi:</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Command to run on server:</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location line="+5"/>
         <source>One-shot (run once)</source>
-        <translation type="unfinished"></translation>
+        <translation>Palvelimella suoritettava komento:</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Recurring (OnCalendar)</source>
-        <translation type="unfinished"></translation>
+        <translation>Toistuva (OnCalendar)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Schedule type</source>
-        <translation type="unfinished"></translation>
+        <translation>Ajastustyyppi</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Type:</source>
-        <translation type="unfinished">Tyyppi:</translation>
+        <translation>Tyyppi:</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+50"/>
         <source>OnCalendar</source>
-        <translation type="unfinished"></translation>
+        <translation>OnCalendar</translation>
     </message>
     <message>
         <location line="-49"/>
         <source>systemd OnCalendar (e.g. daily, Mon..Fri 02:00):</source>
-        <translation type="unfinished"></translation>
+        <translation>systemd OnCalendar (esim. daily, Mon..Fri 02:00):</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -4060,34 +4075,34 @@ Fix options:
         <location line="+32"/>
         <location line="+6"/>
         <source>Run at</source>
-        <translation type="unfinished"></translation>
+        <translation>Suorita ajankohtana</translation>
     </message>
     <message>
         <location line="-47"/>
         <location line="+41"/>
         <source>Local time (YYYY-MM-DD HH:MM):</source>
-        <translation type="unfinished"></translation>
+        <translation>Paikallinen aika (YYYY-MM-DD HH:MM):</translation>
     </message>
     <message>
         <location line="-32"/>
         <location line="+38"/>
         <source>Invalid time format. Use YYYY-MM-DD HH:MM.</source>
-        <translation type="unfinished"></translation>
+        <translation>Virheellinen aikamuoto. Käytä YYYY-MM-DD HH:MM.</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Command:</source>
-        <translation type="unfinished">Komento:</translation>
+        <translation>Komento:</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>OnCalendar:</source>
-        <translation type="unfinished"></translation>
+        <translation>OnCalendar:</translation>
     </message>
     <message>
         <location line="+41"/>
         <source>Delete job</source>
-        <translation type="unfinished"></translation>
+        <translation>Poista tehtävä</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4095,32 +4110,35 @@ Fix options:
 
 This does NOT cancel it on the server.
 Use &apos;Cancel on server&apos; first if needed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Poistetaanko tämä ajastettu tehtävä PQ-SSH:stä?
+
+Tämä EI peruuta tehtävää palvelimella.
+Käytä tarvittaessa ensin &apos;Peru palvelimella&apos;.</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Install failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Asennus epäonnistui</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Job installed on server.</source>
-        <translation type="unfinished"></translation>
+        <translation>Tehtävä asennettu palvelimelle.</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Cancel failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Peruutus epäonnistui</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Cancelled</source>
-        <translation type="unfinished"></translation>
+        <translation>Peruutettu</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Job cancelled on server.</source>
-        <translation type="unfinished"></translation>
+        <translation>Tehtävä peruutettu palvelimella.</translation>
     </message>
 </context>
 <context>
@@ -4422,27 +4440,27 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="+49"/>
         <source>Failed to set SSH host.</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH-isäntää ei voitu asettaa.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed to set SSH user.</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH-käyttäjää ei voitu asettaa.</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed to set SSH port.</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH-porttia ei voitu asettaa.</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Failed to set SSH timeout.</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH-aikakatkaisua ei voitu asettaa.</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Failed to set SSH identity file.</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH-identiteettitiedostoa ei voitu asettaa.</translation>
     </message>
     <message>
         <location line="+58"/>
@@ -4535,7 +4553,7 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="-441"/>
         <source>Local read failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Paikallinen luku epäonnistui: %1</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -4555,7 +4573,7 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="+11"/>
         <source>Failed to create local directory: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Paikallisen hakemiston luonti epäonnistui: %1</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -4579,12 +4597,12 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="+25"/>
         <source>Failed to move existing file aside before replacing.</source>
-        <translation type="unfinished"></translation>
+        <translation>Olemassa olevan tiedoston siirtäminen syrjään ennen korvaamista epäonnistui.</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Failed to move downloaded temp file to final path.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ladatun väliaikaistiedoston siirtäminen lopulliseen polkuun epäonnistui.</translation>
     </message>
     <message>
         <location line="+41"/>
