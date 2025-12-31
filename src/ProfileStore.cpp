@@ -30,6 +30,8 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonParseError>
+#include <QStandardPaths>
+#include <QSaveFile>
 
 // -----------------------------
 // Helpers: macros <-> JSON
@@ -245,24 +247,74 @@ static QVector<PortForwardRule> forwardsFromJsonArray(const QJsonArray &a)
 }
 
 // Return the absolute path to profiles.json.
-// Current implementation uses a project-root-relative "profiles/profiles.json"
-// derived from the application directory (two levels up).
+//
+// PACKAGED behavior (AppImage / installed builds):
+// - Store per-user config in QStandardPaths::AppConfigLocation.
+// - Always ensure the directory exists.
+//
+// MIGRATION behavior (developer convenience):
+// - If the new per-user profiles.json does not exist yet,
+//   and a legacy dev file exists at "<project-root>/profiles/profiles.json"
+//   (old behavior), copy it once into the new location.
 QString ProfileStore::configPath()
 {
-    QString baseDir = QCoreApplication::applicationDirPath();
+    QString cfgDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
 
-    QDir dir(baseDir);
-    dir.cdUp(); // bin  -> build
-    dir.cdUp(); // build -> pq-ssh (project root)
-
-    const QString profilesDir = dir.absolutePath() + "/profiles";
-
-    if (!QDir().exists(profilesDir)) {
-        QDir().mkpath(profilesDir);
+    // Safety: fallback if AppConfigLocation is unavailable
+    if (cfgDir.trimmed().isEmpty()) {
+        cfgDir = QDir(QDir::homePath()).filePath(".config/CPUNK/pq-ssh");
     }
 
-    return profilesDir + "/profiles.json";
+    // Ensure directory exists
+    if (!QDir().mkpath(cfgDir)) {
+        qWarning() << "ProfileStore: mkpath failed for" << cfgDir;
+        // Still return a path; callers will fail gracefully on save/load if needed.
+    }
+
+    const QString dst = QDir(cfgDir).filePath("profiles.json");
+
+    // --- One-time migration from legacy dev path ---
+    // Old behavior wrote into: <projectRoot>/profiles/profiles.json
+    // Only migrate if destination does not exist.
+    if (!QFileInfo::exists(dst)) {
+
+        const QString appDir = QCoreApplication::applicationDirPath();
+
+        // Build a small set of *explicit* candidate legacy locations.
+        // These cover typical dev layouts without relying on "cdUp twice".
+        const QStringList candidates = {
+            QDir(appDir).filePath("profiles/profiles.json"),
+            QDir(appDir).filePath("../profiles/profiles.json"),
+            QDir(appDir).filePath("../../profiles/profiles.json"),
+            QDir(appDir).filePath("../../../profiles/profiles.json")
+        };
+
+        QString legacyPath;
+        for (const QString &c : candidates) {
+            const QString abs = QFileInfo(c).absoluteFilePath();
+            if (QFileInfo::exists(abs)) {
+                legacyPath = abs;
+                break;
+            }
+        }
+
+        if (!legacyPath.isEmpty()) {
+            // Copy once; log failure so it's visible.
+            if (QFile::copy(legacyPath, dst)) {
+                qInfo() << "ProfileStore: migrated legacy profiles from" << legacyPath << "to" << dst;
+                // Optional: keep user-only perms
+                QFile::setPermissions(dst, QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+            } else {
+                qWarning() << "ProfileStore: migration copy failed from" << legacyPath << "to" << dst;
+            }
+        } else {
+            qInfo() << "ProfileStore: no legacy profiles found; will use defaults if needed.";
+        }
+    }
+
+    return dst;
 }
+
 
 // Return a default profile set used for first-run or when profiles.json is missing.
 // The defaults are intentionally minimal and safe (localhost, no port forwarding, etc.).
@@ -312,7 +364,7 @@ QVector<SshProfile> ProfileStore::defaults()
 }
 
 // Persist profiles to disk as JSON.
-// - Writes profiles.json atomically via truncate+write (simple approach).
+// - Writes profiles.json atomically via QSaveFile (robust, avoids partial writes).
 // - Keeps schema backward compatible by also writing legacy macro_* fields
 //   mirrored from macros[0] when present.
 bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
@@ -424,8 +476,8 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
 
     QJsonDocument doc(root);
 
-    QFile f(configPath());
-    if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    QSaveFile f(configPath());
+    if (!f.open(QIODevice::WriteOnly)) {
         if (err) *err = QCoreApplication::translate("ProfileStore",
                                                     "Could not write profiles.json: %1")
                             .arg(f.errorString());
@@ -433,7 +485,13 @@ bool ProfileStore::save(const QVector<SshProfile>& profiles, QString* err)
     }
 
     f.write(doc.toJson(QJsonDocument::Indented));
-    f.close();
+
+    if (!f.commit()) {
+        if (err) *err = QCoreApplication::translate("ProfileStore",
+                                                    "Could not write profiles.json: %1")
+                            .arg(f.errorString());
+        return false;
+    }
 
     if (err) err->clear();
     return true;

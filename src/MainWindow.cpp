@@ -1277,27 +1277,64 @@ static void setBadge(QLabel *lbl, const QString &text, const QString &color, con
 // ========================
 // Profiles
 // ========================
-
 /// Load profiles from disk via ProfileStore.
-/// If empty, creates and saves defaults. Rebuilds the profile list UI.
+/// If profiles.json is missing (first run), create + save defaults.
+/// If profiles.json exists but cannot be read/parsed, do NOT overwrite it:
+/// - show warning
+/// - load defaults in-memory so app can still run
 void MainWindow::loadProfiles()
 {
+    const QString path = ProfileStore::configPath();
+    const bool exists = QFileInfo::exists(path);
+
+    appendTerminalLine(tr("[INFO] profiles.json path: %1").arg(path));
+    qInfo() << "profiles.json path:" << path << "exists=" << exists;
+
     QString err;
     m_profiles = ProfileStore::load(&err);
 
-    if (m_profiles.isEmpty()) {
+    // FIRST RUN: file missing -> seed + save
+    if (!exists && m_profiles.isEmpty()) {
         m_profiles = ProfileStore::defaults();
+
         QString saveErr;
-        ProfileStore::save(m_profiles, &saveErr);
-        if (!saveErr.isEmpty())
+        const bool ok = ProfileStore::save(m_profiles, &saveErr);
+
+        if (!ok || !saveErr.isEmpty()) {
             appendTerminalLine(tr("[WARN] Could not save default profiles: %1").arg(saveErr));
+            qWarning() << "Could not save default profiles:" << saveErr;
+        } else {
+            appendTerminalLine(tr("[INFO] Created default profiles.json"));
+            qInfo() << "Created default profiles.json";
+        }
+
+        rebuildProfileList();
+        return;
     }
 
+    // EXISTING FILE but load failed/empty -> do NOT overwrite
+    if (exists && m_profiles.isEmpty()) {
+        const QString msg =
+            err.isEmpty()
+                ? tr("profiles.json exists but no profiles were loaded (empty or unsupported format).")
+                : tr("profiles.json exists but could not be loaded: %1").arg(err);
+
+        appendTerminalLine(tr("[WARN] %1").arg(msg));
+        QMessageBox::warning(this, tr("Profiles"), msg + "\n\n" +
+                             tr("Defaults will be used for this session, and your file will NOT be overwritten."));
+
+        m_profiles = ProfileStore::defaults();
+        rebuildProfileList();
+        return;
+    }
+
+    // Normal case: loaded something (or user intentionally has none)
     rebuildProfileList();
 
     if (!err.isEmpty())
         appendTerminalLine(tr("[WARN] ProfileStore: %1").arg(err));
 }
+
 
 /// Persist current in-memory profiles to disk and notify UI/log on failure.
 void MainWindow::saveProfilesToDisk()

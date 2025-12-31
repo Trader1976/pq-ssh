@@ -9,6 +9,7 @@
 
 #include <QApplication>
 #include <QCoreApplication>
+#include <QGuiApplication>
 #include <QDebug>
 #include <iostream>
 
@@ -76,10 +77,18 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    // Application identity (affects QSettings storage keys and some OS integration)
+    // Application identity (affects QSettings storage keys and QStandardPaths layout)
+    //
+    // IMPORTANT:
+    // - Use a stable "applicationName" for filesystem/config keys (no spaces).
+    // - Use "applicationDisplayName" for UI only (can contain spaces/branding).
+    //
+    // This ensures QStandardPaths resolves to a consistent per-user folder, e.g.:
+    //   ~/.config/CPUNK/pq-ssh/
+    //   ~/.local/share/CPUNK/pq-ssh/
     QCoreApplication::setOrganizationName("CPUNK");
-    QCoreApplication::setApplicationName("pq-ssh");                 // stable key for QSettings
-    QGuiApplication::setApplicationDisplayName("CPUNK PQ-SSH");
+    QCoreApplication::setApplicationName("pq-ssh");                 // stable key for QSettings + paths
+    QGuiApplication::setApplicationDisplayName("CPUNK PQ-SSH");     // UI only
     QCoreApplication::setApplicationVersion("0.9.0-alpha");
 
     // Logging + audit: install sinks and begin a session with a unique id.
@@ -99,6 +108,7 @@ int main(int argc, char *argv[])
     qInfo() << "QM exists fi:" << QFile(":/i18n/pqssh_fi.qm").exists();
     qInfo() << "QM exists en:" << QFile(":/i18n/pqssh_en.qm").exists();
     qInfo() << "QM exists es:" << QFile(":/i18n/pqssh_es.qm").exists();
+    qInfo() << "QM exists zh:" << QFile(":/i18n/pqssh_zh.qm").exists();
 
     // Only install translator for non-English; "en" typically uses source strings.
     if (!lang.isEmpty() && lang != "en") {

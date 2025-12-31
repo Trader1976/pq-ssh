@@ -1,7 +1,6 @@
 {
     "profiles": [
         {
-            "group": "Ungrouped",
             "history_lines": 2000,
             "host": "localhost",
             "key_type": "auto",
@@ -9,135 +8,12 @@
             "name": "Localhost",
             "port": 22,
             "port_forwarding_enabled": false,
-            "pq_debug": false,
-            "term_color_scheme": "SolarizedLight",
-            "term_font_size": 11,
-            "term_height": 500,
-            "term_width": 900,
-            "user": "timo"
-        },
-        {
-            "group": "Production",
-            "history_lines": 2000,
-            "host": "83.146.239.12",
-            "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
-            "key_type": "auto",
-            "macro_enter": true,
-            "macros": [
-                {
-                    "command": "df -h",
-                    "name": "Disk usage",
-                    "send_enter": true,
-                    "shortcut": "F6"
-                },
-                {
-                    "command": "sudo systemctl restart myservice",
-                    "name": "Restart service",
-                    "send_enter": true,
-                    "shortcut": "Ctrl+Alt+R"
-                },
-                {
-                    "command": "cat ~/.ssh/authorized_keys",
-                    "name": "Show authorized_keys",
-                    "send_enter": true,
-                    "shortcut": "Ctrl+Alt+K"
-                },
-                {
-                    "command": "journalctl -u myservice -f",
-                    "name": "Journal follow",
-                    "send_enter": true,
-                    "shortcut": "Ctrl+Alt+J"
-                }
-            ],
-            "name": "DHT Server",
-            "port": 1060,
-            "port_forwarding_enabled": false,
-            "pq_debug": false,
-            "term_color_scheme": "WhiteOnBlack",
-            "term_font_size": 11,
-            "term_height": 500,
-            "term_width": 900,
-            "user": "timo"
-        },
-        {
-            "group": "Production",
-            "history_lines": 2000,
-            "host": "83.146.239.12",
-            "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
-            "key_type": "auto",
-            "macro_enter": true,
-            "name": "cellnode4",
-            "port": 1040,
-            "port_forwarding_enabled": false,
-            "pq_debug": false,
-            "term_color_scheme": "WhiteOnBlack",
-            "term_font_size": 11,
-            "term_height": 500,
-            "term_width": 900,
-            "user": "timo"
-        },
-        {
-            "group": "Production",
-            "history_lines": 2000,
-            "host": "83.146.239.12",
-            "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
-            "key_type": "auto",
-            "macro_command": "ls",
-            "macro_enter": false,
-            "macro_shortcut": "Ctrl+F",
-            "macros": [
-                {
-                    "command": "ls",
-                    "name": "files",
-                    "send_enter": false,
-                    "shortcut": "Ctrl+F"
-                }
-            ],
-            "name": "cellnode2",
-            "port": 1050,
-            "port_forwarding_enabled": false,
-            "pq_debug": false,
-            "term_color_scheme": "WhiteOnBlack",
-            "term_font_size": 11,
-            "term_height": 500,
-            "term_width": 900,
-            "user": "timo"
-        },
-        {
-            "history_lines": 2000,
-            "host": "83.146.239.12",
-            "key_file": "/home/timo/Desktop/keys/DHT_priv_key_openssh",
-            "key_type": "auto",
-            "macro_enter": true,
-            "name": "DHT test",
-            "port": 1060,
-            "port_forwarding_enabled": true,
-            "port_forwards": [
-                {
-                    "bind": "127.0.0.1",
-                    "enabled": false,
-                    "listen_port": 18888,
-                    "note": "test2",
-                    "target_host": "localhost",
-                    "target_port": 18080,
-                    "type": "local"
-                },
-                {
-                    "bind": "127.0.0.1",
-                    "enabled": false,
-                    "listen_port": 18889,
-                    "note": "test3",
-                    "target_host": "localhost",
-                    "target_port": 1080,
-                    "type": "local"
-                }
-            ],
             "pq_debug": true,
             "term_color_scheme": "WhiteOnBlack",
-            "term_font_size": 10,
+            "term_font_size": 11,
             "term_height": 500,
-            "term_width": 1200,
-            "user": "timo"
+            "term_width": 900,
+            "user": "john"
         }
     ]
 }
