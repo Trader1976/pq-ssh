@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("CPUNK");
     QCoreApplication::setApplicationName("pq-ssh");                 // stable key for QSettings + paths
     QGuiApplication::setApplicationDisplayName("CPUNK PQ-SSH");     // UI only
-    QCoreApplication::setApplicationVersion("0.9.0-alpha");
+    QCoreApplication::setApplicationVersion("0.9.2-alpha");
 
     // Logging + audit: install sinks and begin a session with a unique id.
     Logger::install("pq-ssh");
