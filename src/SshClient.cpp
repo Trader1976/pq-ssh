@@ -2,10 +2,9 @@
 //
 // Purpose:
 //   Central SSH/SFTP utility layer for pq-ssh.
-//   - Creates and owns a libssh session
+//   - Creates and owns a libssh session (for SFTP + small exec helpers)
 //   - Authenticates with agent/public key (OpenSSH-compatible today)
-//   - Provides small “remote exec” helpers used by the UI
-//   - Provides SFTP upload/download helpers (streaming, cancelable, safe temp + rename)
+//   - Provides SFTP upload/download helpers (streaming, cancelable, safe temp + replace)
 //   - Provides SFTP directory listing/stat helpers (file manager UI)
 //   - Implements idempotent authorized_keys installation (with backups)
 //
@@ -14,6 +13,8 @@
 //     The interactive terminal is handled via qtermwidget + spawning OpenSSH,
 //     while libssh is mainly used for SFTP and small command execution.
 //   - Never log secrets (passwords, passphrases, private key paths).
+//   - libssh callbacks must outlive the ssh_session; therefore the passphrase callback
+//     is stored as a member (m_cb) and not as a local/static variable.
 
 #include "SshClient.h"
 
@@ -169,6 +170,7 @@ QString SshClient::requestPassphrase(const QString& keyFile, bool *ok)
 // - This does NOT provide an interactive terminal (OpenSSH+qtermwidget does that).
 // - Tries agent first, then publickey_auto.
 // - Optionally sets a preferred KEX list to favor hybrid PQ where supported.
+// - Passphrase callback must outlive the session -> stored in member m_cb (see header).
 bool SshClient::connectProfile(const SshProfile& profile, QString* err)
 {
     if (err) err->clear();
@@ -265,29 +267,35 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     };
 
     // Options: host/user/port must be set before ssh_connect()
-    optSet(SSH_OPTIONS_HOST, host.toUtf8().constData(), "HOST");
-    optSet(SSH_OPTIONS_USER, user.toUtf8().constData(), "USER");
-    optSet(SSH_OPTIONS_PORT, &port, "PORT");
+    // Treat failures as fatal (don't ignore optSet return values).
+    if (!optSet(SSH_OPTIONS_HOST, host.toUtf8().constData(), "HOST"))
+        return failAndFree(tr("Failed to set SSH host."));
+    if (!optSet(SSH_OPTIONS_USER, user.toUtf8().constData(), "USER"))
+        return failAndFree(tr("Failed to set SSH user."));
+    if (!optSet(SSH_OPTIONS_PORT, &port, "PORT"))
+        return failAndFree(tr("Failed to set SSH port."));
 
     // Timeout (libssh expects long for SSH_OPTIONS_TIMEOUT on many builds)
     {
         const long timeoutSec = 8;
-        optSet(SSH_OPTIONS_TIMEOUT, &timeoutSec, "TIMEOUT");
+        if (!optSet(SSH_OPTIONS_TIMEOUT, &timeoutSec, "TIMEOUT"))
+            return failAndFree(tr("Failed to set SSH timeout."));
 
 #ifdef SSH_OPTIONS_TIMEOUT_USEC
         const long timeoutUsec = 0; // 0 additional microseconds
-        optSet(SSH_OPTIONS_TIMEOUT_USEC, &timeoutUsec, "TIMEOUT_USEC");
+        (void)optSet(SSH_OPTIONS_TIMEOUT_USEC, &timeoutUsec, "TIMEOUT_USEC"); // best-effort
 #endif
     }
 
     // Optional explicit key identity file
     if (hasIdentity) {
         const QByteArray p = QFile::encodeName(profile.keyFile.trimmed());
-        optSet(SSH_OPTIONS_IDENTITY, p.constData(), "IDENTITY");
+        if (!optSet(SSH_OPTIONS_IDENTITY, p.constData(), "IDENTITY"))
+            return failAndFree(tr("Failed to set SSH identity file."));
     }
 
     // --- Prefer PQ hybrid KEX when available (libssh 0.11.x+) ---
-    // Must be set BEFORE ssh_connect().
+    // Must be set BEFORE ssh_connect(). Best-effort (older libssh may reject).
     const char *kexPref =
         "sntrup761x25519-sha512@openssh.com,"
         "curve25519-sha256";
@@ -300,17 +308,19 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
     }
 
     // Passphrase callback (UI supplies passphrase)
-    // NOTE: libssh callback API gives us prompt/buffer; key path may not be available here.
-    static ssh_callbacks_struct cb;
-    std::memset(&cb, 0, sizeof(cb));
-    cb.userdata = this;
+    // IMPORTANT: callbacks must outlive the session -> store in member m_cb.
+    std::memset(&m_cb, 0, sizeof(m_cb));
+#if LIBSSH_VERSION_INT >= SSH_VERSION_INT(0,9,0)
+    ssh_callbacks_init(&m_cb);
+#endif
+    m_cb.userdata = this;
 
-    cb.auth_function = [](const char *prompt,
-                          char *buf,
-                          size_t len,
-                          int echo,
-                          int verify,
-                          void *userdata) -> int
+    m_cb.auth_function = [](const char *prompt,
+                            char *buf,
+                            size_t len,
+                            int echo,
+                            int verify,
+                            void *userdata) -> int
     {
         Q_UNUSED(prompt);
         Q_UNUSED(echo);
@@ -319,6 +329,7 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
         auto *self = static_cast<SshClient*>(userdata);
         if (!self) return SSH_AUTH_DENIED;
         if (!self->m_passphraseProvider) return SSH_AUTH_DENIED;
+        if (len == 0) return SSH_AUTH_DENIED;
 
         bool ok = false;
         // NOTE: key path is unknown here; pass empty (UI may show generic prompt)
@@ -326,15 +337,13 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
         if (!ok) return SSH_AUTH_DENIED;
 
         const QByteArray utf8 = pass.toUtf8();
-        if (len == 0) return SSH_AUTH_DENIED;
-
         const size_t n = std::min(len - 1, static_cast<size_t>(utf8.size()));
         std::memcpy(buf, utf8.constData(), n);
         buf[n] = '\0';
         return SSH_AUTH_SUCCESS;
     };
 
-    ssh_set_callbacks(s, &cb);
+    ssh_set_callbacks(s, &m_cb);
 
     // Network connect
     int rc = ssh_connect(s);
@@ -522,7 +531,8 @@ bool SshClient::listRemoteDir(const QString& remotePath,
         e.perms = (quint32)a->permissions;
         e.mtime = (qint64)a->mtime;
 
-        e.isDir = ((a->permissions & S_IFMT) == S_IFDIR);
+        // Many servers also provide a->type; we treat it as authoritative when present.
+        e.isDir = (a->type == SSH_FILEXFER_TYPE_DIRECTORY);
 
         items.push_back(e);
         sftp_attributes_free(a);
@@ -539,6 +549,9 @@ bool SshClient::listRemoteDir(const QString& remotePath,
 // statRemotePath()
 // ------------------------------------------------------------
 // Stat a remote path via SFTP (file or directory). Populates outInfo.
+// Notes:
+// - Prefer server-provided type when available.
+// - Some servers return UNKNOWN type; then we fall back to mode bits.
 bool SshClient::statRemotePath(const QString& remotePath,
                                RemoteEntry* outInfo,
                                QString* err)
@@ -551,7 +564,9 @@ bool SshClient::statRemotePath(const QString& remotePath,
         if (err) *err = tr("Not connected.");
         return false;
     }
-    if (remotePath.trimmed().isEmpty()) {
+
+    const QString path = remotePath.trimmed();
+    if (path.isEmpty()) {
         if (err) *err = tr("Remote path is empty.");
         return false;
     }
@@ -559,21 +574,29 @@ bool SshClient::statRemotePath(const QString& remotePath,
     sftp_session sftp = nullptr;
     if (!openSftp(m_session, &sftp, err)) return false;
 
-    sftp_attributes a = sftp_stat(sftp, remotePath.toUtf8().constData());
+    sftp_attributes a = sftp_stat(sftp, path.toUtf8().constData());
     if (!a) {
-        if (err) *err = tr("sftp_stat failed for '%1': %2").arg(remotePath, libsshError(m_session));
+        if (err) *err = tr("sftp_stat failed for '%1': %2").arg(path, libsshError(m_session));
         sftp_free(sftp);
         return false;
     }
 
     RemoteEntry e;
-    QFileInfo fi(remotePath);
+    QFileInfo fi(path);
     e.name     = fi.fileName();
-    e.fullPath = remotePath;
+    e.fullPath = path;
     e.size     = (quint64)a->size;
     e.perms    = (quint32)a->permissions;
     e.mtime    = (qint64)a->mtime;
-    e.isDir    = ((a->permissions & S_IFMT) == S_IFDIR);
+
+    // Prefer server-provided type; fallback to mode bits if unknown.
+    e.isDir = false;
+    if (a->type == SSH_FILEXFER_TYPE_DIRECTORY) {
+        e.isDir = true;
+    } else if (a->type == SSH_FILEXFER_TYPE_UNKNOWN) {
+        if ((a->permissions & S_IFMT) == S_IFDIR)
+            e.isDir = true;
+    }
 
     sftp_attributes_free(a);
     sftp_free(sftp);
@@ -586,10 +609,19 @@ bool SshClient::statRemotePath(const QString& remotePath,
 // uploadFile()
 // ------------------------------------------------------------
 // Streaming upload local file -> remote file via SFTP.
+//
 // Safety strategy:
 // - write to <remote>.pqssh.part
-// - rename to final (retry with unlink if needed)
+// - safe replace on remote:
+//    1) if destination exists, try rename it to <remote>.pqssh.bak (best-effort)
+//    2) rename temp -> final
+//    3) if rename fails, try unlink final and retry rename
+//    4) if step 2/3 fails AND we made a backup, try to restore backup
 // - on cancel/error, remove temp file
+//
+// Notes:
+// - Remote "rename" semantics vary; some servers don't overwrite on rename.
+// - Backup rename may fail (permissions, etc.); if so, we still attempt overwrite.
 bool SshClient::uploadFile(const QString& localPath,
                            const QString& remotePath,
                            QString* err,
@@ -602,12 +634,16 @@ bool SshClient::uploadFile(const QString& localPath,
         if (err) *err = tr("Not connected.");
         return false;
     }
-    if (localPath.trimmed().isEmpty() || remotePath.trimmed().isEmpty()) {
+
+    const QString lpath = localPath.trimmed();
+    const QString rpath = remotePath.trimmed();
+
+    if (lpath.isEmpty() || rpath.isEmpty()) {
         if (err) *err = tr("uploadFile: localPath/remotePath empty.");
         return false;
     }
 
-    QFile in(localPath);
+    QFile in(lpath);
     if (!in.open(QIODevice::ReadOnly)) {
         if (err) *err = in.errorString();
         return false;
@@ -618,8 +654,29 @@ bool SshClient::uploadFile(const QString& localPath,
     sftp_session sftp = nullptr;
     if (!openSftp(m_session, &sftp, err)) return false;
 
-    const QString tmpPath = remotePath + ".pqssh.part";
+    const QString tmpPath    = rpath + ".pqssh.part";
+    const QString backupPath = rpath + ".pqssh.bak";
 
+    // Helper: best-effort temp cleanup (ignore errors)
+    auto cleanupTemp = [&]() {
+        sftp_unlink(sftp, tmpPath.toUtf8().constData());
+    };
+
+    // Helper: attempt rename src->dst, optionally unlink dst then retry.
+    auto renameWithOverwriteFallback = [&](const QString& src, const QString& dst) -> bool {
+        if (sftp_rename(sftp, src.toUtf8().constData(), dst.toUtf8().constData()) == SSH_OK)
+            return true;
+
+        // Some servers refuse overwrite; try unlink destination then retry rename.
+        sftp_unlink(sftp, dst.toUtf8().constData());
+
+        if (sftp_rename(sftp, src.toUtf8().constData(), dst.toUtf8().constData()) == SSH_OK)
+            return true;
+
+        return false;
+    };
+
+    // Open remote temp for write
     sftp_file f = sftp_open(
         sftp,
         tmpPath.toUtf8().constData(),
@@ -628,7 +685,8 @@ bool SshClient::uploadFile(const QString& localPath,
     );
 
     if (!f) {
-        if (err) *err = tr("Cannot open remote temp file '%1': %2").arg(tmpPath, libsshError(m_session));
+        if (err) *err = tr("Cannot open remote temp file '%1': %2")
+                            .arg(tmpPath, libsshError(m_session));
         sftp_free(sftp);
         return false;
     }
@@ -637,23 +695,29 @@ bool SshClient::uploadFile(const QString& localPath,
     quint64 sent = 0;
 
     while (!in.atEnd()) {
-
         if (m_cancelRequested.load()) {
             sftp_close(f);
-            sftp_unlink(sftp, tmpPath.toUtf8().constData());
+            cleanupTemp();
             sftp_free(sftp);
             if (err) *err = tr("Cancelled by user");
             return false;
         }
 
         const qint64 n = in.read(buf.data(), buf.size());
-        if (n <= 0) break;
+        if (n < 0) {
+            if (err) *err = tr("Local read failed: %1").arg(in.errorString());
+            sftp_close(f);
+            cleanupTemp();
+            sftp_free(sftp);
+            return false;
+        }
+        if (n == 0) break;
 
         const ssize_t w = sftp_write(f, buf.constData(), (size_t)n);
         if (w < 0) {
             if (err) *err = tr("SFTP write failed: %1").arg(libsshError(m_session));
             sftp_close(f);
-            sftp_unlink(sftp, tmpPath.toUtf8().constData());
+            cleanupTemp();
             sftp_free(sftp);
             return false;
         }
@@ -664,23 +728,52 @@ bool SshClient::uploadFile(const QString& localPath,
 
     sftp_close(f);
 
-    // Atomic-ish replace (handle servers that don't overwrite on rename)
-    if (sftp_rename(sftp,
-                    tmpPath.toUtf8().constData(),
-                    remotePath.toUtf8().constData()) != SSH_OK) {
+    // ---- Safe replace phase ----
 
-        // Try unlink destination then rename again
-        sftp_unlink(sftp, remotePath.toUtf8().constData());
+    // 1) Try to create/refresh backup if destination exists.
+    bool hadOld = false;
+    if (auto *st = sftp_stat(sftp, rpath.toUtf8().constData())) {
+        hadOld = true;
+        sftp_attributes_free(st);
+    }
+
+    bool backupMade = false;
+    if (hadOld) {
+        // Remove stale backup best-effort, then rename final -> backup.
+        sftp_unlink(sftp, backupPath.toUtf8().constData());
 
         if (sftp_rename(sftp,
-                        tmpPath.toUtf8().constData(),
-                        remotePath.toUtf8().constData()) != SSH_OK) {
-            if (err) *err = tr("SFTP rename failed '%1' -> '%2': %3")
-                                .arg(tmpPath, remotePath, libsshError(m_session));
-            sftp_unlink(sftp, tmpPath.toUtf8().constData());
-            sftp_free(sftp);
-            return false;
+                        rpath.toUtf8().constData(),
+                        backupPath.toUtf8().constData()) == SSH_OK) {
+            backupMade = true;
+        } else {
+            qInfo().noquote() << QString("[SSH] uploadFile: could not create backup '%1' -> '%2': %3")
+                                 .arg(rpath, backupPath, libsshError(m_session));
         }
+    }
+
+    // 2) Move temp into place (with overwrite fallback).
+    if (!renameWithOverwriteFallback(tmpPath, rpath)) {
+        const QString e = libsshError(m_session);
+
+        // 3) Restore original if we had moved it aside successfully.
+        if (backupMade) {
+            sftp_unlink(sftp, rpath.toUtf8().constData());
+            (void)sftp_rename(sftp,
+                              backupPath.toUtf8().constData(),
+                              rpath.toUtf8().constData());
+        }
+
+        cleanupTemp();
+        sftp_free(sftp);
+
+        if (err) *err = tr("SFTP rename failed '%1' -> '%2': %3").arg(tmpPath, rpath, e);
+        return false;
+    }
+
+    // 4) Success: remove backup if we made one (best-effort)
+    if (backupMade) {
+        sftp_unlink(sftp, backupPath.toUtf8().constData());
     }
 
     sftp_free(sftp);
@@ -691,10 +784,18 @@ bool SshClient::uploadFile(const QString& localPath,
 // downloadFile()
 // ------------------------------------------------------------
 // Streaming download remote file -> local file via SFTP.
+//
 // Safety strategy:
-// - write to <local>.pqssh.part then rename to final
+// - write to <local>.pqssh.part then move into place
 // - ensure local directory exists
+// - safe replace on local:
+//    1) if destination exists, move it to <local>.pqssh.bak
+//    2) move/copy temp into place
+//    3) if step 2 fails, restore backup
 // - on cancel/error, remove temp file
+//
+// Notes:
+// - Uses moveOrCopy() so it survives cross-device rename failures (EXDEV).
 bool SshClient::downloadFile(const QString& remotePath,
                              const QString& localPath,
                              QString* err,
@@ -707,40 +808,67 @@ bool SshClient::downloadFile(const QString& remotePath,
         if (err) *err = tr("Not connected.");
         return false;
     }
-    if (remotePath.trimmed().isEmpty() || localPath.trimmed().isEmpty()) {
+
+    const QString rpath = remotePath.trimmed();
+    const QString lpath = localPath.trimmed();
+
+    if (rpath.isEmpty() || lpath.isEmpty()) {
         if (err) *err = tr("downloadFile: remotePath/localPath empty.");
         return false;
     }
 
+    // Resolve absolute local target (ensures backup/tmp sit next to real file)
+    const QFileInfo targetFi(lpath);
+    const QString absLocal = targetFi.absoluteFilePath();
+
     // Ensure local directory exists
-    QFileInfo li(localPath);
-    if (!li.absolutePath().isEmpty())
-        QDir().mkpath(li.absolutePath());
+    const QString absDir = QFileInfo(absLocal).absolutePath();
+    if (!absDir.isEmpty() && !QDir().mkpath(absDir)) {
+        if (err) *err = tr("Failed to create local directory: %1").arg(absDir);
+        return false;
+    }
+
+    // Helper: move (rename) or fallback to copy+remove (handles cross-device moves)
+    auto moveOrCopy = [&](const QString& src, const QString& dst) -> bool {
+        if (QFile::rename(src, dst))
+            return true;
+
+        if (QFile::exists(dst))
+            QFile::remove(dst);
+
+        if (!QFile::copy(src, dst))
+            return false;
+
+        QFile::remove(src);
+        return true;
+    };
 
     sftp_session sftp = nullptr;
     if (!openSftp(m_session, &sftp, err)) return false;
 
     sftp_file f = sftp_open(
         sftp,
-        remotePath.toUtf8().constData(),
+        rpath.toUtf8().constData(),
         O_RDONLY,
         0
     );
 
     if (!f) {
-        if (err) *err = tr("Cannot open remote file '%1': %2").arg(remotePath, libsshError(m_session));
+        if (err) *err = tr("Cannot open remote file '%1': %2").arg(rpath, libsshError(m_session));
         sftp_free(sftp);
         return false;
     }
 
     // Best-effort total size
     quint64 total = 0;
-    if (auto *st = sftp_stat(sftp, remotePath.toUtf8().constData())) {
+    if (auto *st = sftp_stat(sftp, rpath.toUtf8().constData())) {
         total = (quint64)st->size;
         sftp_attributes_free(st);
     }
 
-    const QString tmpLocal = localPath + ".pqssh.part";
+    const QString tmpLocal    = absLocal + ".pqssh.part";
+    const QString backupLocal = absLocal + ".pqssh.bak";
+
     QFile out(tmpLocal);
     if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         if (err) *err = out.errorString();
@@ -753,7 +881,6 @@ bool SshClient::downloadFile(const QString& remotePath,
     quint64 done = 0;
 
     while (true) {
-
         if (m_cancelRequested.load()) {
             out.close();
             out.remove();
@@ -786,20 +913,41 @@ bool SshClient::downloadFile(const QString& remotePath,
         }
 
         done += (quint64)n;
-
-        if (progressCb)
-            progressCb(done, total);
+        if (progressCb) progressCb(done, total);
     }
 
     out.close();
     sftp_close(f);
     sftp_free(sftp);
 
-    QFile::remove(localPath);
-    if (!QFile::rename(tmpLocal, localPath)) {
-        if (err) *err = tr("Failed to rename downloaded temp file to final path.");
+    // Safer replace:
+    // 1) if destination exists, move it aside to backup
+    // 2) move temp into place
+    // 3) if step 2 fails, restore backup
+    const bool hadOld = QFile::exists(absLocal);
+
+    if (hadOld) {
+        QFile::remove(backupLocal); // clean stale backup best-effort
+        if (!moveOrCopy(absLocal, backupLocal)) {
+            if (err) *err = tr("Failed to move existing file aside before replacing.");
+            QFile::remove(tmpLocal);
+            return false;
+        }
+    }
+
+    if (!moveOrCopy(tmpLocal, absLocal)) {
+        if (hadOld) {
+            // restore best-effort
+            QFile::remove(absLocal);
+            moveOrCopy(backupLocal, absLocal);
+        }
+        if (err) *err = tr("Failed to move downloaded temp file to final path.");
         QFile::remove(tmpLocal);
         return false;
+    }
+
+    if (hadOld) {
+        QFile::remove(backupLocal); // success -> remove backup
     }
 
     return true;

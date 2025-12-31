@@ -22,6 +22,7 @@
 #include <QtGlobal>      // for quint64/quint32/qint64
 #include <functional>
 #include <atomic>
+#include <libssh/callbacks.h>
 
 #include "SshProfile.h"
 
@@ -155,4 +156,5 @@ private:
     QString requestPassphrase(const QString& keyFile, bool *ok);
 
     std::atomic_bool m_cancelRequested{false};
+    ssh_callbacks_struct m_cb{};
 };
