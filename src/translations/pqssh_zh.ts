@@ -4222,7 +4222,7 @@ systemctl --user 需要 /run/user/%1/bus，但未找到。
         <location line="-47"/>
         <location line="+41"/>
         <source>Local time (YYYY-MM-DD HH:MM):</source>
-        <translation>本地时间 (YYYY-MM-DD HH:MM)：<translation>
+        <translation>本地时间 (YYYY-MM-DD HH:MM):</translation>
     </message>
     <message>
         <location line="-32"/>
