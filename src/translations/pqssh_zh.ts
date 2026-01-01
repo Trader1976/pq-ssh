@@ -435,7 +435,7 @@
     <message>
         <location line="+0"/>
         <source>No files found to upload.</source>
-        <translation type="unfinished"></translation>
+        <translation>未找到要上传的文件。</translation>
     </message>
     <message>
         <location line="+17"/>
@@ -470,7 +470,10 @@
 %1
 
 %2</source>
-        <translation type="unfinished"></translation>
+        <translation>上传的完整性校验失败：
+%1
+
+%2</translation>
     </message>
     <message>
         <location line="+113"/>
@@ -1291,7 +1294,7 @@ Protect this file and set correct permissions.</source>
     <message>
         <location line="-436"/>
         <source>Invalid BIP39 recovery phrase.</source>
-        <translation type="unfinished"></translation>
+        <translation>无效的 BIP39 助记词。</translation>
     </message>
     <message>
         <location line="+9"/>
@@ -1538,12 +1541,12 @@ This does not delete exported key files.</source>
     <message>
         <location line="+68"/>
         <source>Internal error: missing master seed.</source>
-        <translation type="unfinished"></translation>
+        <translation>内部错误：缺少主种子。</translation>
     </message>
     <message>
         <location line="+165"/>
         <source>Failed to generate BIP39 recovery phrase.</source>
-        <translation type="unfinished"></translation>
+        <translation>生成 BIP39 助记词失败。</translation>
     </message>
     <message>
         <location line="+90"/>
@@ -2398,63 +2401,63 @@ To profile: %3</source>
         <location line="-591"/>
         <location line="+729"/>
         <source>Scheduled jobs load failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>计划任务加载失败：%1</translation>
     </message>
     <message>
         <location line="-617"/>
         <source>SSH KEX: probing…</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH 密钥交换：正在探测…</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Running OpenSSH probe to detect negotiated KEX</source>
-        <translation type="unfinished"></translation>
+        <translation>正在运行 OpenSSH 探测以检测已协商的密钥交换算法</translation>
     </message>
     <message>
         <location line="+69"/>
         <source>SSH KEX: PQ / hybrid</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH 密钥交换：PQ / 混合</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>SSH KEX: classical</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH 密钥交换：经典</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>OpenSSH negotiated KEX: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>OpenSSH 协商的密钥交换算法：%1</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+147"/>
         <source>SSH KEX: unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>SSH 密钥交换：未知</translation>
     </message>
     <message>
         <location line="-145"/>
         <source>No OpenSSH debug output captured.</source>
-        <translation type="unfinished"></translation>
+        <translation>未捕获到 OpenSSH 调试输出。</translation>
     </message>
     <message>
         <location line="+148"/>
         <source>SFTP KEX: unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>SFTP 密钥交换：未知</translation>
     </message>
     <message>
         <location line="+57"/>
         <source>[SFTP-KEX] Classical (libssh limitation) → %1</source>
-        <translation type="unfinished"></translation>
+        <translation>[SFTP-KEX] 经典（libssh 限制）→ %1</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>SFTP KEX: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>SFTP 密钥交换：%1</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>SFTP negotiated KEX (libssh): %1</source>
-        <translation type="unfinished"></translation>
+        <translation>SFTP 协商的密钥交换算法（libssh）：%1</translation>
     </message>
     <message>
         <location line="+34"/>
@@ -2469,7 +2472,7 @@ To profile: %3</source>
     <message>
         <location line="+51"/>
         <source>Scheduled jobs…</source>
-        <translation type="unfinished"></translation>
+        <translation>计划任务…</translation>
     </message>
     <message>
         <location line="+100"/>
@@ -2501,7 +2504,7 @@ To profile: %3</source>
     <message>
         <location line="+62"/>
         <source>[INFO] profiles.json path: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>[INFO] profiles.json 路径：%1</translation>
     </message>
     <message>
         <location line="+14"/>
@@ -2511,27 +2514,27 @@ To profile: %3</source>
     <message>
         <location line="+3"/>
         <source>[INFO] Created default profiles.json</source>
-        <translation type="unfinished"></translation>
+        <translation>[INFO] 已创建默认的 profiles.json</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>profiles.json exists but no profiles were loaded (empty or unsupported format).</source>
-        <translation type="unfinished"></translation>
+        <translation>profiles.json 已存在，但未加载任何配置（文件为空或格式不受支持）。</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>profiles.json exists but could not be loaded: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>profiles.json 已存在，但无法加载：%1</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Defaults will be used for this session, and your file will NOT be overwritten.</source>
-        <translation type="unfinished"></translation>
+        <translation>本次会话将使用默认设置，并且不会覆盖你的文件。</translation>
     </message>
     <message>
         <location line="+38"/>
         <source>Scheduled jobs migration save failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>计划任务迁移保存失败：%1</translation>
     </message>
     <message>
         <location line="+6"/>
@@ -2788,7 +2791,7 @@ Proceed?</source>
     <message>
         <location line="+730"/>
         <source>Scheduled jobs save failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>计划任务保存失败：%1</translation>
     </message>
     <message>
         <source>[TERM] profile=%1 scheme=&apos;%2&apos; (raw=&apos;%3&apos;)</source>
@@ -3889,17 +3892,17 @@ Escapes:
     <message>
         <location filename="../ScheduledJobsDialog.cpp" line="+26"/>
         <source>One-shot</source>
-        <translation type="unfinished"></translation>
+        <translation>一次性</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Recurring</source>
-        <translation type="unfinished"></translation>
+        <translation>周期性</translation>
     </message>
     <message>
         <location line="+282"/>
         <source>(missing)</source>
-        <translation type="unfinished"></translation>
+        <translation>(缺失)</translation>
     </message>
 </context>
 <context>
@@ -3907,18 +3910,18 @@ Escapes:
     <message>
         <location filename="../ScheduledJobStore.cpp" line="+100"/>
         <source>Could not open scheduled-jobs.json: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>无法打开 scheduled-jobs.json：%1</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Invalid JSON in scheduled-jobs.json: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>scheduled-jobs.json 中的 JSON 无效：%1</translation>
     </message>
     <message>
         <location line="+34"/>
         <location line="+8"/>
         <source>Could not write scheduled-jobs.json: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>无法写入 scheduled-jobs.json：%1</translation>
     </message>
 </context>
 <context>
@@ -3932,57 +3935,58 @@ Escapes:
         <location line="+58"/>
         <location line="+43"/>
         <source>SSH client missing.</source>
-        <translation type="unfinished"></translation>
+        <translation>缺少 SSH 客户端。</translation>
     </message>
     <message>
         <location line="-487"/>
         <location line="+89"/>
         <location line="+305"/>
         <source>Run time not set.</source>
-        <translation type="unfinished"></translation>
+        <translation>未设置运行时间。</translation>
     </message>
     <message>
         <location line="-391"/>
         <source>OnCalendar not set.</source>
-        <translation type="unfinished"></translation>
+        <translation>未设置 OnCalendar。</translation>
     </message>
     <message>
         <location line="+43"/>
         <location line="+471"/>
         <source>Could not determine remote uid.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法确定远程 UID。</translation>
     </message>
     <message>
         <location line="-465"/>
         <location line="+472"/>
         <source>Invalid remote uid output: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>远程 UID 输出无效：%1</translation>
     </message>
     <message>
         <location line="-439"/>
         <source>Cron backend requires a 5-field cron schedule, e.g. &quot;0 2 * * 1-5&quot;.</source>
-        <translation type="unfinished"></translation>
+        <translation>Cron 后端需要一个包含 5 个字段的 cron 调度表达式，例如 &quot;0 2 * * 1-5&quot;.</translation>
     </message>
     <message>
         <location line="+41"/>
         <source>Failed to install cron job.</source>
-        <translation type="unfinished"></translation>
+        <translation>安装 cron 任务失败。</translation>
     </message>
     <message>
         <location line="+91"/>
         <source>Could not determine remote home directory.
 Neither $HOME nor getent passwd returned a usable path.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法确定远程主目录。
+$HOME 和 getent passwd 均未返回可用的路径。</translation>
     </message>
     <message>
         <location line="+34"/>
         <source>Scheduled jobs</source>
-        <translation type="unfinished"></translation>
+        <translation>计划任务</translation>
     </message>
     <message>
         <location line="+15"/>
         <source>Name</source>
-        <translation type="unfinished">名称</translation>
+        <translation>名称</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -3990,110 +3994,110 @@ Neither $HOME nor getent passwd returned a usable path.</source>
         <location line="+5"/>
         <location line="+97"/>
         <source>Profile</source>
-        <translation type="unfinished">配置</translation>
+        <translation>配置</translation>
     </message>
     <message>
         <location line="-433"/>
         <source>Type</source>
-        <translation type="unfinished">类型</translation>
+        <translation>类型</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>When</source>
-        <translation type="unfinished"></translation>
+        <translation>时间</translation>
     </message>
     <message>
         <location line="+1"/>
         <location line="+343"/>
         <location line="+58"/>
         <source>Command</source>
-        <translation type="unfinished"></translation>
+        <translation>命令</translation>
     </message>
     <message>
         <location line="-400"/>
         <location line="+474"/>
         <source>Installed</source>
-        <translation type="unfinished"></translation>
+        <translation>已安装</translation>
     </message>
     <message>
         <location line="-473"/>
         <source>Enabled</source>
-        <translation type="unfinished">已启用</translation>
+        <translation>已启用</translation>
     </message>
     <message>
         <location line="+23"/>
         <source>Add</source>
-        <translation type="unfinished">添加</translation>
+        <translation>添加</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Edit</source>
-        <translation type="unfinished">编辑</translation>
+        <translation>编辑</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Delete</source>
-        <translation type="unfinished">删除</translation>
+        <translation>删除</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Install on server</source>
-        <translation type="unfinished"></translation>
+        <translation>在服务器上安装</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Cancel on server</source>
-        <translation type="unfinished"></translation>
+        <translation>在服务器上取消</translation>
     </message>
     <message>
         <location line="+10"/>
         <source>Close</source>
-        <translation type="unfinished">关闭</translation>
+        <translation>关闭</translation>
     </message>
     <message>
         <location line="+37"/>
         <location line="+2"/>
         <source>(not set)</source>
-        <translation type="unfinished"></translation>
+        <translation>(未设置)</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>(unnamed)</source>
-        <translation type="unfinished"></translation>
+        <translation>(未命名)</translation>
     </message>
     <message>
         <location line="+9"/>
         <location line="+1"/>
         <source>Yes</source>
-        <translation type="unfinished"></translation>
+        <translation>是</translation>
     </message>
     <message>
         <location line="-1"/>
         <location line="+1"/>
         <source>No</source>
-        <translation type="unfinished"></translation>
+        <translation>否</translation>
     </message>
     <message>
         <location line="+24"/>
         <source>The &apos;at&apos; backend supports one-shot jobs only.</source>
-        <translation type="unfinished"></translation>
+        <translation>&apos;at&apos; 后端仅支持一次性任务。</translation>
     </message>
     <message>
         <location line="+11"/>
         <location line="+106"/>
         <source>Could not resolve remote home directory.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法解析远程主目录。</translation>
     </message>
     <message>
         <location line="-73"/>
         <source>Failed to enqueue at job.</source>
-        <translation type="unfinished"></translation>
+        <translation>加入 at 任务队列失败。</translation>
     </message>
     <message>
         <location line="+15"/>
         <location line="+42"/>
         <source>Profile not found (missing).</source>
-        <translation type="unfinished"></translation>
+        <translation>未找到配置(缺失)。</translation>
     </message>
     <message>
         <location line="-24"/>
@@ -4101,12 +4105,15 @@ Neither $HOME nor getent passwd returned a usable path.</source>
 
 Details:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>在远程主机上未找到受支持的调度器。
+
+详细信息：
+%1</translation>
     </message>
     <message>
         <location line="+11"/>
         <source>Unsupported scheduler backend.</source>
-        <translation type="unfinished"></translation>
+        <translation>不支持的调度器后端。</translation>
     </message>
     <message>
         <location line="+57"/>
@@ -4119,81 +4126,89 @@ Fix options:
      sudo loginctl enable-linger %2
   2) Log in with a full desktop/session that provides a user bus.
   3) Use a cron/at backend instead of systemd user timers.</source>
-        <translation type="unfinished"></translation>
+        <translation>此服务器在本次 SSH 登录中没有可用的用户 systemd / DBus 会话。
+
+systemctl --user 需要 /run/user/%1/bus，但未找到。
+
+解决方案：
+  1) (推荐)一次性启用 lingering：
+     sudo loginctl enable-linger %2
+  2) 使用提供用户总线的完整桌面/会话登录。
+  3) 使用 cron / at 后端，而不是 systemd 用户定时器。</translation>
     </message>
     <message>
         <location line="+40"/>
         <source>No profiles</source>
-        <translation type="unfinished"></translation>
+        <translation>没有配置文件</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>No SSH profiles exist. Create a profile first.</source>
-        <translation type="unfinished"></translation>
+        <translation>不存在任何 SSH 配置文件。请先创建一个配置文件。</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>New job</source>
-        <translation type="unfinished"></translation>
+        <translation>新建任务</translation>
     </message>
     <message>
         <location line="+18"/>
         <location line="+102"/>
         <source>Run on server:</source>
-        <translation type="unfinished"></translation>
+        <translation>在服务器上运行：</translation>
     </message>
     <message>
         <location line="-97"/>
         <source>Invalid profile selection.</source>
-        <translation type="unfinished">无效的配置选择。</translation>
+        <translation>无效的配置选择。</translation>
     </message>
     <message>
         <location line="+5"/>
         <location line="+58"/>
         <source>Job name</source>
-        <translation type="unfinished"></translation>
+        <translation>任务名称</translation>
     </message>
     <message>
         <location line="-58"/>
         <location line="+58"/>
         <source>Name:</source>
-        <translation type="unfinished">名称：</translation>
+        <translation>名称：</translation>
     </message>
     <message>
         <location line="-54"/>
         <source>Command to run on server:</source>
-        <translation type="unfinished"></translation>
+        <translation>在服务器上运行的命令：</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>One-shot (run once)</source>
-        <translation type="unfinished"></translation>
+        <translation>一次性(运行一次)</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Recurring (OnCalendar)</source>
-        <translation type="unfinished"></translation>
+        <translation>周期性 (OnCalendar)</translation>
     </message>
     <message>
         <location line="+1"/>
         <source>Schedule type</source>
-        <translation type="unfinished"></translation>
+        <translation>调度类型</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Type:</source>
-        <translation type="unfinished">类型：</translation>
+        <translation>类型：</translation>
     </message>
     <message>
         <location line="+7"/>
         <location line="+50"/>
         <source>OnCalendar</source>
-        <translation type="unfinished"></translation>
+        <translation>OnCalendar</translation>
     </message>
     <message>
         <location line="-49"/>
         <source>systemd OnCalendar (e.g. daily, Mon..Fri 02:00):</source>
-        <translation type="unfinished"></translation>
+        <translation>systemd OnCalendar (例如：daily、Mon..Fri 02:00)：</translation>
     </message>
     <message>
         <location line="+11"/>
@@ -4201,34 +4216,34 @@ Fix options:
         <location line="+32"/>
         <location line="+6"/>
         <source>Run at</source>
-        <translation type="unfinished"></translation>
+        <translation>运行时间</translation>
     </message>
     <message>
         <location line="-47"/>
         <location line="+41"/>
         <source>Local time (YYYY-MM-DD HH:MM):</source>
-        <translation type="unfinished"></translation>
+        <translation>本地时间 (YYYY-MM-DD HH:MM)：<translation>
     </message>
     <message>
         <location line="-32"/>
         <location line="+38"/>
         <source>Invalid time format. Use YYYY-MM-DD HH:MM.</source>
-        <translation type="unfinished"></translation>
+        <translation>时间格式无效。请使用 YYYY-MM-DD HH:MM。</translation>
     </message>
     <message>
         <location line="-15"/>
         <source>Command:</source>
-        <translation type="unfinished">命令：</translation>
+        <translation>命令：</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>OnCalendar:</source>
-        <translation type="unfinished"></translation>
+        <translation>OnCalendar:</translation>
     </message>
     <message>
         <location line="+41"/>
         <source>Delete job</source>
-        <translation type="unfinished"></translation>
+        <translation>删除任务</translation>
     </message>
     <message>
         <location line="+1"/>
@@ -4236,32 +4251,35 @@ Fix options:
 
 This does NOT cancel it on the server.
 Use &apos;Cancel on server&apos; first if needed.</source>
-        <translation type="unfinished"></translation>
+        <translation>是否从 PQ-SSH 中删除此计划任务？
+
+这不会在服务器上取消该任务。
+如有需要，请先使用“在服务器上取消”。</translation>
     </message>
     <message>
         <location line="+20"/>
         <source>Install failed</source>
-        <translation type="unfinished"></translation>
+        <translation>安装失败</translation>
     </message>
     <message>
         <location line="+7"/>
         <source>Job installed on server.</source>
-        <translation type="unfinished"></translation>
+        <translation>任务已在服务器上安装。</translation>
     </message>
     <message>
         <location line="+13"/>
         <source>Cancel failed</source>
-        <translation type="unfinished"></translation>
+        <translation>取消失败</translation>
     </message>
     <message>
         <location line="+5"/>
         <source>Cancelled</source>
-        <translation type="unfinished"></translation>
+        <translation>已取消</translation>
     </message>
     <message>
         <location line="+0"/>
         <source>Job cancelled on server.</source>
-        <translation type="unfinished"></translation>
+        <translation>服务器上的任务已取消。</translation>
     </message>
 </context>
 <context>
@@ -4563,27 +4581,27 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="+49"/>
         <source>Failed to set SSH host.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法设置 SSH 主机。</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed to set SSH user.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法设置 SSH 用户。</translation>
     </message>
     <message>
         <location line="+2"/>
         <source>Failed to set SSH port.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法设置 SSH 端口。</translation>
     </message>
     <message>
         <location line="+6"/>
         <source>Failed to set SSH timeout.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法设置 SSH 超时时间。</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Failed to set SSH identity file.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法设置 SSH 身份文件。</translation>
     </message>
     <message>
         <location line="+58"/>
@@ -4676,7 +4694,7 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="-441"/>
         <source>Local read failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>本地读取失败：%1</translation>
     </message>
     <message>
         <location line="+10"/>
@@ -4696,7 +4714,7 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="+11"/>
         <source>Failed to create local directory: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>无法创建本地目录：%1</translation>
     </message>
     <message>
         <location line="+30"/>
@@ -4720,12 +4738,12 @@ Use &apos;Cancel on server&apos; first if needed.</source>
     <message>
         <location line="+25"/>
         <source>Failed to move existing file aside before replacing.</source>
-        <translation type="unfinished"></translation>
+        <translation>在替换之前无法将现有文件移走。</translation>
     </message>
     <message>
         <location line="+12"/>
         <source>Failed to move downloaded temp file to final path.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法将下载的临时文件移动到最终路径。</translation>
     </message>
     <message>
         <location line="+41"/>

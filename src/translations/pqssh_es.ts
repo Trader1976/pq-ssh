@@ -4412,7 +4412,7 @@ Use &apos;Cancelar en el servidor» primero si es necesario.</translation>
     <message>
         <location line="+12"/>
         <source>Failed to set SSH identity file.</source>
-        <translation>No se pudo establecer el archivo de identidad SSH.></translation>
+        <translation>No se pudo establecer el archivo de identidad SSH.&gt;</translation>
     </message>
     <message>
         <location line="+58"/>
