@@ -212,9 +212,7 @@ CpunkTermWidget::CpunkTermWidget(int historyLines, QWidget *parent)
     });
 
     auto doPaste = [this]() {
-        const QString text = QGuiApplication::clipboard()->text();
-        if (!text.isEmpty())
-            sendText(text);
+        pasteClipboard();
     };
 
     connect(pasteAct,  &QAction::triggered, this, doPaste);
