@@ -42,9 +42,9 @@ if(PQSSH_LIBSSH_PREFIX AND EXISTS "${PQSSH_LIBSSH_PREFIX}")
     )
 endif()
 
-pkg_check_modules(LIBSSH REQUIRED libssh)
-pkg_check_modules(QTERM  REQUIRED qtermwidget5)
-pkg_check_modules(SODIUM REQUIRED libsodium)
+pkg_check_modules(LIBSSH REQUIRED IMPORTED_TARGET libssh)
+pkg_check_modules(QTERM  REQUIRED IMPORTED_TARGET qtermwidget5)
+pkg_check_modules(SODIUM REQUIRED IMPORTED_TARGET libsodium)
 
 # ----------------------------
 # Target
@@ -188,9 +188,9 @@ target_compile_options(pq-ssh PRIVATE
 target_link_libraries(pq-ssh PRIVATE
         Qt5::Widgets
         Qt5::Concurrent   # NEW: link Concurrent
-        ${LIBSSH_LIBRARIES}
-        ${QTERM_LIBRARIES}
-        ${SODIUM_LIBRARIES}
+        PkgConfig::LIBSSH
+        PkgConfig::QTERM
+        PkgConfig::SODIUM
         OpenSSL::Crypto
 )
 
