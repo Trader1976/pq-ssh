@@ -294,10 +294,13 @@ bool SshClient::connectProfile(const SshProfile& profile, QString* err)
             return failAndFree(tr("Failed to set SSH identity file."));
     }
 
-    // --- Prefer PQ hybrid KEX when available (libssh 0.11.x+) ---
+    // --- Prefer PQ hybrid KEX when available (libssh 0.12.x) ---
     // Must be set BEFORE ssh_connect(). Best-effort (older libssh may reject).
     const char *kexPref =
+        "mlkem768x25519-sha256,"
+        "mlkem768nistp256-sha256,"
         "sntrup761x25519-sha512@openssh.com,"
+        "sntrup761x25519-sha512,"
         "curve25519-sha256";
 
     const int kexRc = ssh_options_set(s, SSH_OPTIONS_KEY_EXCHANGE, kexPref);

@@ -1,22 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# scripts/build-appimage-12.sh
-#
-# Builds pq-ssh (Release) against bundled libssh 0.12 (private prefix),
-# then packages it as an AppImage using linuxdeploy.
-#
-# Requirements:
-#   - tools/linuxdeploy-x86_64.AppImage   (download manually into ./tools/)
-#   - Your libssh 0.12 install prefix (default below):
-#       /home/timo/opt/libssh-0.12
-#
-# Expected repo layout bits:
-#   packaging/pq-ssh.desktop
-#   packaging/icons/hicolor/256x256/apps/pq-ssh.png   (preferred)
-#     OR
-#   packaging/icons/pq-ssh.png                        (fallback)
-
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${ROOT_DIR}"
 
@@ -24,32 +8,27 @@ APP="pq-ssh"
 APP_DISPLAY="CPUNK PQ-SSH"
 ARCH="x86_64"
 
-# ---- libssh 0.12 prefix (adjust if yours differs) ----
 LIBSSH_PREFIX_DEFAULT="/home/timo/opt/libssh-0.12"
 LIBSSH_PREFIX="${LIBSSH_PREFIX:-$LIBSSH_PREFIX_DEFAULT}"
 
-# Make pkg-config prefer libssh 0.12 from the prefix
 export PKG_CONFIG_PATH="${LIBSSH_PREFIX}/lib/pkgconfig:${LIBSSH_PREFIX}/lib64/pkgconfig:${PKG_CONFIG_PATH:-}"
 
 LINUXDEPLOY="${ROOT_DIR}/tools/linuxdeploy-x86_64.AppImage"
 if [[ ! -f "${LINUXDEPLOY}" ]]; then
   echo "Missing: ${LINUXDEPLOY}"
-  echo "Put linuxdeploy-x86_64.AppImage into ./tools/"
   exit 1
 fi
 
 chmod +x "${LINUXDEPLOY}" || true
 
-# Dedicated build dir for libssh 0.12 build
 BUILD_DIR="${ROOT_DIR}/cmake-build-release-libssh012"
 APPDIR="${ROOT_DIR}/AppDir"
 DIST_DIR="${ROOT_DIR}/dist"
-
 DESKTOP_SRC="${ROOT_DIR}/packaging/${APP}.desktop"
 
 mkdir -p "${DIST_DIR}"
 
-echo "[0/7] Clean packaging outputs (prevent stale AppImage reuse)"
+echo "[0/7] Clean packaging outputs"
 rm -rf "${APPDIR}"
 rm -f "${ROOT_DIR}"/*.AppImage
 rm -f "${DIST_DIR}"/*.AppImage
@@ -58,7 +37,6 @@ rm -rf "${ROOT_DIR}/squashfs-root"
 echo "[0.5/7] Sanity-check libssh 0.12 prefix"
 if [[ ! -d "${LIBSSH_PREFIX}" ]]; then
   echo "ERROR: LIBSSH_PREFIX does not exist: ${LIBSSH_PREFIX}"
-  echo "Set env var LIBSSH_PREFIX or edit the script."
   exit 1
 fi
 
@@ -67,7 +45,7 @@ if [[ ! -f "${DESKTOP_SRC}" ]]; then
   exit 1
 fi
 
-echo "[1/7] Configure + build (Release, libssh 0.12) -> ${BUILD_DIR}"
+echo "[1/7] Configure + build"
 cmake -S "${ROOT_DIR}" -B "${BUILD_DIR}" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_PREFIX_PATH="${LIBSSH_PREFIX}" \
@@ -78,7 +56,6 @@ cmake --build "${BUILD_DIR}" -j"$(nproc)"
 BIN_SRC="${BUILD_DIR}/bin/${APP}"
 if [[ ! -f "${BIN_SRC}" ]]; then
   echo "ERROR: Built binary not found: ${BIN_SRC}"
-  echo "Check your CMake output path."
   exit 1
 fi
 
@@ -101,11 +78,11 @@ echo "[VERIFY] Linked libssh (Release binary):"
 ldd "${BIN_SRC}" | grep -i ssh || true
 echo
 
-echo "[VERIFY] RUNPATH/RPATH (Release binary):"
+echo "[VERIFY] RUNPATH/RPATH:"
 readelf -d "${BIN_SRC}" | grep -E 'RPATH|RUNPATH' || true
 echo
 
-echo "[2/7] Prepare AppDir -> ${APPDIR}"
+echo "[2/7] Prepare AppDir"
 mkdir -p "${APPDIR}/usr/bin"
 mkdir -p "${APPDIR}/usr/share/applications"
 
@@ -113,7 +90,7 @@ cp -f "${BIN_SRC}" "${APPDIR}/usr/bin/${APP}"
 cp -f "${DESKTOP_SRC}" "${APPDIR}/usr/share/applications/${APP}.desktop"
 
 echo
-echo "[VERIFY] AppDir binary (must match Release above):"
+echo "[VERIFY] AppDir binary:"
 sha256sum "${APPDIR}/usr/bin/${APP}"
 echo
 
@@ -121,8 +98,6 @@ REL_HASH="$(sha256sum "${BIN_SRC}" | awk '{print $1}')"
 APPDIR_HASH="$(sha256sum "${APPDIR}/usr/bin/${APP}" | awk '{print $1}')"
 if [[ "${REL_HASH}" != "${APPDIR_HASH}" ]]; then
   echo "ERROR: Release binary hash != AppDir binary hash"
-  echo "  Release: ${REL_HASH}"
-  echo "  AppDir : ${APPDIR_HASH}"
   exit 1
 fi
 
@@ -134,9 +109,6 @@ elif [[ -f "${ROOT_DIR}/packaging/icons/${APP}.png" ]]; then
   ICON_SRC="${ROOT_DIR}/packaging/icons/${APP}.png"
 else
   echo "ERROR: Icon not found."
-  echo "Expected one of:"
-  echo "  packaging/icons/hicolor/256x256/apps/${APP}.png"
-  echo "  packaging/icons/${APP}.png"
   exit 1
 fi
 
@@ -144,7 +116,7 @@ mkdir -p "${APPDIR}/usr/share/icons/hicolor/256x256/apps"
 cp -f "${ICON_SRC}" "${APPDIR}/usr/share/icons/hicolor/256x256/apps/${APP}.png"
 cp -f "${ICON_SRC}" "${APPDIR}/${APP}.png" || true
 
-echo "[4/7] Run linuxdeploy (cwd: ${ROOT_DIR})"
+echo "[4/7] Run linuxdeploy"
 "${LINUXDEPLOY}" \
   --appdir "${APPDIR}" \
   --desktop-file "${APPDIR}/usr/share/applications/${APP}.desktop" \
@@ -162,7 +134,6 @@ done
 
 if [[ -z "${OUT_FILE}" ]]; then
   echo "ERROR: linuxdeploy did not produce an AppImage in repo root."
-  echo "Check linuxdeploy output above."
   exit 1
 fi
 
@@ -171,14 +142,14 @@ FINAL_PATH="${DIST_DIR}/${FINAL_NAME}"
 mv -f "${OUT_FILE}" "${FINAL_PATH}"
 
 echo
-echo "✅ AppImage created:"
+echo "AppImage created:"
 echo "  ${FINAL_PATH}"
 echo
 
-echo "[6/7] Verify AppImage contains the same pq-ssh binary (NOTE: may differ after deployment patching)"
+echo "[6/7] Verify extracted AppImage"
 "${FINAL_PATH}" --appimage-extract >/dev/null
 
-echo "[VERIFY] Extracted AppImage binary:"
+echo "[VERIFY] Extracted binary:"
 sha256sum "squashfs-root/usr/bin/${APP}"
 echo
 
@@ -192,7 +163,7 @@ echo
 
 rm -rf squashfs-root
 
-echo "[7/7] Enforce: AppImage must contain and use libssh from payload (not system)"
+echo "[7/7] Enforce bundled libssh"
 "${FINAL_PATH}" --appimage-extract >/dev/null
 
 PAYLOAD_LIBSSH="$(find squashfs-root/usr -maxdepth 3 -type f -name 'libssh.so*' | head -n1 || true)"
@@ -215,7 +186,6 @@ ldd "squashfs-root/usr/bin/${APP}" | grep -i libssh || true
 
 if ! ldd "squashfs-root/usr/bin/${APP}" | grep -qi "squashfs-root/usr/.*libssh"; then
   echo "ERROR: Extracted pq-ssh does NOT resolve libssh from payload."
-  echo "It may still be pulling system libssh at runtime."
   rm -rf squashfs-root
   exit 1
 fi
@@ -223,13 +193,6 @@ fi
 rm -rf squashfs-root
 
 echo
-echo "✅ Build OK (Release+libssh0.12) and AppImage payload contains libssh from the bundle."
-echo
-echo "Release binary hash (for reference): ${REL_HASH}"
-echo
-echo "Test:"
-echo "  ${FINAL_PATH} --help"
-echo "  ${FINAL_PATH}"
-echo
-echo "Tip: override libssh prefix:"
-echo "  LIBSSH_PREFIX=/some/where ./scripts/build-appimage-12.sh"
+echo "Build OK."
+echo "Release binary hash: ${REL_HASH}"
+echo "AppImage: ${FINAL_PATH}"

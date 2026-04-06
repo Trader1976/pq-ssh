@@ -190,6 +190,11 @@ static bool macroValueForKey(const QString& keyUpper,
     return false;
 }
 
+namespace {
+    constexpr const char* kOpenSshTerminalKex = "+sntrup761x25519-sha512@openssh.com";
+    constexpr const char* kOpenSshProbeKex    = "sntrup761x25519-sha512@openssh.com";
+}
+
 /// Convert raw KEX string into a human-friendly label for UI.
 static QString prettyKexName(const QString& raw)
 {
@@ -751,7 +756,7 @@ void MainWindow::startOpenSshKexProbe(const SshProfile& p)
     // IMPORTANT: need debug output to see negotiated KEX lines
     args << "-vv";
 
-    args << "-o" << "KexAlgorithms=sntrup761x25519-sha512@openssh.com"
+    args << "-o" << QString("KexAlgorithms=%1").arg(kOpenSshProbeKex)
          << "-o" << "PreferredAuthentications=none"
          << "-o" << "PasswordAuthentication=no"
          << "-o" << "BatchMode=yes"
@@ -1019,16 +1024,18 @@ void MainWindow::setupUi()
     // IMPORTANT: This is libssh/SFTP session KEX, not the terminal OpenSSH process KEX.
     connect(&m_ssh, &SshClient::kexNegotiated, this,
             [this](const QString& pretty, const QString& raw) {
+                const bool pq =
+                    raw.contains("mlkem", Qt::CaseInsensitive) ||
+                    raw.contains("sntrup", Qt::CaseInsensitive);
 
-                // libssh is classical-only today (no OpenSSH hybrid sntrup/mlkem)
                 appendTerminalLine(
-                    tr("[SFTP-KEX] Classical (libssh limitation) → %1").arg(pretty)
+                    tr("[SFTP-KEX] %1").arg(pretty)
                 );
 
                 setBadge(
                     m_sftpKexLabel,
-                    tr("SFTP KEX: %1").arg(pretty),
-                    "#9AA0A6",
+                    pq ? tr("SFTP KEX: PQ / hybrid") : tr("SFTP KEX: classical"),
+                    pq ? "#00FF99" : "#9AA0A6",
                     tr("SFTP negotiated KEX (libssh): %1").arg(raw)
                 );
             });
@@ -1599,7 +1606,7 @@ void MainWindow::onConnectClicked()
     auto *pqProc = new QProcess(this);
 
     QStringList pqArgs;
-    pqArgs << "-o" << "KexAlgorithms=sntrup761x25519-sha512@openssh.com";
+    pqArgs << "-o" << QString("KexAlgorithms=%1").arg(kOpenSshProbeKex);
     pqArgs << "-o" << "PreferredAuthentications=none";
     pqArgs << "-o" << "PasswordAuthentication=no";
     pqArgs << "-o" << "BatchMode=yes";
@@ -1798,7 +1805,7 @@ bool MainWindow::probePqSupport(const QString &target)
     QProcess proc;
     QStringList args;
 
-    args << "-o" << "KexAlgorithms=sntrup761x25519-sha512@openssh.com";
+    args << "-o" << QString("KexAlgorithms=%1").arg(kOpenSshProbeKex);
     args << "-o" << "PreferredAuthentications=none";
     args << "-o" << "PasswordAuthentication=no";
     args << "-o" << "BatchMode=yes";
@@ -1871,7 +1878,7 @@ CpunkTermWidget* MainWindow::createTerm(const SshProfile &p, QWidget *parent, co
     sshArgs << "-tt";
     if (p.pqDebug) sshArgs << "-vv";
 
-    sshArgs << "-o" << "KexAlgorithms=+sntrup761x25519-sha512@openssh.com";
+    sshArgs << "-o" << QString("KexAlgorithms=%1").arg(kOpenSshTerminalKex);
     sshArgs << "-o" << "ConnectTimeout=5";
     sshArgs << "-o" << "ConnectionAttempts=1";
 
