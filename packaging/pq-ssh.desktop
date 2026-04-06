@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PQ-SSH
+Comment=CPUNK PQ-SSH client
+Exec=pq-ssh
+Icon=pq-ssh
+Terminal=false
+Categories=Network;Security;
+StartupWMClass=pq-ssh
